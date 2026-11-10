@@ -29,6 +29,7 @@ import { clearBazaar } from '@/lib/offline/bazaar-state';
  * bazaar sale up); the owner's and the shop's names inside sentences come from her own shop
  * details, or the sentence names nobody. Each `Mutation:` line is a change one of these fails on.
  */
+const staffScope = (userId = 'u-helper') => ({ userId, business: 'https://configured.example' });
 function Frame() {
   return <AppFrame v={useOpsVals()} />;
 }
@@ -40,7 +41,10 @@ function mount(role: 'owner' | 'helper' | 'support' = 'owner') {
     </OpsRuntime>
   );
   const runtime = ref.current!;
-  act(() => runtime.setRole(role));
+  act(() => {
+    runtime.setRole(role);
+    runtime.bindStaffIdentity(staffScope('u-' + role));
+  });
   return runtime;
 }
 const at = (runtime: OpsRuntime, iso: string) =>
@@ -103,14 +107,14 @@ describe('a name as a sale may carry it', () => {
   });
 
   it('is remembered under its own key, for its role, and forgotten on request', () => {
-    rememberStaffName('helper', 'Tomas');
-    expect(readStaffName()).toEqual({ role: 'helper', name: 'Tomas' });
+    rememberStaffName('helper', 'Tomas', staffScope());
+    expect(readStaffName(staffScope())).toEqual({ role: 'helper', name: 'Tomas' });
     expect(Object.keys(localStorage)).toEqual(['hc-live-staff-name']);
     clearStaffName();
-    expect(readStaffName()).toBeNull();
+    expect(readStaffName(staffScope())).toBeNull();
     for (const bad of ['{', '"x"', '{"role":"boss","name":"A"}', '{"role":"owner","name":7}']) {
       localStorage.setItem('hc-live-staff-name', bad);
-      expect(readStaffName()).toBeNull();
+      expect(readStaffName(staffScope())).toBeNull();
     }
   });
 });
@@ -153,6 +157,93 @@ describe('sentences that used to name the owner or the shop (audit H14)', () => 
   });
 });
 
+describe('staff names are bound to an account and backend', () => {
+  const a = { userId: 'u-helper', business: 'https://one.example' };
+  const b = { userId: 'next-helper', business: 'https://one.example' };
+  it.each(['owner', 'helper', 'support'] as const)(
+    'clears %s attribution on account switch and failed new reads',
+    async (role) => {
+      const runtime = mount(role),
+        first = staffScope('u-' + role),
+        next = staffScope('next-' + role);
+      rememberCheck(role);
+      const rows = [{ id: first.userId, display_name: 'First person', role, active: true }];
+      await act(
+        async () => void (await runtime.loadStaffName(staffClient(first.userId, rows), role))
+      );
+      expect(text(runtime.renderVals().clerkName)).toBe('First person');
+      act(() => runtime.bindStaffIdentity(next));
+      expect(text(runtime.renderVals().clerkName)).toBe(role[0].toUpperCase() + role.slice(1));
+      expect(readStaffName(first)).toBeNull();
+      expect(runtime.staffNameRead).toBe(false);
+      expect(runtime.renderVals().users).toEqual([]);
+      await act(
+        async () => void (await runtime.loadStaffName(staffClient(next.userId, null), role))
+      );
+      expect(text(runtime.renderVals().clerkName)).not.toBe('First person');
+      act(() => runtime.bindStaffIdentity(first));
+      expect(text(runtime.renderVals().clerkName)).not.toBe('First person');
+      await act(
+        async () => void (await runtime.loadStaffName(staffClient(first.userId, rows), role))
+      );
+      expect(text(runtime.renderVals().clerkName)).toBe('First person');
+      act(() => runtime.bindStaffIdentity(null));
+      expect(readStaffName(first)).toBeNull();
+      expect(text(runtime.renderVals().clerkName)).not.toBe('First person');
+    }
+  );
+  it('rejects an A reply after A → B → A, and a session that differs from the verified account', async () => {
+    const runtime = mount('helper');
+    rememberCheck('helper');
+    let release!: (value: unknown) => void;
+    const old = {
+      auth: { getSession: async () => ({ data: { session: { user: { id: 'u-helper' } } } }) },
+      from: () => ({ select: () => new Promise((resolve) => (release = resolve)) })
+    } as never;
+    const pending = runtime.loadStaffName(old, 'helper');
+    await Promise.resolve();
+    act(() => runtime.bindStaffIdentity(staffScope('next-helper')));
+    act(() => runtime.bindStaffIdentity(staffScope()));
+    await act(async () => {
+      release({ data: STAFF, error: null });
+      expect(await pending).toBe(false);
+    });
+    expect(await runtime.loadStaffName(staffClient('u-owner'), 'helper')).toBe(false);
+    expect(readStaffName(staffScope())).toBeNull();
+    expect(text(runtime.renderVals().clerkName)).toBe('Helper');
+  });
+  it('never reads another account’s or backend’s remembered name', () => {
+    rememberStaffName('helper', 'Tomas', a);
+    expect(readStaffName(a)).toEqual({ role: 'helper', name: 'Tomas' });
+    expect(readStaffName(b)).toBeNull();
+    expect(readStaffName({ ...a, business: 'https://two.example' })).toBeNull();
+  });
+  it('separates backend paths on the same host', () => {
+    const first = { ...a, business: 'https://one.example/backend-a/' };
+    rememberStaffName('helper', 'Tomas', first);
+    expect(readStaffName({ ...first, business: 'https://one.example/backend-a' })).toEqual({
+      role: 'helper',
+      name: 'Tomas'
+    });
+    expect(readStaffName({ ...a, business: 'https://one.example/backend-b' })).toBeNull();
+  });
+  it('does not restore another same-role account’s name offline', () => {
+    rememberStaffName('helper', 'Tomas', a);
+    const runtime = mount('helper');
+    act(() => runtime.restoreStaffName('helper', b));
+    expect(text(runtime.renderVals().clerkName)).toBe('Helper');
+  });
+  it('leaves legacy unbound names neutral on offline reopen', () => {
+    localStorage.setItem(
+      'hc-live-staff-name',
+      JSON.stringify({ role: 'helper', name: 'Old helper' })
+    );
+    const runtime = mount('helper');
+    act(() => runtime.restoreStaffName('helper', a));
+    expect(text(runtime.renderVals().clerkName)).toBe('Helper');
+  });
+});
+
 describe('the signed-in person in live mode', () => {
   it('is never one of the prototype’s people: with no name known, the role word stands in', () => {
     const runtime = mount('owner');
@@ -188,7 +279,7 @@ describe('the signed-in person in live mode', () => {
     expect(text(v.clerkName)).toBe('Marisol Vega');
     expect(ROLES.owner.label).toBe('Marisol Vega'); // what the engine writes on each sale
     expect(ROLES.helper.label).toBe('Helper');
-    expect(readStaffName()).toEqual({ role: 'owner', name: 'Marisol Vega' });
+    expect(readStaffName(staffScope('u-owner'))).toEqual({ role: 'owner', name: 'Marisol Vega' });
     // "Who can see what": the people on record, the one who left not among them.
     expect(v.users.map((u) => [u.name, u.role])).toEqual([
       ['Marisol Vega', 'Owner'],
@@ -206,14 +297,14 @@ describe('the signed-in person in live mode', () => {
     expect(await runtime.loadStaffName(staffClient(null), 'helper')).toBe(false);
     expect(await runtime.loadStaffName(null, 'helper')).toBe(false);
     expect(text(runtime.renderVals().clerkName)).toBe('Helper');
-    expect(readStaffName()).toBeNull();
+    expect(readStaffName(staffScope())).toBeNull();
     expect(runtime.renderVals().users).toEqual([]);
     expect(runtime.staffNameRead).toBe(false); // so the gate asks again at its next check
   });
 
   it('never sells under the last person’s name: an online load waits for the profile', async () => {
     // Tomas closed the tab without signing out; the phone still remembers him.
-    rememberStaffName('helper', 'Tomas');
+    rememberStaffName('helper', 'Tomas', staffScope());
     const runtime = mount('helper');
     rememberCheck('helper');
     // Before the profile answers, and when it cannot be read at all: the role word, not Tomas.
@@ -239,7 +330,7 @@ describe('the signed-in person in live mode', () => {
     clearRememberedCheck(); // what signing out does first
     answer({ data: STAFF, error: null });
     expect(await read).toBe(false);
-    expect(readStaffName()).toBeNull();
+    expect(readStaffName(staffScope())).toBeNull();
     expect(ROLES.helper.label).toBe('Helper');
     // Mutation: without the check, Tomas's name is back on the phone after he signed out.
   });
@@ -269,6 +360,7 @@ describe('the signed-in person in live mode', () => {
       const nextRows = [
         { id: 'next-helper', display_name: 'Next helper', role: 'helper', active: true }
       ];
+      act(() => runtime.bindStaffIdentity(staffScope('next-helper')));
       await act(
         async () =>
           void (await runtime.loadStaffName(staffClient('next-helper', nextRows), 'helper'))
@@ -282,7 +374,10 @@ describe('the signed-in person in live mode', () => {
         expect(await pending).toBe(false);
       });
       expect(text(runtime.renderVals().clerkName)).toBe('Next helper');
-      expect(readStaffName()).toEqual({ role: 'helper', name: 'Next helper' });
+      expect(readStaffName(staffScope('next-helper'))).toEqual({
+        role: 'helper',
+        name: 'Next helper'
+      });
       expect(select).toHaveBeenCalledTimes(phase === 'profile' ? 1 : 0);
     }
   );
@@ -308,7 +403,7 @@ describe('the signed-in person in live mode', () => {
         release({ data: STAFF, error: null });
         expect(await pending).toBe(false);
       });
-      expect(readStaffName()).toBeNull();
+      expect(readStaffName(staffScope())).toBeNull();
       expect(ROLES.helper.label).toBe('Helper');
     }
   );
@@ -322,18 +417,18 @@ describe('the signed-in person in live mode', () => {
   });
 
   it('a phone that reopens with no signal still knows who is selling, for that role only', () => {
-    rememberStaffName('helper', 'Tomas');
+    rememberStaffName('helper', 'Tomas', staffScope());
     const helper = mount('helper');
-    act(() => helper.restoreStaffName('owner')); // the gate reopened it as another role
+    act(() => helper.restoreStaffName('owner', staffScope())); // the gate reopened it as another role
     expect(text(helper.renderVals().clerkName)).toBe('Helper');
-    act(() => helper.restoreStaffName('helper')); // what the gate does when it holds offline
+    act(() => helper.restoreStaffName('helper', staffScope())); // what the gate does when it holds offline
     expect(text(helper.renderVals().clerkName)).toBe('Tomas');
     expect(ROLES.owner.label).toBe('Owner');
     cleanup();
     // Signing out forgets it (`signOutLocal`): the next person never sells under this name.
     clearStaffName();
     const next = mount('helper');
-    act(() => next.restoreStaffName('helper'));
+    act(() => next.restoreStaffName('helper', staffScope()));
     expect(text(next.renderVals().clerkName)).toBe('Helper');
     // Mutation: applying a remembered name to every role names the owner after the helper.
   });

@@ -274,6 +274,7 @@ export function LiveGate({
     function lockOut() {
       if (cancelled) return;
       cancelled = true;
+      if (engine instanceof OpsRuntime) engine.bindStaffIdentity(null);
       stopIdle();
       stopRecheck();
       const path = window.location.pathname || '/';
@@ -325,7 +326,26 @@ export function LiveGate({
         offlineRole = role;
         if (engine instanceof OpsRuntime) engine.restoreStallCopy();
         // Slice B2: and the name this phone remembered for that role, for the sales it rings up.
-        if (engine instanceof OpsRuntime) engine.restoreStaffName(role);
+        const epoch = identityEpoch;
+        void limited(
+          Promise.resolve()
+            .then(() => supabase.auth.getSession())
+            .catch(() => null)
+        ).then((auth) => {
+          if (
+            cancelled ||
+            epoch !== identityEpoch ||
+            offlineRole !== role ||
+            accessRef.current !== 'bazaar'
+          )
+            return;
+          const userId = auth?.data.session?.user.id;
+          if (userId && engine instanceof OpsRuntime)
+            engine.restoreStaffName(role, {
+              userId,
+              business: process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+            });
+        });
         if (engine.state.role !== role) engine.setRole(role);
         if (engine.state.screen !== BAZAAR) engine.go(BAZAAR);
         setLanding(BAZAAR);
@@ -447,6 +467,11 @@ export function LiveGate({
         } catch {
           /* closed until configured */
         }
+        engine.bindStaffIdentity(
+          result.userId
+            ? { userId: result.userId, business: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '' }
+            : null
+        );
         productionScope =
           role === 'owner' && result.userId ? { userId: result.userId, business } : null;
         void engine.setProductionIdentity(productionScope);
@@ -536,7 +561,7 @@ export function LiveGate({
      * blank page (or a growing pile of requests) for as long as the radio keeps trying. Null
      * means the limit passed: the server counts as unreachable for now.
      */
-    async function limited(pending: Promise<ProfileCheck>): Promise<ProfileCheck | null> {
+    async function limited<T>(pending: Promise<T>): Promise<T | null> {
       let timer: ReturnType<typeof setTimeout> | undefined;
       const slow = new Promise<null>((resolve) => {
         timer = setTimeout(() => resolve(null), CHECK_TIMEOUT_MS);
@@ -579,11 +604,13 @@ export function LiveGate({
         event === 'SIGNED_IN' &&
         (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey) || verifiedUserId)
       ) {
+        identityEpoch += 1;
+        if (engine instanceof OpsRuntime && engine.staffAccountId !== session?.user.id)
+          engine.bindStaffIdentity(null);
         // With no verified account yet (Bazaar Mode opened offline) there is nothing to compare: the
         // till stays open and `verify` below decides, closing it only on a definite denial.
         if (verifiedUserId !== null && session?.user.id !== verifiedUserId) {
           if (engine instanceof OpsRuntime) void engine.setProductionIdentity(null);
-          identityEpoch += 1;
           clearRememberedCheck();
           setAccess('closed');
         }

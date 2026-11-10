@@ -305,7 +305,15 @@ import {
   type ShopIdentity
 } from '@/lib/data/shop-identity';
 import { ownerOr, setIdentityWords, withContact } from '@/lib/orders/identity';
-import { ROLE_WORD, cleanStaffName, readStaffName, rememberStaffName } from '@/lib/auth/staff-name';
+import {
+  ROLE_WORD,
+  cleanStaffName,
+  readStaffName,
+  rememberStaffName,
+  clearStaffName,
+  parseStaffIdentity,
+  type StaffIdentity
+} from '@/lib/auth/staff-name';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -2328,6 +2336,29 @@ export class OpsRuntime extends OpsProvider {
   /** The name each role is shown and recorded under in live mode; '' means the role word. */
   private staffNames: Partial<Record<Role, string>> = {};
   private staffNameLoadSeq = 0;
+  private staffIdentity: StaffIdentity | null = null;
+  get staffAccountId(): string | null {
+    return this.staffIdentity?.userId ?? null;
+  }
+
+  /** Name attribution only; the verified gate and database still decide access. */
+  bindStaffIdentity(input: StaffIdentity | null): void {
+    if (!isLiveMode() || this.unmounted) return;
+    const scope = parseStaffIdentity(input);
+    if (
+      scope &&
+      this.staffIdentity?.userId === scope.userId &&
+      this.staffIdentity.business === scope.business
+    )
+      return;
+    this.staffIdentity = scope;
+    this.staffNameLoadSeq += 1;
+    this.staffNameRole = null;
+    this.staffRows = null;
+    for (const role of ['owner', 'helper', 'support'] as const) this.nameRole(role, '');
+    if (!scope || !readStaffName(scope)) clearStaffName();
+    this.forceUpdate();
+  }
   /**
    * The role a profile read has answered for on this page load, or null. The gate asks again
    * until it matches the verified role (a failed first try, or a role that changed since).
@@ -2362,9 +2393,12 @@ export class OpsRuntime extends OpsProvider {
    * up. Only there: an online load waits for the profile, because the person signing in may
    * not be the one the phone remembers.
    */
-  restoreStaffName(role: Role): void {
-    if (!isLiveMode()) return;
-    const remembered = readStaffName();
+  restoreStaffName(role: Role, identity: StaffIdentity): void {
+    if (!isLiveMode() || this.unmounted) return;
+    this.bindStaffIdentity(identity);
+    const scope = this.staffIdentity;
+    if (!scope) return;
+    const remembered = readStaffName(scope);
     if (remembered?.role !== role) return;
     this.nameRole(role, remembered.name);
     this.forceUpdate();
@@ -2408,8 +2442,11 @@ export class OpsRuntime extends OpsProvider {
     if (!isLiveMode() || this.unmounted) return false;
     const seq = ++this.staffNameLoadSeq;
     const actor = this.productionActorEpoch;
+    const identity = this.staffIdentity;
     const current = () =>
       !this.unmounted &&
+      identity !== null &&
+      identity === this.staffIdentity &&
       seq === this.staffNameLoadSeq &&
       actor === this.productionActorEpoch &&
       role === this.state.role &&
@@ -2418,16 +2455,18 @@ export class OpsRuntime extends OpsProvider {
     try {
       const { data: auth } = await client.auth.getSession();
       const uid = auth.session?.user.id;
-      if (!uid || !current()) return false;
+      if (!uid || uid !== identity?.userId || !current()) return false;
       const { data, error } = await client
         .from('profiles')
         .select('id, display_name, role, active');
       // Only the current verified read may name future sales or remember an offline clerk.
       if (error || !data || !current()) return false;
-      const name = cleanStaffName(data.find((row) => row.id === uid)?.display_name);
+      const profile = data.find((row) => row.id === uid);
+      if (!profile?.active || profile.role !== role || !identity) return false;
+      const name = cleanStaffName(profile.display_name);
       this.staffNameRole = role;
       this.nameRole(role, name);
-      rememberStaffName(role, name);
+      rememberStaffName(role, name, identity);
       this.staffRows =
         role === 'owner'
           ? data

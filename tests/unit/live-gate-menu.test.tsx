@@ -20,7 +20,13 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadShopMenu = vi.fn();
     loadShopPayment = vi.fn();
     loadShopIdentity = vi.fn();
-    loadStaffName = vi.fn();
+    staffNameRole: 'owner' | 'helper' | null = null;
+    bindStaffIdentity = vi.fn(() => {
+      this.staffNameRole = null;
+    });
+    loadStaffName = vi.fn(() => {
+      this.staffNameRole = this.state.role;
+    });
     loadShopOrders = vi.fn();
     loadOrders = vi.fn();
     reloadOrders = vi.fn();
@@ -75,8 +81,58 @@ const settle = () => new Promise((r) => setTimeout(r, 0));
 describe('LiveGate: the flavour list each page loads', () => {
   beforeEach(() => {
     engine = new FakeRuntime();
+    vi.mocked(checkStaffProfile).mockImplementation(async () => ({ status: 'ok', role }));
     configured = true;
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example');
+  });
+
+  it('rebinds and re-reads names after a same-role account changes', async () => {
+    engine.state.screen = 'today';
+    vi.mocked(checkStaffProfile).mockResolvedValue({
+      status: 'ok',
+      role: 'owner',
+      userId: 'first-owner'
+    });
+    render(
+      <LiveGate initialScreen="today">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    expect(engine.loadStaffName).toHaveBeenCalledTimes(1);
+    vi.mocked(checkStaffProfile).mockResolvedValue({
+      status: 'ok',
+      role: 'owner',
+      userId: 'next-owner'
+    });
+    await act(async () => {
+      authEvent('SIGNED_IN', { user: { id: 'next-owner' } });
+      await settle();
+    });
+    expect(engine.bindStaffIdentity).toHaveBeenLastCalledWith({
+      userId: 'next-owner',
+      business: 'https://configured.example'
+    });
+    expect(engine.loadStaffName).toHaveBeenCalledTimes(2);
+  });
+
+  it('binds names to the full configured backend path', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example/backend-a');
+    vi.mocked(checkStaffProfile).mockResolvedValue({
+      status: 'ok',
+      role: 'owner',
+      userId: 'first-owner'
+    });
+    render(
+      <LiveGate initialScreen="today">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    expect(engine.bindStaffIdentity).toHaveBeenLastCalledWith({
+      userId: 'first-owner',
+      business: 'https://configured.example/backend-a'
+    });
   });
 
   it('reads the published menu on a customer page, and never the staff list', async () => {

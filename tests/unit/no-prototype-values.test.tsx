@@ -665,7 +665,12 @@ function makeWorld(spec: WorldSpec, viewer: StaffRole | null) {
     },
     storage: { from: () => ({ upload: async () => ({ error: null }) }) }
   };
-  return { client, unknown, calls };
+  return {
+    client,
+    unknown,
+    calls,
+    business: 'https://local-fixture.example/' + encodeURIComponent(spec.identity.shopName)
+  };
 }
 
 type World = ReturnType<typeof makeWorld>;
@@ -715,6 +720,9 @@ async function bootStaff(role: StaffRole, world: World): Promise<OpsRuntime> {
     await L.loadShopStatus(c);
     if (role !== 'helper') await L.loadOperationsHealth(c);
     rememberCheck(role); // the gate records a passed check before it asks for the name
+    const session = await c.auth.getSession();
+    const userId = session.data.session?.user.id;
+    runtime.bindStaffIdentity(userId ? { userId, business: world.business } : null);
     await L.loadStaffName?.(c, role);
     await L.loadSettings(c, role);
     await L.loadIdentity?.(c);
