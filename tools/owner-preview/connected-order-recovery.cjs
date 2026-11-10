@@ -112,6 +112,7 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   assert(await customer.evaluate(orderNo=>{const v=window.__hcOps.renderVals();return v.cust.orderNo===orderNo&&v.liveStatusRead.stale;},receipt.orderNo),'Failed refresh lost or mislabeled last-good status');
   assert(await customer.getByRole('status').filter({hasText:'Showing the last successful read'}).count()===1,'Retained status has no freshness warning');
   assert(await paymentPanel.getByText('Account number: 000',{exact:true}).count()===0,'Stale order status retained payment instructions');
+  assert(!await customer.getByRole('heading',{level:1}).evaluate(node=>node.parentElement.textContent.includes('Send payment')),'Unchecked status summary asked for payment');
   await shot('status-stale');
   await customer.getByRole('button',{name:'Retry order status',exact:true}).click();
   await customer.waitForFunction(()=>window.__hcOps.renderVals().liveStatusRead?.state==='loaded');
@@ -125,6 +126,20 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
    assert(await customer.getByText('Order '+receipt.orderNo,{exact:true}).count()===1,'Fluid status lost its real order');await shot('status-'+size);
   }
   await customer.setViewportSize({width,height:950});
-  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,lookupRetirement:true,statusReadRecovery:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
+  const bookArgs={p_from:new Date(Date.now()-7*86400000).toISOString(),p_to:new Date(Date.now()+86400000).toISOString()},readBooks=()=>owner.evaluate(args=>window.connectedProductionClient.rpc('get_books',args),bookArgs);
+  const beforePaid=await readBooks();assert(!beforePaid.error&&!beforePaid.data.lines.some(line=>line.id==='o:'+receipt.orderNo),'Unpaid order already became book revenue');
+  const saved=rows.data.find(row=>row.id===receipt.orderNo),confirmArgs={p_order_id:receipt.orderNo,p_expected_updated_at:saved.updated_at,p_force:false};assert(typeof confirmArgs.p_expected_updated_at==='string','Owner order timestamp missing');
+  const confirmed=await owner.evaluate(args=>window.connectedProductionClient.rpc('staff_confirm_payment',args),confirmArgs);
+  assert(!confirmed.error&&confirmed.data?.[0]?.pay_state==='confirmed'&&confirmed.data[0].paid_cents===status.data.total_cents,'Actual owner confirmation did not record the server total');
+  const replay=await owner.evaluate(args=>window.connectedProductionClient.rpc('staff_confirm_payment',args),confirmArgs);assert(!replay.error&&replay.data?.[0]?.replayed===true,'Owner confirmation replay did not settle idempotently');
+  assert(await customer.evaluate(()=>window.__hcOps.renderVals().liveCustomerPayment.order.payState==='unpaid'),'Customer invented confirmation before a fresh read');
+  await customer.getByRole('button',{name:'Check order status',exact:true}).click();
+  await customer.getByRole('heading',{level:1,name:'Payment confirmed',exact:true}).waitFor();
+  assert(await paymentPanel.getByText('Payment confirmed by the shop.',{exact:true}).count()===1&&await paymentPanel.getByText(amount,{exact:true}).count()===2,'Fresh customer status lost confirmed payment facts');
+  assert(await paymentPanel.getByText('Account number: 000',{exact:true}).count()===0&&await paymentPanel.getByText('Amount to pay',{exact:true}).count()===0,'Fully paid order invited another payment');
+  const afterPaid=await readBooks(),orderLines=afterPaid.data?.lines?.filter(line=>line.id==='o:'+receipt.orderNo);assert(!afterPaid.error&&orderLines?.length===1&&orderLines[0].amount_cents===status.data.total_cents&&orderLines[0].kind==='revenue','Owner confirmation/replay duplicated or changed order revenue');
+  const revenue=reply=>reply.data.lines.filter(line=>line.kind==='revenue').reduce((sum,line)=>sum+line.amount_cents,0);assert(revenue(afterPaid)-revenue(beforePaid)===status.data.total_cents,'Owner confirmation/replay changed revenue more than once');
+  assert(requests.length===2,'Payment check placed another order');await shot('owner-payment-confirmed');
+  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,lookupRetirement:true,statusReadRecovery:true,orders:1,initialPayState:'unpaid',ownerVerifiedPayment:true,finalPayState:'confirmed',oneOrderRevenue:true,responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
  }finally{await customer.close();if(stamp)await payment(false);await set(initial.data.override??null);}
 };

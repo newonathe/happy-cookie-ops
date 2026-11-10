@@ -352,9 +352,43 @@ describe('the status page', () => {
     expect(view.timeline[1]).toMatchObject({ sub: 'Waiting for your payment', now: true });
   });
 
+  it.each([
+    ['Confirmed', 'unpaid'],
+    ['Preparing', 'claimed'],
+    ['Ready', 'unpaid'],
+    ['Completed', 'refunded'],
+    ['Payment review', 'claimed']
+  ])(
+    'does not infer payment confirmation from fulfilment %s with payment %s',
+    (state, pay_state) => {
+      const view = statusCust(parseOrderStatus({ ...base, state, pay_state })!, {
+        allergenNote: '',
+        now: Date.parse('2026-10-05T02:00:00Z')
+      });
+      expect(
+        [view.heroTitle, view.heroBody, ...view.timeline.flatMap((t) => [t.what, t.sub])].join(' ')
+      ).not.toMatch(/payment confirmed|payment verified|confirmed by|send payment/i);
+      expect(view.timeline[1]?.done).toBe(false);
+    }
+  );
+  it('uses recorded confirmation even before fulfilment moves, without inviting another payment', () => {
+    const order = parseOrderStatus({ ...base, pay_state: 'confirmed', paid_cents: 90000 })!;
+    const view = statusCust(order, { allergenNote: '', now: Date.parse('2026-10-05T02:00:00Z') });
+    expect(view.timeline[1]).toMatchObject({ what: 'Payment confirmed', done: true, now: false });
+    expect(view.heroBody).not.toMatch(/send payment|will confirm/i);
+    expect(order.state).toBe('Payment review');
+  });
+
   it('moves through the states with the ported sentences where they are still true', () => {
     const of = (state: string) =>
-      statusCust(parseOrderStatus({ ...base, state })!, { allergenNote: '' });
+      statusCust(
+        parseOrderStatus({
+          ...base,
+          state,
+          pay_state: state === 'Cancelled' ? 'unpaid' : 'confirmed'
+        })!,
+        { allergenNote: '' }
+      );
     expect(of('Confirmed').heroTitle).toBe('Payment confirmed');
     expect(of('Ready').heroTitle).toBe('Your box is ready');
     expect(of('Completed').heroTitle).toBe('Collected — thank you');
@@ -362,6 +396,20 @@ describe('the status page', () => {
     expect(of('Cancelled').heroTitle).toBe('Order cancelled');
     expect(of('Cancelled').timeline).toHaveLength(2);
     expect(of('Completed').timeline.every((t) => t.done)).toBe(true);
+  });
+
+  it.each([
+    ['Confirmed', 'Waiting for preparation'],
+    ['Preparing', 'Preparing your cookies'],
+    ['Ready', 'Preparation complete']
+  ])('uses recorded preparation stage %s without inventing a bake schedule', (state, detail) => {
+    const view = statusCust(parseOrderStatus({ ...base, state, pay_state: 'confirmed' })!, {
+      allergenNote: ''
+    });
+    expect(view.timeline[2]?.sub).toBe(detail);
+    expect([view.heroBody, ...view.timeline.map((t) => t.sub)].join(' ')).not.toMatch(
+      /weekend|in the oven/i
+    );
   });
 
   it('never says an order is held after the hold has passed', () => {
@@ -376,7 +424,10 @@ describe('the status page', () => {
   });
 
   it('a no-show has one current step, and the paid and ready steps are done', () => {
-    const view = statusCust(parseOrderStatus({ ...base, state: 'No-show' })!, { allergenNote: '' });
+    const view = statusCust(
+      parseOrderStatus({ ...base, state: 'No-show', pay_state: 'confirmed' })!,
+      { allergenNote: '' }
+    );
     expect(view.timeline.filter((t) => t.now)).toHaveLength(1);
     expect(view.timeline.at(-1)).toMatchObject({ what: 'Missed collection', now: true });
     expect(view.timeline.slice(0, 4).every((t) => t.done)).toBe(true);

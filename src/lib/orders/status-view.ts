@@ -80,15 +80,25 @@ export function statusCust(
   const S = ORDER_COPY.status;
   const now = opts.now ?? Date.now();
   const st = order.state;
+  const paidConfirmed = order.payState === 'confirmed';
+  const unpaid = order.payState === 'unpaid';
   const rank = RANK[st] ?? -1;
   const reached = (k: number) => rank >= k;
   const held = order.holdExpiresAt ? whenText(order.holdExpiresAt) : '';
-  const lapsed = !!order.holdExpiresAt && new Date(order.holdExpiresAt).getTime() <= now;
+  const lapsed = unpaid && !!order.holdExpiresAt && new Date(order.holdExpiresAt).getTime() <= now;
   let heroTitle: string;
   let heroBody: string;
   if (st === 'Payment review') {
     heroTitle = 'Order received';
-    heroBody = lapsed ? S.lapsed : held ? S.receivedHeld(order.payMethod, held) : S.receivedNoHold;
+    heroBody = paidConfirmed
+      ? S.paymentRecorded
+      : !unpaid
+        ? S.paymentChecking
+        : lapsed
+          ? S.lapsed
+          : held
+            ? S.receivedHeld(order.payMethod, held)
+            : S.receivedNoHold;
   } else if (st === 'Cancelled') {
     heroTitle = 'Order cancelled';
     heroBody = S.cancelledBody;
@@ -102,8 +112,8 @@ export function statusCust(
     heroTitle = 'Collected — thank you';
     heroBody = withContact('Enjoy them.');
   } else {
-    heroTitle = 'Payment confirmed';
-    heroBody = 'Payment verified. Your cookies are in this weekend’s bake.';
+    heroTitle = paidConfirmed ? 'Payment confirmed' : 'Order received';
+    heroBody = paidConfirmed ? S.paymentRecorded : S.paymentChecking;
   }
   const campus = order.pickupWindow === 'campus';
   const timeline =
@@ -115,18 +125,20 @@ export function statusCust(
       : [
           step('Order received', S.stepReceived, true, false),
           step(
-            reached(0) ? 'Payment confirmed' : 'Payment',
-            reached(0)
+            paidConfirmed ? 'Payment confirmed' : 'Payment',
+            paidConfirmed
               ? 'Confirmed by ' + ownerOr('the shop')
-              : lapsed
-                ? S.stepLapsed
-                : S.stepWaiting,
-            reached(0),
-            !reached(0) && !lapsed
+              : !unpaid
+                ? S.paymentChecking
+                : lapsed
+                  ? S.stepLapsed
+                  : S.stepWaiting,
+            paidConfirmed,
+            !paidConfirmed && !reached(0) && !lapsed
           ),
           step(
             'Baking',
-            reached(1) ? 'In the oven this weekend' : 'This weekend',
+            reached(2) ? S.preparationComplete : reached(1) ? S.preparing : S.preparationWaiting,
             reached(1),
             reached(0) && !reached(1)
           ),
