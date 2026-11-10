@@ -718,11 +718,11 @@ async function bootStaff(role: StaffRole, world: World): Promise<OpsRuntime> {
     await L.loadShopIdentity?.(c);
     await L.loadShopOrders(c);
     await L.loadShopStatus(c);
-    if (role !== 'helper') await L.loadOperationsHealth(c);
     rememberCheck(role); // the gate records a passed check before it asks for the name
     const session = await c.auth.getSession();
     const userId = session.data.session?.user.id;
     runtime.bindStaffIdentity(userId ? { userId, business: world.business } : null);
+    if (role !== 'helper') await L.loadOperationsHealth(c);
     await L.loadStaffName?.(c, role);
     await L.loadSettings(c, role);
     await L.loadIdentity?.(c);

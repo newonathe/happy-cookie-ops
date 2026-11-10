@@ -518,6 +518,98 @@ describe('F1 live health and alerts', () => {
         .some((row) => row.label === 'Automatic backup failed' || row.label === 'Backup completed')
     ).toBe(true);
   });
+  it.each(['role round trip', 'account round trip', 'unmount'])(
+    'a health reply is retired after %s',
+    async (reason) => {
+      const runtime = mount(),
+        a = { userId: 'health-owner-a', business: 'https://health.example' };
+      act(() => runtime.bindStaffIdentity(a));
+      let release!: (value: unknown) => void;
+      const client = {
+        rpc: vi.fn(() => new Promise((resolve) => (release = resolve)))
+      } as unknown as OperationsClient;
+      let pending!: Promise<boolean>;
+      act(() => void (pending = runtime.loadOperationsHealth(client)));
+      if (reason === 'role round trip') {
+        act(() => runtime.setRole('helper'));
+        act(() => runtime.setRole('owner'));
+      } else if (reason === 'account round trip') {
+        act(() => runtime.bindStaffIdentity({ ...a, userId: 'health-owner-b' }));
+        act(() => runtime.bindStaffIdentity(a));
+      } else cleanup();
+      await act(async () => {
+        release({ data: wire(), error: null });
+        expect(await pending).toBe(false);
+      });
+      expect(runtime.renderVals().healthOk).toBe(false);
+    }
+  );
+  it('withdraws the old healthy result while a different client is pending', async () => {
+    const runtime = mount();
+    const a = {
+      rpc: vi.fn().mockResolvedValue({ data: wire(), error: null })
+    } as unknown as OperationsClient;
+    await act(async () => void (await runtime.loadOperationsHealth(a)));
+    expect(runtime.renderVals().healthOk).toBe(true);
+    let release!: (value: unknown) => void;
+    const b = {
+      rpc: vi.fn(() => new Promise((resolve) => (release = resolve)))
+    } as unknown as OperationsClient;
+    let pending!: Promise<boolean>;
+    act(() => void (pending = runtime.loadOperationsHealth(b)));
+    expect(runtime.renderVals().healthOk).toBe(false);
+    await act(async () => {
+      release({ data: wire(), error: null });
+      expect(await pending).toBe(true);
+    });
+  });
+  it.each(['replacement', 'round trip'])(
+    'a cached health Retry cannot read after client %s',
+    async (change) => {
+      const runtime = mount();
+      const a = { rpc: vi.fn().mockResolvedValue({ data: wire(), error: null }) };
+      const b = { rpc: vi.fn().mockResolvedValue({ data: wire(), error: null }) };
+      await act(
+        async () => void (await runtime.loadOperationsHealth(a as unknown as OperationsClient))
+      );
+      const old = runtime.renderVals().retryBackup;
+      await act(
+        async () => void (await runtime.loadOperationsHealth(b as unknown as OperationsClient))
+      );
+      if (change === 'round trip')
+        await act(
+          async () => void (await runtime.loadOperationsHealth(a as unknown as OperationsClient))
+        );
+      const before = [a.rpc.mock.calls.length, b.rpc.mock.calls.length],
+        toast = vi.spyOn(runtime, 'toast');
+      await act(async () => old());
+      expect([a.rpc.mock.calls.length, b.rpc.mock.calls.length]).toEqual(before);
+      expect(toast).not.toHaveBeenCalled();
+    }
+  );
+  it('a retired account timer cannot keep reading its old health client', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+    try {
+      const runtime = mount();
+      act(() =>
+        runtime.bindStaffIdentity({ userId: 'health-owner-a', business: 'https://health.example' })
+      );
+      const rpc = vi.fn().mockResolvedValue({ data: wire(), error: null });
+      await act(
+        async () =>
+          void (await runtime.loadOperationsHealth({ rpc } as unknown as OperationsClient))
+      );
+      act(() =>
+        runtime.bindStaffIdentity({ userId: 'health-owner-b', business: 'https://health.example' })
+      );
+      await act(async () => void (await vi.advanceTimersByTimeAsync(5 * 60_000)));
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(runtime.renderVals().healthOk).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('a late earlier read cannot overwrite the newer failed check', async () => {
     const runtime = mount();
     let resolve: (v: unknown) => void = () => undefined;

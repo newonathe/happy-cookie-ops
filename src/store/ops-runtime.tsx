@@ -1417,6 +1417,7 @@ export class OpsRuntime extends OpsProvider {
   private operationsHealth: OperationsHealth | null = null;
   private operationsPhase: HealthPhase = 'loading';
   private operationsLoadSeq = 0;
+  private operationsSourceGeneration = 0;
   private operationsQueue = -1;
   /** S3.1: the held event's share of the queue, as last read: rows still to send, and the client ids the server refused. */
   private dayQueue: { blocking: number; refused: Set<string> } | null = null;
@@ -2352,6 +2353,7 @@ export class OpsRuntime extends OpsProvider {
     )
       return;
     this.staffIdentity = scope;
+    this.retireOperationsHealth();
     this.staffNameLoadSeq += 1;
     this.staffNameRole = null;
     this.staffRows = null;
@@ -3087,6 +3089,7 @@ export class OpsRuntime extends OpsProvider {
   }
 
   componentWillUnmount(): void {
+    this.retireOperationsHealth();
     this.closeKitchenTransfer();
     this.eventEntry.dispose();
     this.productionRecovery.dispose();
@@ -3115,24 +3118,47 @@ export class OpsRuntime extends OpsProvider {
    *
    * This is not a security boundary. Row-level security is (docs/DATA.md).
    */
+  private retireOperationsHealth(): void {
+    this.operationsSourceGeneration += 1;
+    this.operationsLoadSeq += 1;
+    this.operationsClient = null;
+    this.operationsHealth = null;
+    this.operationsPhase = 'loading';
+    this.operationsQueue = -1;
+    clearInterval(this.healthTimer);
+    this.healthTimer = undefined;
+  }
+
   async loadOperationsHealth(client: OperationsClient | null): Promise<boolean> {
-    if (!isLiveMode() || this.state.role === 'helper') return false;
+    if (!isLiveMode() || this.unmounted || this.state.role === 'helper') return false;
     const use = client ?? this.operationsClient;
     if (!use) return false;
-    this.operationsClient = use;
+    if (use !== this.operationsClient) {
+      this.retireOperationsHealth();
+      this.operationsClient = use;
+      this.setState({});
+    }
     this.keepHealthFresh();
-    const seq = ++this.operationsLoadSeq;
+    const seq = ++this.operationsLoadSeq,
+      actor = this.productionActorEpoch,
+      role = this.state.role;
+    const current = () =>
+      !this.unmounted &&
+      seq === this.operationsLoadSeq &&
+      actor === this.productionActorEpoch &&
+      role === this.state.role &&
+      use === this.operationsClient;
     try {
       if (!idb.supported()) throw new Error('Queue storage unavailable');
       const [health, queue] = await Promise.all([fetchOperationsHealth(use), pendingSales()]);
-      if (seq !== this.operationsLoadSeq) return false;
+      if (!current()) return false;
       this.operationsHealth = health;
       this.operationsQueue = queue.length;
       this.operationsPhase = 'ready';
       this.setState({});
       return true;
     } catch {
-      if (seq !== this.operationsLoadSeq) return false;
+      if (!current()) return false;
       this.operationsPhase = 'error';
       this.operationsQueue = -1;
       this.setState({});
@@ -3148,9 +3174,36 @@ export class OpsRuntime extends OpsProvider {
    */
   private keepHealthFresh(): void {
     if (this.healthTimer) return;
+    const generation = this.operationsSourceGeneration;
     this.healthTimer = setInterval(() => {
-      if (document.visibilityState === 'visible') void this.loadOperationsHealth(null);
+      if (
+        !this.unmounted &&
+        generation === this.operationsSourceGeneration &&
+        document.visibilityState === 'visible'
+      )
+        void this.loadOperationsHealth(null);
     }, HEALTH_REFRESH_MS);
+  }
+
+  private operationsHealthRetry(): () => void {
+    const generation = this.operationsSourceGeneration,
+      actor = this.productionActorEpoch,
+      role = this.state.role;
+    return () => {
+      if (
+        this.unmounted ||
+        role === 'helper' ||
+        role !== this.state.role ||
+        actor !== this.productionActorEpoch ||
+        generation !== this.operationsSourceGeneration ||
+        !this.state.online ||
+        (typeof navigator !== 'undefined' && navigator.onLine === false) ||
+        !this.operationsClient
+      )
+        return;
+      void this.loadOperationsHealth(null);
+      this.toast('Checking recorded results. Backups are run by the operator.', 'warn');
+    };
   }
 
   /** The recorded checks as System health shows them, for the state given. */
@@ -3192,6 +3245,7 @@ export class OpsRuntime extends OpsProvider {
         this.setState({});
     }
     if ((args[1] as { role?: unknown } | undefined)?.role !== this.state.role) {
+      this.retireOperationsHealth();
       this.productionActorEpoch += 1;
       this.recipeBook.reset();
       this.retireRecipeDraftSession();
@@ -3545,6 +3599,8 @@ export class OpsRuntime extends OpsProvider {
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
       ...health,
+      healthCanRetry:
+        !this.unmounted && this.state.role !== 'helper' && this.operationsClient !== null,
       // Home's card: green, red, or neutral while no backup has run and nothing else is wrong.
       system: {
         ...starved.system,
@@ -3570,10 +3626,7 @@ export class OpsRuntime extends OpsProvider {
             ]
           : [],
       hasRecords: this.state.role === 'owner' && !!this.booksRows?.lines.length,
-      retryBackup: () => {
-        void this.loadOperationsHealth(null);
-        this.toast('Checking recorded results. Backups are run by the operator.', 'warn');
-      },
+      retryBackup: this.operationsHealthRetry(),
       contactSupport: () =>
         this.toast('Please contact KETH AI support and share the result shown here.', 'warn'),
       ...(this.state.role !== 'owner'
