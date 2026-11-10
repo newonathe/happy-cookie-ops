@@ -2354,6 +2354,7 @@ export class OpsRuntime extends OpsProvider {
     )
       return;
     this.staffIdentity = scope;
+    this.clearOrderRead();
     this.retireOperationsHealth();
     this.staffNameLoadSeq += 1;
     this.staffNameRole = null;
@@ -3090,6 +3091,7 @@ export class OpsRuntime extends OpsProvider {
   }
 
   componentWillUnmount(): void {
+    this.clearOrderRead(false);
     this.retireOperationsHealth();
     this.closeKitchenTransfer();
     this.eventEntry.dispose();
@@ -3246,6 +3248,7 @@ export class OpsRuntime extends OpsProvider {
         this.setState({});
     }
     if ((args[1] as { role?: unknown } | undefined)?.role !== this.state.role) {
+      this.clearOrderRead();
       this.retireOperationsHealth();
       this.productionActorEpoch += 1;
       this.recipeBook.reset();
@@ -8803,26 +8806,31 @@ export class OpsRuntime extends OpsProvider {
    * every ordered flavour is known to the screens). The engine's local order list plays no part in
    * live mode; the demo books are never shown.
    */
-  private clearOrderRead(): void {
+  private clearOrderRead(clearList = true): void {
+    this.orderSync?.retire();
     this.orderClient = null;
     this.orderSync = undefined;
-    this.setState({ orders: [] } as never);
+    if (clearList) this.setState({ orders: [] } as never);
   }
 
   loadOrders(client: StaffOrderClient): Promise<boolean> {
-    if (!isLiveMode()) return Promise.resolve(false);
+    if (!isLiveMode() || this.unmounted) return Promise.resolve(false);
+    this.clearOrderRead();
     this.orderClient = client;
     const role = this.state.role,
+      identity = this.staffIdentity,
       actor = this.productionActorEpoch,
       generation = this.productionRecovery.generation;
     const current = () =>
       !this.unmounted &&
       this.state.role === role &&
+      identity === this.staffIdentity &&
       actor === this.productionActorEpoch &&
       generation === this.productionRecovery.generation &&
       client === this.orderClient &&
       sync === this.orderSync;
     const sync = new StaffOrderSync(client, {
+      current,
       apply: (orders) => {
         if (current()) this.setState(() => (current() ? { orders } : null));
       },
@@ -8923,6 +8931,7 @@ export class OpsRuntime extends OpsProvider {
       return null;
     }
     const outcome = await run(sync);
+    if (sync !== this.orderSync || !sync.isCurrent()) return outcome;
     if (outcome.kind === 'ok') {
       this.closeSheet();
       this.toast(done, 'ok', undo);
@@ -9018,13 +9027,14 @@ export class OpsRuntime extends OpsProvider {
       );
     };
     eng.clearContact = (id) => {
-      const flagged = (this.orderSync?.find(id)?.items ?? []).filter((i) => i.unavailable);
+      const sync = this.orderSync;
+      const flagged = (sync?.find(id)?.items ?? []).filter((i) => i.unavailable);
       void (async () => {
         for (const item of flagged) {
-          const outcome = await this.orderSync?.flag(id, item.productId, false);
-          if (outcome?.kind !== 'ok') return;
+          const outcome = await sync?.flag(id, item.productId, false);
+          if (sync !== this.orderSync || !sync?.isCurrent() || outcome?.kind !== 'ok') return;
         }
-        this.toast(STAFF_COPY.cleared);
+        if (sync === this.orderSync && sync?.isCurrent()) this.toast(STAFF_COPY.cleared);
       })();
     };
     eng.replaceLine = (id, from, to) => {
@@ -9032,7 +9042,14 @@ export class OpsRuntime extends OpsProvider {
       const qty = (this.orderSync?.find(id)?.items ?? [])
         .filter((i) => i.productId === from)
         .reduce((n, i) => n + i.qty, 0);
-      const key = `${id}|${from}|${to}`;
+      const sync = this.orderSync;
+      const key = JSON.stringify([
+        this.staffIdentity?.business,
+        this.staffIdentity?.userId,
+        id,
+        from,
+        to
+      ]);
       const clientId = this.swapIds.get(key) ?? globalThis.crypto.randomUUID();
       this.swapIds.set(key, clientId);
       void this.liveOrder(
@@ -9040,8 +9057,15 @@ export class OpsRuntime extends OpsProvider {
         STAFF_COPY.swapped(qty, this.flavourName(from), this.flavourName(to))
       ).then((outcome) => {
         // Only a lost reply keeps the id: the next tap must be a replay, not a second swap.
-        if (outcome?.kind !== 'offline') this.swapIds.delete(key);
-        if (outcome?.kind === 'capacity') this.toast(STAFF_COPY.noRoom(outcome.left), 'warn');
+        if (
+          sync === this.orderSync &&
+          sync?.isCurrent() &&
+          outcome?.kind !== 'offline' &&
+          this.swapIds.get(key) === clientId
+        )
+          this.swapIds.delete(key);
+        if (sync === this.orderSync && sync?.isCurrent() && outcome?.kind === 'capacity')
+          this.toast(STAFF_COPY.noRoom(outcome.left), 'warn');
       });
     };
     // Baking is not a status the live app records: a baked flavour's orders stay Confirmed until they
@@ -9061,9 +9085,11 @@ export class OpsRuntime extends OpsProvider {
 
   /** The paid tick. A lapsed unpaid order that no longer fits its week opens the ported overage sheet. */
   private async liveConfirm(id: string, force: boolean): Promise<void> {
+    const sync = this.orderSync;
     const order = this.orderSync?.find(id);
     const first = this.firstName(id);
     const outcome = await this.liveOrder((s) => s.confirm(id, force), STAFF_COPY.paid(first));
+    if (sync !== this.orderSync || !sync?.isCurrent()) return;
     if (outcome?.kind === 'capacity') {
       const n = (order?.items ?? []).reduce((total, i) => total + i.qty, 0);
       this.sheet('overage', {

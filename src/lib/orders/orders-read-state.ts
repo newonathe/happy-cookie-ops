@@ -6,8 +6,7 @@
  *
  * One writer at a time: each new `StaffOrderSync` (a new owner session, a remounted runtime, a
  * reloaded module) claims the store, which resets it, and from then on a replaced reader's late
- * answers are ignored. Signing out leaves the page (`window.location.replace`), which discards
- * the module.
+ * answers are ignored. Retiring the current reader also clears its snapshot and Retry.
  *
  * - `idle`: no read was started (demo mode, helpers, or before the owner's read begins).
  * - `loading`: the first read is out and nothing has been read yet.
@@ -70,6 +69,12 @@ export const ordersRead = {
   },
   /** Whether `reader` is the current reader: a replaced one must not apply late answers either. */
   owns: (reader: object): boolean => reader === owner,
+  /** A retired reader may clear its own state, never a newer reader's state. */
+  release(reader: object): void {
+    if (reader !== owner) return;
+    owner = null;
+    replace(IDLE);
+  },
   /** Written only by the current reader; anything else is a stale callback and is ignored. */
   publish(reader: object, next: OrdersReadSnapshot): void {
     if (reader !== owner) return;
