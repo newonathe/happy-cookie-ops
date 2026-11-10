@@ -1,5 +1,24 @@
 // Read-only health checks against the caller's validated disposable SQL fixture.
 exports.run=async({page,userId,origin,width,out,assert})=>{
+ await page.evaluate(async({userId,origin})=>{
+  const r=window.__hcOps,native=window.connectedProductionClient,probe={reads:0,fail:true};
+  r.bindStaffIdentity(null);r.bindStaffIdentity({userId,business:origin});
+  const client={rpc:async(...args)=>{
+   if(args[0]!=='get_operations_health')throw Error('First health check attempted a writer');
+   probe.reads++;if(probe.fail){probe.fail=false;throw TypeError('Injected failed first health read');}
+   return native.rpc(...args);
+  }};
+  window.healthFirstReadProbe=probe;
+  if(await r.loadOperationsHealth(client))throw Error('First failed read became verified');r.go('health');
+ },{userId,origin});
+ await page.getByRole('heading',{name:'Health & backups',exact:true}).waitFor();
+ assert(await page.evaluate(()=>window.__hcOps.renderVals().healthRows.slice(1,5).every(row=>row.value==='Could not verify current health')),'Unknown job data became confirmed no-run facts');
+ await page.evaluate(()=>window.scrollTo(0,0));
+ await page.screenshot({path:`${out}/health-first-read-unknown-${width}.png`,fullPage:true});
+ await page.getByRole('button',{name:'Check results again',exact:true}).click();
+ await page.waitForFunction(()=>window.__hcOps.renderVals().healthRows[0]?.good===true);
+ assert(await page.evaluate(()=>window.healthFirstReadProbe.reads===2&&window.__hcOps.renderVals().healthRows.slice(1,5).every(row=>row.value==='Not yet recorded — activation pending')),'Successful local SQL read did not distinguish confirmed no-run jobs');
+ await page.screenshot({path:`${out}/health-first-read-confirmed-${width}.png`,fullPage:true});
  const facts=await page.evaluate(async({userId,origin})=>{
   const r=window.__hcOps,native=window.connectedProductionClient,probe={reads:0,failed:false};
   const scope={userId,business:origin};r.bindStaffIdentity(scope);
@@ -38,6 +57,6 @@ exports.run=async({page,userId,origin,width,out,assert})=>{
  assert(await page.evaluate(before=>window.healthReadProbe.reads===before+1,before),'Health UI Retry did not make exactly one current read');
  await page.screenshot({path:`${out}/health-read-recovered-${width}.png`,fullPage:true});
  assert(facts.retiredRealReply&&facts.oldRetryBlocked&&facts.accountRoundTrip,'Health source retirement proof incomplete');
- console.log(JSON.stringify({width,realHealthReadRecovery:true,uiRetry:true,readsOnly:true,...facts}));
+ console.log(JSON.stringify({width,realHealthReadRecovery:true,unknownJobFacts:true,uiRetry:true,readsOnly:true,...facts}));
  await page.evaluate(()=>window.__hcOps.go('today'));
 };

@@ -117,7 +117,7 @@ describe('F1 live health and alerts', () => {
       vals.dockNav.find((row) => row.label === 'Home')?.badge;
     // Before any read the app cannot tell "not set up" from "not reachable": it still alerts.
     expect(runtime.notifs(runtime.state).map((alert) => alert.label)).toContain(
-      'Encrypted database backup: Not yet recorded — activation pending'
+      'Encrypted database backup: Checking'
     );
     expect(moreBadge(runtime.renderVals())).toBe(1);
 
@@ -364,8 +364,22 @@ describe('F1 live health and alerts', () => {
     expect(toast).toHaveBeenCalledWith('Saved on this phone. Sync is still pending.', 'warn');
     expect(toast).not.toHaveBeenCalledWith(expect.stringContaining('could not be saved'), 'warn');
   });
-  it('renders activation pending instead of the prototype backup claim; never sends a fake support message', () => {
+  it('distinguishes unchecked from activation pending; never sends a fake support message', async () => {
     const runtime = mount();
+    expect(screen.getAllByText('Checking').length).toBeGreaterThan(0);
+    const missing = { last_run: null, last_success: null };
+    const client = {
+      rpc: vi.fn().mockResolvedValue({
+        data: {
+          checked_at: new Date().toISOString(),
+          jobs: Object.fromEntries(
+            ['backup', 'restore', 'retention', 'keepalive'].map((key) => [key, missing])
+          )
+        },
+        error: null
+      })
+    } as unknown as OperationsClient;
+    await act(async () => void (await runtime.loadOperationsHealth(client)));
     expect(screen.getAllByText(/Not yet recorded/).length).toBeGreaterThan(0);
     const toast = vi.spyOn(runtime, 'toast');
     act(() => {

@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-10",
-    "source_checkpoint": "efe14d590efd0b425740089d43999e297af457a8",
+    "source_checkpoint": "4d005ad01477cdd176d4211c27c9d144868024fa",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -248,7 +248,7 @@
     "cycles": {
       "C1": {
         "title": "Orders PR reconciliation",
-        "local_status": "reviewed; integration not authorized",
+        "local_status": "integration authorized; current main/trial/PR compatibility and tests pending",
         "full_cycle_accepted": false,
         "accepted_sha": ["efe14d590efd0b425740089d43999e297af457a8"],
         "accepted_functionality": "Read-only source reconciliation preserves saved pickup projection and both PRs.",
@@ -258,8 +258,10 @@
           "Use one Orders read-state source for PR53; retain malformed/dropped-row and latest-read behavior; add retirement/regrant/late-Retry and Customers scope coverage."
         ],
         "dependencies": [],
-        "external_gates": ["Separate integration/merge authorization; OD-12 wording."],
-        "next_authorized_unblocked_task": "Keep the prepared integration recommendation; continue independent C4 work while merge authority is absent.",
+        "external_gates": [
+          "OD-12 wording remains open; evidence-only PR50 is intentionally not mergeable."
+        ],
+        "next_authorized_unblocked_task": "Finish current gate, reconcile PR51/53 and other compatible PRs against main/trial, then publish verified integration.",
         "protected_pr_heads": {
           "51": "e407b7020fab95a8afe934639621c95d6efe5452",
           "53": "7500b6c2b3623650e9175b5cab4828e6c949c2ce"
@@ -303,20 +305,21 @@
         "local_status": "partial; account-cache slice accepted locally",
         "full_cycle_accepted": false,
         "accepted_sha": [
+          "4d005ad01477cdd176d4211c27c9d144868024fa",
           "efe14d590efd0b425740089d43999e297af457a8",
           "819ed712ac9766dbd7191bf12a33e98194fd5c92",
           "40d1857360c714ecf4db8938e6a5a1094f614406",
           "dc59b0da7a1ed7cc2698ae78f534af3f747ff56d"
         ],
-        "accepted_functionality": "Scoped stock/books/menu/opening/payment/checkout/status reads; neutral identity fallback; actor/backend-bound staff names and retired reply rejection.",
+        "accepted_functionality": "Scoped stock/books/menu/opening/payment/checkout/status reads; neutral identity fallback; actor/backend-bound staff names and retired reply rejection. Health facts/Retry/timers now retire on source/account/role/unmount changes; post-role-commit reads and an explicit read-only UI check are locally accepted.",
         "evidence": "Current acceptance commit: focused111/5files+2existingTODO, actual SQL/browser390/1440, build, visual and independent review; full gate in commit log.",
         "remaining_engineering": [
-          "Distinguish unknown health job facts from confirmed no-run results; preserve scoped health recovery.",
+          "Verify staff-name reads start after batched role changes commit, without weakening current identity/role fences.",
           "Finish principal-flow first-read failure, stale data, Retry, navigation, uncertain write and malformed-answer cases against original F09."
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "Fail first on unknown health job labels before changing the bounded read projection."
+        "next_authorized_unblocked_task": "Reproduce gate-order staff-name read timing in a real OpsApp unit flow before changing its scheduling."
       },
       "C5": {
         "title": "Sell/payments",
@@ -518,13 +521,14 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "F09 health read retirement and recovery",
-      "branch": "codex/cloud-health-read-scope-20261110",
-      "source_checkpoint": "50774b424a4d8848aaf7e6700cb9f9c1ae17c139",
-      "behavior": "Retire stale health facts/Retry/timer on client/account/role/unmount; post-role-commit reads; explicit read-only Check results again.",
-      "evidence": "7initialreds +2batchedrole reds +3missingUIreds;92focused/6files+2existingTODO; type/lint/review; two actual SQL/browser resets;320/390/1440 touch/overflow and inspected390/1440 failure/recovery; Live build. Full gate recorded by acceptance commit.",
-      "external_limits": "No native offline-auth, hosted backup, device or owner acceptance claimed. No job writers or policy changes.",
-      "next": "F09 unknown-versus-confirmed-no-run health job facts."
-    }
+      "requirement": "F09 distinguish unknown job facts from confirmed no-run results",
+      "branch": "codex/cloud-health-read-truth-20261110",
+      "source_checkpoint": "4d005ad01477cdd176d4211c27c9d144868024fa",
+      "behavior": "Null job data is Checking/unverified; actual successful no-run data retains approved activation-pending behavior.",
+      "evidence": "2first-read reds;36focused; type/lint/review; two actual SQL/browser resets; real UI first-read failure→SQLconfirmation; inspected390/1440 visuals; Live build. Full gate recorded by acceptance commit.",
+      "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred; no job writers/policy changes.",
+      "next": "Reproduce staff-name read scheduling across batched role changes."
+    },
+    "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
 }
