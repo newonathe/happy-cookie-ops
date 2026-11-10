@@ -8,6 +8,7 @@ import { PageTitle, Panel, SectionHeading, TaskRow } from '@/components/ui/owner
 import { OpenRow } from '@/components/ui/owner-patterns';
 import { SellTabs } from './sell-shared';
 import { ShopOverrideNotice } from '@/components/live/shop-override-notice';
+import { CustomerStatusExample } from '@/components/live/customer/status-example';
 
 type Entry = NonNullable<NonNullable<OpsVals['liveScreen']>['tabs']>['entries'][number];
 
@@ -171,6 +172,8 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
  */
 export function ShopLive({ v }: { v: OpsVals }) {
   const [schedule, setSchedule] = useState(false);
+  const [statusExample, setStatusExample] = useState(false);
+  if (statusExample) return <CustomerStatusExample v={v} back={() => setStatusExample(false)} />;
   if (schedule) return <ScheduleAndDrop v={v} onBack={() => setSchedule(false)} />;
   const entries = (v.liveScreen?.tabs?.entries ?? []).filter((entry) => !entry.primary);
   const find = (label: string) => entries.find((entry) => entry.label === label);
@@ -207,7 +210,15 @@ export function ShopLive({ v }: { v: OpsVals }) {
             action={
               <span className="flex flex-wrap justify-end gap-2">
                 {previews.map(([entry, label]) => (
-                  <Button key={String(entry.id)} variant="secondary" onClick={entry.go}>
+                  <Button
+                    key={String(entry.id)}
+                    variant="secondary"
+                    onClick={
+                      String(entry.label) === 'Preview order status'
+                        ? () => setStatusExample(true)
+                        : entry.go
+                    }
+                  >
                     {label}
                   </Button>
                 ))}

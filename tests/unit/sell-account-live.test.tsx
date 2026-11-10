@@ -80,7 +80,51 @@ describe('Shop', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Checkout' }));
     expect(go).toHaveBeenLastCalledWith('Preview checkout');
     fireEvent.click(screen.getByRole('button', { name: 'Order status' }));
-    expect(go).toHaveBeenLastCalledWith('Preview order status');
+    expect(screen.getByText('Example only. No order has been placed or paid.')).toBeTruthy();
+    expect(go).not.toHaveBeenCalledWith('Preview order status');
+  });
+
+  it('shows a read-only example without using a private order, changing a draft or navigating to a real status link', () => {
+    const { v, go } = shopVals();
+    v.cust = { ...v.cust, orderNo: 'HC-9876', name: 'Retained buyer', amount: 'Retained draft' };
+    v.liveStatusRead = { state: 'loaded', stale: false, online: true, retry: vi.fn() };
+    v.liveCustomerPayment = {
+      fresh: true,
+      paymentState: 'ready',
+      methods: [],
+      canRetry: true,
+      retry: vi.fn(),
+      order: {
+        orderNo: 'HC-9876',
+        state: 'Payment review',
+        payState: 'unpaid',
+        payMethod: 'Private method',
+        totalCents: 99900,
+        paidCents: null,
+        pickupDate: null,
+        pickupWindow: null,
+        placedAt: '',
+        holdExpiresAt: null,
+        items: []
+      }
+    };
+    const before = JSON.stringify(v.cust),
+      hash = window.location.hash;
+    render(<ShopLive v={v} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Order status' }));
+    expect(screen.getByText('Example only. No order has been placed or paid.')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Order received' })).toBeTruthy();
+    expect(screen.queryByText(/HC-9876|Retained buyer|Private method|₱999/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Check order status' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Order this cookie again' })).toBeNull();
+    expect(screen.queryByRole('article', { name: 'Payment details' })).toBeNull();
+    expect(go).not.toHaveBeenCalled();
+    expect(v.liveStatusRead.retry).not.toHaveBeenCalled();
+    expect(v.liveCustomerPayment.retry).not.toHaveBeenCalled();
+    expect(JSON.stringify(v.cust)).toBe(before);
+    expect(window.location.hash).toBe(hash);
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Shop' }));
+    expect(screen.getByRole('heading', { name: 'Shop' })).toBeTruthy();
   });
 
   it('shows an entry it does not know yet rather than losing it', () => {

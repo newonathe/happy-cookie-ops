@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { CustomerPaymentDetails } from './payment-details';
 
 /** Private status data and scoped actions still come from the existing order controller. */
-export function CustomerStatusLive({ v }: { v: OpsVals }) {
+export function CustomerStatusLive({ v, preview = false }: { v: OpsVals; preview?: boolean }) {
   const { cust } = v;
   const known = !!cust.orderNo && cust.orderNo !== '—';
   return (
@@ -15,6 +15,11 @@ export function CustomerStatusLive({ v }: { v: OpsVals }) {
       data-screen-label="Customer order status"
       className="flex min-h-dvh w-full min-w-0 flex-col gap-6 bg-raise p-4 text-ink sm:p-6 xl:p-8"
     >
+      {preview ? (
+        <p role="note" className="rounded-control border border-line bg-surface p-4 font-semibold">
+          Example only. No order has been placed or paid.
+        </p>
+      ) : null}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <Image
           unoptimized
@@ -25,7 +30,8 @@ export function CustomerStatusLive({ v }: { v: OpsVals }) {
           className="h-auto w-40"
         />
         <div className="flex flex-wrap gap-3">
-          {known &&
+          {!preview &&
+          known &&
           v.liveStatusRead &&
           (v.liveStatusRead.state === 'loaded' || v.liveStatusRead.state === 'loading') ? (
             <Button
@@ -38,7 +44,7 @@ export function CustomerStatusLive({ v }: { v: OpsVals }) {
               Check order status
             </Button>
           ) : null}
-          <Button onClick={v.backToShop}>Back to cookies</Button>
+          <Button onClick={v.backToShop}>{preview ? 'Back to Shop' : 'Back to cookies'}</Button>
         </div>
       </header>
       <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -95,7 +101,7 @@ export function CustomerStatusLive({ v }: { v: OpsVals }) {
         </div>
         {known ? (
           <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-6">
-            {v.liveCustomerPayment ? (
+            {!preview && v.liveCustomerPayment ? (
               <div className="order-2 min-w-0">
                 <CustomerPaymentDetails payment={v.liveCustomerPayment} />
               </div>
@@ -113,8 +119,10 @@ export function CustomerStatusLive({ v }: { v: OpsVals }) {
                   Pickup code: <strong>{cust.pickupCode}</strong>
                 </p>
               ) : null}
-              {cust.showRetry ? <Button onClick={cust.restart}>Send payment again</Button> : null}
-              <Button onClick={cust.reorder}>Order this cookie again</Button>
+              {!preview && cust.showRetry ? (
+                <Button onClick={cust.restart}>Send payment again</Button>
+              ) : null}
+              {!preview ? <Button onClick={cust.reorder}>Order this cookie again</Button> : null}
             </aside>{' '}
           </div>
         ) : null}
