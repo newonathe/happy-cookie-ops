@@ -973,6 +973,40 @@ describe('B2: the status page', () => {
     expect(broken.runtime.renderVals().cust.heroTitle).toBe('We could not load your order');
   });
 
+  it('exposes status payment details only from the order client and retires cached payment reads', async () => {
+    const { runtime, client, calls } = await mounted({}, 'status');
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    await act(async () => runtime.syncStatusRoute());
+    await flush();
+    const payment = runtime.renderVals().liveCustomerPayment!;
+    expect(payment).toMatchObject({
+      fresh: true,
+      order: { totalCents: 45000 },
+      methods: [{ label: 'GCash', number: '0999' }]
+    });
+    const before = calls.length;
+    const other = fakeClient();
+    await act(async () => runtime.loadShopPayment(other.client));
+    expect(runtime.renderVals().liveCustomerPayment).toMatchObject({
+      methods: null,
+      paymentState: 'failed',
+      canRetry: false
+    });
+    act(payment.retry);
+    expect(calls).toHaveLength(before);
+    await act(async () => runtime.loadShopPayment(client));
+    const retry = runtime.renderVals().liveCustomerPayment!.retry;
+    const count = calls.length;
+    act(() => runtime.go('shop'));
+    act(() => runtime.go('status'));
+    act(retry);
+    expect(calls).toHaveLength(count);
+    const next = runtime.renderVals().liveCustomerPayment!.retry;
+    window.history.replaceState(null, '', '/status#t=' + 'e'.repeat(64));
+    act(next);
+    expect(calls).toHaveLength(count);
+  });
+
   it('shares the real status-link synchronizer with the local preview', async () => {
     const ref: { current: OpsRuntime | null } = { current: null };
     render(

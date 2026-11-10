@@ -49,6 +49,10 @@ it('preserves status, progress, pickup and scoped actions without introducing de
   expect(ui.getByText('Payment').closest('li')?.getAttribute('aria-current')).toBe('step');
   fireEvent.click(ui.getByRole('button', { name: 'Back to cookies' }));
   fireEvent.click(ui.getByRole('button', { name: 'Order this cookie again' }));
+  v.liveStatusRead = { state: 'loaded', stale: false, online: true, retry: vi.fn() };
+  ui.rerender(<CustomerStatusLive v={v} />);
+  fireEvent.click(ui.getByRole('button', { name: 'Check order status' }));
+  expect(v.liveStatusRead.retry).toHaveBeenCalledOnce();
   expect(v.backToShop).toHaveBeenCalledOnce();
   expect(v.cust.reorder).toHaveBeenCalledOnce();
   expect(ui.container.textContent).not.toMatch(

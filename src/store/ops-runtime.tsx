@@ -3559,6 +3559,7 @@ export class OpsRuntime extends OpsProvider {
       events: [] as OpsVals['events'],
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       liveStatusRead: this.liveStatusReadVals(),
+      liveCustomerPayment: this.liveCustomerPaymentVals(),
       openLookup: () => {
         if (customerAction()) this.openLookupSheet();
       },
@@ -10456,6 +10457,38 @@ export class OpsRuntime extends OpsProvider {
         // An unsettled entry stays frozen, so opening the form again resends it under the same id.
         if (flow && flow.waitlistState !== 'unknown') flow.resetWaitlist();
         this.closeSheet();
+      }
+    };
+  }
+
+  private liveCustomerPaymentVals(): OpsVals['liveCustomerPayment'] {
+    const flow = this.orderFlow,
+      sync = this.paymentSync;
+    if (this.state.screen !== 'status' || !flow?.status) return null;
+    const token = flow.statusToken,
+      current = this.customerActionScope();
+    const matching = !!sync && flow.usesClient(sync.sourceClient);
+    const online = () =>
+      Boolean(this.state.online) && (typeof navigator === 'undefined' || navigator.onLine);
+    return {
+      order: flow.status,
+      fresh: flow.statusState === 'loaded',
+      methods: matching && sync.publicState === 'ready' ? (sync.info?.methods ?? []) : null,
+      paymentState: matching ? sync.publicState : 'failed',
+      canRetry: matching && online() && sync.publicState !== 'loading',
+      retry: () => {
+        if (
+          !current() ||
+          !matching ||
+          this.paymentSync !== sync ||
+          flow.statusToken !== token ||
+          typeof window === 'undefined' ||
+          tokenFromHash(window.location.hash) !== token ||
+          !online() ||
+          sync.publicState === 'loading'
+        )
+          return;
+        void sync.loadPublic();
       }
     };
   }

@@ -243,3 +243,7 @@ The live-only page replaces the narrow status port with full-width neutral progr
 ## Private payment read foundation — 10 November
 
 SQL82 exposes only recorded paid_cents beside existing private status facts; token boundary, excluded contact/reference fields, extras and grants remain. Client parsing accepts missing older fields as unknown and never infers payment confirmation. Existing owner confirmation, swap, balance settlement and refund operations are unchanged. Actual SQL and five parser regressions failed first;122focused and two SQL resets pass. Two mutation checks, final two-reset SQL/browser/seven-width and inspected phone/wide visuals pass. Live build passes; full verification is recorded by the acceptance commit. This is a read foundation; post-submission customer payment instructions remain unfinished.
+
+## Customer payment instructions — 10 November
+
+Private order amounts and current selected owner-entered accounts are shown only under checked source/status/hold facts. Recorded payments, balances and overpayments preserve existing owner rules; no payment confirmation/refund write is added. Read-only status/account refresh and Retry, expiry removal, unknown/stale/legacy states and proof-after-order are covered by131focused tests and initial review. Final type/lint/re-review and two-reset SQL/browser/seven-width/UI Retry/visual checks pass; Live build passes; full verification is recorded by the acceptance commit. Legacy status-summary wording and B17 remain separate unfinished requirements.

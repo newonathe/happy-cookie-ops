@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
+import { CustomerPaymentDetails } from './payment-details';
 
 /** Private status data and scoped actions still come from the existing order controller. */
 export function CustomerStatusLive({ v }: { v: OpsVals }) {
@@ -23,28 +24,49 @@ export function CustomerStatusLive({ v }: { v: OpsVals }) {
           height={64}
           className="h-auto w-40"
         />
-        <Button onClick={v.backToShop}>Back to cookies</Button>
+        <div className="flex flex-wrap gap-3">
+          {known &&
+          v.liveStatusRead &&
+          (v.liveStatusRead.state === 'loaded' || v.liveStatusRead.state === 'loading') ? (
+            <Button
+              variant="primary"
+              onClick={v.liveStatusRead.retry}
+              disabled={!v.liveStatusRead.online}
+              busy={v.liveStatusRead.state === 'loading'}
+              busyLabel="Checking status…"
+            >
+              Check order status
+            </Button>
+          ) : null}
+          <Button onClick={v.backToShop}>Back to cookies</Button>
+        </div>
       </header>
-      <div className="min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6">
-        {known ? (
-          <p className="mb-3 text-sm font-semibold tabular-nums">Order {cust.orderNo}</p>
-        ) : null}
-        <h1 className="text-3xl font-bold tracking-tight [overflow-wrap:anywhere]">
-          {cust.heroTitle}
-        </h1>
-        {cust.heroBody ? <p className="mt-3 max-w-prose text-ink-soft">{cust.heroBody}</p> : null}
-        {!known && v.liveStatusRead?.state !== 'loading' ? (
-          <Button className="mt-4" onClick={v.openLookup}>
-            Find my order
-          </Button>
-        ) : null}
-      </div>
-      {known ? (
-        <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          {cust.timeline?.length ? (
+      <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div
+          className={
+            'contents lg:flex lg:min-w-0 lg:flex-col lg:gap-6 ' + (!known ? 'lg:col-span-2' : '')
+          }
+        >
+          <div className="order-1 min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6">
+            {known ? (
+              <p className="mb-3 text-sm font-semibold tabular-nums">Order {cust.orderNo}</p>
+            ) : null}
+            <h1 className="text-3xl font-bold tracking-tight [overflow-wrap:anywhere]">
+              {cust.heroTitle}
+            </h1>
+            {cust.heroBody ? (
+              <p className="mt-3 max-w-prose text-ink-soft">{cust.heroBody}</p>
+            ) : null}
+            {!known && v.liveStatusRead?.state !== 'loading' ? (
+              <Button className="mt-4" onClick={v.openLookup}>
+                Find my order
+              </Button>
+            ) : null}
+          </div>
+          {known && cust.timeline?.length ? (
             <article
               aria-label="Order progress"
-              className="min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6"
+              className="order-3 min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6"
             >
               <h2 className="text-xl font-semibold">Order progress</h2>
               <ol className="mt-5 grid gap-5">
@@ -70,24 +92,33 @@ export function CustomerStatusLive({ v }: { v: OpsVals }) {
               </ol>
             </article>
           ) : null}
-          <aside
-            aria-label="Pickup details"
-            className="flex min-w-0 flex-col gap-4 rounded-card border border-line bg-surface p-5 sm:p-6"
-          >
-            <h2 className="text-xl font-semibold">Pickup</h2>
-            <p className="[overflow-wrap:anywhere]">
-              {cust.windowText || 'Pickup details are unavailable.'}
-            </p>
-            {cust.showCode ? (
-              <p>
-                Pickup code: <strong>{cust.pickupCode}</strong>
-              </p>
-            ) : null}
-            {cust.showRetry ? <Button onClick={cust.restart}>Send payment again</Button> : null}
-            <Button onClick={cust.reorder}>Order this cookie again</Button>
-          </aside>
         </div>
-      ) : null}
+        {known ? (
+          <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-6">
+            {v.liveCustomerPayment ? (
+              <div className="order-2 min-w-0">
+                <CustomerPaymentDetails payment={v.liveCustomerPayment} />
+              </div>
+            ) : null}
+            <aside
+              aria-label="Pickup details"
+              className="order-4 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-surface p-5 sm:p-6"
+            >
+              <h2 className="text-xl font-semibold">Pickup</h2>
+              <p className="[overflow-wrap:anywhere]">
+                {cust.windowText || 'Pickup details are unavailable.'}
+              </p>
+              {cust.showCode ? (
+                <p>
+                  Pickup code: <strong>{cust.pickupCode}</strong>
+                </p>
+              ) : null}
+              {cust.showRetry ? <Button onClick={cust.restart}>Send payment again</Button> : null}
+              <Button onClick={cust.reorder}>Order this cookie again</Button>
+            </aside>{' '}
+          </div>
+        ) : null}
+      </div>
       {cust.allergenNote ? (
         <p className="max-w-prose text-sm text-ink-soft">{cust.allergenNote}</p>
       ) : null}
