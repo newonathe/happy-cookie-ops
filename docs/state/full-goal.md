@@ -12,6 +12,8 @@ At the requirements-reconciliation stage, reconcile the original 127 audit findi
 
 ## Confirmed clarifications
 
+- Latest authorization (10November2026): finish current verification, integrate safely mergeable changes into main and deploy to the existing deployed version. Earlier no-merge/no-deploy prose is historical; target/schema/release verification and unresolved business/device/owner gates remain in force.
+
 - Baking must use already-recorded fridge dough. If insufficient, retain the draft and ask for Prepare dough first. Ethan approved this on 5 November; do not ask again.
 - Ingredient deduction at completed preparation is approved. Recipe amount used and actual balls produced are independent.
 - The proposed separate physical Count dough correction remains unanswered. Do not implement that business choice as approved.

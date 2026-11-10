@@ -91,6 +91,18 @@ describe('F1 operational health uses evidence rather than demo flags', () => {
     const jobRows = (view: ReturnType<typeof healthView>) =>
       view.healthRows.filter((row) => jobLabels.includes(String(row.label)));
 
+    it.each(['loading', 'error'] as const)(
+      'does not present unknown job results as confirmed no-run facts (%s)',
+      (phase) => {
+        const view = healthView(null, phase, now, 0, true);
+        expect(jobRows(view).map((row) => row.value)).toEqual(
+          Array(4).fill(phase === 'loading' ? 'Checking' : 'Could not verify current health')
+        );
+        expect(view.setupPending).toBe(false);
+        expect(view.healthOk).toBe(false);
+        expect(view.healthTitle).not.toBe(SETUP_PENDING_COPY.title);
+      }
+    );
     it('a current read showing no job has ever run keeps the facts, raises nothing and claims nothing', () => {
       const view = healthView(parseOperationsHealth(neverRun()), 'ready', now, 0, true);
       expect(view.setupPending).toBe(true);
