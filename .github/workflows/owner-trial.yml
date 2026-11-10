@@ -10,6 +10,8 @@ on:
         required: true
       CLOUDFLARE_ACCESS_API_TOKEN:
         required: true
+      OPS_SUPABASE_ACCESS_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -94,6 +96,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
         if: steps.hold.outputs.deploy == 'true'
+      - name: Verify trial migration and RPC compatibility (read-only)
+        if: steps.hold.outputs.deploy == 'true'
+        run: node scripts/check-owner-trial-schema.mjs
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.OPS_SUPABASE_ACCESS_TOKEN }}
       # The assets are built here from the commit the quality job verified, exactly as it built them, instead of being
       # downloaded: no artifact storage is needed to release. The build sees only these variables, no deploy token.
       - name: Build private trial assets

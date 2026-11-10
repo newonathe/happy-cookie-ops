@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-10",
-    "source_checkpoint": "fc2bbe4b68762b76b5986f36af881138bad5a811",
+    "source_checkpoint": "071a1c373fba773fbe3261a5607bf3849c8aa9fd",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -249,13 +249,16 @@
     "cycles": {
       "C1": {
         "title": "Orders PR reconciliation",
-        "local_status": "reviewed integration candidate; full gate and publishing pending",
+        "local_status": "scoped Orders integration accepted locally and pushed; main/release pending",
         "full_cycle_accepted": false,
-        "accepted_sha": ["efe14d590efd0b425740089d43999e297af457a8"],
+        "accepted_sha": [
+          "efe14d590efd0b425740089d43999e297af457a8",
+          "071a1c373fba773fbe3261a5607bf3849c8aa9fd"
+        ],
         "accepted_functionality": "Saved pickups and one Orders read-state source; malformed/dropped/latest read semantics; source/account/role retirement; no stale Retry; already-sent outcomes and exact uncertain swap IDs preserved.",
-        "evidence": "PR51 e407b702 and PR53 7500b6c2 CI successful; clean source merges plus scoped fixes.7initial retirement reds and1review-found ABA replay red;221focused/10files; both actual SQL/browser resets,390/1440 visual, exact-source Live build and clear independent review. Acceptance commit records full gate.",
+        "evidence": "PR51 e407b702 and PR53 7500b6c2 CI successful; clean source merges plus scoped fixes.7initial retirement reds and1review-found ABA replay red;221focused/10files; both actual SQL/browser resets,390/1440 visual, exact-source Live build and clear independent review. Acceptance commit records full gate. Full228files/3670tests+2TODO passed at071a1c3.",
         "remaining_engineering": [
-          "Finish integration acceptance and publishing; preserve OD-12 wording gate.",
+          "Publish verified integration through main/private trial; preserve OD-12 wording gate.",
           "Reconcile canonical historical HCB rows against current fixes without double-counting."
         ],
         "dependencies": [],
@@ -507,7 +510,7 @@
           "efe14d590efd0b425740089d43999e297af457a8"
         ],
         "accepted_functionality": "Pinned patched dependencies, protected-port checks and recurring full verify/Live build/visual checks.",
-        "evidence": "Dependency checkpoint611d7c6 audited all production severities0; current source tests/build pass in acceptance commits, not a release claim.",
+        "evidence": "Dependency checkpoint611d7c6 audited all production severities0; current source tests/build pass in acceptance commits, not a release claim. Read-only trial compatibility preflight:80focused/3files, two actual local SQL/catalog resets (83migrations/173public functions), official Management API source shape and clear independent review; full gate recorded by acceptance commit. Hosted execution unverified.",
         "remaining_engineering": [
           "Measure optimized signed-in loads/navigation/edit/save/refresh; finish accessibility, visual, responsive and applicable security hardening.",
           "Complete final requirements reconciliation and prepare deployment/migration/rollback instructions for separate approval."
