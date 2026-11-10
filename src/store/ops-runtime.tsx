@@ -2341,6 +2341,8 @@ export class OpsRuntime extends OpsProvider {
   /** False until `get_shop_identity()` has answered: a database without it cannot be saved to. */
   private identityReady = false;
   private identityClient: IdentityClient | null = null;
+  private identityReadSeq = 0;
+  private identitySourceGeneration = 0;
 
   /**
    * Sets what the engine calls a role, in place: the greeting, the account chip, "Rung up by"
@@ -2374,9 +2376,20 @@ export class OpsRuntime extends OpsProvider {
    * wording and no tagline. Never a prototype value, and never an error.
    */
   async loadShopIdentity(client: IdentityClient | null): Promise<boolean> {
-    if (!isLiveMode() || !client) return false;
-    this.identityClient = client;
+    if (!isLiveMode() || this.unmounted) return false;
+    const seq = ++this.identityReadSeq;
+    if (this.identityClient !== client || !client) {
+      this.identitySourceGeneration += 1;
+      this.identityClient = client;
+      this.identityReady = false;
+      this.identity = EMPTY_IDENTITY;
+      setIdentityWords(null);
+      this.forceUpdate();
+    }
+    if (!client) return false;
     const read = await fetchShopIdentity(client);
+    if (this.unmounted || seq !== this.identityReadSeq || client !== this.identityClient)
+      return false;
     this.identityReady = read.status === 'ok';
     this.identity = read.status === 'ok' ? read.identity : EMPTY_IDENTITY;
     setIdentityWords(read.status === 'ok' ? read.identity : null);
@@ -2420,7 +2433,8 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
-  private async saveIdentityForm(fields: IdentityFields): Promise<void> {
+  private async saveIdentityForm(fields: IdentityFields, current: () => boolean): Promise<void> {
+    if (!current()) return;
     const client = this.identityClient;
     if (!client || !this.identityReady) {
       this.toast('Shop details cannot be saved here yet.', 'warn');
@@ -2437,9 +2451,15 @@ export class OpsRuntime extends OpsProvider {
       this.toast(problem, 'warn');
       return;
     }
+    const seq = this.identityReadSeq;
     const result = await saveShopIdentity(client, trimmed, this.identity.updatedAt);
+    // Retired acknowledgements cannot reattach a source or supersede a newer read.
+    if (!current() || seq !== this.identityReadSeq) return;
     if (result.status === 'saved' || result.status === 'conflict') {
-      await this.loadShopIdentity(client);
+      const refresh = this.loadShopIdentity(client);
+      const refreshSeq = this.identityReadSeq;
+      await refresh;
+      if (!current() || refreshSeq !== this.identityReadSeq) return;
       if (result.status === 'saved') this.toast('Shop details saved.');
       else this.toast('These were changed somewhere else. Check them and save again.', 'warn');
       return;
@@ -10612,6 +10632,15 @@ export class OpsRuntime extends OpsProvider {
     if (this.state.role !== 'owner' || sh?.kind !== 'shoptexts') return null;
     const texts = this.paymentSync?.info?.texts ?? EMPTY_TEXTS;
     const online = this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
+    const source = this.identitySourceGeneration,
+      seq = this.identityReadSeq,
+      actor = this.productionActorEpoch;
+    const currentIdentity = () =>
+      !this.unmounted &&
+      source === this.identitySourceGeneration &&
+      actor === this.productionActorEpoch &&
+      this.state.role === 'owner' &&
+      this.state.sheet === sh;
     return {
       online,
       texts: {
@@ -10628,7 +10657,9 @@ export class OpsRuntime extends OpsProvider {
         tagline: this.identity.tagline
       },
       identityReady: this.identityReady,
-      saveIdentity: (fields: IdentityFields) => void this.saveIdentityForm(fields),
+      saveIdentity: (fields: IdentityFields) => {
+        if (seq === this.identityReadSeq) void this.saveIdentityForm(fields, currentIdentity);
+      },
       close: () => this.closeSheet()
     };
   }

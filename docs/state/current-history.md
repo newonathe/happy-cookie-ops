@@ -2797,3 +2797,13 @@ Payment status truth is active on`codex/cloud-customer-payment-status-truth-2026
 Accepted and pushed as9a8cf38cac379c10c533eb6d15a36c619a83517d: full222files/3544tests+2TODO; all listed local gates passed.
 
 Post-order payment panel is accepted as`65775c777bdac183a938273fd32dd1d9ec225af9`: full222files/3535tests+2TODO,131focused, two actual SQL/browser resets, seven widths, inspected visuals, Live build and clear review. Source/status/hold checks gate current account instructions; expiry/stale/unknown/refund/overpayment states and read-only Retry are covered. Confirmation still requires the owner. Original protected screens and all money/stock rules are unchanged.
+
+## Owner status example acceptance — 10 November 2026
+
+Accepted as `9e9e713f0a1c90fb08ba71c3df84cad0ba3b795a`; full222files/3545tests+2TODO.
+
+B17 owner status example is active on`codex/cloud-owner-status-example-20261110`: Shop’s Order status preview shows a labelled local example with Back to Shop. It does not enter a private status URL, create a token/order/payment, read real customer status, or expose actual bank details/customer actions. Public customer defaults and other Shop entries remain. The regression failed first;28focused/3files and independent review pass. Final type/lint and both actual SQL/browser resets pass populated-cart/context/link retention, zero preview RPCs and390/768/1440 resize. Visuals caught inherited scroll; opening now starts at the top, with Note/Back viewport bounds tested. Phone/wide visuals and subsequent real customer/owner-payment/production/Money flows pass. Exact-source Live build and clear independent re-review pass; full verification is recorded by the acceptance commit. Owner/B17 acceptance and full-goal/manual gates remain open.
+
+## Payment-state truth acceptance — 10 November 2026
+
+Payment-state truth is accepted as`9a8cf38cac379c10c533eb6d15a36c619a83517d`: full222files/3544tests+2TODO,134focused, actual two-reset owner confirmation/replay→fresh customer Check→single revenue effect, seven widths, inspected visuals, Live build and clear review. Confirmation follows saved pay_state; unsupported scheduling promises are removed. Owner copy acceptance remains open.
