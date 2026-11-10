@@ -380,6 +380,8 @@ export interface StaffOrderHooks {
   pickupDays: () => readonly number[];
   /** Today on the business clock; a test may fix it. */
   today?: () => string;
+  /** Runtime account, role and client scope; checked before requests and after answers. */
+  current?: () => boolean;
 }
 
 type Call = (stamp: string) => PromiseLike<RpcResult>;
@@ -402,6 +404,7 @@ export class StaffOrderSync {
   private failedRead = 0;
   private readAt: number | null = null;
   private dropped = 0;
+  private retired = false;
   private readonly retry = (): void => void this.load();
 
   constructor(
@@ -415,11 +418,23 @@ export class StaffOrderSync {
     return this.list;
   }
 
+  isCurrent(): boolean {
+    return !this.retired && ordersRead.owns(this) && (this.hooks.current?.() ?? true);
+  }
+
+  retire(): void {
+    this.retired = true;
+    this.list = [];
+    this.loaded = false;
+    ordersRead.release(this);
+  }
+
   find(id: string): StaffOrder | undefined {
     return this.list.find((o) => o.id === id);
   }
 
   async load(): Promise<boolean> {
+    if (!this.isCurrent()) return false;
     const read = ++this.started;
     const askedAt = Date.now();
     this.report();
@@ -427,13 +442,14 @@ export class StaffOrderSync {
     try {
       answer = await fetchStaffOrdersRead(this.client);
     } catch {
+      if (!this.isCurrent()) return false;
       this.failedRead = Math.max(this.failedRead, read);
       this.report();
       return false;
     }
     // A newer reader (a new owner session, a re-run of the live gate) has taken over: this
     // answer may be older than what it shows, so it changes nothing.
-    if (!ordersRead.owns(this)) return false;
+    if (!this.isCurrent()) return false;
     if (read > this.shownRead) {
       this.shownRead = read;
       this.readAt = askedAt;
@@ -449,6 +465,7 @@ export class StaffOrderSync {
 
   /** The read state for the Orders page, from the newest read that has an answer. */
   private report(): void {
+    if (!this.isCurrent()) return;
     const everRead = this.shownRead > 0;
     ordersRead.publish(this, {
       phase: this.failedRead > this.shownRead ? 'failed' : everRead ? 'read' : 'loading',
@@ -465,6 +482,7 @@ export class StaffOrderSync {
    * silent overwrite. Success and conflict both reload; the caller words the rest.
    */
   private async run(id: string, call: Call): Promise<StaffOutcome> {
+    if (!this.isCurrent()) return { kind: 'offline' };
     if (!this.hooks.online()) {
       this.hooks.toast(STAFF_COPY.offline, 'warn');
       return { kind: 'offline' };
@@ -480,6 +498,8 @@ export class StaffOrderSync {
     } catch {
       outcome = { kind: 'offline' };
     }
+    // Preserve the actual outcome of an already-sent request, without touching a new session.
+    if (!this.isCurrent()) return outcome;
     if (outcome.kind === 'ok') await this.load();
     else if (outcome.kind === 'conflict') {
       this.hooks.toast(STAFF_COPY.conflict, 'warn');

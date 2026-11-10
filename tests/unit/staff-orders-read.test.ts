@@ -45,10 +45,11 @@ function scripted() {
   );
   return { rpc, pending, client: { rpc } as unknown as StaffOrderClient };
 }
-function sync(client: StaffOrderClient) {
+function sync(client: StaffOrderClient, current?: () => boolean) {
   const apply = vi.fn();
   const s = new StaffOrderSync(client, {
     apply,
+    current,
     online: () => true,
     toast: () => undefined,
     pickupDays: () => [1, 4],
@@ -60,6 +61,76 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
 const ids = (s: StaffOrderSync) => s.current().map((o) => o.id);
 
 afterEach(() => ordersRead.reset());
+
+describe('reader retirement preserves request outcomes without reviving a session', () => {
+  it('an old Retry cannot issue requests after replacement, and retirement cannot reset the new store', async () => {
+    const a = scripted();
+    const old = sync(a.client).s;
+    const first = old.load();
+    a.pending[0]!({ data: [], error: null });
+    await first;
+    const retry = ordersRead.get().retry!;
+    const b = scripted();
+    const next = sync(b.client).s;
+    const done = next.load();
+    b.pending[0]!({ data: [row('HC-B')], error: null });
+    await done;
+    const snapshot = ordersRead.get();
+    old.retire();
+    retry();
+    expect(await old.load()).toBe(false);
+    expect(await old.confirm('HC-A')).toEqual({ kind: 'offline' });
+    expect(a.rpc).toHaveBeenCalledTimes(1);
+    expect(ordersRead.get()).toBe(snapshot);
+    expect(ids(next)).toEqual(['HC-B']);
+  });
+
+  it('a changed runtime scope suppresses requests before a new reader claims the store', async () => {
+    const f = scripted();
+    let current = true;
+    const { s } = sync(f.client, () => current);
+    const done = s.load();
+    f.pending[0]!({ data: [], error: null });
+    await done;
+    const retry = ordersRead.get().retry!;
+    current = false;
+    retry();
+    expect(await s.confirm('HC-A')).toEqual({ kind: 'offline' });
+    expect(f.rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['ok', 'offline'])(
+    'an already-sent %s outcome remains exact after retirement, with no follow-up reads or toast',
+    async (kind) => {
+      let finish!: (answer: Answer) => void;
+      const rpc = vi.fn((name: string) =>
+        name === 'get_staff_orders'
+          ? Promise.resolve({ data: [row('HC-A')], error: null })
+          : new Promise<Answer>((resolve) => {
+              finish = resolve;
+            })
+      );
+      const toast = vi.fn();
+      const s = new StaffOrderSync({ rpc } as unknown as StaffOrderClient, {
+        apply: vi.fn(),
+        online: () => true,
+        toast,
+        pickupDays: () => [1, 4]
+      });
+      await s.load();
+      const sent = s.swap('HC-A', 'dcf', 'wcb', 'retained-exact-id');
+      expect(rpc.mock.calls.map(([name]) => name)).toEqual(['get_staff_orders', 'staff_swap_item']);
+      s.retire();
+      finish(
+        kind === 'ok' ? { data: [{ replayed: false }], error: null } : { error: { code: '08006' } }
+      );
+      expect(await sent).toMatchObject({ kind });
+      expect(rpc).toHaveBeenCalledTimes(2);
+      expect(toast).not.toHaveBeenCalled();
+      expect(ordersRead.get()).toMatchObject({ phase: 'idle', retry: null });
+    }
+  );
+});
 
 describe('the order read never calls a malformed answer an empty read', () => {
   it('a non-array answer is a failed read, not "no orders"', async () => {
