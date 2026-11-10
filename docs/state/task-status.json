@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-10",
-    "source_checkpoint": "071a1c373fba773fbe3261a5607bf3849c8aa9fd",
+    "source_checkpoint": "0063b6287142a0813c70153073c07c427ca55f5a",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -489,7 +489,7 @@
           "efe14d590efd0b425740089d43999e297af457a8"
         ],
         "accepted_functionality": "Production/return/Money core, lost-ACK order recovery and explicit owner confirmation have real local SQL/browser evidence.",
-        "evidence": "Two-reset exact schema/function authority, roles/concurrency/replays/mutants; native Web Locks; phone/wide transactions.",
+        "evidence": "Two-reset exact schema/function authority, roles/concurrency/replays/mutants; native Web Locks; phone/wide transactions. Local unchanged phone/desktop E2E on system Chromium:60passed/50existing SQL-fixture skips; pinned browser download403Domain forbidden. Connected actual SQL/browser evidence remains separate; exact pinned browser/visual/performance CI pending.",
         "remaining_engineering": [
           "Finish A: order\u2192payment\u2192production\u2192stock\u2192packing\u2192pickup\u2192Books. Finish B: plan\u2192supplier comparison\u2192receipt\u2192stock\u2192dough\u2192partial Bake\u2192remaining dough/costs.",
           "Finish C: event/day\u2192transfer\u2192sell\u2192offline/reload/reconnect/ACK\u2192void\u2192close\u2192return\u2192finalize\u2192Books.",
@@ -499,7 +499,7 @@
           "Remaining C1/C4\u2013C12 requirements; original obligation source reconciliation."
         ],
         "external_gates": ["Hosted/physical-device/unaided-owner gates remain separate."],
-        "next_authorized_unblocked_task": "Build the next missing linked local transaction scenario after its direct engineering prerequisites pass."
+        "next_authorized_unblocked_task": "Run final pinned CI browser/visual/performance gates, then continue original7v2/15v3/full connected business journeys; do not infer closure from route smoke."
       },
       "C14": {
         "title": "Final hardening",
@@ -507,19 +507,20 @@
         "full_cycle_accepted": false,
         "accepted_sha": [
           "611d7c62799d73863c7e7bda336187408ad9cbbb",
-          "efe14d590efd0b425740089d43999e297af457a8"
+          "efe14d590efd0b425740089d43999e297af457a8",
+          "0063b6287142a0813c70153073c07c427ca55f5a"
         ],
         "accepted_functionality": "Pinned patched dependencies, protected-port checks and recurring full verify/Live build/visual checks.",
-        "evidence": "Dependency checkpoint611d7c6 audited all production severities0; current source tests/build pass in acceptance commits, not a release claim. Read-only trial compatibility preflight:80focused/3files, two actual local SQL/catalog resets (83migrations/173public functions), official Management API source shape and clear independent review; full gate recorded by acceptance commit. Hosted execution unverified.",
+        "evidence": "Dependency checkpoint611d7c6 audited all production severities0; current source tests/build pass in acceptance commits, not a release claim. Read-only trial compatibility preflight:80focused/3files, two actual local SQL/catalog resets (83migrations/173public functions), official Management API source shape and clear independent review; full gate recorded by acceptance commit. Hosted execution unverified. Schema gate accepted0063b62 full229files/3694tests+2TODO. PR44: frozen installs,286production/1044unrelated-toolchain snapshots and metadata unchanged, final Storybook/Live builds, zero production advisories and clear bounded review. Initial Babel graph drift failed before corrected lock merge; acceptance commit records full gate.",
         "remaining_engineering": [
           "Measure optimized signed-in loads/navigation/edit/save/refresh; finish accessibility, visual, responsive and applicable security hardening.",
           "Complete final requirements reconciliation and prepare deployment/migration/rollback instructions for separate approval."
         ],
         "dependencies": ["C13 complete local journeys; remaining engineering requirements."],
         "external_gates": [
-          "Release/deployment/hosted changes require separate approval; native device acceptance."
+          "Compatible main merges and existing private-trial deployment authorized10November; exact target/Access/release-hold and read-only hosted schema checks remain gates. Hosted migrations/data edits/financial-policy changes and native-device/unaided-owner acceptance remain separately gated."
         ],
-        "next_authorized_unblocked_task": "Address demonstrated hardening gaps; retain original assertions and owner/release gates."
+        "next_authorized_unblocked_task": "Finish candidate full gate, run pinned CI and publish main/private trial only through existing release gates; continue independent engineering if external access/schema blocks deployment."
       }
     },
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",

@@ -2849,3 +2849,11 @@ C1/HCB-001/HCB-002a release integration preserves current main/trial ancestry an
 C4 health truth is accepted and pushed as`fc2bbe4b68762b76b5986f36af881138bad5a811`: full223files/3590tests+2TODO;36focused, actual two-reset SQL/browser, visual, Live build and clear review.
 
 Deployment is now authorized but not yet evidenced: the existing private target is happy-cookie-owner-trial.admin-kethai.workers.dev. Add a read-only hosted migration/catalog preflight before release; existing Cloudflare checks alone do not prove SQL71–82. No hosted migration or business-data write was performed.
+
+## 10 November — verified release preparation
+
+C4/C11 staff attribution is accepted as`efe14d590efd0b425740089d43999e297af457a8`: full222files/3576tests+2TODO;111focused, both actual SQL/browser resets, inspected phone/wide views, Live build and clear review. Account/backend bindings, A→B→A, retirement and offline name matching are covered; native offline authentication remains separate.
+
+C1/HCB-001/HCB-002a integration is accepted and pushed as`071a1c373fba773fbe3261a5607bf3849c8aa9fd`: full228files/3670tests+2TODO,221focused, both actual connected SQL/browser resets, inspected390/1440 views, Live build and clear review. Main/trial and PR12/51/52/53/45 histories are retained; Next keeps the already accepted patched graph. OD-12 stays open; PR50 remains evidence-only.
+
+C14 private-trial schema preflight now blocks deployment on missing credentials or migration/RPC/required-column/authority mismatch. It reads catalog metadata only at the fixed target, using the existing OPS management token; no migration/data write. First workflow regression failed before wiring;80focused/3files and two actual read-only SQL reset checks pass (83versions/173exact public functions). API request shape is verified against official supabase/mcp8a08e48 source; independent review is clear. Full gate is recorded by acceptance commit. Hosted execution remains unverified. This is a bounded compatibility gate, not full hosted table/trigger/policy equality. Next reconcile Storybook PR44, publish verified main and run the existing private-trial release gates; keep engineering/owner/device gates distinct.
