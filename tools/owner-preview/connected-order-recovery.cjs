@@ -24,6 +24,7 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
     }
     if(name==='order_status')window.customerStatusReads++;
     const answer=await nativeFetch(url,init);
+    if(name==='get_shop_payment_info'&&window.failNextCustomerPaymentRead){window.failNextCustomerPaymentRead=false;await answer.clone().json();throw TypeError('Lost real local payment read');}
     if(name==='order_status'&&window.failNextCustomerStatusRead){window.failNextCustomerStatusRead=false;await answer.clone().json();throw TypeError('Lost real local status read');}
     if(name==='find_order'&&window.holdCustomerLookup){window.lookupTokenMatches=answer.ok&&(await answer.clone().json())===window.expectedLookupToken;window.holdCustomerLookup=false;await new Promise(resolve=>{window.releaseCustomerLookup=resolve;});}
     if(name==='place_order'&&answer.ok&&window.loseCustomerOrderReply){await answer.clone().json();window.loseCustomerOrderReply=false;throw TypeError('Lost real committed local order reply');}
@@ -97,10 +98,20 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   await customer.getByRole('button',{name:'Retry order status',exact:true}).click();
   await customer.waitForFunction(()=>window.__hcOps.renderVals().liveStatusRead?.state==='loaded');
   assert(await customer.evaluate(orderNo=>window.__hcOps.renderVals().cust.orderNo===orderNo,receipt.orderNo),'Status Retry changed the private order');
-  await customer.evaluate(()=>{window.failNextCustomerStatusRead=true;window.__hcOps.renderVals().liveStatusRead.retry();});
+  const paymentPanel=customer.getByRole('article',{name:'Payment details',exact:true}),amount='₱'+(status.data.total_cents/100).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  assert(await paymentPanel.getByText(amount,{exact:true}).count()===2&&await paymentPanel.getByText('Account number: 000',{exact:true}).count()===1,'Payment panel changed server amount or selected account');
+  await customer.evaluate(()=>{window.failNextCustomerPaymentRead=true;});
+  await customer.getByRole('button',{name:'Refresh payment details',exact:true}).click();
+  await customer.getByRole('button',{name:'Retry payment details',exact:true}).waitFor();
+  assert(await paymentPanel.getByText('Account number: 000',{exact:true}).count()===0,'Failed metadata read retained bank instructions');
+  await customer.getByRole('button',{name:'Retry payment details',exact:true}).click();
+  await customer.getByRole('button',{name:'Refresh payment details',exact:true}).waitFor();
+  await customer.evaluate(()=>{window.failNextCustomerStatusRead=true;});
+  await customer.getByRole('button',{name:'Check order status',exact:true}).click();
   await customer.getByRole('button',{name:'Retry order status',exact:true}).waitFor();
   assert(await customer.evaluate(orderNo=>{const v=window.__hcOps.renderVals();return v.cust.orderNo===orderNo&&v.liveStatusRead.stale;},receipt.orderNo),'Failed refresh lost or mislabeled last-good status');
   assert(await customer.getByRole('status').filter({hasText:'Showing the last successful read'}).count()===1,'Retained status has no freshness warning');
+  assert(await paymentPanel.getByText('Account number: 000',{exact:true}).count()===0,'Stale order status retained payment instructions');
   await shot('status-stale');
   await customer.getByRole('button',{name:'Retry order status',exact:true}).click();
   await customer.waitForFunction(()=>window.__hcOps.renderVals().liveStatusRead?.state==='loaded');
@@ -110,6 +121,7 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
    await customer.setViewportSize({width:size,height:950});
    const bounds=await customer.getByRole('region',{name:'Customer order status',exact:true}).boundingBox();assert(bounds&&Math.abs(bounds.x)<1&&Math.abs(bounds.width-size)<1,'Status kept a narrow frame at '+size);
    const small=await customer.locator('button:visible').evaluateAll(nodes=>nodes.filter(node=>{const box=node.getBoundingClientRect();return box.width<44||box.height<44;}).map(node=>node.textContent));assert(small.length===0,'Status touch controls too small at '+size+': '+small.join(', '));
+   assert(await customer.getByRole('heading',{level:1}).evaluate(node=>!!(node.compareDocumentPosition(document.querySelector('[aria-label="Payment details"]'))&Node.DOCUMENT_POSITION_FOLLOWING)),'Payment instructions precede the order heading');
    assert(await customer.getByText('Order '+receipt.orderNo,{exact:true}).count()===1,'Fluid status lost its real order');await shot('status-'+size);
   }
   await customer.setViewportSize({width,height:950});

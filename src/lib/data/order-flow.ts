@@ -98,6 +98,10 @@ export class OrderFlow {
     private readonly recovery?: OrderRecovery
   ) {}
 
+  usesClient(client: OrderClient): boolean {
+    return this.client === client;
+  }
+
   get hasRecovery(): boolean {
     return !!this.recovery;
   }

@@ -4,6 +4,8 @@
  * renderVals() returns and the ported markup reads. Widen a type here only together
  * with the engine change that produces it — see docs/PORTING.md.
  */
+import type { OrderStatusView } from '@/lib/data/orders';
+import type { PublicMethod } from '@/lib/data/payments';
 import type { TillLedger } from '@/lib/bazaar/till-ledger';
 import type { LiveCustomers } from '@/store/customer-desk';
 import type { LiveMake } from '@/store/make-desk';
@@ -480,6 +482,14 @@ export interface OpsVals {
    * Live mode only (MP-09 c2, finding 16): what the shop footer may claim. Every line is the
    * owner's own text; an empty string means the footer prints nothing for it.
    */
+  liveCustomerPayment?: {
+    order: OrderStatusView;
+    fresh: boolean;
+    methods: PublicMethod[] | null;
+    paymentState: 'loading' | 'ready' | 'failed';
+    canRetry: boolean;
+    retry: () => void;
+  } | null;
   liveStatusRead?: {
     state: 'idle' | 'loading' | 'loaded' | 'missing' | 'error';
     stale: boolean;

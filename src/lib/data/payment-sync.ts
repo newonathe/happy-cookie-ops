@@ -67,6 +67,10 @@ export class PaymentSync {
     private readonly options: PaymentSyncOptions = {}
   ) {}
 
+  get sourceClient(): PaymentClient {
+    return this.client;
+  }
+
   async loadPublic(): Promise<boolean> {
     if (this.hooks.current?.() === false) return false;
     const sequence = ++this.publicSeq;
