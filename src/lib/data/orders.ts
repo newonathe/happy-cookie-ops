@@ -271,6 +271,8 @@ export interface OrderStatusView {
   payState: string;
   payMethod: string;
   totalCents: number;
+  /** Missing on older schemas; null means no recorded payment amount. Never infer confirmation. */
+  paidCents?: number | null;
   pickupDate: string | null;
   pickupWindow: string | null;
   placedAt: string;
@@ -305,6 +307,12 @@ export function parseOrderStatus(json: unknown): OrderStatusView | null {
     !Array.isArray(o.items)
   )
     return null;
+  if (
+    o.paid_cents !== undefined &&
+    o.paid_cents !== null &&
+    (typeof o.paid_cents !== 'number' || !Number.isSafeInteger(o.paid_cents) || o.paid_cents < 0)
+  )
+    return null;
   const items: StatusItem[] = [];
   for (const raw of o.items) {
     const i = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
@@ -330,6 +338,7 @@ export function parseOrderStatus(json: unknown): OrderStatusView | null {
     payState: o.pay_state,
     payMethod: o.pay_method,
     totalCents: o.total_cents,
+    ...(o.paid_cents !== undefined ? { paidCents: o.paid_cents as number | null } : {}),
     pickupDate: typeof o.pickup_date === 'string' ? o.pickup_date : null,
     pickupWindow: typeof o.pickup_window === 'string' ? o.pickup_window : null,
     placedAt: o.placed_at,

@@ -288,6 +288,21 @@ describe('the status page', () => {
     expect(parseOrderStatus({ ...base, total_cents: 1.5 })).toBeNull();
   });
 
+  it('reads recorded paid amounts without inventing a payment for older replies', () => {
+    expect(parseOrderStatus(base)?.paidCents).toBeUndefined();
+    expect(parseOrderStatus({ ...base, paid_cents: null })?.paidCents).toBeNull();
+    expect(parseOrderStatus({ ...base, paid_cents: 15000 })).toMatchObject({
+      paidCents: 15000,
+      payState: 'unpaid'
+    });
+  });
+  it.each([-1, 1.5, '10000', Number.MAX_SAFE_INTEGER + 1])(
+    'refuses malformed paid amounts: %j',
+    (paid_cents) => {
+      expect(parseOrderStatus({ ...base, paid_cents })).toBeNull();
+    }
+  );
+
   it('validates the token before calling the database', async () => {
     const { c, rpc } = client({ data: base, error: null });
     expect(await fetchOrderStatus(c, 'not-a-token')).toBeNull();

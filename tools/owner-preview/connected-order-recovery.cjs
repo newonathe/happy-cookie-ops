@@ -62,7 +62,7 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   const rows=await owner.evaluate(()=>window.connectedProductionClient.rpc('get_staff_orders'));
   assert(!rows.error&&rows.data.filter(row=>row.name==='Local recovery customer').length===1&&rows.data.some(row=>row.id===receipt.orderNo&&row.name==='Local recovery customer'&&row.pay_state==='unpaid'),'Actual owner read did not confirm exactly one order');
   const token=new URL(receipt.url).hash.slice(3),status=await customer.evaluate(token=>window.customerOrderClient.rpc('order_status',{p_token:token}),token);
-  assert(!status.error&&status.data.order_no===receipt.orderNo&&status.data.pay_state==='unpaid','Receipt/replay invented payment or changed identity');
+  assert(!status.error&&status.data.order_no===receipt.orderNo&&status.data.pay_state==='unpaid'&&Object.hasOwn(status.data,'paid_cents')&&status.data.paid_cents===null,'Receipt/replay invented payment or changed identity');
   await customer.getByRole('button',{name:'Back to cookies',exact:true}).click();
   await customer.evaluate(token=>{
    window.expectedLookupToken=token;window.holdCustomerLookup=true;
