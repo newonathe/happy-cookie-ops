@@ -2327,6 +2327,7 @@ export class OpsRuntime extends OpsProvider {
 
   /** The name each role is shown and recorded under in live mode; '' means the role word. */
   private staffNames: Partial<Record<Role, string>> = {};
+  private staffNameLoadSeq = 0;
   /**
    * The role a profile read has answered for on this page load, or null. The gate asks again
    * until it matches the verified role (a failed first try, or a role that changed since).
@@ -2404,18 +2405,25 @@ export class OpsRuntime extends OpsProvider {
    * carry and remembered on the phone for an offline reopen. A failed read changes nothing.
    */
   async loadStaffName(client: StaffClient | null, role: Role): Promise<boolean> {
-    if (!isLiveMode() || !client) return false;
+    if (!isLiveMode() || this.unmounted) return false;
+    const seq = ++this.staffNameLoadSeq;
+    const actor = this.productionActorEpoch;
+    const current = () =>
+      !this.unmounted &&
+      seq === this.staffNameLoadSeq &&
+      actor === this.productionActorEpoch &&
+      role === this.state.role &&
+      readRememberedCheck()?.role === role;
+    if (!client || !current()) return false;
     try {
       const { data: auth } = await client.auth.getSession();
       const uid = auth.session?.user.id;
-      if (!uid) return false;
+      if (!uid || !current()) return false;
       const { data, error } = await client
         .from('profiles')
         .select('id, display_name, role, active');
-      if (error || !data) return false;
-      // Signing out clears the remembered check first, and the gate remembers it before it
-      // calls this: a read that lands after a sign-out is dropped, not written back.
-      if (readRememberedCheck()?.role !== role) return false;
+      // Only the current verified read may name future sales or remember an offline clerk.
+      if (error || !data || !current()) return false;
       const name = cleanStaffName(data.find((row) => row.id === uid)?.display_name);
       this.staffNameRole = role;
       this.nameRole(role, name);

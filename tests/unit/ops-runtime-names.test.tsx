@@ -244,6 +244,75 @@ describe('the signed-in person in live mode', () => {
     // Mutation: without the check, Tomas's name is back on the phone after he signed out.
   });
 
+  it.each(['profile', 'session'])(
+    'a retired %s answer cannot replace a newer staff name or forward a profile read',
+    async (phase) => {
+      const runtime = mount('helper');
+      rememberCheck('helper');
+      let release!: (value: unknown) => void;
+      const select = vi.fn(() =>
+        phase === 'profile'
+          ? new Promise((resolve) => (release = resolve))
+          : Promise.resolve({ data: STAFF, error: null })
+      );
+      const old = {
+        auth: {
+          getSession: () =>
+            phase === 'session'
+              ? new Promise((resolve) => (release = resolve))
+              : Promise.resolve({ data: { session: { user: { id: 'u-helper' } } } })
+        },
+        from: () => ({ select })
+      } as never;
+      const pending = runtime.loadStaffName(old, 'helper');
+      await Promise.resolve();
+      const nextRows = [
+        { id: 'next-helper', display_name: 'Next helper', role: 'helper', active: true }
+      ];
+      await act(
+        async () =>
+          void (await runtime.loadStaffName(staffClient('next-helper', nextRows), 'helper'))
+      );
+      await act(async () => {
+        release(
+          phase === 'profile'
+            ? { data: STAFF, error: null }
+            : { data: { session: { user: { id: 'u-helper' } } } }
+        );
+        expect(await pending).toBe(false);
+      });
+      expect(text(runtime.renderVals().clerkName)).toBe('Next helper');
+      expect(readStaffName()).toEqual({ role: 'helper', name: 'Next helper' });
+      expect(select).toHaveBeenCalledTimes(phase === 'profile' ? 1 : 0);
+    }
+  );
+
+  it.each(['source removed', 'role round trip', 'unmount'])(
+    'a pending staff profile is retired after %s',
+    async (reason) => {
+      const runtime = mount('helper');
+      rememberCheck('helper');
+      let release!: (value: unknown) => void;
+      const slow = {
+        auth: { getSession: async () => ({ data: { session: { user: { id: 'u-helper' } } } }) },
+        from: () => ({ select: () => new Promise((resolve) => (release = resolve)) })
+      } as never;
+      const pending = runtime.loadStaffName(slow, 'helper');
+      await Promise.resolve();
+      if (reason === 'source removed') await runtime.loadStaffName(null, 'helper');
+      else if (reason === 'role round trip') {
+        act(() => runtime.setRole('owner'));
+        act(() => runtime.setRole('helper'));
+      } else cleanup();
+      await act(async () => {
+        release({ data: STAFF, error: null });
+        expect(await pending).toBe(false);
+      });
+      expect(readStaffName()).toBeNull();
+      expect(ROLES.helper.label).toBe('Helper');
+    }
+  );
+
   it('a helper is named from their own row and never gets the staff list', async () => {
     const runtime = mount('helper');
     rememberCheck('helper');

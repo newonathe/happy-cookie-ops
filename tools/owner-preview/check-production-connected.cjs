@@ -308,6 +308,7 @@ fs.mkdirSync(out, { recursive: true });
   await require('./connected-shop-menu.cjs').run({page,context,origin,anon,nonce,width,out,assert});
   await require('./connected-payment-reads.cjs').run({page,context,origin,anon,nonce,width,out,assert});
   await require('./connected-shop-identity.cjs').run({page,width,out,assert});
+  await require('./connected-staff-name.cjs').run({page,userId:claims.sub,width,out,assert});
   await require('./connected-order-recovery.cjs').run({page,context,origin,anon,nonce,width,out,assert});
   await require('./connected-shop-overrides.cjs').run({page,width,out,assert});
   assert(!attempts.some(a=>a.name==='record_production'),'A new action attempted the retired production writer');
