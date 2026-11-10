@@ -57,7 +57,7 @@ export const ORDER_COPY = {
   /** The status page's new lines (the ported sentences it keeps are in status-view.ts). */
   status: {
     receivedHeld: (method: string, when: string): string =>
-      `We have your order. Send payment with ${method}; the order is held until ${when}.`,
+      `We have your order. Payment method: ${method}; the order is held until ${when}.`,
     get receivedNoHold(): string {
       return 'We have your order. ' + ownerOr('We') + ' will confirm your payment.';
     },
@@ -69,6 +69,12 @@ export const ORDER_COPY = {
     },
     readyBody: 'Packed and waiting for your pickup window.',
     stepReceived: 'We have your order',
+    /** PLACEHOLDER: neutral payment-state wording; owner copy acceptance stays open. */
+    paymentChecking: 'Payment needs checking by the shop.',
+    paymentRecorded: 'Payment confirmed by the shop.',
+    preparationWaiting: 'Waiting for preparation',
+    preparing: 'Preparing your cookies',
+    preparationComplete: 'Preparation complete',
     stepWaiting: 'Waiting for your payment',
     stepLapsed: 'Not paid in time',
     stepCancelled: 'This order will not be baked',
