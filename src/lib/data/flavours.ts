@@ -479,9 +479,10 @@ export class FlavourSync {
    * flight is snapshotted first and restored after, rather than visibly reverting it.
    *
    * Refuses to create a new flavour (`expectedUpdatedAt` null) unless `load()` has actually
-   * populated the cache: the success path re-applies every row `current()` holds, and a new
-   * flavour saved onto an empty (never-loaded) cache would shrink the engine's whole list to
-   * that one row.
+   * populated the cache, or the newest read was answered with no flavours (`readEmpty`): the
+   * success path re-applies every row `current()` holds, and a new flavour saved onto an
+   * unread or failed cache would shrink the engine's whole list to that one row. On a
+   * confirmed empty menu that one row is the whole menu.
    */
   async saveWhole(
     id: string,
@@ -489,7 +490,9 @@ export class FlavourSync {
     expectedUpdatedAt: string | null
   ): Promise<FlavourSaveResult['status']> {
     if (flavourFieldError(fields) || this.inFlight.has(id)) return 'rejected';
-    if (expectedUpdatedAt === null && !this.loaded) return 'rejected';
+    // HCB-004: a read that was ANSWERED with no flavours is a confirmed empty menu, so the first
+    // product may be made. An unread, failed or still-out read (readEmpty is false then) is not.
+    if (expectedUpdatedAt === null && !this.loaded && !this.readEmpty) return 'rejected';
     if (!this.host.online()) {
       this.host.toast(FLAVOUR_TOASTS.offline, 'warn');
       return 'offline';

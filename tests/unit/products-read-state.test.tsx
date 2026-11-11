@@ -13,6 +13,7 @@ import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
 import { ALLERGENS, PRODUCTS, replaceFlavours } from '@/store/engine/ops-engine';
 import type { FlavourRow, FlavoursClient } from '@/lib/data/flavours';
 import { flavoursRead } from '@/lib/data/flavours-read-state';
+import type { LiveFlavourFormFields } from '@/view-models/vals';
 
 /**
  * HCB-003: the owner's Products page after the catalogue read fails. The built-in list (the
@@ -261,5 +262,72 @@ describe('HCB-003: the owner Products page and a failed catalogue read', () => {
     expect(results.violations).toEqual([]);
     expect(screen.getByRole('alert')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+  });
+
+  // HCB-004 (defect 2): the empty page invites Add product, so the first product must really save.
+  const NEW_FIELDS: LiveFlavourFormFields = {
+    name: 'First Cookie',
+    shortName: 'First',
+    description: 'The first one.',
+    imagePath: 'assets/first.png',
+    allergens: 'milk, eggs, wheat',
+    badge: '',
+    kind: 'Permanent',
+    itemType: 'cookie',
+    capacityWeight: 1,
+    sortOrder: 1,
+    price: 150,
+    active: true
+  };
+  const saveAnswer = (name: string): Answer =>
+    name === 'save_flavour'
+      ? { data: [{ id: 'first-cookie', updated_at: '2026-11-11T07:43:00.000Z' }], error: null }
+      : { data: null, error: down.error };
+  const openEditor = (runtime: OpsRuntime) => {
+    act(() => runtime.renderVals().liveMake!.addProduct());
+    return runtime.renderVals().liveForm!.editing!;
+  };
+
+  it('7. on a confirmed empty menu, Add product then a valid save creates the product', async () => {
+    const { runtime } = await openProducts();
+    const c = controlled(saveAnswer);
+    const read = start(runtime, c.client);
+    await act(async () => {
+      c.answer(ok([]));
+      await read;
+    });
+    expect(screen.getByText(/no products yet/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Add product' }));
+    const editing = openEditor(runtime);
+    await act(async () => {
+      editing.save(NEW_FIELDS);
+      await settle();
+    });
+    expect(c.rpc.mock.calls.filter((call) => call[0] === 'save_flavour')).toHaveLength(1);
+    expect(c.rpc).toHaveBeenCalledWith(
+      'save_flavour',
+      expect.objectContaining({ p_id: 'first-cookie', p_expected_updated_at: null })
+    );
+    expect(PRODUCTS.map((p) => p.id)).toEqual(['first-cookie']);
+    expect(JSON.stringify(runtime.state.toast ?? null)).toContain('Flavour saved.');
+  });
+
+  it('8. after a failed or unread catalogue the write path itself still refuses a new product', async () => {
+    const { runtime } = await openProducts();
+    const c = controlled(saveAnswer);
+    const read = start(runtime, c.client);
+    await act(async () => {
+      c.answer(down);
+      await read;
+    });
+    // The page hides Add product here; the sheet is opened directly to prove the write refuses.
+    expect(screen.queryByRole('button', { name: 'Add product' })).toBeNull();
+    const editing = openEditor(runtime);
+    await act(async () => {
+      editing.save(NEW_FIELDS);
+      await settle();
+    });
+    expect(c.rpc.mock.calls.some((call) => call[0] === 'save_flavour')).toBe(false);
+    expect(PRODUCTS.map((p) => p.id)).toEqual(PORTED.list.map((p) => p.id));
   });
 });
