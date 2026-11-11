@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ProfileCheck } from '@/lib/auth/live-gate';
 import { act, render } from '@testing-library/react';
 import type { ScreenKey } from '@/lib/screens';
 
@@ -13,13 +14,20 @@ const { FakeRuntime } = vi.hoisted(() => ({
     setRole = vi.fn((role: 'owner' | 'helper') => {
       this.state.role = role;
     });
+    setState = vi.fn((_patch: unknown, callback?: () => void) => callback?.());
     loadSettings = vi.fn();
     saveStallCopy = vi.fn();
     loadFlavours = vi.fn();
     loadShopMenu = vi.fn();
     loadShopPayment = vi.fn();
     loadShopIdentity = vi.fn();
-    loadStaffName = vi.fn();
+    staffNameRole: 'owner' | 'helper' | null = null;
+    bindStaffIdentity = vi.fn(() => {
+      this.staffNameRole = null;
+    });
+    loadStaffName = vi.fn(() => {
+      this.staffNameRole = this.state.role;
+    });
     loadShopOrders = vi.fn();
     loadOrders = vi.fn();
     reloadOrders = vi.fn();
@@ -32,6 +40,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadShopStatus = vi.fn();
     reloadShopStatus = vi.fn();
     setGateAccess = vi.fn();
+    setProductionIdentity = vi.fn();
   }
 }));
 vi.mock('@/store/ops-runtime', () => ({ OpsRuntime: FakeRuntime }));
@@ -53,10 +62,11 @@ vi.mock('@/lib/auth/idle-signout', () => ({
   startIdleSignOut: () => () => undefined
 }));
 let role: 'owner' | 'helper' = 'owner';
-let authEvent: (event: string) => void = () => {};
+type AuthSession = { user: { id: string } } | null;
+let authEvent: (event: string, session?: AuthSession) => void = () => {};
 const client = {
   auth: {
-    onAuthStateChange: (cb: (event: string) => void) => {
+    onAuthStateChange: (cb: (event: string, session?: AuthSession) => void) => {
       authEvent = cb;
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     }
@@ -72,7 +82,58 @@ const settle = () => new Promise((r) => setTimeout(r, 0));
 describe('LiveGate: the flavour list each page loads', () => {
   beforeEach(() => {
     engine = new FakeRuntime();
+    vi.mocked(checkStaffProfile).mockImplementation(async () => ({ status: 'ok', role }));
     configured = true;
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example');
+  });
+
+  it('rebinds and re-reads names after a same-role account changes', async () => {
+    engine.state.screen = 'today';
+    vi.mocked(checkStaffProfile).mockResolvedValue({
+      status: 'ok',
+      role: 'owner',
+      userId: 'first-owner'
+    });
+    render(
+      <LiveGate initialScreen="today">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    expect(engine.loadStaffName).toHaveBeenCalledTimes(1);
+    vi.mocked(checkStaffProfile).mockResolvedValue({
+      status: 'ok',
+      role: 'owner',
+      userId: 'next-owner'
+    });
+    await act(async () => {
+      authEvent('SIGNED_IN', { user: { id: 'next-owner' } });
+      await settle();
+    });
+    expect(engine.bindStaffIdentity).toHaveBeenLastCalledWith({
+      userId: 'next-owner',
+      business: 'https://configured.example'
+    });
+    expect(engine.loadStaffName).toHaveBeenCalledTimes(2);
+  });
+
+  it('binds names to the full configured backend path', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example/backend-a');
+    vi.mocked(checkStaffProfile).mockResolvedValue({
+      status: 'ok',
+      role: 'owner',
+      userId: 'first-owner'
+    });
+    render(
+      <LiveGate initialScreen="today">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    expect(engine.bindStaffIdentity).toHaveBeenLastCalledWith({
+      userId: 'first-owner',
+      business: 'https://configured.example/backend-a'
+    });
   });
 
   it('reads the published menu on a customer page, and never the staff list', async () => {
@@ -86,7 +147,10 @@ describe('LiveGate: the flavour list each page loads', () => {
     // MP-09 c2: the payment methods and shop texts load on every live page.
     expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
     // B2: the pickup rules, checkout, lookup and waiting list load on every live page too.
-    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(
+      client,
+      'https://configured.example'
+    );
     // A signed-in owner on /shop: the token refresh verifies her, but the shop stays public.
     await act(async () => {
       authEvent('TOKEN_REFRESHED');
@@ -113,7 +177,10 @@ describe('LiveGate: the flavour list each page loads', () => {
     expect(engine.loadOperationsHealth).toHaveBeenCalledWith(client);
     expect(engine.loadShopMenu).not.toHaveBeenCalled();
     expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
-    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(
+      client,
+      'https://configured.example'
+    );
   });
 
   it('keeps an active count through a same-role token refresh, but applies a changed role', async () => {
@@ -155,6 +222,131 @@ describe('LiveGate: the flavour list each page loads', () => {
   });
 });
 
+describe('LiveGate: verified identity for unfinished production', () => {
+  const owner = '11111111-1111-4111-8111-111111111111';
+  const other = '22222222-2222-4222-8222-222222222222';
+  beforeEach(() => {
+    engine = new FakeRuntime();
+    configured = true;
+    role = 'owner';
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://happy-cookie.supabase.co');
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'owner', userId: owner });
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.mocked(checkStaffProfile).mockImplementation(async () => ({ status: 'ok', role }));
+  });
+  it('binds only the server-verified owner and configured backend, never an owner role alone', async () => {
+    engine.state.screen = 'bake';
+    render(
+      <LiveGate initialScreen="bake">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    expect(engine.setProductionIdentity).toHaveBeenLastCalledWith({
+      userId: owner,
+      business: 'https://happy-cookie.supabase.co'
+    });
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'owner' });
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    expect(engine.setProductionIdentity).toHaveBeenLastCalledWith(null);
+  });
+  it('closes old work immediately and ignores an old profile reply after the account changes', async () => {
+    engine.state.screen = 'bake';
+    render(
+      <LiveGate initialScreen="bake">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    let reply!: (value: ProfileCheck) => void;
+    vi.mocked(checkStaffProfile).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          reply = resolve;
+        })
+    );
+    act(() => authEvent('TOKEN_REFRESHED'));
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'owner', userId: other });
+    act(() => authEvent('SIGNED_IN', { user: { id: other } }));
+    expect(engine.setProductionIdentity).toHaveBeenLastCalledWith(null);
+    await act(settle);
+    expect(engine.setProductionIdentity).toHaveBeenLastCalledWith({
+      userId: other,
+      business: 'https://happy-cookie.supabase.co'
+    });
+    const count = engine.setProductionIdentity.mock.calls.length;
+    await act(async () => {
+      reply({ status: 'ok', role: 'owner', userId: owner });
+      await settle();
+    });
+    expect(engine.setProductionIdentity.mock.calls).toHaveLength(count);
+  });
+  it('rebinds production after owner access returns without reloading settings or the catalogue', async () => {
+    engine.state.screen = 'bake';
+    render(
+      <LiveGate initialScreen="bake">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    expect(engine.loadRecipes).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    expect(engine.loadProduction).toHaveBeenCalledTimes(1);
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'helper', userId: owner });
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    expect(engine.setProductionIdentity).toHaveBeenLastCalledWith(null);
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'owner', userId: owner });
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    expect(engine.loadProduction).toHaveBeenCalledTimes(2);
+    expect(engine.loadRecipes).toHaveBeenLastCalledWith(client, undefined, undefined, {
+      userId: owner,
+      business: 'https://happy-cookie.supabase.co'
+    });
+    expect(engine.loadRecipes).toHaveBeenCalledTimes(2);
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'owner', userId: other });
+    await act(async () => {
+      authEvent('SIGNED_IN', { user: { id: other } });
+      await settle();
+    });
+    expect(engine.loadProduction).toHaveBeenCalledTimes(3);
+    expect(engine.loadRecipes).toHaveBeenLastCalledWith(client, undefined, undefined, {
+      userId: other,
+      business: 'https://happy-cookie.supabase.co'
+    });
+    expect(engine.loadSettings).toHaveBeenCalledTimes(1);
+    expect(engine.loadFlavours).toHaveBeenCalledTimes(1);
+  });
+  it('does not turn anonymous customer sign-in into a staff check', async () => {
+    render(
+      <LiveGate initialScreen="shop">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    vi.mocked(checkStaffProfile).mockClear();
+    await act(async () => {
+      authEvent('SIGNED_IN', { user: { id: other } });
+      await settle();
+    });
+    expect(checkStaffProfile).not.toHaveBeenCalled();
+    expect(engine.setProductionIdentity).not.toHaveBeenCalled();
+  });
+});
+
 describe('LiveGate: the owner’s orders (B3)', () => {
   beforeEach(() => {
     engine = new FakeRuntime();
@@ -180,7 +372,7 @@ describe('LiveGate: the owner’s orders (B3)', () => {
       engine.loadFlavours.mock.invocationCallOrder[0]
     );
     // The owner's recipes too, for the same reason: a recipe for a flavour the screens do not know is ignored.
-    expect(engine.loadRecipes).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadRecipes).toHaveBeenCalledExactlyOnceWith(client, undefined, undefined, null);
     expect(engine.loadRecipes.mock.invocationCallOrder[0]).toBeGreaterThan(
       engine.loadFlavours.mock.invocationCallOrder[0]
     );

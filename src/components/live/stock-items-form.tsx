@@ -41,7 +41,7 @@ export function readItemForm(form: HTMLFormElement, before: LiveStockItemEdit): 
 export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
   const editing = liveStock.editing;
   const offline = !liveStock.online ? (
-    <span style={{ fontSize: '12px', color: '#A8231B' }}>
+    <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
       Offline. Changes here will not save until this device is back online.
     </span>
   ) : null;
@@ -49,7 +49,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {offline}
-        <span style={{ fontSize: '11px', color: '#66524A' }}>{C.itemsIntro}</span>
+        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.itemsIntro}</span>
         <button type="button" onClick={liveStock.add} style={primaryButton}>
           {C.addItem}
         </button>
@@ -66,7 +66,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
                   gap: '10px',
                   minHeight: '54px',
                   border: '0',
-                  borderBottom: '1px solid #F2EEEB',
+                  borderBottom: '1px solid var(--color-divide)',
                   background: 'transparent',
                   padding: '8px 2px',
                   textAlign: 'left',
@@ -77,7 +77,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
                   style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}
                 >
                   <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                  <span style={{ fontSize: '11px', color: '#66524A' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
                     {row.category} · {row.unit} · {row.supplierName}
                     {row.active ? '' : ' · switched off'}
                   </span>
@@ -86,7 +86,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
             ))}
           </div>
         ) : (
-          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.noItems}</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.noItems}</span>
         )}
         <button type="button" onClick={liveStock.close} style={secondaryButton}>
           Close
@@ -196,9 +196,11 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
       <button type="submit" style={primaryButton}>
         Save
       </button>
-      <button type="button" onClick={liveStock.back} style={secondaryButton}>
-        Back to the list
-      </button>
+      {liveStock.fromPage ? null : (
+        <button type="button" onClick={liveStock.back} style={secondaryButton}>
+          Back to the list
+        </button>
+      )}
     </form>
   );
 }

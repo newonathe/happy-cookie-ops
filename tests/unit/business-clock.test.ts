@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import clockCases from '../fixtures/clock-cases.json';
 import {
   BUSINESS_TIME_ZONE,
@@ -65,6 +65,29 @@ describe('the business clock', () => {
     expect(
       formatManila(JUST_AFTER_MIDNIGHT, { weekday: 'long', day: 'numeric', month: 'short' })
     ).toBe('Wednesday, Oct 7');
+  });
+
+  it('reuses display formatters without retaining dates or confusing option order', () => {
+    const NativeDateTimeFormat = Intl.DateTimeFormat;
+    const construct = vi
+      .spyOn(Intl, 'DateTimeFormat')
+      .mockImplementation(function (locale, options) {
+        return new NativeDateTimeFormat(locale, options);
+      });
+    try {
+      const first = formatManila(JUST_AFTER_MIDNIGHT, { dateStyle: 'full' }, 'en-GB');
+      const next = formatManila(JUST_AFTER_MIDNIGHT + 86_400_000, { dateStyle: 'full' }, 'en-GB');
+      expect(first).toBe('Wednesday, 7 October 2026');
+      expect(next).toBe('Thursday, 8 October 2026');
+      expect(construct).toHaveBeenCalledTimes(1);
+      formatManila(JUST_AFTER_MIDNIGHT, { month: 'long', year: '2-digit' }, 'en-GB');
+      formatManila(JUST_AFTER_MIDNIGHT, { year: '2-digit', month: 'long' }, 'en-GB');
+      expect(construct).toHaveBeenCalledTimes(2);
+      expect(formatManila(JUST_AFTER_MIDNIGHT, { dateStyle: 'short' }, 'en-GB')).toBe('07/10/2026');
+      expect(construct).toHaveBeenCalledTimes(3);
+    } finally {
+      construct.mockRestore();
+    }
   });
 
   it('is the only definition: the older names are this module', () => {

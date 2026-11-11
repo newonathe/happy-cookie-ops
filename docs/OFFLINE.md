@@ -48,6 +48,7 @@ till button ─► engine.recordSale()            in memory, instantly
 ## Retries
 
 - Coming back online: the `online` listener in `OfflineBridge` flushes immediately.
+- Still connected but the send failed (weak signal, a server hiccup): the browser fires no `online` event, so `startQueueRetry` tries every 30 seconds and when the app comes back to the front, only while it is visible and online (live only). A row the server refused is left out: the same body would be refused again. It stays on the phone with the reason on its row (`sale-problem.ts`).
 - Tab closed: `requestBackgroundSync()` registers the `hc-sale-sync` tag and `public/sw.js`
   flushes from the service worker, then messages any open client.
 - Neither available (older iOS): the next open of the app flushes. The queue is patient.
@@ -77,14 +78,14 @@ did not. Now:
   the hours), because the live app otherwise has neither after a reload.
 - **Who rang a sale up** (slice B2, 6 October 2026). Each sale carries the signed-in person's
   own name, from their profile, in place of the prototype's "Cine" and "Kristian". The phone
-  remembers that name and its role under one more key (`hc-live-staff-name`), so a stall that
+  remembers that name, role and account/backend identity under one more key (`hc-live-staff-name`), so a stall that
   reopens with no signal still records it; the two keys above keep their shape. Until a name
   is known the role word is used ("Owner", "Helper"). The name is cleaned to what
   `record_event_sale` accepts (plain text, 40 characters at most), so it can never make the
   server refuse a sale. A sale already queued keeps the name it was made with. The next
   person on the phone never sells under the last one's name: signing out removes it, with
   the remembered check; so does every sign-in, because people also leave by closing the tab;
-  only the reopen with no signal puts it back, and an online load waits for the profile
+  only a reopen whose stored session matches that account/backend puts it back (legacy unbound names stay neutral), and an online load waits for the profile
   (asked again at each check until it answers); a profile read that lands after a sign-out
   is dropped.
 - **Reconnecting.** The full check runs when the phone comes back online, when the app comes

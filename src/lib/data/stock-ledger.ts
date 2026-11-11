@@ -96,13 +96,17 @@ export async function recordStockMovement(
       };
     }
     const row = Array.isArray(data) ? (data[0] as unknown) : null;
-    const onHand =
-      typeof row === 'object' &&
-      row !== null &&
-      typeof (row as { on_hand?: unknown }).on_hand === 'number'
-        ? (row as { on_hand: number }).on_hand
-        : null;
-    return { outcome: 'saved', onHand };
+    if (!row || typeof row !== 'object') return { outcome: 'offline', onHand: null };
+    const answer = row as Record<string, unknown>;
+    if (
+      answer.item_id !== f.itemId ||
+      typeof answer.on_hand !== 'number' ||
+      !Number.isFinite(answer.on_hand) ||
+      answer.on_hand < 0 ||
+      typeof answer.duplicate !== 'boolean'
+    )
+      return { outcome: 'offline', onHand: null };
+    return { outcome: 'saved', onHand: answer.on_hand };
   } catch {
     return { outcome: 'offline', onHand: null };
   }

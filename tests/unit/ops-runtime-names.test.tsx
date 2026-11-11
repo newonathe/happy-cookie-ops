@@ -29,6 +29,7 @@ import { clearBazaar } from '@/lib/offline/bazaar-state';
  * bazaar sale up); the owner's and the shop's names inside sentences come from her own shop
  * details, or the sentence names nobody. Each `Mutation:` line is a change one of these fails on.
  */
+const staffScope = (userId = 'u-helper') => ({ userId, business: 'https://configured.example' });
 function Frame() {
   return <AppFrame v={useOpsVals()} />;
 }
@@ -40,7 +41,10 @@ function mount(role: 'owner' | 'helper' | 'support' = 'owner') {
     </OpsRuntime>
   );
   const runtime = ref.current!;
-  act(() => runtime.setRole(role));
+  act(() => {
+    runtime.setRole(role);
+    runtime.bindStaffIdentity(staffScope('u-' + role));
+  });
   return runtime;
 }
 const at = (runtime: OpsRuntime, iso: string) =>
@@ -103,14 +107,14 @@ describe('a name as a sale may carry it', () => {
   });
 
   it('is remembered under its own key, for its role, and forgotten on request', () => {
-    rememberStaffName('helper', 'Tomas');
-    expect(readStaffName()).toEqual({ role: 'helper', name: 'Tomas' });
+    rememberStaffName('helper', 'Tomas', staffScope());
+    expect(readStaffName(staffScope())).toEqual({ role: 'helper', name: 'Tomas' });
     expect(Object.keys(localStorage)).toEqual(['hc-live-staff-name']);
     clearStaffName();
-    expect(readStaffName()).toBeNull();
+    expect(readStaffName(staffScope())).toBeNull();
     for (const bad of ['{', '"x"', '{"role":"boss","name":"A"}', '{"role":"owner","name":7}']) {
       localStorage.setItem('hc-live-staff-name', bad);
-      expect(readStaffName()).toBeNull();
+      expect(readStaffName(staffScope())).toBeNull();
     }
   });
 });
@@ -153,6 +157,93 @@ describe('sentences that used to name the owner or the shop (audit H14)', () => 
   });
 });
 
+describe('staff names are bound to an account and backend', () => {
+  const a = { userId: 'u-helper', business: 'https://one.example' };
+  const b = { userId: 'next-helper', business: 'https://one.example' };
+  it.each(['owner', 'helper', 'support'] as const)(
+    'clears %s attribution on account switch and failed new reads',
+    async (role) => {
+      const runtime = mount(role),
+        first = staffScope('u-' + role),
+        next = staffScope('next-' + role);
+      rememberCheck(role);
+      const rows = [{ id: first.userId, display_name: 'First person', role, active: true }];
+      await act(
+        async () => void (await runtime.loadStaffName(staffClient(first.userId, rows), role))
+      );
+      expect(text(runtime.renderVals().clerkName)).toBe('First person');
+      act(() => runtime.bindStaffIdentity(next));
+      expect(text(runtime.renderVals().clerkName)).toBe(role[0].toUpperCase() + role.slice(1));
+      expect(readStaffName(first)).toBeNull();
+      expect(runtime.staffNameRead).toBe(false);
+      expect(runtime.renderVals().users).toEqual([]);
+      await act(
+        async () => void (await runtime.loadStaffName(staffClient(next.userId, null), role))
+      );
+      expect(text(runtime.renderVals().clerkName)).not.toBe('First person');
+      act(() => runtime.bindStaffIdentity(first));
+      expect(text(runtime.renderVals().clerkName)).not.toBe('First person');
+      await act(
+        async () => void (await runtime.loadStaffName(staffClient(first.userId, rows), role))
+      );
+      expect(text(runtime.renderVals().clerkName)).toBe('First person');
+      act(() => runtime.bindStaffIdentity(null));
+      expect(readStaffName(first)).toBeNull();
+      expect(text(runtime.renderVals().clerkName)).not.toBe('First person');
+    }
+  );
+  it('rejects an A reply after A → B → A, and a session that differs from the verified account', async () => {
+    const runtime = mount('helper');
+    rememberCheck('helper');
+    let release!: (value: unknown) => void;
+    const old = {
+      auth: { getSession: async () => ({ data: { session: { user: { id: 'u-helper' } } } }) },
+      from: () => ({ select: () => new Promise((resolve) => (release = resolve)) })
+    } as never;
+    const pending = runtime.loadStaffName(old, 'helper');
+    await Promise.resolve();
+    act(() => runtime.bindStaffIdentity(staffScope('next-helper')));
+    act(() => runtime.bindStaffIdentity(staffScope()));
+    await act(async () => {
+      release({ data: STAFF, error: null });
+      expect(await pending).toBe(false);
+    });
+    expect(await runtime.loadStaffName(staffClient('u-owner'), 'helper')).toBe(false);
+    expect(readStaffName(staffScope())).toBeNull();
+    expect(text(runtime.renderVals().clerkName)).toBe('Helper');
+  });
+  it('never reads another account’s or backend’s remembered name', () => {
+    rememberStaffName('helper', 'Tomas', a);
+    expect(readStaffName(a)).toEqual({ role: 'helper', name: 'Tomas' });
+    expect(readStaffName(b)).toBeNull();
+    expect(readStaffName({ ...a, business: 'https://two.example' })).toBeNull();
+  });
+  it('separates backend paths on the same host', () => {
+    const first = { ...a, business: 'https://one.example/backend-a/' };
+    rememberStaffName('helper', 'Tomas', first);
+    expect(readStaffName({ ...first, business: 'https://one.example/backend-a' })).toEqual({
+      role: 'helper',
+      name: 'Tomas'
+    });
+    expect(readStaffName({ ...a, business: 'https://one.example/backend-b' })).toBeNull();
+  });
+  it('does not restore another same-role account’s name offline', () => {
+    rememberStaffName('helper', 'Tomas', a);
+    const runtime = mount('helper');
+    act(() => runtime.restoreStaffName('helper', b));
+    expect(text(runtime.renderVals().clerkName)).toBe('Helper');
+  });
+  it('leaves legacy unbound names neutral on offline reopen', () => {
+    localStorage.setItem(
+      'hc-live-staff-name',
+      JSON.stringify({ role: 'helper', name: 'Old helper' })
+    );
+    const runtime = mount('helper');
+    act(() => runtime.restoreStaffName('helper', a));
+    expect(text(runtime.renderVals().clerkName)).toBe('Helper');
+  });
+});
+
 describe('the signed-in person in live mode', () => {
   it('is never one of the prototype’s people: with no name known, the role word stands in', () => {
     const runtime = mount('owner');
@@ -188,7 +279,7 @@ describe('the signed-in person in live mode', () => {
     expect(text(v.clerkName)).toBe('Marisol Vega');
     expect(ROLES.owner.label).toBe('Marisol Vega'); // what the engine writes on each sale
     expect(ROLES.helper.label).toBe('Helper');
-    expect(readStaffName()).toEqual({ role: 'owner', name: 'Marisol Vega' });
+    expect(readStaffName(staffScope('u-owner'))).toEqual({ role: 'owner', name: 'Marisol Vega' });
     // "Who can see what": the people on record, the one who left not among them.
     expect(v.users.map((u) => [u.name, u.role])).toEqual([
       ['Marisol Vega', 'Owner'],
@@ -206,14 +297,14 @@ describe('the signed-in person in live mode', () => {
     expect(await runtime.loadStaffName(staffClient(null), 'helper')).toBe(false);
     expect(await runtime.loadStaffName(null, 'helper')).toBe(false);
     expect(text(runtime.renderVals().clerkName)).toBe('Helper');
-    expect(readStaffName()).toBeNull();
+    expect(readStaffName(staffScope())).toBeNull();
     expect(runtime.renderVals().users).toEqual([]);
     expect(runtime.staffNameRead).toBe(false); // so the gate asks again at its next check
   });
 
   it('never sells under the last person’s name: an online load waits for the profile', async () => {
     // Tomas closed the tab without signing out; the phone still remembers him.
-    rememberStaffName('helper', 'Tomas');
+    rememberStaffName('helper', 'Tomas', staffScope());
     const runtime = mount('helper');
     rememberCheck('helper');
     // Before the profile answers, and when it cannot be read at all: the role word, not Tomas.
@@ -239,10 +330,83 @@ describe('the signed-in person in live mode', () => {
     clearRememberedCheck(); // what signing out does first
     answer({ data: STAFF, error: null });
     expect(await read).toBe(false);
-    expect(readStaffName()).toBeNull();
+    expect(readStaffName(staffScope())).toBeNull();
     expect(ROLES.helper.label).toBe('Helper');
     // Mutation: without the check, Tomas's name is back on the phone after he signed out.
   });
+
+  it.each(['profile', 'session'])(
+    'a retired %s answer cannot replace a newer staff name or forward a profile read',
+    async (phase) => {
+      const runtime = mount('helper');
+      rememberCheck('helper');
+      let release!: (value: unknown) => void;
+      const select = vi.fn(() =>
+        phase === 'profile'
+          ? new Promise((resolve) => (release = resolve))
+          : Promise.resolve({ data: STAFF, error: null })
+      );
+      const old = {
+        auth: {
+          getSession: () =>
+            phase === 'session'
+              ? new Promise((resolve) => (release = resolve))
+              : Promise.resolve({ data: { session: { user: { id: 'u-helper' } } } })
+        },
+        from: () => ({ select })
+      } as never;
+      const pending = runtime.loadStaffName(old, 'helper');
+      await Promise.resolve();
+      const nextRows = [
+        { id: 'next-helper', display_name: 'Next helper', role: 'helper', active: true }
+      ];
+      act(() => runtime.bindStaffIdentity(staffScope('next-helper')));
+      await act(
+        async () =>
+          void (await runtime.loadStaffName(staffClient('next-helper', nextRows), 'helper'))
+      );
+      await act(async () => {
+        release(
+          phase === 'profile'
+            ? { data: STAFF, error: null }
+            : { data: { session: { user: { id: 'u-helper' } } } }
+        );
+        expect(await pending).toBe(false);
+      });
+      expect(text(runtime.renderVals().clerkName)).toBe('Next helper');
+      expect(readStaffName(staffScope('next-helper'))).toEqual({
+        role: 'helper',
+        name: 'Next helper'
+      });
+      expect(select).toHaveBeenCalledTimes(phase === 'profile' ? 1 : 0);
+    }
+  );
+
+  it.each(['source removed', 'role round trip', 'unmount'])(
+    'a pending staff profile is retired after %s',
+    async (reason) => {
+      const runtime = mount('helper');
+      rememberCheck('helper');
+      let release!: (value: unknown) => void;
+      const slow = {
+        auth: { getSession: async () => ({ data: { session: { user: { id: 'u-helper' } } } }) },
+        from: () => ({ select: () => new Promise((resolve) => (release = resolve)) })
+      } as never;
+      const pending = runtime.loadStaffName(slow, 'helper');
+      await Promise.resolve();
+      if (reason === 'source removed') await runtime.loadStaffName(null, 'helper');
+      else if (reason === 'role round trip') {
+        act(() => runtime.setRole('owner'));
+        act(() => runtime.setRole('helper'));
+      } else cleanup();
+      await act(async () => {
+        release({ data: STAFF, error: null });
+        expect(await pending).toBe(false);
+      });
+      expect(readStaffName(staffScope())).toBeNull();
+      expect(ROLES.helper.label).toBe('Helper');
+    }
+  );
 
   it('a helper is named from their own row and never gets the staff list', async () => {
     const runtime = mount('helper');
@@ -253,18 +417,18 @@ describe('the signed-in person in live mode', () => {
   });
 
   it('a phone that reopens with no signal still knows who is selling, for that role only', () => {
-    rememberStaffName('helper', 'Tomas');
+    rememberStaffName('helper', 'Tomas', staffScope());
     const helper = mount('helper');
-    act(() => helper.restoreStaffName('owner')); // the gate reopened it as another role
+    act(() => helper.restoreStaffName('owner', staffScope())); // the gate reopened it as another role
     expect(text(helper.renderVals().clerkName)).toBe('Helper');
-    act(() => helper.restoreStaffName('helper')); // what the gate does when it holds offline
+    act(() => helper.restoreStaffName('helper', staffScope())); // what the gate does when it holds offline
     expect(text(helper.renderVals().clerkName)).toBe('Tomas');
     expect(ROLES.owner.label).toBe('Owner');
     cleanup();
     // Signing out forgets it (`signOutLocal`): the next person never sells under this name.
     clearStaffName();
     const next = mount('helper');
-    act(() => next.restoreStaffName('helper'));
+    act(() => next.restoreStaffName('helper', staffScope()));
     expect(text(next.renderVals().clerkName)).toBe('Helper');
     // Mutation: applying a remembered name to every role names the owner after the helper.
   });
@@ -289,6 +453,210 @@ describe('the shop’s own details', () => {
     tagline: 'Three kinds, baked on Thursdays.',
     updated_at: '2026-10-06T01:00:00.000Z'
   };
+
+  function deferredIdentity() {
+    let resolve!: (value: { data: unknown; error: null }) => void;
+    const promise = new Promise<{ data: unknown; error: null }>((done) => (resolve = done));
+    const rpc = vi.fn(() => promise);
+    return { client: { rpc } as never, rpc, resolve };
+  }
+  const NEW_IDENTITY = { ...IDENTITY, owner_name: 'New owner', tagline: 'New shop line.' };
+  const fields = { shopName: 'Edited shop', ownerName: '', contactLine: '', tagline: '' };
+  function identityForm(runtime: OpsRuntime) {
+    act(() => runtime.setState({ sheet: { kind: 'shoptexts' } } as never));
+    return runtime.renderVals().liveTexts!;
+  }
+
+  it('clears the old source while a new source is pending, including save readiness', async () => {
+    const runtime = mount();
+    await act(
+      async () => void (await runtime.loadShopIdentity(identityClient({ data: IDENTITY })))
+    );
+    identityForm(runtime);
+    const next = deferredIdentity();
+    let task!: Promise<boolean>;
+    act(() => void (task = runtime.loadShopIdentity(next.client)));
+    expect(runtime.renderVals().shopTagline).toBe('');
+    expect(runtime.renderVals().liveTexts?.identityReady).toBe(false);
+    expect(ORDER_COPY.lookupMiss).not.toContain(IDENTITY.contact_line);
+    await act(async () => {
+      next.resolve({ data: NEW_IDENTITY, error: null });
+      expect(await task).toBe(true);
+    });
+    expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+  });
+
+  it.each(['different client', 'same client'])(
+    'rejects an older identity reply from the %s',
+    async (source) => {
+      const runtime = mount();
+      const old = deferredIdentity();
+      const latest = identityClient({ data: NEW_IDENTITY });
+      // One client can have two independently settling reads too.
+      const rpc = vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              old.resolve = resolve;
+            })
+        )
+        .mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      const firstClient = source === 'same client' ? ({ rpc } as never) : old.client;
+      let task!: Promise<boolean>;
+      act(() => void (task = runtime.loadShopIdentity(firstClient)));
+      await act(
+        async () =>
+          void (await runtime.loadShopIdentity(source === 'same client' ? firstClient : latest))
+      );
+      await act(async () => {
+        old.resolve({ data: IDENTITY, error: null });
+        expect(await task).toBe(false);
+      });
+      expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+      expect(text(runtime.renderVals().deniedTitle)).toBe('Only New owner can open this');
+    }
+  );
+
+  it('null source clears identity and retires pending reads even after the same client returns', async () => {
+    const runtime = mount();
+    const old = deferredIdentity();
+    const first = runtime.loadShopIdentity(old.client);
+    await act(async () => void (await runtime.loadShopIdentity(null)));
+    expect(runtime.renderVals().shopTagline).toBe('');
+    const current = runtime.loadShopIdentity(old.client);
+    await act(async () => {
+      old.resolve({ data: IDENTITY, error: null });
+      expect(await first).toBe(false);
+      expect(await current).toBe(true);
+    });
+    await act(async () => void (await runtime.loadShopIdentity(null)));
+    expect(runtime.renderVals().shopTagline).toBe('');
+    expect(ORDER_COPY.lookupMiss).not.toContain(IDENTITY.contact_line);
+    expect(identityForm(runtime).identityReady).toBe(false);
+  });
+
+  it('an unmounted runtime cannot replace the next runtime’s global identity words', async () => {
+    const oldRuntime = mount();
+    const old = deferredIdentity();
+    const task = oldRuntime.loadShopIdentity(old.client);
+    cleanup();
+    const current = mount();
+    await act(
+      async () => void (await current.loadShopIdentity(identityClient({ data: NEW_IDENTITY })))
+    );
+    await act(async () => {
+      old.resolve({ data: IDENTITY, error: null });
+      expect(await task).toBe(false);
+    });
+    expect(text(current.renderVals().deniedTitle)).toBe('Only New owner can open this');
+  });
+
+  it('a retired save reply cannot reload its source or show a saved toast', async () => {
+    const runtime = mount();
+    let release!: (value: unknown) => void;
+    const rpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+    const client = { rpc } as never;
+    await act(async () => void (await runtime.loadShopIdentity(client)));
+    rpc.mockImplementationOnce(() => new Promise((resolve) => (release = resolve)));
+    const toast = vi.spyOn(runtime, 'toast');
+    const form = identityForm(runtime);
+    act(() => form.saveIdentity(fields));
+    expect(rpc).toHaveBeenCalledTimes(2);
+    await act(
+      async () => void (await runtime.loadShopIdentity(identityClient({ data: NEW_IDENTITY })))
+    );
+    await act(async () => release({ data: [{ updated_at: IDENTITY.updated_at }], error: null }));
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(toast).not.toHaveBeenCalled();
+    expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+  });
+
+  it.each(['before acknowledgement', 'during refresh'])(
+    'a newer same-client read retires save feedback %s',
+    async (stage) => {
+      const runtime = mount();
+      const rpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+      const client = { rpc } as never;
+      await act(async () => void (await runtime.loadShopIdentity(client)));
+      const form = identityForm(runtime);
+      let releaseSave!: (value: unknown) => void;
+      let releaseRefresh!: (value: unknown) => void;
+      rpc.mockImplementationOnce(() => new Promise((resolve) => (releaseSave = resolve)));
+      const toast = vi.spyOn(runtime, 'toast');
+      act(() => form.saveIdentity(fields));
+      if (stage === 'during refresh') {
+        rpc.mockImplementationOnce(() => new Promise((resolve) => (releaseRefresh = resolve)));
+        await act(async () =>
+          releaseSave({ data: [{ updated_at: IDENTITY.updated_at }], error: null })
+        );
+      }
+      rpc.mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      await act(async () => void (await runtime.loadShopIdentity(client)));
+      const calls = rpc.mock.calls.length;
+      await act(async () => {
+        if (stage === 'during refresh') releaseRefresh({ data: IDENTITY, error: null });
+        else releaseSave({ data: [{ updated_at: IDENTITY.updated_at }], error: null });
+      });
+      expect(rpc).toHaveBeenCalledTimes(calls);
+      expect(toast).not.toHaveBeenCalled();
+      expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+    }
+  );
+
+  it.each(['source', 'role', 'sheet'])(
+    'a cached identity save is retired after its %s changes',
+    async (scope) => {
+      const runtime = mount();
+      const firstRpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+      await act(async () => void (await runtime.loadShopIdentity({ rpc: firstRpc } as never)));
+      const old = identityForm(runtime);
+      const nextRpc = vi.fn().mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      if (scope === 'source') {
+        await act(async () => void (await runtime.loadShopIdentity({ rpc: nextRpc } as never)));
+      } else if (scope === 'role') {
+        act(() => runtime.setRole('helper'));
+        act(() => runtime.setRole('owner'));
+      } else {
+        act(() => runtime.closeSheet());
+        identityForm(runtime);
+      }
+      act(() => old.saveIdentity(fields));
+      expect(firstRpc).toHaveBeenCalledTimes(1);
+      expect(nextRpc).toHaveBeenCalledTimes(scope === 'source' ? 1 : 0);
+    }
+  );
+
+  it.each(['saved', 'conflict'])(
+    'a current identity save preserves CAS and refreshes after %s',
+    async (result) => {
+      const runtime = mount();
+      const rpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+      const client = { rpc } as never;
+      await act(async () => void (await runtime.loadShopIdentity(client)));
+      const form = identityForm(runtime);
+      rpc
+        .mockResolvedValueOnce(
+          result === 'saved'
+            ? { data: [{ updated_at: NEW_IDENTITY.updated_at }], error: null }
+            : { data: null, error: { code: 'P0002' } }
+        )
+        .mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      const toast = vi.spyOn(runtime, 'toast');
+      await act(async () => form.saveIdentity(fields));
+      expect(rpc).toHaveBeenNthCalledWith(2, 'save_shop_identity', {
+        p_identity: { shop_name: fields.shopName, owner_name: '', contact_line: '', tagline: '' },
+        p_expected_updated_at: IDENTITY.updated_at
+      });
+      expect(rpc).toHaveBeenNthCalledWith(3, 'get_shop_identity');
+      expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+      expect(toast).toHaveBeenCalledWith(
+        ...(result === 'saved'
+          ? ['Shop details saved.']
+          : ['These were changed somewhere else. Check them and save again.', 'warn'])
+      );
+    }
+  );
 
   it('a database without them yet reads as nothing set: neutral wording, no tagline, no error', async () => {
     const runtime = mount('owner');

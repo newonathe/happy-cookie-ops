@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
-import { clientIdFor, enqueueSale } from '@/lib/offline/queue';
-import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
+import { isLiveMode } from '@/lib/config/app-mode';
+import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
+import { clientIdFor, enqueueSale, hasRetryable } from '@/lib/offline/queue';
+import { startQueueRetry } from '@/lib/offline/retry';
+import { flushQueue, requestBackgroundSync, type FlushOptions } from '@/lib/offline/sync';
 import { warmOfflineShell } from '@/lib/offline/shell';
 import type { EventSalesClient } from '@/lib/data/event-sales';
 import type { EventSale } from '@/store/engine/ops-engine';
@@ -16,8 +19,8 @@ import type { EventSale } from '@/store/engine/ops-engine';
  *      so closing the tab or a dead battery cannot lose it;
  *   2. the browser's own connectivity drives the engine's online flag (the prototype's
  *      manual toggle still works, and still wins, for demoing);
- *   3. opening the app, coming back online, or a wake-up from the service worker flushes
- *      the queue;
+ *   3. opening the app, coming back online, a wake-up from the service worker, or the retry
+ *      timer while something is waiting (live only) flushes the queue;
  *   4. once the service worker is ready, the phone stores its own scripts so it can
  *      reload with no signal (`data-hc-offline-ready` says when).
  */
@@ -32,16 +35,20 @@ export function OfflineBridge() {
   const salesClient = () =>
     (engine as unknown as { saleClient?: EventSalesClient | null }).saleClient ?? null;
   // The runtime flushes and then makes the sale rows on screen say what the queue says.
-  const flush = () => {
-    const runtime = engine as unknown as { flushSales?: () => Promise<unknown> };
-    return runtime.flushSales ? runtime.flushSales() : flushQueue(salesClient());
+  const flush = (options?: FlushOptions) => {
+    const runtime = engine as unknown as {
+      flushSales?: (options?: FlushOptions) => Promise<unknown>;
+    };
+    return runtime.flushSales ? runtime.flushSales(options) : flushQueue(salesClient(), options);
   };
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
+    // Next development chunk URLs can be reused after edits; a cache-first worker serves stale code.
+    const development = process.env.NODE_ENV === 'development';
     navigator.serviceWorker
-      .register('/sw.js')
-      .then(() => warmOfflineShell())
+      .register(development ? '/dev-sw.js' : '/sw.js')
+      .then(() => (development ? false : warmOfflineShell()))
       .then((ready) => {
         if (ready) document.documentElement.dataset.hcOfflineReady = 'true';
       })
@@ -98,6 +105,17 @@ export function OfflineBridge() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sales, engine, retry]);
+
+  useEffect(() => {
+    if (!isLiveMode()) return;
+    return startQueueRetry({
+      // A customer's page has no staff session to send with.
+      hasRetryable: async () =>
+        !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey) && hasRetryable(),
+      flush: () => flush({ skipRefused: true })
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const sync = () => {

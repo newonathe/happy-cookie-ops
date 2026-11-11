@@ -1159,6 +1159,7 @@ export type Database = {
           same_day_enabled: boolean
           same_day_on_extras: boolean
           same_day_percent: number
+          sampler_flavours: string[]
           sampler_max_qty: number
           sampler_product_id: string | null
           updated_at: string
@@ -1170,6 +1171,7 @@ export type Database = {
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
           same_day_percent?: number
+          sampler_flavours?: string[]
           sampler_max_qty?: number
           sampler_product_id?: string | null
           updated_at?: string
@@ -1181,6 +1183,7 @@ export type Database = {
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
           same_day_percent?: number
+          sampler_flavours?: string[]
           sampler_max_qty?: number
           sampler_product_id?: string | null
           updated_at?: string
@@ -1565,15 +1568,18 @@ export type Database = {
           at: string
           corrects: string | null
           created_by: string | null
+          dough_only: boolean
           dough_used: number
           drop_no: number
           id: string
           kind: string
           payload_hash: string
+          preparation_recipe: Json | null
           product_id: string | null
           qty: number
           qty_delta: number | null
           received_at: string
+          recipe_amount: number | null
           recipe_version: number | null
           ref: string
           rejects: number
@@ -1585,15 +1591,18 @@ export type Database = {
           at: string
           corrects?: string | null
           created_by?: string | null
+          dough_only?: boolean
           dough_used?: number
           drop_no?: number
           id: string
           kind: string
           payload_hash: string
+          preparation_recipe?: Json | null
           product_id?: string | null
           qty: number
           qty_delta?: number | null
           received_at?: string
+          recipe_amount?: number | null
           recipe_version?: number | null
           ref?: string
           rejects?: number
@@ -1605,15 +1614,18 @@ export type Database = {
           at?: string
           corrects?: string | null
           created_by?: string | null
+          dough_only?: boolean
           dough_used?: number
           drop_no?: number
           id?: string
           kind?: string
           payload_hash?: string
+          preparation_recipe?: Json | null
           product_id?: string | null
           qty?: number
           qty_delta?: number | null
           received_at?: string
+          recipe_amount?: number | null
           recipe_version?: number | null
           ref?: string
           rejects?: number
@@ -2695,6 +2707,10 @@ export type Database = {
         Returns: string
       }
       get_bazaar: { Args: { p_booking: string }; Returns: Json }
+      get_bazaar_kitchen_sources: {
+        Args: { p_booking: string }
+        Returns: { product_id: string; source_drop: number }[]
+      }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
       get_flavour_costs: { Args: never; Returns: Json }
       get_flavours: {
@@ -2902,6 +2918,19 @@ export type Database = {
         }
         Returns: Json
       }
+      transfer_bazaar_stock: {
+        Args: { p_transfer: Json }
+        Returns: Json
+      }
+      record_bake: {
+        Args: { p_rec: Json }
+        Returns: {
+          duplicate: boolean
+          record_id: string
+          shortfall: Json
+          used_dough: number
+        }[]
+      }
       record_batch_correction: {
         Args: { p_corr: Json }
         Returns: {
@@ -2923,6 +2952,14 @@ export type Database = {
         Returns: {
           duplicate: boolean
           record_id: string
+        }[]
+      }
+      record_dough_preparation: {
+        Args: { p_rec: Json }
+        Returns: {
+          duplicate: boolean
+          record_id: string
+          shortfall: Json
         }[]
       }
       record_draw: {

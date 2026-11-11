@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import { centavosFromDb, centavosToPesos } from '@/lib/money';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { ordersRead } from '@/lib/orders/orders-read-state';
 import { manilaToday, weekStart } from '@/lib/time/business-clock';
 
 export { manilaToday } from '@/lib/time/business-clock';
@@ -134,7 +135,16 @@ function parseSwap(raw: unknown): StaffOrderSwap | null {
  * (the screens would otherwise crash on it), so the owner sees fewer orders, never a broken one.
  */
 export function parseStaffOrders(json: unknown): StaffOrder[] {
-  if (!Array.isArray(json)) return [];
+  return readStaffOrders(json)?.orders ?? [];
+}
+
+/**
+ * The same strict reading, saying what happened (HCB-002a, the Orders slice of HCB-004): null for
+ * an answer that is not a list at all, which is a failed read and never "no orders", and the
+ * number of rows that had to be dropped, so a partly unreadable list is not shown as complete.
+ */
+export function readStaffOrders(json: unknown): { orders: StaffOrder[]; dropped: number } | null {
+  if (!Array.isArray(json)) return null;
   const out: StaffOrder[] = [];
   for (const raw of json) {
     if (!isObj(raw)) continue;
@@ -191,7 +201,7 @@ export function parseStaffOrders(json: unknown): StaffOrder[] {
         .filter((b): b is StaffBox => b !== null)
     });
   }
-  return out;
+  return { orders: out, dropped: json.length - out.length };
 }
 
 /** The engine's order, as far as the ported screens read it. */
@@ -347,9 +357,18 @@ export function classify(result: RpcResult): StaffOutcome {
 }
 
 export async function fetchStaffOrders(client: StaffOrderClient): Promise<StaffOrder[]> {
+  return (await fetchStaffOrdersRead(client)).orders;
+}
+
+/** The read with its dropped-row count. An error or an answer that is not a list throws. */
+async function fetchStaffOrdersRead(
+  client: StaffOrderClient
+): Promise<{ orders: StaffOrder[]; dropped: number }> {
   const { data, error } = await client.rpc('get_staff_orders');
   if (error) throw new Error(error.code ?? 'get_staff_orders failed');
-  return parseStaffOrders(data);
+  const read = readStaffOrders(data);
+  if (!read) throw new Error('get_staff_orders answered something other than a list');
+  return read;
 }
 
 export interface StaffOrderHooks {
@@ -361,6 +380,8 @@ export interface StaffOrderHooks {
   pickupDays: () => readonly number[];
   /** Today on the business clock; a test may fix it. */
   today?: () => string;
+  /** Runtime account, role and client scope; checked before requests and after answers. */
+  current?: () => boolean;
 }
 
 type Call = (stamp: string) => PromiseLike<RpcResult>;
@@ -373,14 +394,39 @@ export class StaffOrderSync {
   private list: StaffOrder[] = [];
   /** False until a read has succeeded: an empty list before that is "not loaded", not "no orders". */
   loaded = false;
+  /**
+   * HCB-002a: every read gets a number. The list only ever moves to a newer read's answer, so an
+   * older answer that arrives late cannot overwrite it; the reported state follows the newest
+   * settled read (`orders-read-state.ts`).
+   */
+  private started = 0;
+  private shownRead = 0;
+  private failedRead = 0;
+  private readAt: number | null = null;
+  private dropped = 0;
+  private retired = false;
+  private readonly retry = (): void => void this.load();
 
   constructor(
     private readonly client: StaffOrderClient,
     private readonly hooks: StaffOrderHooks
-  ) {}
+  ) {
+    ordersRead.claim(this);
+  }
 
   current(): StaffOrder[] {
     return this.list;
+  }
+
+  isCurrent(): boolean {
+    return !this.retired && ordersRead.owns(this) && (this.hooks.current?.() ?? true);
+  }
+
+  retire(): void {
+    this.retired = true;
+    this.list = [];
+    this.loaded = false;
+    ordersRead.release(this);
   }
 
   find(id: string): StaffOrder | undefined {
@@ -388,15 +434,46 @@ export class StaffOrderSync {
   }
 
   async load(): Promise<boolean> {
+    if (!this.isCurrent()) return false;
+    const read = ++this.started;
+    const askedAt = Date.now();
+    this.report();
+    let answer: { orders: StaffOrder[]; dropped: number };
     try {
-      this.list = await fetchStaffOrders(this.client);
+      answer = await fetchStaffOrdersRead(this.client);
     } catch {
+      if (!this.isCurrent()) return false;
+      this.failedRead = Math.max(this.failedRead, read);
+      this.report();
       return false;
     }
-    this.loaded = true;
-    const week = currentWeek(this.list, this.hooks.today?.() ?? manilaToday());
-    this.hooks.apply(this.list.map((o) => toEngineOrder(o, this.hooks.pickupDays(), week)));
+    // A newer reader (a new owner session, a re-run of the live gate) has taken over: this
+    // answer may be older than what it shows, so it changes nothing.
+    if (!this.isCurrent()) return false;
+    if (read > this.shownRead) {
+      this.shownRead = read;
+      this.readAt = askedAt;
+      this.dropped = answer.dropped;
+      this.list = answer.orders;
+      this.loaded = true;
+      const week = currentWeek(this.list, this.hooks.today?.() ?? manilaToday());
+      this.hooks.apply(this.list.map((o) => toEngineOrder(o, this.hooks.pickupDays(), week)));
+    }
+    this.report();
     return true;
+  }
+
+  /** The read state for the Orders page, from the newest read that has an answer. */
+  private report(): void {
+    if (!this.isCurrent()) return;
+    const everRead = this.shownRead > 0;
+    ordersRead.publish(this, {
+      phase: this.failedRead > this.shownRead ? 'failed' : everRead ? 'read' : 'loading',
+      everRead,
+      readAt: this.readAt,
+      dropped: this.dropped,
+      retry: this.retry
+    });
   }
 
   /**
@@ -405,6 +482,7 @@ export class StaffOrderSync {
    * silent overwrite. Success and conflict both reload; the caller words the rest.
    */
   private async run(id: string, call: Call): Promise<StaffOutcome> {
+    if (!this.isCurrent()) return { kind: 'offline' };
     if (!this.hooks.online()) {
       this.hooks.toast(STAFF_COPY.offline, 'warn');
       return { kind: 'offline' };
@@ -420,6 +498,8 @@ export class StaffOrderSync {
     } catch {
       outcome = { kind: 'offline' };
     }
+    // Preserve the actual outcome of an already-sent request, without touching a new session.
+    if (!this.isCurrent()) return outcome;
     if (outcome.kind === 'ok') await this.load();
     else if (outcome.kind === 'conflict') {
       this.hooks.toast(STAFF_COPY.conflict, 'warn');

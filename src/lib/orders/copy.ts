@@ -40,7 +40,8 @@ export const ORDER_COPY = {
   waitlistUnknown: 'We could not confirm that. Tap "Try again": sending it twice does no harm.',
   changeWarning:
     'Check "Find my order" first: your last try may have gone through, and a changed order is a new order.',
-  rulesUnavailable: 'The pickup days could not be loaded. Check your connection and reload.',
+  rulesUnavailable: 'The pickup days could not be loaded. Try reading them again.',
+  optionsUnavailable: 'Order options could not be loaded. Try reading them again.',
   noMenu: 'Nothing is on the menu yet.',
   noOrderToRepeat: 'There is no order on screen to repeat.',
   locked:
@@ -56,7 +57,7 @@ export const ORDER_COPY = {
   /** The status page's new lines (the ported sentences it keeps are in status-view.ts). */
   status: {
     receivedHeld: (method: string, when: string): string =>
-      `We have your order. Send payment with ${method}; the order is held until ${when}.`,
+      `We have your order. Payment method: ${method}; the order is held until ${when}.`,
     get receivedNoHold(): string {
       return 'We have your order. ' + ownerOr('We') + ' will confirm your payment.';
     },
@@ -68,6 +69,12 @@ export const ORDER_COPY = {
     },
     readyBody: 'Packed and waiting for your pickup window.',
     stepReceived: 'We have your order',
+    /** PLACEHOLDER: neutral payment-state wording; owner copy acceptance stays open. */
+    paymentChecking: 'Payment needs checking by the shop.',
+    paymentRecorded: 'Payment confirmed by the shop.',
+    preparationWaiting: 'Waiting for preparation',
+    preparing: 'Preparing your cookies',
+    preparationComplete: 'Preparation complete',
     stepWaiting: 'Waiting for your payment',
     stepLapsed: 'Not paid in time',
     stepCancelled: 'This order will not be baked',

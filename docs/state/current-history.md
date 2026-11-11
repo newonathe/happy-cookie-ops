@@ -5,6 +5,21 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-11-01
+
+**Active work, 1 November 2026:** Ethan authorized implementing the completed v4 mockup
+in the actual app before owner testing. Read [implementation scope](../design/refined-workflows.md)
+and [next goal](next-goal.md). Work is on `codex/refined-workflows`; direct Bazaar navigation
+and the inventory Count flow are implemented. Count has item entry, review, retained drafts,
+and explicit recovery for unconfirmed saves; targeted tests and four-width headless UI checks pass.
+Count passed the pinned gate (147 files / 2,638 tests). Duplicate secondary tab rows are removed;
+Stock has one section row and direct Add to inventory. The approved live frame and complete Stock visual
+port are next: the current preview still uses the legacy frame. The private page plan covers 59 pages/child
+flows and 179 decision branches; this is planned coverage only. Make and the other refined workflows
+remain pending. No deployment or hosted changes
+are authorized by this instruction. The 20 October release details below are historical;
+the private comparison verified a later release on 1 November.
+
 # Moved from current.md on 2026-10-20
 
 ## Where things stood — 16 October 2026
@@ -2262,3 +2277,583 @@ before 70); one low finding is left: a flavour cost saved mid-close can be store
 a reset (two resets), live smoke 17 steps, `pnpm verify` 2,588 tests, e2e 90 passed. U8 (two decimals in ported screens) is
 skipped: Ethan kept whole pesos on the till. A clean browser pass at four widths is not done: layout QA found 36 px targets
 (fixed to 44 px) and a possible 16 px toast and footer overlap at 320 px on the day plan (unconfirmed).
+
+## 20 October release checkpoint
+
+**The consolidated till is live on the trial** (Ethan, 19 October: the prototype's look, consolidated, feature by feature
+from Bazaar, live before the 24 October bazaar). #37 (the till) and #39 (main's #32 to #36, among them the live-sync fix
+`51298e0`) are merged into the deploy branch and deployed: merge `94aa105`, Cloudflare version `50f46e2c`, every CI job
+green, Performance budget included (blocking since T-18). #40 merged the deploy branch into `main` (`d6494f7`): both now
+hold the same work. The ported till stays as the classic till (**⋯** › Use the classic till) and as the crash fallback.
+Mockups: private canvas K5nHQS8GjtBYGseDtYZDnZ; the decision is in [docs/design/bazaar-v2.md](../design/bazaar-v2.md) section 7.
+Bazaar v2 (16 October) and its notes are in [current-history.md](current-history.md), moved on 20 October.
+
+## Archived 20 October next goal — superseded 2 November 2026
+
+The following is the prior 20 October checkpoint, preserved for context only.
+
+### Phone rehearsal on the new till
+
+**20 October: the consolidated till is released** (#37 and #39 deployed, Cloudflare version `50f46e2c`; #40 brought `main`
+level with the deploy branch). See [current.md](current.md). The rehearsal below now runs on it: the run sheet names its
+buttons, and step 7 checks the phone has it. Bazaar v2 (16 October) and its notes are in [bazaar-v2.md](bazaar-v2.md) and
+[docs/design/bazaar-v2.md](../design/bazaar-v2.md). The repository is public: secret scan before every push, and no real event
+names or figures in any committed file.
+
+**The next goals, in order:**
+
+1. **The phone rehearsal, by 22 October**, on the selling iPhone: [bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal"
+   (25 steps) and the "Stall-day checklist". Ethan runs it; anything that fails is fixed and the list is run again before
+   23 October. `RELEASE_HOLD=true` the day it passes. The bazaar is 24 to 25 October.
+2. **The earlier test event's reversal** (`reverse_bazaar_test`): only on Ethan's separate yes, then run and reviewed. Its rent,
+   over, sales and stock use stay in October's books until then.
+3. **The next consolidated slice** (Ethan, 19 October), after 25 October unless released and rehearsed by the 22nd: the
+   Bazaar day plan as on the mockups (canvas K5nHQS8GjtBYGseDtYZDnZ), then review and close, the event page and the events list.
+4. **Optional: the 320 px toast check.** Open the day plan at 320 px with the toast showing and see whether the toast overlaps
+   the sticky footer by about 16 px (unconfirmed). A clean browser pass at four widths (320, 375, 768, 1440) has not been done.
+
+Not done and not part of these: the cost cutover (after Cine's opening count, and Ethan's separate yes). One low finding is left
+from the migration 70 review: a flavour cost saved mid-close can be stored with a stale hash.
+
+| Setting      | Value                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| Model        | Sonnet high for the 320 px check or any fix; Opus signs off any money or close change        |
+| Plan mode    | off                                                                                          |
+| Conversation | new                                                                                          |
+| Read         | AGENTS.md, current.md, bazaar-run-sheet.md; for the 320 px check, `day-plan.tsx` and its CSS |
+
+The review of U2, U5, U6 and U7 used an Opus subagent, because `codex` refuses its models on this ChatGPT account.
+
+## Archived 20 October current-state snapshot — superseded 3 November 2026
+
+This snapshot is historical. Its dates, deployment counts and acceptance status must not be treated as current. Open approval and owner/device gates remain recorded; reconcile with current.md and the full shared brief.
+
+## Where things stand — 20 October 2026
+
+The completed till release is recorded in [current history](current-history.md#20-october-release-checkpoint).
+
+**What remains, in order:**
+
+1. The **phone rehearsal by 22 October** on the selling iPhone, on the new till ([bazaar-run-sheet.md](bazaar-run-sheet.md),
+   "The rehearsal"; step 7 checks the phone has the new till). The bazaar is 24 to 25 October.
+2. `RELEASE_HOLD=true` once the rehearsal passes. Not set yet.
+3. **The Ateneo test reversal** (`reverse_bazaar_test`): its rent, over, sales and stock use sit in October's books until then.
+   Needs Ethan's separate yes.
+4. **The cost cutover**, only after Cine's opening count and Ethan's separate yes.
+5. **The rest of the consolidated design**, one slice each: Bazaar's day plan, review and close, event page and events list,
+   then the recipe book and the other features. After 25 October, unless one is released and rehearsed by 22 October.
+6. Optional: check the day plan at 320 px (a possible 16 px toast and footer overlap, unconfirmed).
+
+**The plan is approved; stage A and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
+[final-plan.md](final-plan.md), version 2, on 5 October; it replaces finish-plan.md as the forward plan. S1 to S3 of
+[bazaar-days.md](bazaar-days.md) are built and released. **Bazaar: still no-go until the rehearsal passes**, and a sale needs an
+owner sign-in. What Cine sets once: [cine-set-up.md](cine-set-up.md).
+
+Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
+
+**Package:** F2, the owner trial, stays open but does not start until everything in the
+plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
+
+### What exists and works
+
+- **The product** is built through E1: menu and settings, checkout and owner orders,
+  bazaar selling with offline close-out, stock, recipes and production, books, P&L and
+  CSV, backups and health. `pnpm verify` passes 110 files / 1,991 tests; the planning
+  validator passes 1,232 checks; the database role suite passes 3,260 cases a reset (S1, local).
+- **The private trial site** is live for owners only:
+  <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
+  email code to four approved addresses (three have an app account, all owners). The shop is closed and the menu is unpublished.
+- **On the trial** (20 October): 70 of 70 migrations; version `50f46e2c` (merge `94aa105`); 75 stock items, 72 priced; 26
+  flavours, 7 on the menu, 23 with a recipe; 4 bookings; 835 historical book lines; no orders, no bake, no sale.
+- **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push that changes only documents does
+  not. The performance-budget job is blocking since T-18 and passed on this release. Open the trial once before the rehearsal.
+
+### Known not to work yet
+
+Found by reading code or the trial, not by running. Each has a slice in the plan.
+
+| What                                                                                                                                                                                              | Slice  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                                                                                                          | Ethan  |
+| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.                                                                                              | C6, C5 |
+| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.                                                                                            | B6     |
+| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                                                                                                     | C7, C3 |
+| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                                                                                                                | B6     |
+| Cost per cookie: 22 of 23 recipes are complete (all 7 menu flavours); the recipe book types a per-flavour cost (migration 70 is on the trial). The books stay on "bought" until the cost cutover. | Ethan  |
+| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.                                                                                          | Ethan  |
+| Every page, the shop included, loads the whole staff app.                                                                                                                                         | C8     |
+
+### Decisions in force
+
+All in [decision-register.md](decision-register.md), the section for 5 October.
+
+- Cine starts after everything is built. The October bazaar runs on today's Bazaar Mode
+  plus A2, recorded in the trial database; no early production project.
+- Two tracks, and unattended runs for interface-only slices only. The automatic runner
+  stays off.
+- New screens enter through one guarded, live-only slot in the locked frame file (built in
+  B1). Every other locked file stays locked.
+- The five tabs are on the owner's dock and sidebar now, with sub-tabs, not after the first
+  redesigned screen (Ethan, 6 October). All tools keeps its address; nothing links to it.
+- Nothing is hard-coded; everything that can change is Cine's to change; every function
+  has exactly one home.
+- The questions for Cine are answered, by Ethan on her behalf. She confirms each value
+  in a one-time set-up screen.
+- Still in force from earlier: the trial week is closed-shop; OFFLINE-01 handles the
+  WebKit emulator defect on WebKit only, so the phone rehearsal is the only proof of
+  offline selling in Safari.
+
+### Waiting on Ethan
+
+- **The Ateneo test reversal** (`reverse_bazaar_test`): say yes and it is run and reviewed; not done.
+- **The rehearsal event on the trial.** Closing it leaves its records (voided sales, stock use as shortfalls). Run the closing
+  step of the run sheet, or stop before it and leave the event open: your call.
+- **The cost cutover**, once, after Cine's opening count: `select public.preview_cost_cutover();`, read `not_counted` and
+  the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
+  refused. Until then the books stay on "bought".
+- **No more database writes after the phone rehearsal passes**; set the release hold then.
+- **The Actions storage quota is still full** (artifacts are about 5 MB across the account, so probably Packages). Releases
+  no longer need it (PR #22); the performance-budget job still fails on its upload. Clear it in Settings, Billing.
+- **Do not save a recipe in the Recipes screen yet.** It sends no line kind, so a saved recipe's packaging lines become
+  ingredients (slice B6, New Recipes). Reading is safe.
+- **The rehearsal gains one step** (B2): with the radio off, reload, sell, and read the name
+  under "Rung up by" on the payment sheet. It must be the signed-in person's name, the same
+  as with signal. Each helper's profile needs the display name they want on their sales.
+- Decide where the encrypted backup lives and who can restore it, then switch the jobs on
+  (steps and prerequisites in [F1-operations.md](F1-operations.md), last section). They only run
+  from `main`, so that needs a merge, your call. Until then nothing is backed up: download the
+  CSV each evening of the bazaar and keep the paper tally.
+- **The release hold** is built and not set. To stop deploys (rehearsal to 26 October): GitHub,
+  the repository's Settings, Secrets and variables, Actions, Variables, add `RELEASE_HOLD` =
+  `true`. A push then builds and tests but does not deploy, and the run says so. Delete it or
+  set it to `false` to lift. Any value that is not clearly "off" holds.
+- The phone rehearsal by **22 October**: Bazaar v2 is live, so it can start ([run sheet](bazaar-run-sheet.md)).
+
+### Waiting on Cine
+
+Nothing blocks the build. Still open: whether "Cornflake" is Cereal Milk; allergens;
+her adviser's view on the privacy filing and on receipts; later, the wording pass, the
+set-up screen and seven dates for her week.
+
+### Smaller open items
+
+- **Playwright issue 42775:** when a release fixes it, the WebKit run of OFFLINE-01 turns
+  red on purpose. Upgrade then and delete the WebKit branches in the test.
+- **Not eligible:** historical stock reconciliation. The counts are undated and opening
+  balances and units are missing.
+
+### Dates
+
+Rehearsal by **22 October**; bazaar **24 to 25 October**; releases held from the
+rehearsal to 26 October. Everything built: mid-November at the earliest, early December
+more likely. Cine's week follows the wording pass. Second bazaar 12 to 13 December.
+
+## Moved from current.md, 4 November 2026
+
+**Codex takeover, 4 November:** Claude is usage-limited; Ethan authorized fixing the four audit findings.
+The local fixes cover signed Money bars, add-on draft retention/choice bounds and direct Home stock
+actions. Read the [front-facing Claude handoff](../design/claude-ui-handoff.md) for exact changes and
+the detailed visual continuation prompt. Full172files /2828tests pass +2todo;8browser flows pass.
+Final live Webpack build28pages passes; local fixture proof is not hosted/owner/device acceptance.
+These are local changes; required independent review is not replaced with self-review or quota bypass.
+
+**Claude UI slice, 3 November (late):** v4 look now reaches Home, Money and Shop rules/boxes in live
+mode via new live slots (`live/home`, `live/money`, page-mode settings forms) and a shared kit
+(`ui/owner-kit.tsx`). Owner Shop feedback done; sampler flavours added as local migration 71 (hosted
+apply awaits approval). Lossless record and feedback status: [capability ledger](../design/capability-ledger.md).
+Next: Sell orders/payments/
+customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.
+
+## Archived 4 November reference-integration checkpoint - 5 November production foundation
+
+**4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
+captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
+Four parent-page pixel-fidelity checks match the untouched HTML. Detailed interaction/visual review
+and actual-app parity remain incomplete; read the reference contracts and owner requirements below.
+Actual multi-product entry now selects/reviews several flavours together, creates independent work
+atomically and retains scoped recovery. Recipe writer preserves kind, later edits and acknowledged
+snapshots; empty replies stay unconfirmed. Full gate:176files/2886tests+2existingTODOs; build28pages;
+eight responsive/motion group-entry runs pass. Keep legacy recipe warning until independent review.
+Screenshot-matched family layouts, direct recipe setup, Shopping
+plan integration, full demo population/hosted insertion and the complete application remain unfinished.
+No hosted/applied-SQL/protected-port changes. Gallery:localhost4190/index.html; actual preview:4186.
+Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
+The newest blocks override historical “next bug” and uncommitted-status descriptions below.
+
+## Archived pre-production-foundation next-goal checkpoint - 5 November
+
+Accepted c51401f/273de7d include independent cookie/dough drafts, retained inputs, per-item saving,
+own-item acknowledgements, Events-first navigation and return context. f57d278/92851aa add the v4
+Home/Money/Shop work and sampler migration (local only). Do not reimplement the four Codex follow-ups.
+P2 results/source guards remain local. P3 scoped device recovery is locally verified: owner UID/backend,
+single-tab writing, multiple drafts/exact pending requests, no automatic posting, retained setup and
+saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.
+Independent review passed. Read the newest handoff first.
+Latest: group entry/recipe writer pass176files/2886tests+2TODOs,28-page build,eight browser runs.
+Next: finish every page in [coverage](../design/reference-v4/coverage.md), by its build rules; keep review holds. B1 plan/review addresses, stage
+wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
+Preserve selling values, permissions and required independent review; no quota/provider bypass.
+
+## Archived Cloud baseline snapshot — 6 November 2026
+
+The complete supplied snapshot remains in Git at
+[`93135433fd88def7cbc5a05c0d22de3b17cfe764:docs/state/current.md`](https://github.com/newonathe/happy-cookie-ops/blob/93135433fd88def7cbc5a05c0d22de3b17cfe764/docs/state/current.md).
+It reported an incomplete application, approved recipe-amount/actual-ball separation and
+dough-only baking, unanswered physical dough correction, protected paths and pending
+SQL/API/connected/device/owner acceptance. Current Git and current.md supersede its status.
+
+Cloud corrected the older checkout from4c1f72e to9313543, preserved the old head and all
+working edits, and continued independent implementation without merging or hosted writes.
+Bake protocol/runtime/UI, production security updates, pure handoff, scoped planned notes
+and production-read fencing are now accepted; see current.md for exact SHAs and tests.
+Earlier worker/timing failures were retained and superseded by frozen one-worker gates;
+no assertion or timeout was weakened. SQL71/72/73 later passed two actual local CLI resets,
+including roles, costs, concurrency/replay and unchanged historical role/mutation checks.
+These local results do not satisfy hosted, backup custody/restore, device or owner gates.
+
+# Local recipe-to-Make handoff — 7 November 2026
+
+The bounded slice on `codex/recipe-production-acceptance-20261107`, based on Cloud `e0670e6`, connects the existing pure handoff rules to the recipe page. Selected cookie quantity and recipe version survive; quantity never infers Prepare dough versus Bake. Conflicting setup remains visible with explicit Keep/Use incoming, and obsolete callbacks cannot resolve a newer proposal. Actual work and immutable uncertain requests remain independent. Recipe replacement/read failure, unavailable source, period, role and identity changes retire captured recipe actions. No stock-write contract, SQL, protected port or owner business rule changed.
+
+New regressions failed on the previous implementation before the fix;70focused tests pass. `node tools/owner-preview/check-recipe-handoff.cjs <private-output-directory>` passes390/1440with both motion settings:48cookies transferred, explicit type, Keep/Use, reload retention,13actual/2rejects preserved, no writes/page errors/overflow. Phone/desktop screenshots were inspected. The preview's recipe binding now passes its fixed synthetic verified scope, as required by the accepted source guard. Full verification, isolated live build and independent review are recorded in the acceptance commit. This closes the recipe handoff slice only; Shopping handoff, linked SQL/API scenarios, Bazaar transfers, hosted/device/owner gates and the physical dough-count decision remain open. Other worktrees/stashes, PR51/53 and the untracked launch configuration were preserved.
+
+## Earlier Cloud protocol gates — retained during7November consolidation
+
+Independent Sol/high protocol/runtime review is clear. Pinned Node24.20.0/pnpm9.12.3 `pnpm verify` passed198files/3216tests+2existingTODOs before c84d23d. An earlier one-worker gate passed196files/3177tests+2TODOs before8ab48cc.
+
+## Accepted Cloud production follow-ups — 7 November
+
+Accepted follow-ups: `da53607dc6d41806e425bbf9843323989b509285` verifies owned Linux fixtures and historical SQL compatibility; `04b248bc1404c03c7cb5b86384e0c6387c3b1dff` retains recipe edits with their original stamps by verified identity; `9d3311a9838c8f46be2a811023567b0b14411fdb` fences recipe reads/drafts and captured handoff sources. Its full gate passed201files/3215tests+2TODOs; formatting and independent review passed. `30eccdff23079b3121becbf8e3aff4c414abbcd2` accepts typed-cost callback fences and production-source regrant;44focused tests, independent review, formatting and the full201files/3219tests+2TODO gate passed. `dbb7e446f88ab7486071ac7282c6ab2f4a3abf44` accepts first-recipe entry and editor identity/navigation isolation;54focused tests, independent review, formatting and full201files/3222tests+2TODO passed. Handoff and final accepted-source connected/build checks remain under acceptance.
+
+## Accepted catalogue prerequisite — 7 November
+
+The isolated acceptance-worktree browser run exposed retired Orders rows during catalogue replacement. The production prerequisite now clears those rows on verified identity change and fences late order reads by actor/client/generation/sync instance. Both regressions failed on the prior checkpoint;51focused tests and independent read-only review pass. Orders modules and PR51/53 remain unchanged. The handoff draft is preserved and still needs connected/full acceptance.
+
+## SQL history and working-source browser evidence — 7 November
+
+Four older SQL suites exercise the historical ingredient-mixing writer. Preserve every assertion/mutant inside explicitly rolled-back historical compatibility transactions, require current SQL71/72/73 contracts before/after, and verify SQL73 authority after rollback. Two actual resets now pass all557 unchanged historical role cases and156 existing mutants per reset, with current contracts before/after and exact SQL73 authority restored. Five Python transaction-guard tests pass; independent review is clear. Tooling is accepted as da53607. Working-source real Supabase SDK/PostgREST browser checks passed390/1440: first recipe saved through the UI, explicit recipe handoff, definite ZD001/ZD002, lost committed Bake acknowledgement, reload without writing and exact retry. Independent SQL readback confirms one250g ingredient movement, actual13balls, one Bake consuming8 with6good/2rejects,5balls remaining and500×8/13centavos allocated. Phone/desktop screenshots were inspected. Repeat against final accepted production source after editor-session fencing; this does not complete broader connected A/B/C or backup/restore gates.
+
+## Accepted P0 prerequisites — 7 November
+
+P0 Make/Bazaar remains incomplete. The failing-first connected transaction reproduces333.3g ingredient use instead of250g,7 kitchen cookies instead of3, and667 ingredient centavos instead of500. SQL75 adds a private append-only source/movement journal, pooled kitchen balance and pack/discard/correction guards, with no public transfer writer enabled. Two actual resets pass the new journal/security contract, unchanged317Bazaar cases/160mutants per reset, SQL71/72 concurrency/replay/cost contracts and SQL73. Independent review is clear, conditional on locking the product before the first source marker at activation. Next: transfer RPC, returns/finalization, first-source/concurrent spender proofs and connected browser acceptance. External audit/logs stay private; no hosted changes.
+
+`0ce6e2c05f708a3637e0320ac263506fddfe9573` and `2576575388cdf65f45377d9525d417aaa7caa411` accepted/pushed SQL75/76; full202files/3240tests+2TODO and formatting passed. SQL77 now closes recorded-pack versus Preparing-state swaps under the exact pack UUID lock, preserving original swap validation and historical replays. The failing SQL restored3phantom cookies before the fix. Two actual resets now pass held-pack concurrent swap refusal, unchanged staff122cases/46mutants and Bazaar317/160 per reset, journal/private transfer, SQL71–73 and exact authority. Independent review clear. Initial fixture-order pollution was corrected without changing old assertions. Full gate remains required for SQL77. Next: return/finalization/reversal integration, then connected browser/build and UI recovery. Public transfer execution remains disabled; no UI change in these prerequisites.
+
+## Accepted Make/Bazaar foundations — 8 November
+
+P0 Make/Bazaar remains incomplete at the client boundary. SQL74–77 are accepted through `12b0f55c1265795fd0abd783be58cdea433b7695`, pushed with full202files/3240tests+2TODO and formatting. `938e9f0ef9dddbac03210a039f10ae5ec994199c` accepts SQL78 after full202files/3240tests+2TODO and formatting: transferred flavours skip legacy ingredients/batches; close, final stranded split and approved test reversal credit the original kitchen pool once. Legacy-only flavours and typed/bought-used accounting stay unchanged. Two actual resets pass250g/13balls→Bake8/6good/2rejects→transfer4→sell3→return1:1750g flour,5balls,3kitchen cookies,2production records,500ingredient centavos and30000revenue. Sourced packaging costs8centavos once; stranded returns and reversal are separately asserted. Staff122cases/46mutants, Bazaar317/160, held-pack race, journal/private transfer and SQL71–73 pass per reset; exact authority restored and owned server closed. Different-model review clear. `dd616bdf8d4244a32985d6615719c04843c820e9` accepts the transfer adapter with full203files/3269tests+2TODO, formatting and independent review: exact frozen body/receipt identity, definite refusals and uncertain outcomes without legacy fallback. Scoped durable recovery now has39combined focused tests, typecheck/lint and independent review: independent work/source periods, exact unanswered-body retention, matching frozen ACKs, invalid/unavailable copy protection and write readback. Its full gate remains required. Controller must hold the scope lock, resolve only definite outcomes and fence stale owner/client callbacks. Next: transfer controller/UI and explicit UI action, canonical connected browser, Live build and visual checks. Aggregate return volumes beyond the journal movement cap still need coverage before whole-production acceptance. No hosted changes.
+
+### Retained kitchen transfer checkpoint through 608cca1 — 8 November 2026
+
+`965e6c7ab9e01e9067c541ac82b26daf235ff84d` accepts the workspace with full205files/3286tests+2TODO, formatting and independent review: captured scope/client authority, exclusive WebLock, independent period/raw drafts, pending/confirmed read-only state, persistence failure, explicit dismissal and late-lock cleanup. Submission orchestration now has55combined focused tests, typecheck/lint and independent review. It persists before RPC, retries exactly, blocks per-work duplicates and stale callbacks, retains definite-refusal inputs and confirmed/failed-refresh state. Two callback-authority tests failed before the guards and pass afterward. `5dd3bf1635bdc9f6606338b1cb3d2681a13bf8a1` accepts submission orchestration with full206files/3295tests+2TODO and formatting; UI is not wired. SQL79 provenance is accepted as `dbff739f5d8f6bae908f5c294da4bd238537f40b`:12focused tests, typecheck/lint, independent review, full207files/3307tests+2TODO and formatting; two actual resets pass owner/ACL/booking isolation/read-only effects,3mutants and the connected regression/SQL71–73. The selected-day metadata loader now has7focused tests for sequential day/source reads, source-period ownership, genuine-empty/malformed, booking/day/closed/finalised isolation and retirement between reads. Independent review is clear; full gate is required before acceptance. Next wire the explicit UI with scoped metadata/readback and run canonical connected browser/Live build/visual checks. Aggregate return volumes beyond the journal movement cap still need coverage before whole-production acceptance.
+
+`608cca112a8c9612481571b8595b62f1e09f0db3` accepts selected-day metadata:7focused tests, independent review, full208files/3314tests+2TODO, formatting and publication scan. Source quantities precede immutable provenance; retirement, source-period, malformed/empty and destination states are covered.
+
+### Transfer controller/runtime acceptance — 8 November 2026
+
+Accepted `965e6c7` workspace and `5dd3bf1` submissions preserve captured scope/client authority, exclusive WebLock, independent drafts, durable frozen requests and exact retries. `dbff739` adds owner-only source provenance; `608cca112a8c9612481571b8595b62f1e09f0db3` adds scoped sequential destination metadata. Latest accepted full208files/3314tests+2TODO and formatting pass; prior SQL evidence and details are in current-history.md.
+
+`1104b78bf698289394016aceb2c8c96ff6b7f909` accepts the selected-day desk:79focused tests, independent review, full209files/3319tests+2TODO, formatting and publication scan. It blocks stale/failed/closed/source-changed new requests, retains exact pending retries and requires awaited till/production readback before claiming checked balances.
+
+Owner-scoped runtime action/readback now has73focused tests, including the existing Bazaar close/store cases. It captures owner/client/period plus day-selection generations, retires stale same-booking actions, releases replaced/retired desks and applies cumulative incoming stock once while preserving queued sales. Independent review is clear; both cached-day regressions fail with the new selection guards removed and pass with exact working source restored. The visible pane is not wired yet; full acceptance is in progress. Next wire the UI, then canonical connected browser/Live build/phone+desktop visuals. Aggregate return-volume coverage remains required before whole-production acceptance.
+
+`e8f0c575366acb8585c17166f9c238cf29de7e4c` accepts scoped runtime/readback with73focused tests, typecheck/lint, independent review and full211files/3331tests+2TODO plus formatting/publication scan. Both cached-day regressions fail without their selection guards and pass after exact source restoration. PR51 e407b70 and PR53 7500b6c remain unchanged; source-level runtime three-way against e8f0c57 has0textual conflicts for both. PR53 still needs the previously documented scoped read-state reconciliation; no merge or integration performed.
+
+## Transfer quantities and runtime — 8 November 2026
+
+Accepted client/recovery/destination work through `1104b78` is recorded in current-history.md. `e8f0c575366acb8585c17166f9c238cf29de7e4c` accepts scoped runtime/till readback:73focused tests, independent review, full211files/3331tests+2TODO and formatting/publication scan. Actor/client/period/day-selection and queued updater guards preserve independent work and apply incoming table stock once. Read-only PR51/53 runtime three-way has0textual conflicts; PR53's scoped read-state integration condition remains open. Both PRs are untouched.
+
+Checked transfer quantities now have91focused tests, typecheck/lint and clear independent review. Complete empty pools establish zero; malformed/failed counts remain unavailable and block new requests while exact frozen retries remain usable. Definite refusals retain input and refresh counts; confirmation requires source/till/production readback. The unavailable-count test fails without its new guard; exact source is restored. Full acceptance is in progress. Next wire the UI/effect review, canonical connected browser/Live build/phone+desktop visuals and aggregate return-volume regression before whole-production acceptance.
+
+## Money event labels — 8 November 2026
+
+Accepted and pushed as `35ea7c8cf9bd697b0c08ee9bdb48674d05481287`.
+
+SQL80 fixes generated Bazaar sale/void labels in Money without changing amounts, ordering, costing, stored memos or grants. Failing-first actual SQL caught the raw device label. Two real resets passed the label oracle in both costing modes, four mutants, historical Books110/Cutover152 role cases and91mutants, connected Make/Bazaar/return/Money and SQL71–73 concurrency/replay/retirement checks. Different-model read-only review and full212files/3341tests+2TODO verification pass. The stale authority test count is updated from152 to the actual173 functions; its four drift tests pass. The exact transfer UI work is preserved outside this checkout while this dependency closes. Final connected phone/desktop browser, Live build, aggregate returns and whole-production acceptance remain open.
+
+## Connected transfer UI — 8 November 2026
+
+Accepted and pushed as `81e4053ccb26d19a21e657647b06dea63a23a4f8`; full213files/3350tests+2TODO passed.
+
+SQL80 Money labels are accepted as `35ea7c8cf9bd697b0c08ee9bdb48674d05481287`; accounting/authority proof is in history. The restored transfer UI now shows source/destination and checked before/after quantities, durable independent drafts, exact unknown-result retry and confirmed balance refresh.110focused tests and independent review pass. Two real reset/browser cycles at390/1440 pass first recipe creation→version2 edit→explicit production choice; ZD001/ZD002; lost Bake/transfer replies→reload→exact retry; failed confirmed refresh; transfer4→sell3→return1→Money. Independent SQL proves kitchen3/dough5, one500-cent ingredient use, one Bake/one sale/two journal moves, no phantom production. Bought-basis Money shows30000-cent revenue; separate used-basis SQL retains its approved500-cent cost. Phone/desktop screens were inspected; exact-source Live build passes28pages. Final full verification is recorded by the acceptance commit.
+
+## Aggregate kitchen returns — 8 November 2026
+
+Accepted and pushed as `39ff7cc782f4546e056b67afd76eb255a8fb671a`; full213files/3350tests+2TODO passed.
+
+SQL81 fixes aggregate returns while preserving the9999 individual transfer cap. Failing-first actual SQL reproduced the old constraint refusal. Two resets now pass a16000-cookie named test reversal and exact replay, unchanged ingredient/cost/production effects, three negative mutants, existing private journal/security contracts and concurrent first-source spend. Two further reset/browser cycles pass the complete Make→Bazaar→return→Money chain at390/1440. Function bodies/ACLs are unchanged; independent review is clear. Full verification is recorded by the acceptance commit. No UI source changed since the accepted Live build.
+
+## Accepted quantity checkpoint
+
+Checked transfer quantities are accepted as `b4dd5768fb7087617b766d27434060b45962f788`:91focused tests, full212files/3341tests+2TODO, typecheck/lint and clear independent review. Unavailable counts block new writes; frozen retries remain usable. Runtime/day-selection guards and PR reconciliation are preserved in history.
+
+## Price-only day planning — 8 November 2026
+
+Accepted and pushed as `2b27389171f2c9d2d1993b1ef49e09f8d7d0c1fd`; full213files/3364tests+2TODO passed.
+
+SQL81 aggregate returns are accepted as `39ff7cc782f4546e056b67afd76eb255a8fb671a`; full SQL/browser/security evidence is in history. Explicit price-only day planning now saves selected prices with zero stock and refuses nonzero counts anywhere without discarding them. Old stock-plan validation remains; Made separately distinguishes that historical path.14failing-first regressions became green;118focused tests, TypeScript and independent review pass. Two real reset/browser cycles at390/1440 now use the actual price-only UI before transfer4→sell3→return1→Money, with exact retries and independent ingredient/cost/journal readback. Both widths fit; inspected screenshots caught and fixed a2px phone-footer overflow. Exact-source Live build passes28pages; full verification is recorded by the acceptance commit.
+
+## Direct kitchen entry and retained forms — 8 November 2026
+
+Accepted and pushed as `2ae387b0d164882b6dcdb621f9c2cbd413034bd8`; full213files/3378tests+2TODO passed. The final PR runtime source hash matches this accepted commit; both PR heads remain unchanged with0textual conflicts.
+
+SQL81 aggregate returns (39ff7cc) and price-only day planning (`2b27389171f2c9d2d1993b1ef49e09f8d7d0c1fd`) are accepted; evidence is in history. Add cookies and day review now offer explicit kitchen transfer while the old form says separately made/carried. Captured till actions require their exact held day/booking; directory-origin actions retain the old directory gate. Both stale-origin review findings have failing-first regressions and clear re-review. Transfer navigation now keeps underlying forms mounted and hidden; stock and close-out cash drafts survive.269focused tests, TypeScript, two real SQL/browser cycles at390/1440 and exact-source28-page Live build pass. Connected proof waits for authoritative destination counts, retains both drafts, sends no legacy stock write and preserves the4→3→1 stock/Money chain. Phone/desktop visuals inspected. Full verification is recorded by the acceptance commit.
+
+## Earlier dough-only development checkpoints
+
+Accepted and pushed to `codex/cloud-full-goal-20261106`:
+
+- `8ab48cc`: explicit SQL72 bake protocol, strict record-ID/quantity acknowledgement, definite dough/date refusals and immutable recovery routing. Frozen legacy bodies retain their route.
+- `c84d23d`: new runtime bakes use recorded dough only, independently per work item. Definite refusals retain counts; uncertain retries retain the exact request; acknowledgement and failed refresh remain separate.
+- `f751c7c`: Bake review/recovery presentation and portable browser rehearsal. Frozen-source serial full gate passed200files/3244tests+2TODOs; the push was independently confirmed.
+- `611d7c6`: patched production dependencies; frozen install, production audit (all severities0), build and full196files/3177tests+2TODOs gate recorded in Git.
+- `139ff68671ac728b01f211ccf1b68430d9e4c69c`: explicit pure recipe/Shopping handoff and conflict retention; full197files/3191tests+2TODOs.
+- `fb3de4e48aa6adcbc1136b501f7274f00079066c`: verified owner/backend-scoped planned notes and core stock confidence; full198files/3202tests+2TODOs.
+- `3fd797b72a8d517b6d6edbafa9241b3abe3df953`: production reads fenced by actor/client/period, with identity-cleared balances; full199files/3205tests+2TODOs.
+- `e5fe7350a216928b1c18539166a0bdd0efeba575`: SQL73 retirement of unseen legacy writes; exact historical replays and retained refusal drafts. Full199files/3207tests+2TODOs; SQL proof below.
+
+## Repository connected regression — 8 November 2026
+
+Accepted and pushed as `d55b016014f508034c19e057135ed48dda752355`; full213files/3378tests+2TODO passed.
+
+Direct kitchen entry, separate historical wording, retained forms and stale-origin guards are accepted as `2ae387b0d164882b6dcdb621f9c2cbd413034bd8`; full213files/3378tests+2TODO,269focused, actual390/1440 SQL/browser, build and review evidence is in history.
+
+The connected browser regression now lives under tools/owner-preview: the existing production assertions are preserved alongside the complete Make→Bazaar→return→Money journey, recipe v2 edit, retained form drafts and no legacy writer. Portable repository paths pass both actual reset/browser cycles and independent stock/cost/journal readback. Six pre-browser checks reject hosted origin, invalid/mismatched nonce, expiry, role and issuer; review is clear with the existing disposable synthetic fixture ownership requirement. TESTING.md documents the driver and fixture prerequisites. Expected Money date is anchored to the seeded Manila day. Final full verification is recorded by the acceptance commit; application source is unchanged from2ae387b.
+
+## Shopping production handoff — 8 November 2026
+
+Accepted and pushed as `2e4f8b2662dc36214f98bd10dfde6aed603f7695`; full214files/3391tests+2TODO passed.
+
+Connected regression is accepted as `d55b016014f508034c19e057135ed48dda752355`; actual390/1440 reset/browser, six safety refusals and full213files/3378tests+2TODO evidence is in history.
+
+Shopping now carries saved quantities and captured recipe versions through the existing productionHandoff into explicit Prepare dough/Bake choice. Actor, client, identity, period, source screen, plan signature and unsaved-editor guards retire stale actions; conflicting setup is retained. Oversized Shopping plans remain saved with a clear warning about the unchanged10000 per-entry bound.13failing-first regressions and74focused tests, TypeScript and independent review pass. Both real390/1440 reset/browser cycles now include the warning and valid Shopping handoff before the full Make→Bazaar→return→Money chain. No recording occurs on handoff. All four new screens inspected; exact-source28-page Live build passes. Full verification is recorded by the acceptance commit. Latest runtime three-way against PR51/53 remains0textual conflicts; semantic integration conditions and OD12 remain open.
+
+## Superseded local handoff checkpoint — archived8November
+
+## Local recipe handoff — 7 November
+
+Branch `codex/recipe-production-acceptance-20261107` starts from published Cloud `e0670e6`; other PRs, worktrees, stashes and `.claude/launch.json` remain separate. Recipe Start production carries its selected quantity/version into Make, requires an explicit Prepare dough/Bake choice, and offers Keep/Use incoming for conflicting setup. Stale source/period/identity actions are refused; actual work and frozen requests are preserved. The synthetic preview now supplies its verified recipe scope. Proof:70focused tests;4phone/desktop/reduced-motion CLI cases including reload,13actual/2rejects retained, no writes/errors/overflow; final gate/build/review in the acceptance commit. Detailed scope is in current-history.md. Planned-bake/Shopping wiring and the wider connected production/Bazaar acceptance remain open.
+
+## Stock catalogue recovery — 8 November2026
+
+Accepted/pushed`3122920235f9612f64a1c5e10834f26033f2c969`: full215files/3397tests+2TODO, formatting and secret scan pass.
+
+Stock F09: Inventory, Shopping and Suppliers distinguish unavailable/empty/stale reads and offer local Retry. Catalogue, paid and cost responses reject earlier reads and retired actor/client/backend scopes, including A→B→A. Source replacement clears private projections while retaining pending counts/movements; same-scope confirmed costs remain available for count summaries. Six failing-first regressions,127focused tests/8files; actual two-reset connected390/1440/SQL pass, exact-source28-page Live build and clear independent review. The final full gate is recorded by this acceptance. No Orders integration or stock-count policy changed.
+
+## Preserved Root working-source notes — superseded locally8November
+
+These are the original archived WIP notes, not current acceptance status. Later accepted commits supersede their completed production/Stock and one-worker instructions.
+
+Preserve exact staged/unstaged differences. Bake presentation/rehearsal and SQL73 are accepted; recipe handoff/runtime ownership tightening is the active production slice. The following remain under implementation/acceptance:
+
+- Bake UI: recorded dough/all oven output/good cookies/rejects, shortage and chronology recovery, explicit removal of old ingredient adjustments. All8synthetic browser width/motion cases passed lost reply → reload → exact replay, one effect,6good/2rejects/8dough, and failed refresh. Phone/desktop images inspected.
+- F03/F06: recipe and planned-bake handoff carries quantity/version, requires explicit Prepare dough/Bake, resolves setup conflicts, preserves independent actual work and old-period setup. Scoped planned notes preserve damaged/legacy copies and disclose storage failure. Pure/runtime/recovery regressions pass; independent review clear. Final browser/full acceptance remains.
+- F04: common counted/recorded/unknown/unavailable stock confidence; positive recorded balances survive absent count dates, unknown zero is excluded from Out/buy totals and charts count it once. Focused regressions pass; final visual/full acceptance remains.
+- F05: customer counts, history/export and removal readback disclose the open-orders +60days/500total feed. No lifetime/global erasure claims. Focused tests pass; final visual/full acceptance remains.
+- F08/F09: visible Money peso scale and local Retry, last-good warning and actor/client/backend fences. Review clear after retained-client fix; regression tests pass. Final visual/full acceptance remains.
+- F09 Stock: first failure and stale reads have local Retry; identity/client fences include last-paid and costs. Old paid prices clear on scope change.53targeted stock/read/catalogue/sign-in/item-price tests and typecheck pass; independent review clear.
+- First recipe is accepted asdbb7e44: direct Create recipe beside the genuine empty read, versioned editor and Back to that recipe. Working-source connected UI creation and phone/desktop visuals passed; final accepted-source connected/build checks remain.
+- Public replacements beside locked screens: neutral responsive menu/checkout/status, order before payment, frozen acknowledged method, server-method status instructions only with a valid future hold, private-link Retry. Eight synthetic width/motion journeys pass one order/failure/retry/no overflow/errors. Phone/desktop images inspected. All8viewport checks passed after removing the inherited customer frame transform. Lost reply → reload → exact retry and acknowledged-order reload also passed390/1440 browser checks; final small quantity/price presentation needs recheck. Full/release acceptance remains. Sticker assets/privacy wording remain owner gates.
+- F07 fee recovery: durable owner/backend-scoped full body and exact ID acknowledgement, same Web Lock for Retry and explicit Change after definite refusal. Lost reply/reload/changed inputs, refused replay, identity/client switch and cross-tab race tests pass; independent review clear. Effect summaries added; wider stock/expense/cost/reversal acceptance remains.
+
+Use a one-worker full gate with frozen acceptance source and no concurrent browser/database workload. No assertion or timeout was weakened after earlier worker/timing failures; accepted commits supersede those failed attempts.
+
+New unaccepted F09 work adds Orders/Customers first-read Retry, stale last-good warnings and sequence/actor/sync-instance/client fences, including cached contact removal and A→B→A.82related tests passed before the final fence;107post-install tests including that fence pass and independent review is clear. Suppliers reuse the catalogue notice, with6focused tests passing. No CRM expansion.
+
+## Stock production balance recovery — 8 November2026
+
+Accepted/pushed`58a3e93aac574a360f43f34824113367c9c68c96`: full215files/3401tests+2TODO, formatting/secret scan pass; final build passed after test-only strict-type fixes.
+
+Stock dough/baked F09: same-period last-good balances survive a failed refresh with local Retry. Dough units are balls; baked rows disclose the exact drop. Unread/retired periods hide old rows and show unavailable, while only the active requested period shows loading. Cached Retry rejects actor/client/read/scope/period changes. Made tabs do not offer physical Count; ingredient/packaging Count is unchanged. Four new regressions include failing-first failure/recovery and exact period races;45focused tests/4files pass. Final connected390/1440, full gate and build are recorded by this acceptance; independent period re-review is clear.
+
+## Shared stock confidence — 8 November2026
+
+Accepted/pushed`629fcabb7de8674f55c321a45e361ebd637e7cb6`: full215files/3407tests+2TODO;99focused, final actual two-reset390/1440/SQL, inspected views, build, formatting and clear review.
+
+F04/HCB-019 Home count behavior: existing stockConfidence now drives Home, Inventory and Shopping; unknown zero is separate from confirmed empty, positive recorded balances remain useful, and unknown items count once and keep shopping totals pending. Home has scoped local Retry/stale notices and separates shortage quantities from items needing a count. Seven initial regressions and two visual-shortcut assertions failed first;99focused tests/7files pass, independent review is clear. Final two-reset390/1440/SQL, exact-source build and full verification are recorded by acceptance. Original registers/journeys and full-product/manual gates remain open.
+
+## Money read recovery — 9 November2026 Manila
+
+Accepted/pushed`dc59b0da7a1ed7cc2698ae78f534af3f747ff56d`: full215files/3414tests+2TODO,145focused tests/6files, baseline fixture31pass, actual two-reset390/1440/SQL, inspected Money/Home views, final build/format/secret scan and clear review.
+
+F08/F09 Money read recovery is the current slice on`codex/cloud-money-recovery-20261108`, based on629fcab. First failure remains unknown with local Retry; same-client refresh keeps warned last-good figures; retired clients/accounts clear book projections and reject stale responses/callbacks. Fetch window, accounting basis and values remain unchanged; chart has peso scale and transaction signs stay with amounts. Five initial regressions failed first;114focused tests/5files and clear independent review. Home failure/status follow-up failed first and now passes: unread figures stay hidden, failed/stale reads are explicit, and Open Money reaches its existing scoped Retry. Final two-reset390/1440/SQL and inspected Money/Home views pass; exact-source28-route Live build and formatting pass. Full verification is recorded on acceptance. First full run found2unfixed-date production-start failures; both reproduce on accepted629fcab. Pinning only Date to the fixture week makes all31pass on baseline/current, with145focused tests/6files green and every original assertion unchanged.
+
+## 2026-11-09 — Cancelled owner reads accepted as de0c29e
+
+Current F09 integration follow-up: two failing-first cases prove production workspace Retry can retire Stock/Money answers but leave their read states loading. A still-latest request now becomes failed/retryable without publishing the retired data; superseded/retired source and role requests remain no-ops.120focused tests/5files pass and independent review is clear. Native locked-tab connected proof, visuals, build and full gate are recorded at acceptance. No accounting, queued work or production-write rule changed. Home business-clock display correction follows.
+
+Accepted SHA`de0c29e7cc8c44bf43c0ae1f0a924f96d208fc35`; full215files/3416tests+2TODO,120focused plus25final tests, actual two-reset390/1440 SQL/browser, inspected recovery views and final28-route Live build. Both PR runtime projections remain text-conflict free; semantic Orders reconciliation and OD-12 stay open.
+
+## 2026-11-09 — Home business clock accepted as b29ef94
+
+Current Home C10 follow-up on`codex/cloud-home-clock-20261109`: keep the existing greeting thresholds/profile wording and use the shared business clock for the salutation/day. Six UTC-device boundary cases include5failing-first regressions. 29focused tests/2files and actual two-reset390/1440 SQL/browser pass, including the UTC-device shop-midnight check; both Home screenshots inspected. Full verification, formatting and the exact-source Live build are recorded at acceptance. No protected engine or accounting rules change.
+
+Accepted SHA`b29ef94892e10f8afbf22cc2a59dafc3cd22c49d`: full215files/3422tests+2TODO; all gates passed and pushed. Display-only change required no independent review.
+
+## 2026-11-09 — Public menu recovery accepted as be468ca
+
+Current F09 public-menu slice on`codex/cloud-shop-menu-recovery-20261109`: source/sequence-scoped Retry, warned last-good data, genuine empty and strict public projection validation. Seven regressions failed first;146focused tests/5files and typecheck pass. The existing sampler test now loads its public menu instead of setting the retired private flag; every sampler assertion is unchanged. Cart2 survives an empty refresh/source replacement; a review concern was disproved by that regression and the reviewer retracted it, with no remaining blocker. Offline Retry is explained/disabled. Actual two-reset390/1440 anonymous local reads pass; final spacing/disabled-button visual correction, build and full gate are recorded at acceptance. No protected customer files, checkout rules or hosted resources changed.
+
+Accepted SHA`be468ca6c86e7fe217762e23019554fabec19705`: full215files/3430tests+2TODO,146focused/5files, clear review, final28-route Live build and inspected390/1440 notices with actual two-reset anonymous reads/SQL. Lint’s unused type import was removed; the sampler test’s retired private flag was replaced with its public loader, preserving every original assertion. PR51/53 runtime projections have0text conflicts; semantic integration/OD-12 remain open.
+
+## 2026-11-09 — Opening-status reads accepted as80311ac
+
+Current F09 opening-status slice on`codex/cloud-shop-availability-20261109`: three regressions failed first;124focused tests/8files, lint and typecheck pass. New reads reject old responses/cached Retry, preserve owner settings, and distinguish unknown from a default opening claim. Missing-config customer loads settle unavailable; offline Retry is disabled/explained. Independent review found no blocker. Prior opening values remain internal draft context until a fresh read; the unavailable banner does not confirm them, and server ordering checks remain authoritative. Connected opening proof, inspected390/1440, build and full gate are recorded at acceptance. Owner open/close writes remain unchanged.
+
+Accepted SHA`80311acd879e6da173c77a9f6fe180c1d0d45187`: full215files/3433tests+2TODO;124focused/8files, final Live build, actual two-reset390/1440 anonymous opening workflow/SQL and inspected views. Independent review is clear; no hosted changes.
+
+Superseded remaining-work wording (requirements preserved; accepted production proof is above):
+
+Continue all unblocked full-goal work: finish accepted slices and shared status documents; full failure/navigation matrix; Bazaar stock/expense/cost/reversal and kitchen-to-table contract; SQL73 final acceptance and historical suite transition; first-recipe/product flow; connected scenariosA/B/C; backup/restore; optimized signed-in performance and final build/browser/visual gates. Legacy Bazaar-only finalization retains its original batch/ingredient behavior. SQL78 distinguishes recorded kitchen transfers; the client must explicitly use that contract before the cutover can be called complete.
+
+## Owner opening-save isolation — 9 November 2026
+
+Accepted/pushed `00d89eec5c440e0690ff14bdc45e1da06e88e546`: full215files/3441tests+2TODO,167focused/10files, actual390/1440 owner transactions and SQL, inspected views, Live build and clear independent review.
+
+Current owner opening-save isolation slice on`codex/cloud-shop-override-recovery-20261109`: actor/source-binding epoch/client/gate/period guards suppress retired callbacks. Rendered choices use the existing RPC; each deliberate choice still sends. Seven failing-first regressions include the review-found close-confirmation gap;167focused tests/10files, lint/typecheck pass and independent re-review is clear. The full gate found two rollover regressions; removing only the unrelated client-presence requirement restores the original Books toast/Settings reset without permitting clientless RPC writes. Older successful saves reread server truth without closing a newer sheet; current saves retire earlier reads before applying the protected action. Connected390/1440 owner proof, inspected views, full gate and build are recorded at acceptance. No server/schema/accounting rules changed. Pending/saved-but-unchecked/unknown-outcome UI and retained owner mode intent remain the next bounded work.
+
+## Opening-save feedback — 9 November 2026
+
+Accepted/pushed `622ef8db4ea3e858b9e263e2bbe508655bcc0b17`: full215files/3447tests+2TODO,173focused/10files, format, Live build, actual two-reset390/1440/SQL and clear independent review.
+
+Current F09 opening-save feedback on`codex/cloud-shop-save-feedback-20261109`: pending, definite refusal, unconfirmed, offline-unsent and confirmed states are visible. The read-only Check opening status never resends a setting or substitutes for its missing acknowledgement. Confirmed saves stay confirmed when readback fails. Intent is explicitly visit-only; retired checks and Cancel callbacks cannot affect a newer owner/source/period/form. Four failing-first cases and six added regressions pass in173focused tests/10files. Actual two-reset SQL and390/1440 browser proof covers lost reply after commit, matching readback still unconfirmed, confirmed/read-failed and no offline/check writes; four deliberate setting writes only. Screenshots inspected; exact-source Live build and bounded independent logic/UI review pass. Full verification and formatting are recorded by the acceptance commit. No schema/accounting changes.
+
+## Public payment-read isolation — 9 November 2026
+
+Accepted/pushed `3caa379134b353897a09f0a6970defba92217e84`: full215files/3453tests+2TODO,133focused/5files, formatting, exact-source Live build, frozen-source two-reset390/1440 anonymous browser/SQL and clear independent review.
+
+Current F09 public payment-read recovery on`codex/cloud-payment-read-recovery-20261109`: latest read and current-controller guards reject retired source answers before global account changes. Removing a source clears instructions and footer claims; checkout exposes local read-only Retry, blocks it offline, retains fields and hides unchecked instructions while loading. Three initial failing-first regressions, empty-state/pricing assertions and cached Retry A→B→A/same-controller late-failure coverage pass in133focused tests/5files. Typecheck/lint and bounded independent review pass. A harness navigation wait was corrected; a later mid-run source edit invalidated that fixture. The final frozen-source run passes both real resets, anonymous390/1440 payment reads and existing connected production/SQL scenarios. Screenshots inspected; offline Retry sends nothing, late account111 cannot replace222, fields survive, and removed sources hide instructions. Empty setup differs from an unread source; approved extras pricing text survives every state. Build, formatting and full verification are recorded by the acceptance commit. No owner write, accounting or schema contract changed.
+
+## Checkout source isolation — 9 November 2026
+
+Accepted/pushed `6672012c8e1bc5fa15d3dd8eea76ded620000c30`: full215files/3462tests+2TODO,131focused/4files, formatting, exact-source Live build, two-reset390/1440 anonymous reads plus production/SQL, inspected views and clear independent re-review.
+
+Current checkout source isolation on`codex/cloud-checkout-source-20261109`: a focused visit-only controller keeps each exact client's flow/fields and uncertain request. Replacement/removal does not use the first client or expose its checkout; returning restores its frozen exact request and late acknowledgement. Generation/flow/screen/sheet fences reject retired edits, submits, Change order, lookup/waitlist entries, cancellation and late navigation, including A→B→A. Nine regressions cover these cases and rapid React state application; seven scenarios and the review-found entry gap failed first.131focused tests/4files, typecheck/lint and independent re-review pass. Both real local resets and frozen390/1440 anonymous source-read/browser checks pass: fields clear/restore, cached callbacks cannot edit or write, and removed sources have no dates. Screenshots inspected; original connected production/stock/Money and SQL checks remain green. Formatting, exact-source Live build and full verification are recorded by the acceptance commit. No durable customer reload recovery or completed customer order/payment journey is claimed.
+
+## Older Stock checkpoint summaries (moved 9 November)
+
+Stock catalogue F09 is accepted/pushed as`3122920235f9612f64a1c5e10834f26033f2c969`: full215files/3397tests+2TODO,127focused, actual two-reset390/1440/SQL, Live build and clear review.
+
+Stock dough/baked F09 is accepted/pushed as`58a3e93aac574a360f43f34824113367c9c68c96`: full215files/3401tests+2TODO,45focused, actual two-reset390/1440/SQL, Live build and clear period re-review. Dough uses balls, failed same-period reads retain warned balances, unread periods hide old rows and offer Retry; baked stock labels its drop. Physical Count remains limited to Ingredients/Packaging.
+
+## Checkout pickup/extras recovery — 9 November 2026
+
+Accepted/pushed `6856b646f50a3d8d06d9c71a68c15232c69cbad1`: full215files/3469tests+2TODO,184focused/5files, formatting, exact-source Live build, actual two-reset390/1440 read recovery and production/SQL, inspected views and clear independent re-review. The first full gate was interrupted by a session pause; the unchanged-source rerun completed successfully.
+
+Current F09 checkout read recovery on`codex/cloud-checkout-read-recovery-20261109`: latest active pickup/extras reads retain warned last-good context; failed refreshes keep box quantities and add-on text. Scoped local Retry blocks offline/retired calls. New orders cannot use unchecked pickup choices or selected extras/sampler/same-day charges; frozen exact Try again remains available. Future cookies-only orders with no extras remain allowed. Fresh successful option removals preserve the original pruning behavior. Five failing-first reproductions include the independent review's same-day surcharge gap; seven added cases plus expanded offline/retired/read-gate assertions pass in184focused tests/5files. Typecheck/lint and independent re-review pass. Both actual CLI resets and frozen390/1440 browser/SQL checks pass: retained options, local Retry without writes, late pickup failure ignored, and existing production/stock/Money unchanged. Screenshots inspected; formatting, exact-source Live build and full verification are recorded by the acceptance commit. Durable customer reload recovery and full customer order/payment acceptance remain next engineering work.
+
+## Order recovery storage foundation — 9 November 2026
+
+Accepted/pushed `6e9d3b71275d059bf2119c10432c6a5654bb8ab1`: full216files/3479tests+2TODO,122focused/4files, formatting, exact-source Live build and clear independent review. Pure storage API; no application send/reload acceptance claimed.
+
+Current order-recovery storage foundation on`codex/cloud-order-recovery-store-20261109`: narrowly reuses the preserved Root draft, with backend-path separation, exact expected-attempt clearing, one storage handle per operation, no ACK downgrade or identity mixing, and fail-closed damaged/unreadable copies. Seven failing-first reproductions pass in10store tests;122focused tests/4files, typecheck/lint and independent review are clear. Build/format/full verification are recorded by the acceptance commit. This pure helper is not wired into the app yet; no send, reload, payment or UI acceptance is claimed. Next wire persistence before send and explicit reload recovery, then prove the connected customer journey.
+
+Owner opening-save isolation is accepted as`00d89eec5c440e0690ff14bdc45e1da06e88e546`: full215files/3441tests+2TODO,167focused/10files, actual390/1440/SQL, Live build and clear review. Scope fences preserve owner/source/client/period isolation and newer forms.
+
+Recovery protocol accepted as`7450d6c7f948be3d48c8101a106dd8d26f314045`: full217files/3487tests+2TODO. One unchanged product-screen5second timeout passed focused15tests and serial full rerun; no assertions/timeouts changed. optional controller recovery requires an explicit read and retained body before RPC. Exact reload retries, storage-only ACK retry, definite refusal/targeted clearing, retired-call guards and in-flight ACK retention pass in8protocol cases/89focused tests across4files. Original sending/frozen assertion caught a regression and remains unchanged; frozen option removal failed first and is fixed without changing unlocked refusal recovery. Runtime respects failed reset and preserves recovery-backed receipts when viewing orders. Typecheck/lint and independent re-review pass. Existing real two-reset SQL/browser workflows pass at390/1440; visuals inspected and exact-source Live build passes. Full verification is recorded by the acceptance commit. The app does not instantiate the store yet; next wire backend-scoped restoration, recovery UI and actual connected order/reload proof.
+
+Public payment-read F09 is accepted as`3caa379134b353897a09f0a6970defba92217e84`: full215files/3453tests+2TODO,133focused, final frozen-source390/1440/SQL, inspected views, build and clear review. Retired account replies are rejected; local Retry preserves fields and sends no writes. Empty setup, unread instructions and approved extras-pricing text remain distinct.
+
+Checkout recovery accepted as`3b346ba10a8b6cdd25071796230168d648d789ac`: full217files/3491tests+2TODO,97focused, clear independent review, Live build and actual two-reset SQL/browser evidence. A context-budget refusal was corrected by archiving finished history; a disk-full attempt was stopped, three verified stopped fixtures removed with logs retained, then unchanged-source full verification passed. Backend/client wiring follows7450d6c: explicit post-hydration restoration is scoped to configured backend and exact client; cached clients cannot be retagged. Unreadable copies block sending and offer storage-only Retry; received receipts survive viewing an order and explicit new-order resets clear only their matching copy. Four new failing-first runtime cases pass;97focused/4files, typecheck/lint and independent runtime/test review pass. Real anonymous committed-but-lost order reply→reload with no send→exact request replay produces one unpaid order at390/1440. Both real SQL reset/production/Bazaar suites pass; Shop cart/touch/overflow and checkout views pass at320/390/768/1024/1440. Final visible Continue/owner-row assertions and visual inspection pass. Live build passes; full verification is recorded by the acceptance commit. Next: fluid full-width client Shop for phones/iPhones/tablets/laptops/MacBooks/Macs/desktops; remove the page-width cap in its live replacement and check320–2560px. Physical-device checks remain pending. Other full-goal requirements remain unfinished.
+
+Fluid client Shop accepted as`1a680a859cfbdeb09fcff1e02ab232b4e845d4af`: full218files/3496tests+2TODO,13files. It follows accepted checkout recovery3b346ba. The live replacement uses the whole page, a fluid menu/grid and cart, while keeping the protected demo and checkout sizing. Cart/lookup/waitlist actions and failed-read recovery remain; approved extras-pricing text replaces the false no-charge claim. A width regression failed first. Review caught a hidden ask-us allergen warning; its exact-string regression failed first and the warning is preserved. 23focused/UI accessibility tests, type/lint and final actual320/390/768/1024/1440/1920/2560 layouts/SQL/browser pass. Visual checks fixed duplicate CTA, preview logo, doubled quantity markers and photo cropping; all touch controls are44px. Full-catalogue phone/tablet/desktop visuals pass. Exact-source Live build passes; full verification is recorded by the acceptance commit. Real iPhone/Mac/tablet device and unaided-owner acceptance remain pending.
+
+Fluid checkout accepted as`8ade53d4fb5931a3f9df904d7fff3b7ccdc5f62f`: full219files/3500tests+2TODO,11files. It follows accepted full-width Shop1a680a8. A weak money assertion was strengthened; two unchanged dock5second timeouts passed isolated16tests and the unchanged-source full rerun with NODE_OPTIONS=--v8-pool-size=1/VITEST_MAX_WORKERS=1. No assertions/timeouts were loosened. The live wrapper retains the existing form/controller, summary-first phone reading and side-by-side desktop layout. Registered customer screens fill available width; unregistered fallbacks and protected demo remain. Shared live form colors use neutral tokens. Before acknowledgement the summary names the cookie subtotal; afterwards it uses the server-confirmed total and omits current-catalogue line amounts. Width regression failed first;92focused/5files, type/lint, component accessibility and independent review pass. Final actual seven-width/reload/SQL/browser proof and inspected phone/tablet/desktop/receipt views pass. All visible checkout touch controls measure44px or more;26targeted tests pass after that correction. Exact-source Live build passes; full verification is recorded by the acceptance commit. Payment timing/proof, status and the remaining full-goal customer journey remain unfinished; physical-device/owner gates stay open.
+
+C2 accepted as`1cbe2930e7beeb9dac19efe2c890de3c7d096e3a`: full219files/3502tests+2TODO,9files. It follows accepted fluid checkout8ade53d. The premature reference input is removed per the explicit client-meeting correction. Controller/body/storage fields remain: a new regression proves a historical saved reference survives restore and exact retry when the current form supplies none. The UI regression failed first;88focused/4files, type/lint and independent review pass. Final connected no-reference/new-order/reload/seven-width/SQL/browser checks and inspected payment-card views pass. Exact-source Live build passes; full verification is recorded by the acceptance commit. Post-submission payment/status, authoritative balance and the broader customer journey remain unfinished. All hosted/device/owner gates remain open.
+
+F09 customer lookup retirement on`codex/cloud-customer-lookup-retirement-20261109` follows accepted C2 input removal1cbe293. Lookup token/status publish together only after both reads complete under the initiating view, lookup sequence and status intent. Route/source/sheet retirement clears busy work; a customer-view epoch fences route round trips. Pending order-write acknowledgements and direct status-read sequencing remain intact. Five regressions failed first;119focused/7files (including owner navigation), type/lint and independent implementation/test review pass. Final real anonymous lookup held across cancellation/client round trip causes no forwarded private read, token change, navigation or order write at390/1440; existing two-reset SQL/production/Bazaar/reload/seven-width proofs pass. Cancelled-view visuals pass. Exact-source Live build passes; full verification is recorded by the acceptance commit. PR51/53 runtime three-way delta has0text conflicts at pinned e407b70/7500b6c; existing semantic conditions and OD-12 remain open. Status Retry/public status shell, authoritative payment reads and the rest of the full goal remain unfinished; hosted/device/owner gates stay open.
+
+Accepted and pushed as134a5e3ebdf174887cd4d572cfd733b82c950d63: full219files/3507tests+2TODO; all listed local gates passed.
+
+Guarded recovery storage is accepted as`6e9d3b71275d059bf2119c10432c6a5654bb8ab1`: full216files/3479tests+2TODO,122focused, formatting/build and clear review. Backend/attempt checks preserve pending copies and acknowledgements; storage alone is not write authority.
+
+F09 private status recovery is active on`codex/cloud-customer-status-recovery-20261109`: same-token refresh failures retain warned last-good data; genuine missing clears it; malformed non-null replies fail instead of claiming absence. Local Retry reads only the current private fragment, guarded by view/client/token, online state and in-flight status. Five regressions failed first; the review's cleared-fragment gap also failed first and was fixed.130focused/5files pass, including owner navigation and the unchanged shared status-link component now used by preview. First connected attempt exposed the preview's missing synchronizer and timed out at Retry; wiring corrected without weakening the fragment guard. Final type/lint and real two-reset390/1440 SQL/browser/visual checks pass; one unpaid order and exact replay are preserved. PR51/53 runtime delta has0text conflicts; prior semantic conditions remain. Exact-source Live build and clear independent re-review pass; full verification is recorded by the acceptance commit. Public status redesign, authoritative post-submission payment and the remaining full goal stay unfinished; hosted/device/owner gates remain open.
+
+Accepted and pushed as3069b023da8b12a52f180acf2d86aba87fa9a092: full220files/3514tests+2TODO; all listed local gates passed.
+
+F09 customer lookup retirement is accepted as`134a5e3ebdf174887cd4d572cfd733b82c950d63`: full219files/3507tests+2TODO,119focused, actual two-reset390/1440 SQL/browser, inspected views, Live build and clear review. Private lookup results publish atomically under current view/lookup/status intent; retired work cannot install old private status. PR51/53 runtime delta has0text conflicts; semantic conditions and OD-12 stay open.
+
+Fluid public status layout is active on`codex/cloud-customer-status-layout-20261110`: live-only neutral/full-width replacement beside the locked port, using current title/body/progress/pickup and scoped Back/lookup/reorder. Missing orders have no placeholder pill, empty progress/collection or impossible reorder. Old Grab/Lalamove booking copy is removed under approved direct-pickup requirements; controller/payment/SQL behavior is unchanged. Registration failed first;71focused tests/4files and narrow independent review pass. Final type/lint and actual two-reset390/1440 SQL/browser pass, including all seven status widths,44px controls, private read recovery and unchanged order/stock/Money effects. Phone/wide visuals pass. Exact-source Live build passes; full verification is recorded by the acceptance commit. Post-submission payment/status, owner status preview B17 and the full remaining objective are unfinished; hosted/device/owner gates stay open.
+
+Accepted and pushed as2b1843349102507371029ff7b3e2c36b0bf43f52: full221files/3518tests+2TODO; all listed local gates passed.
+
+F09 private status read recovery is accepted as`3069b023da8b12a52f180acf2d86aba87fa9a092`: full220files/3514tests+2TODO,130focused, actual two-reset390/1440 SQL/browser, inspected views, Live build and clear independent re-review. Same-token stale data is warned; malformed answers fail; Retry requires the current private fragment and never writes an order. Preview/app share the original status-link synchronizer.
+
+Fluid public status is accepted as`2b1843349102507371029ff7b3e2c36b0bf43f52`: full221files/3518tests+2TODO,71focused, actual two-reset SQL/browser at all seven widths,44px controls, inspected visuals, Live build and clear review. Progress/pickup use the full viewport beside the locked port; unknown orders have no placeholder details. Approved direct pickup replaces the old delivery-booking text.
+
+Private payment read foundation is active on`codex/cloud-private-payment-read-20261110`: new SQL82 adds only recorded paid_cents to the existing private-token JSON, preserving original fields/token/privacy/ACL. Optional client parsing preserves older schemas and rejects malformed amounts without inferring payment confirmation. Actual SQL failed first for the omitted field;5parser regressions failed first, then122focused/4files pass. Two actual resets pass owner confirmation→higher-price swap→settlement→lower-price swap with retained overpayment→refund, token isolation and privacy. Review fixture corrections are applied; independent re-review is clear. Both inference/PII mutants, type/lint and final two-reset390/1440 connected SQL/browser pass, including seven widths and unchanged unpaid/order/stock/Money effects. Inspected phone/wide visuals pass. Exact-source Live build passes; full verification is recorded by the acceptance commit. No owner payment operation, accounting rule or hosted system changed. Post-submission payment UI and B17 remain unfinished; all manual gates stay open.
+
+SQL82 accepted and pushed asf5254971da2b5dbb8b4e2bd5501bbc67e301615c: full221files/3523tests+2TODO; all listed local gates passed.
+
+Customer payment instructions are active on`codex/cloud-customer-payment-instructions-20261110`: post-order totals/recorded payments/balances and exactly one selected current account, with client/view/token-scoped read Retry. Unknown/stale/expired/cancelled/refunded/claimed/inconsistent facts withhold instructions; overpayment never invents a refund. A deadline timer removes unpaid instructions; proof is requested afterward without marking paid. Check order status and Refresh payment details remain read-only. Regression failed first;131focused/5files pass. Final type/lint and independent re-review pass. Corrected visual hierarchy/grouping and Money test await preserve every exact assertion. Both actual SQL/browser resets pass at390/1440, including all seven widths, UI bank/status Retry, withdrawn stale accounts and one unpaid order. Phone/wide visuals pass. Exact-source Live build passes; full verification is recorded by the acceptance commit. PR51/53 runtime delta has0text conflicts; prior semantic conditions and OD-12 remain open. Next correct legacy status-summary confirmation wording, which still uses fulfilment rank in some cases; payment workflow is not complete until that is reconciled. B17 and full-goal/manual gates remain open.
+
+Accepted and pushed as65775c777bdac183a938273fd32dd1d9ec225af9: full222files/3535tests+2TODO; all listed local gates passed.
+
+SQL82 private payment facts are accepted as`f5254971da2b5dbb8b4e2bd5501bbc67e301615c`: full221files/3523tests+2TODO,122focused, actual two-reset SQL/negative checks/connected browser, inspected visuals, Live build and clear review. Optional paid_cents preserves older replies; owner payment rules/token/privacy/grants are unchanged.
+
+Payment status truth is active on`codex/cloud-customer-payment-status-truth-20261110`: confirmation follows saved pay_state independently of fulfilment rank. Claimed/unconfirmed records are neutral; the summary only identifies the selected method, and unsupported weekend/oven promises are removed. Nine regressions failed first;134focused/4files, type/lint and independent re-review pass. Valid-state fixtures now carry their confirmed payment flag; prior assertions remain. Final two actual SQL/browser resets pass390/1440 and all seven widths: no order revenue before actual owner confirmation, exact owner replay, fresh customer Check, no second payment instructions, one server-valued order revenue line and exact total revenue increase. Phone/wide visuals pass. Exact-source Live build passes; full verification is recorded by the acceptance commit. Default copy still needs owner acceptance; B17/full-goal/manual gates remain open.
+
+Accepted and pushed as9a8cf38cac379c10c533eb6d15a36c619a83517d: full222files/3544tests+2TODO; all listed local gates passed.
+
+Post-order payment panel is accepted as`65775c777bdac183a938273fd32dd1d9ec225af9`: full222files/3535tests+2TODO,131focused, two actual SQL/browser resets, seven widths, inspected visuals, Live build and clear review. Source/status/hold checks gate current account instructions; expiry/stale/unknown/refund/overpayment states and read-only Retry are covered. Confirmation still requires the owner. Original protected screens and all money/stock rules are unchanged.
+
+## Owner status example acceptance — 10 November 2026
+
+Accepted as `9e9e713f0a1c90fb08ba71c3df84cad0ba3b795a`; full222files/3545tests+2TODO.
+
+B17 owner status example is active on`codex/cloud-owner-status-example-20261110`: Shop’s Order status preview shows a labelled local example with Back to Shop. It does not enter a private status URL, create a token/order/payment, read real customer status, or expose actual bank details/customer actions. Public customer defaults and other Shop entries remain. The regression failed first;28focused/3files and independent review pass. Final type/lint and both actual SQL/browser resets pass populated-cart/context/link retention, zero preview RPCs and390/768/1440 resize. Visuals caught inherited scroll; opening now starts at the top, with Note/Back viewport bounds tested. Phone/wide visuals and subsequent real customer/owner-payment/production/Money flows pass. Exact-source Live build and clear independent re-review pass; full verification is recorded by the acceptance commit. Owner/B17 acceptance and full-goal/manual gates remain open.
+
+## Payment-state truth acceptance — 10 November 2026
+
+Payment-state truth is accepted as`9a8cf38cac379c10c533eb6d15a36c619a83517d`: full222files/3544tests+2TODO,134focused, actual two-reset owner confirmation/replay→fresh customer Check→single revenue effect, seven widths, inspected visuals, Live build and clear review. Confirmation follows saved pay_state; unsupported scheduling promises are removed. Owner copy acceptance remains open.
+
+## Shop identity/contact isolation acceptance — 10 November 2026
+
+Accepted and pushed as`40d1857360c714ecf4db8938e6a5a1094f614406`; full222files/3558tests+2TODO.
+
+F09 shop identity/contact isolation passes locally on`codex/cloud-shop-identity-read-scope-20261110`: new or removed clients immediately clear retired names/contact/tagline and save readiness; latest-read, null-source and unmount fences prevent late publication to global customer wording. Cached saves retire with source/actor/sheet/read changes, and late acknowledgements cannot reattach a retired client or supersede newer reads. Missing/failed reads retain the approved neutral fallback; current saved/conflict responses preserve CAS and refresh. Initial regressions failed first;111focused/3files, type/lint, both actual SQL/browser resets and clear independent re-review pass. Review found two same-client acknowledgement/refresh retirement windows; both were reproduced red and fixed. Real390/1440 source-switch/null-source/form-save checks preserve other identity fields and restore fixture identity afterward. The first browser attempt stopped on an over-specific empty-field label selector; the corrected selector passes both clean cycles. Phone/wide screenshots were inspected; exact-source Live build passes. Full verification is recorded by the acceptance commit. Production/payment/recovery/Money and seven-width customer checks remain passing. PR51/53 runtime deltas still have zero textual conflicts; their integration conditions and OD12 wording remain open. No hosted changes. Next: scope signed-in staff-name reads to their current actor/source before continuing the remaining full goal.
+
+## Staff-name read retirement acceptance — 10 November 2026
+
+Accepted and pushed as`819ed712ac9766dbd7191bf12a33e98194fd5c92`; full222files/3563tests+2TODO.
+
+F09 staff-name in-flight reply retirement passes locally on`codex/cloud-staff-name-read-scope-20261110`: only the latest current-role/actor read may publish a greeting, clerk name or remembered offline name. A retired session answer cannot forward a profile query; null sources, role round trips and unmounts retire pending replies. Current failed-read and approved offline-reopen behavior remain unchanged. All5regressions failed first;50focused tests/2files, type/lint and clear independent review pass. Two actual SQL/browser resets at390/1440 pass real SDK/RLS profile reads with explicitly controlled fixture sessions, plus existing production, return/Money, payment and seven-width customer checks. This is not native GoTrue sign-in evidence. The initial new browser probe used the wrong Home screen key; the corrected today navigation passes both clean cycles without weakening assertions. Phone/wide Home screenshots were inspected; exact-source Live build passes. Full verification is recorded by the acceptance commit. Same-role account changes still need explicit cached-name invalidation/current-identity binding; that is the next unblocked slice, not closed by these in-flight guards. Manual owner/device/hosted gates remain open.
+
+## Account-bound staff attribution acceptance — 10 November 2026
+
+Accepted and pushed as`efe14d590efd0b425740089d43999e297af457a8`; full222files/3576tests+2TODO.
+
+C4/C11 cached staff attribution passes locally on`codex/cloud-staff-account-cache-20261110`: names bind to verified account plus full backend path. Same-role switches, retirement and A→B→A clear live/remembered attribution until a fresh matching profile read. Offline names require a matching stored-session account/backend; legacy unbound entries remain neutral. Failed new-account reads never recover the old name. Four initial regressions and two review-found backend-path regressions failed first;111focused/5files+2existingTODO, type/lint, both actual SQL/browser resets, inspected390/1440 visuals, exact-source Live build and clear independent re-review pass. Connected profile reads use real SDK/RLS with controlled sessions; browser-level native offline authentication is not claimed. The first full gate exposed two manual cross-shop fixture boots missing the new verified binding. Their setup now follows the live gate; all original assertions remain and the focused rerun passes. Fresh full verification is recorded by the acceptance commit. Next: the14-cycle progress tracker, then operations-health read retirement. Missing numbered source registers remain an explicit reconciliation dependency; independent work continues. All owner/device/hosted and PR merge gates remain open.
+
+F09 public-menu recovery is accepted as`be468ca6c86e7fe217762e23019554fabec19705`: full215files/3430tests+2TODO,146focused, actual anonymous390/1440/SQL, inspected visuals, final build and clear review. Source/sequence-scoped recovery preserves the cart and warned last-good data; malformed answers fail instead of confirming an empty menu.
+
+F09 opening-status reads are accepted as`80311acd879e6da173c77a9f6fe180c1d0d45187`: full215files/3433tests+2TODO,124focused, actual390/1440/SQL, inspected views, build and clear review. Unknown does not claim a default opening status; local Retry, warned last-good data and latest/source fences preserve owner settings.
+
+## Scoped health recovery acceptance — 10 November 2026
+
+Accepted and pushed as`4d005ad01477cdd176d4211c27c9d144868024fa`; full223files/3588tests+2TODO.
+
+C4/F09 health read/recovery now passes local gates on`codex/cloud-health-read-scope-20261110`: source/account/role/unmount retirement clears old health facts, Retry closures and refresh timers; null remains Retry on the current client. Seven read/Retry/timer regressions failed first. Independent review found batched role changes cancelling new reads; both real-gate regressions were reproduced red and fixed by reading after the role commit. Connected testing exposed no visible recovery control;3UIregressions failed first, then a read-only “Check results again” action was added, disabled without a source or while offline. Job actions remain disabled.92focused/6files+2existingTODO, type/lint, clear independent re-review, both actual SQL/browser resets,320/390/1440 target/overflow checks, inspected failure/recovery visuals and exact-source Live build pass. Real UI Retry makes one get_operations_health call; no job writer is used. Full verification is recorded by the acceptance commit. Next: distinguish unknown health job facts from confirmed no-run results, then continue independent full-goal work.
+
+## 10 November — health truth acceptance and Orders integration
+
+The14-cycle tracker is accepted as`50774b424a4d8848aaf7e6700cb9f9c1ae17c139` in task-status.json.full_application. It preserves all historical package/release facts, locally accepted cores and full-cycle/external gates. Numbered-register reconciliation remains open where source lists have not been located; GitHub metadata API was forbidden, so no fresh PR CI claim is made.
+
+The bounded health read-truth follow-up passes local gates on`codex/cloud-health-read-truth-20261110`: null job data stays Checking/unverified, while successful known no-run data retains approved activation-pending wording. Both first-read regressions failed before the projection change. Two older tests now distinguish cold unknown data from a successful empty response; their support/privacy and known-empty assertions remain.36focused tests, type/lint, independent review, both actual SQL/browser resets and exact-source Live build pass. Real first-read failure→UIcheck→local SQL confirms the transition; phone/wide unknown/confirmed screenshots were inspected. No backup writer or financial/security policy changed. Full verification is recorded by the acceptance commit. Next reproduce staff-name read timing across batched role changes, then continue the full14-cycle objective.
+
+C4/F09 health recovery is accepted as`4d005ad01477cdd176d4211c27c9d144868024fa`: full223files/3588tests+2TODO,92focused, both actual SQL/browser resets, inspected phone/wide failure/recovery, Live build and clear review. Source/account/role retirement, post-role-commit reads, guarded Retry and read-only Check results again preserve job/operator policy.
+
+C1/HCB-001/HCB-002a release integration preserves current main/trial ancestry and PR12/51/52/53 heads. PR45’s Next16.4.1 is already present; its old conflicted lock resolves to the accepted patched graph, retaining newer Sentry/Zod/security overrides. Orders now has one read-state source with saved pickups, malformed/dropped-row truth and guarded current Retry. Seven initial retirement regressions and one independent-review ABA swap-ID race failed first;221focused tests/10files, both real SQL/browser resets, inspected390/1440 failure/recovery views and exact-source Live build pass. Actor/client/role/unmount retirement clears data/state, blocks old callbacks, preserves already-sent outcomes and uncertain exact swap IDs. Full gate is recorded by the acceptance commit. PR50 remains evidence-only; PR44 needs separate lock reconciliation/verification. OD-12 wording stays open.
+
+C4 health truth is accepted and pushed as`fc2bbe4b68762b76b5986f36af881138bad5a811`: full223files/3590tests+2TODO;36focused, actual two-reset SQL/browser, visual, Live build and clear review.
+
+Deployment is now authorized but not yet evidenced: the existing private target is happy-cookie-owner-trial.admin-kethai.workers.dev. Add a read-only hosted migration/catalog preflight before release; existing Cloudflare checks alone do not prove SQL71–82. No hosted migration or business-data write was performed.
+
+## 10 November — verified release preparation
+
+C4/C11 staff attribution is accepted as`efe14d590efd0b425740089d43999e297af457a8`: full222files/3576tests+2TODO;111focused, both actual SQL/browser resets, inspected phone/wide views, Live build and clear review. Account/backend bindings, A→B→A, retirement and offline name matching are covered; native offline authentication remains separate.
+
+C1/HCB-001/HCB-002a integration is accepted and pushed as`071a1c373fba773fbe3261a5607bf3849c8aa9fd`: full228files/3670tests+2TODO,221focused, both actual connected SQL/browser resets, inspected390/1440 views, Live build and clear review. Main/trial and PR12/51/52/53/45 histories are retained; Next keeps the already accepted patched graph. OD-12 stays open; PR50 remains evidence-only.
+
+C14 private-trial schema preflight now blocks deployment on missing credentials or migration/RPC/required-column/authority mismatch. It reads catalog metadata only at the fixed target, using the existing OPS management token; no migration/data write. First workflow regression failed before wiring;80focused/3files and two actual read-only SQL reset checks pass (83versions/173exact public functions). API request shape is verified against official supabase/mcp8a08e48 source; independent review is clear. Full gate is recorded by acceptance commit. Hosted execution remains unverified. This is a bounded compatibility gate, not full hosted table/trigger/policy equality. Next reconcile Storybook PR44, publish verified main and run the existing private-trial release gates; keep engineering/owner/device gates distinct.

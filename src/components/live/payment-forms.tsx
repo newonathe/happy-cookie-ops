@@ -18,7 +18,8 @@ function fieldValue(form: HTMLFormElement, name: string): string {
 
 /**
  * A file picker that uploads straight to the shop-media bucket and drops the returned bucket
- * path into a sibling text field. The file's own name never reaches the bucket (the runtime
+ * path into an optional uncontrolled sibling field. Controlled forms keep that path in state
+ * through their upload callback instead. The file's own name never reaches the bucket (the runtime
  * generates one); a refusal is toasted by the runtime and leaves the field as it was.
  */
 export function UploadField({
@@ -28,7 +29,7 @@ export function UploadField({
   hint = '(PNG, JPEG or WebP, up to 2 MB)'
 }: {
   upload: (file: File) => Promise<string | null>;
-  target: React.RefObject<HTMLInputElement | null>;
+  target?: React.RefObject<HTMLInputElement | null>;
   label: string;
   /** The size note after the label; flavour photos are resized for her, so theirs differs. */
   hint?: string;
@@ -41,7 +42,7 @@ export function UploadField({
     setBusy(true);
     try {
       const path = await upload(file);
-      if (path && target.current) target.current.value = path;
+      if (path && target?.current) target.current.value = path;
     } finally {
       setBusy(false);
       input.value = '';
@@ -55,7 +56,7 @@ export function UploadField({
         accept="image/png,image/jpeg,image/webp"
         onChange={(e) => void onChange(e)}
         disabled={busy}
-        style={{ fontSize: '13px', color: '#3A1F14' }}
+        style={{ fontSize: '13px', color: 'var(--color-ink)' }}
       />
     </label>
   );
@@ -65,11 +66,11 @@ export function PayList({ livePay }: { livePay: LivePay }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {!livePay.online ? (
-        <span style={{ fontSize: '12px', color: '#A8231B' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
-      <span style={{ fontSize: '11px', color: '#66524A' }}>
+      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
         Customers pick from the methods marked shown. Turn a method off to stop offering it.
       </span>
       <button onClick={livePay.addNew} style={primaryButton}>
@@ -87,7 +88,7 @@ export function PayList({ livePay }: { livePay: LivePay }) {
                 gap: '10px',
                 minHeight: '54px',
                 border: '0',
-                borderBottom: '1px solid #F2EEEB',
+                borderBottom: '1px solid var(--color-divide)',
                 background: 'transparent',
                 padding: '8px 2px',
                 textAlign: 'left'
@@ -95,7 +96,7 @@ export function PayList({ livePay }: { livePay: LivePay }) {
             >
               <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.label}</span>
-                <span style={{ fontSize: '11px', color: '#66524A' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
                   {row.active ? 'Shown' : 'Not shown'} · {row.hasQr ? 'QR set' : 'no QR'}
                   {row.detail ? ' · ' + row.detail : ''}
                 </span>
@@ -104,7 +105,9 @@ export function PayList({ livePay }: { livePay: LivePay }) {
           ))}
         </div>
       ) : (
-        <span style={{ fontSize: '12px', color: '#66524A' }}>No payment methods yet.</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+          No payment methods yet.
+        </span>
       )}
     </div>
   );
@@ -231,7 +234,7 @@ export function ShopTextsForm({ liveTexts }: { liveTexts: LiveTexts }) {
       <span style={smallLabel}>{label}</span>
       <input name={name} defaultValue={value} maxLength={max} style={inputStyle} />
       {value === '' ? (
-        <span style={{ fontSize: '11px', color: '#66524A' }}>
+        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
           Not set: the app uses neutral wording.
         </span>
       ) : null}
@@ -246,7 +249,7 @@ export function ShopTextsForm({ liveTexts }: { liveTexts: LiveTexts }) {
         style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
       >
         <span style={{ fontSize: '13px', fontWeight: '600' }}>Shop details</span>
-        <span style={{ fontSize: '11px', color: '#66524A' }}>
+        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
           How the shop names itself in the app and to customers. Nothing is filled in for you: an
           empty line means the app says it without a name.
         </span>
@@ -265,7 +268,7 @@ export function ShopTextsForm({ liveTexts }: { liveTexts: LiveTexts }) {
         )}
         {own('tagline', 'The line under the shop heading', liveTexts.identity.tagline, 120)}
         {!liveTexts.identityReady ? (
-          <span style={{ fontSize: '12px', color: '#A8231B' }}>
+          <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
             Shop details cannot be saved here yet.
           </span>
         ) : null}
@@ -290,11 +293,11 @@ function ShopFooterForm({
   return (
     <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {!liveTexts.online ? (
-        <span style={{ fontSize: '12px', color: '#A8231B' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
-      <span style={{ fontSize: '11px', color: '#66524A' }}>
+      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
         The shop footer says only what you write here. Leave a line empty to show nothing, and only
         write what is true for the business.
       </span>

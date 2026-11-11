@@ -57,6 +57,7 @@ function harness(first: Wire) {
   };
   const deps = {
     client: () => ({ rpc }) as unknown as BazaarClient,
+    eventActor: () => 1,
     online: () => state.online,
     bookings: () => [
       {
@@ -939,5 +940,27 @@ describe('U4: the event page asks what the books need before it closes, and star
     const editor = h.store.vals().editor!;
     expect(editor.eventName).toBe('Fixture fair');
     expect(editor.flavours[0]).toMatchObject({ photo: '', onMenu: true, menuPrice: '100' });
+  });
+});
+
+describe('explicit kitchen transfer entry points', () => {
+  it('offers the held day and review transfer without a legacy stock write and retires panel selection', async () => {
+    const h = harness(day2Open()),
+      transfer = vi.fn(),
+      factory = vi.fn(() => transfer);
+    h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 0, refused: 0, stock: {} };
+    const store = new BazaarDays({ ...h.deps, kitchenTransfer: factory });
+    const previous = store.selectionEpoch();
+    store.openTillPanel('cookies');
+    await settle();
+    expect(store.selectionEpoch()).toBeGreaterThan(previous);
+    store.vals().tillPanel!.stock!.kitchenTransfer!();
+    expect(factory).toHaveBeenCalledWith(BOOKING, DAY2);
+    expect(transfer).toHaveBeenCalledTimes(1);
+    store.openReview(BOOKING, DAY2, 'till');
+    await settle();
+    store.vals().review!.kitchenTransfer!();
+    expect(transfer).toHaveBeenCalledTimes(2);
+    expect(h.calls('add_bazaar_day_stock')).toHaveLength(0);
   });
 });

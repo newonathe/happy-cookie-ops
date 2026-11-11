@@ -38,8 +38,22 @@ const till = (over: Partial<Till> = {}): Till => ({
   classic: false,
   setClassic: vi.fn(),
   soldOutCount: 0,
-  showSoldOut: false,
-  toggleSoldOut: vi.fn(),
+  cartTotalText: '₱0.00',
+  cartLines: {},
+  ledger: {
+    totals: null,
+    drawer: {
+      expectedText: '₱500.00',
+      floatText: '₱500.00',
+      cashSalesText: '₱0.00',
+      receivedText: null,
+      changeGivenText: null
+    },
+    target: null,
+    cookies: { sold: 0, left: 0, freebies: 0 },
+    rows: []
+  },
+  leave: null,
   allGone: false,
   home: vi.fn(),
   addCookies: vi.fn(),
@@ -58,34 +72,22 @@ const panel = (over: Partial<TillPanelView> = {}): TillPanelView => ({
 afterEach(cleanup);
 
 describe('the bar above the till', () => {
-  it('offers Home and Add cookies to the owner, and the sold-out chip with its count', () => {
+  it('offers Home and Add cookies to the owner', () => {
     const t = till({ soldOutCount: 2 });
     render(<TillBar till={t} panel={null} />);
     fireEvent.click(screen.getByRole('button', { name: '← Home' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Show sold out (2)' }));
     fireEvent.click(screen.getByRole('button', { name: 'Add cookies' }));
     expect(t.home).toHaveBeenCalledTimes(1);
-    expect(t.toggleSoldOut).toHaveBeenCalledTimes(1);
+    // Planned cookies that sold out are always on the till, so there is nothing to toggle.
+    expect(screen.queryByRole('button', { name: /sold out/i })).toBeNull();
     expect(t.addCookies).toHaveBeenCalledTimes(1);
   });
 
-  it('turns the chip round once the sold-out tiles are shown', () => {
-    render(<TillBar till={till({ soldOutCount: 1, showSoldOut: true })} panel={null} />);
-    const chip = screen.getByRole('button', { name: 'Hide sold out' });
-    expect(chip.getAttribute('aria-pressed')).toBe('true');
-  });
-
-  it('gives a helper the chip and nothing else, and draws nothing when there is nothing to do', () => {
-    const { rerender } = render(
+  it('draws nothing for a helper when there is nothing to do', () => {
+    const { container } = render(
       <TillBar till={till({ soldOutCount: 1, home: null, addCookies: null })} panel={null} />
     );
-    expect(screen.getByRole('button', { name: 'Show sold out (1)' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: '← Home' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Add cookies' })).toBeNull();
-    rerender(<TillBar till={till({ home: null, addCookies: null })} panel={null} />);
-    expect(screen.queryByRole('toolbar')).toBeNull();
-    rerender(<TillBar till={null} panel={null} />);
-    expect(screen.queryByRole('toolbar')).toBeNull();
+    expect(container.querySelector('[role="toolbar"]')).toBeNull();
   });
 
   it('says when everything is sold, with the one thing to do about it', () => {
@@ -203,13 +205,10 @@ beforeEach(() => {
 describe('leaving the till and coming back, in the frame', () => {
   it('Home leaves the day open, shows the selling card, and Back to the till returns to the same till', () => {
     const runtime = mountFrame();
-    // The consolidated till is drawn (19 October), with the sold-out Double Chocolate Fudge hidden.
+    // The consolidated till is drawn, with the planned, sold-out Double Chocolate Fudge marked.
     expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
-    expect(screen.queryByText('Double Chocolate Fudge')).toBeNull();
+    expect(screen.getByRole('button', { name: /Double Chocolate Fudge.*sold out/ })).toBeTruthy();
     expect(screen.getByText('White Chocolate Biscoff')).toBeTruthy();
-    // Show sold out brings it back.
-    fireEvent.click(screen.getByRole('button', { name: 'Show sold out (1)' }));
-    expect(screen.getByText('Double Chocolate Fudge')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
     fireEvent.click(screen.getByRole('button', { name: /Back to Home/ }));
     expect(runtime.state.screen).toBe('today');

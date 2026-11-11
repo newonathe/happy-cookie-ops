@@ -7,8 +7,10 @@ vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
 import { LiveCheckout } from '@/components/live/live-checkout';
-import { PAY_ACCOUNTS, replacePayAccounts } from '@/store/engine/ops-engine';
+import { ALLERGENS, PAY_ACCOUNTS, PRODUCTS, replacePayAccounts } from '@/store/engine/ops-engine';
 import type { OrderClient } from '@/lib/data/orders';
+import type { ShopClient } from '@/lib/data/flavours';
+import { pesosToCentavos } from '@/lib/money';
 import type { PaymentClient, UploadClient } from '@/lib/data/payments';
 import { ORDER_COPY } from '@/lib/orders/copy';
 
@@ -180,6 +182,93 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
     // Mutation: always sending `add_ons: []` and `boxes: []` changes every payload hash and the SQL suite's replay cases.
   });
 
+  it('keeps selected boxes and add-on text when a later extras read fails', async () => {
+    let failed = false;
+    const first = await mounted({
+      get_shop_extras: () =>
+        failed ? { data: null, error: { code: '57014' } } : { data: EXTRAS(), error: null }
+    });
+    act(() =>
+      live1(first.runtime)
+        .extras!.boxes.find((box) => box.size === 6)!
+        .setQty(1)
+    );
+    const card = live1(first.runtime).extras!.addOns.find((item) => item.id === 'note-card')!
+      .rows[0]!;
+    act(() => {
+      card.setQty(1);
+      card.setText('Keep my note');
+    });
+    failed = true;
+    await act(async () => {
+      await first.runtime.loadShopOrders(first.client);
+    });
+    await flush();
+    expect(live1(first.runtime).extras).not.toBeNull();
+    expect(live1(first.runtime).extrasState).toBe('failed');
+    expect(live1(first.runtime).extras!.boxes.find((box) => box.size === 6)!.qty).toBe(1);
+    expect(
+      live1(first.runtime).extras!.addOns.find((item) => item.id === 'note-card')!.rows[0]!.text
+    ).toBe('Keep my note');
+    fill(first.runtime);
+    await submit(first.runtime);
+    expect(placed(first.calls)).toEqual([]);
+    failed = false;
+    await act(async () => {
+      live1(first.runtime).retryExtras();
+    });
+    await flush();
+    expect(live1(first.runtime).extrasState).toBe('ready');
+    await submit(first.runtime);
+    expect(placed(first.calls)[0]?.add_ons).toContainEqual({
+      id: 'note-card',
+      qty: 1,
+      text: 'Keep my note'
+    });
+  });
+
+  it('rejects an older extras answer after newer choices have loaded', async () => {
+    let reads = 0,
+      release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        get_shop_extras: () =>
+          ++reads === 2
+            ? new Promise((resolve) => {
+                release = resolve;
+              })
+            : {
+                data: EXTRAS(reads >= 3 ? { boxes: [{ size: 6, charge_cents: 0 }] } : {}),
+                error: null
+              }
+      },
+      { dcf: 8 }
+    );
+    await act(async () => {
+      await first.runtime.loadShopOrders(first.client);
+    });
+    await act(async () => {
+      await first.runtime.loadShopOrders(first.client);
+    });
+    await act(async () => {
+      release({ data: EXTRAS(), error: null });
+    });
+    await flush();
+    expect(live1(first.runtime).extras!.boxes.map((box) => box.size)).toEqual([6]);
+    expect(live1(first.runtime).extrasState).toBe('ready');
+  });
+
+  it('still permits a future cookies-only order when no extras can be read', async () => {
+    const first = await mounted({
+      get_shop_extras: () => ({ data: null, error: { code: '57014' } })
+    });
+    fill(first.runtime);
+    await submit(first.runtime);
+    expect(placed(first.calls)).toHaveLength(1);
+    expect(placed(first.calls)[0]?.add_ons).toBeUndefined();
+    expect(placed(first.calls)[0]?.boxes).toBeUndefined();
+  });
+
   it('offers no extras when the owner has none, or when the read failed', async () => {
     const failed = await mounted({
       get_shop_extras: () => ({ data: null, error: { code: '57014' } })
@@ -208,6 +297,38 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
     act(() => boxes()[0]!.setQty(0));
     expect(boxes()[0]!.qty).toBe(0);
     // Mutation: a max that ignores the cookies already boxed lets one cookie sit in two boxes; the server refuses (box-fit).
+  });
+
+  it("the shop's sampler card lists the cookies inside, from the owner's saved list", async () => {
+    const { runtime } = await mounted({
+      get_shop_extras: () => ({
+        data: EXTRAS({ sampler: { product_id: 'pbm', max_qty: 2, flavours: ['hc', 'dcf'] } }),
+        error: null
+      })
+    });
+    const menu = PRODUCTS.map((p, sort_order) => ({
+      id: p.id,
+      name: p.name,
+      short_name: p.short,
+      price_cents: pesosToCentavos(p.price),
+      kind: p.kind,
+      tag: p.tag,
+      description: p.desc,
+      image_path: p.img,
+      sort_order,
+      allergens: ALLERGENS[p.id] ?? ''
+    }));
+    await act(async () => {
+      await runtime.loadShopMenu({
+        from: () => ({ select: async () => ({ data: menu, error: null }) })
+      } as unknown as ShopClient);
+    });
+    act(() => runtime.setState({ screen: 'shop' }));
+    const rows = runtime.renderVals().shopFlavours;
+    const withList = rows.filter((r) => String(r.desc).includes('Includes'));
+    expect(withList).toHaveLength(1);
+    expect(String(withList[0]!.desc)).toMatch(/Includes Happy Camper, Double Chocolate Fudge\.$/);
+    // Mutation: matching cards by position without the engine's filter would label the wrong card.
   });
 
   it('the sampler and other sets do not count toward boxes', async () => {
@@ -372,6 +493,30 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
     expect(live1(runtime).times).toEqual([]);
     expect(live1(runtime).extras!.sameDayNotice).toBe(ORDER_COPY.extras.noSlotsToday);
     // Mutation: showing the percent notice with no times leaves the customer at a picker that never appears.
+  });
+
+  it('does not place a new same-day order using an unchecked surcharge after refresh failure', async () => {
+    let failed = false;
+    const first = await mounted({
+      get_shop_extras: () =>
+        failed
+          ? { data: null, error: { code: '57014' } }
+          : {
+              data: EXTRAS({ same_day: { enabled: true, percent: 10, on_extras: false } }),
+              error: null
+            }
+    });
+    fill(first.runtime, '2026-10-05');
+    custSet(first.runtime, 'pickupTime', '12:00');
+    expect(live1(first.runtime).extras!.sameDayNotice).toContain('10%');
+    failed = true;
+    await act(async () => {
+      await first.runtime.loadShopOrders(first.client);
+    });
+    await flush();
+    await submit(first.runtime);
+    expect(placed(first.calls)).toEqual([]);
+    expect(live1(first.runtime).extrasUnchecked).toBe(true);
   });
 
   it('an unsettled attempt sends the identical body again, whatever is picked meanwhile', async () => {

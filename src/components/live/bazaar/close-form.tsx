@@ -87,119 +87,123 @@ export function CloseForm({ stock, close }: { stock: DayReviewView['stock']; clo
       className="flex flex-col gap-3"
       noValidate
     >
-      <ul aria-label="Count by flavour" className="m-0 flex list-none flex-col gap-2 p-0">
-        {stock.map((s, i) => {
-          const row = rows[i] as CloseInput['rows'][number];
-          const left = num(row.left);
-          const split = num(row.carryNext) + num(row.toShop) + num(row.writtenOff);
-          const unsure = close.lastDay && s.hasRecipe === null && split === 0 && left > 0;
-          return (
-            <li
-              key={s.productId}
-              className="flex flex-col gap-2 rounded-card border border-line bg-surface p-3"
-            >
-              <span className="text-body font-bold text-ink">{s.name}</span>
-              <span className="text-caption text-ink-soft">Should be left: {s.shouldBeLeft}</span>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {stepper(s, row, 'left', 'Left', Math.max(0, s.shouldBeLeft))}
-                {close.lastDay ? null : stepper(s, row, 'carryNext', 'Carried over', left)}
-                {stepper(s, row, 'toShop', 'To the shop', left)}
-                {stepper(s, row, 'writtenOff', 'Written off', left)}
-              </div>
-              {split !== left && !unsure ? (
-                <span className="text-caption font-semibold text-danger">
-                  {`The ${left} left must be split into ${close.lastDay ? '' : 'carried over, '}to the shop and written off. These add up to ${split}.`}
-                </span>
-              ) : null}
-              {unsure ? (
-                <span className="text-caption text-ink-soft">
-                  {`Choose where the ${left} left go: to the shop or written off.`}
-                </span>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <ul aria-label="Count by flavour" className="m-0 flex list-none flex-col gap-2 p-0">
+          {stock.map((s, i) => {
+            const row = rows[i] as CloseInput['rows'][number];
+            const left = num(row.left);
+            const split = num(row.carryNext) + num(row.toShop) + num(row.writtenOff);
+            const unsure = close.lastDay && s.hasRecipe === null && split === 0 && left > 0;
+            return (
+              <li
+                key={s.productId}
+                className="flex flex-col gap-2 rounded-card border border-line bg-surface p-3"
+              >
+                <span className="text-body font-bold text-ink">{s.name}</span>
+                <span className="text-caption text-ink-soft">Should be left: {s.shouldBeLeft}</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  {stepper(s, row, 'left', 'Left', Math.max(0, s.shouldBeLeft))}
+                  {close.lastDay ? null : stepper(s, row, 'carryNext', 'Carried over', left)}
+                  {stepper(s, row, 'toShop', 'To the shop', left)}
+                  {stepper(s, row, 'writtenOff', 'Written off', left)}
+                </div>
+                {split !== left && !unsure ? (
+                  <span className="text-caption font-semibold text-danger">
+                    {`The ${left} left must be split into ${close.lastDay ? '' : 'carried over, '}to the shop and written off. These add up to ${split}.`}
+                  </span>
+                ) : null}
+                {unsure ? (
+                  <span className="text-caption text-ink-soft">
+                    {`Choose where the ${left} left go: to the shop or written off.`}
+                  </span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
 
-      <div className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
-        <p className="m-0 text-body font-bold text-ink">
-          Cash expected in the drawer: {close.cashExpectedText}
-        </p>
-        <div className="flex flex-wrap items-end gap-2">
-          <label htmlFor={cashId} className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
-            <span className="text-caption font-semibold text-ink-soft">Cash counted (₱)</span>
-            <input
-              ref={cashInput}
-              id={cashId}
-              value={cash}
-              inputMode="decimal"
-              autoComplete="off"
-              aria-describedby={lineId}
-              onChange={(e) => setTypedCash(e.target.value)}
-              className="min-h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] font-semibold text-ink"
-            />
-          </label>
-          <Button variant="secondary" onClick={() => setTypedCash(null)}>
-            It matches
+        <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-3">
+          <div className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
+            <p className="m-0 text-body font-bold text-ink">
+              Cash expected in the drawer: {close.cashExpectedText}
+            </p>
+            <div className="flex flex-wrap items-end gap-2">
+              <label htmlFor={cashId} className="flex min-w-0 flex-1 basis-40 flex-col gap-1.5">
+                <span className="text-caption font-semibold text-ink-soft">Cash counted (₱)</span>
+                <input
+                  ref={cashInput}
+                  id={cashId}
+                  value={cash}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  aria-describedby={lineId}
+                  onChange={(e) => setTypedCash(e.target.value)}
+                  className="min-h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] font-semibold text-ink"
+                />
+              </label>
+              <Button variant="secondary" onClick={() => setTypedCash(null)}>
+                It matches
+              </Button>
+            </div>
+            <p
+              id={lineId}
+              aria-live="polite"
+              className={cx(
+                'm-0 min-h-5 text-body font-semibold',
+                check.kind === 'matches' ? 'text-ok' : 'text-ink'
+              )}
+            >
+              {check.text}
+            </p>
+            <p className="m-0 text-caption text-ink-mute">Leave blank if you did not count it.</p>
+            {asking ? (
+              <div
+                role="alert"
+                className="motion-drop flex flex-col gap-3 rounded-control border border-l-4 border-warm-line border-l-warn-dot bg-warm-high px-4 py-3 text-warn-strong"
+              >
+                <span className="text-body font-bold">
+                  {`That is ${peso(check.diffCents)} ${check.kind === 'over' ? 'over' : 'short'}. Count the drawer again?`}
+                </span>
+                <span className="flex flex-wrap gap-2">
+                  <Button
+                    id={againId}
+                    variant="dark"
+                    size="sm"
+                    onClick={() => {
+                      cashInput.current?.focus();
+                      cashInput.current?.select();
+                    }}
+                  >
+                    Count again
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => setKept(keepKey)}>
+                    {`Keep ${peso(check.countedCents ?? 0)}`}
+                  </Button>
+                </span>
+              </div>
+            ) : null}
+          </div>
+
+          {close.blocked ? (
+            <p id={blockedId} role="status" className="m-0 text-body font-bold text-ink">
+              {close.blocked}
+            </p>
+          ) : null}
+          <ErrorText error={error} id={errorId} />
+          <Button
+            type="submit"
+            variant="dark"
+            size="lg"
+            disabled={saving || blocked}
+            busy={saving}
+            busyLabel="Saving…"
+            aria-describedby={blocked ? blockedId : error ? errorId : undefined}
+            className="w-full"
+          >
+            Close the day
           </Button>
         </div>
-        <p
-          id={lineId}
-          aria-live="polite"
-          className={cx(
-            'm-0 min-h-5 text-body font-semibold',
-            check.kind === 'matches' ? 'text-ok' : 'text-ink'
-          )}
-        >
-          {check.text}
-        </p>
-        <p className="m-0 text-caption text-ink-mute">Leave blank if you did not count it.</p>
-        {asking ? (
-          <div
-            role="alert"
-            className="motion-drop flex flex-col gap-3 rounded-control border border-l-4 border-warm-line border-l-warn-dot bg-warm-high px-4 py-3 text-warn-strong"
-          >
-            <span className="text-body font-bold">
-              {`That is ${peso(check.diffCents)} ${check.kind === 'over' ? 'over' : 'short'}. Count the drawer again?`}
-            </span>
-            <span className="flex flex-wrap gap-2">
-              <Button
-                id={againId}
-                variant="dark"
-                size="sm"
-                onClick={() => {
-                  cashInput.current?.focus();
-                  cashInput.current?.select();
-                }}
-              >
-                Count again
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => setKept(keepKey)}>
-                {`Keep ${peso(check.countedCents ?? 0)}`}
-              </Button>
-            </span>
-          </div>
-        ) : null}
       </div>
-
-      {close.blocked ? (
-        <p id={blockedId} role="status" className="m-0 text-body font-bold text-ink">
-          {close.blocked}
-        </p>
-      ) : null}
-      <ErrorText error={error} id={errorId} />
-      <Button
-        type="submit"
-        variant="dark"
-        size="lg"
-        disabled={saving || blocked}
-        busy={saving}
-        busyLabel="Saving…"
-        aria-describedby={blocked ? blockedId : error ? errorId : undefined}
-        className="w-full"
-      >
-        Close the day
-      </Button>
     </form>
   );
 }

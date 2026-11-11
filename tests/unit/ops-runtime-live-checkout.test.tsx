@@ -9,6 +9,7 @@ import { OpsRuntime } from '@/store/ops-runtime';
 import { CheckoutScreen } from '@/components/screens/checkout';
 import { OrderStatusScreen } from '@/components/screens/order-status';
 import { LiveFormHost } from '@/components/live/live-form-host';
+import { LiveOrderRoute } from '@/components/app/live-order-route';
 import { FindMyOrderScreen } from '@/components/screens/find-my-order';
 import { LiveShopFooter } from '@/components/live/live-shop-footer';
 import { PAY_ACCOUNTS, replacePayAccounts } from '@/store/engine/ops-engine';
@@ -97,20 +98,29 @@ function fakeClient(handlers: Handlers = {}) {
 
 const flush = () => act(async () => void (await new Promise((r) => setTimeout(r, 0))));
 
-async function mounted(handlers: Handlers = {}, screen: ScreenKey = 'checkout') {
+async function mounted(
+  handlers: Handlers = {},
+  screen: ScreenKey = 'checkout',
+  backend: string | null = null
+) {
   const ref: { current: OpsRuntime | null } = { current: null };
   render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
   const runtime = ref.current!;
   const fake = fakeClient(handlers);
   await act(async () => {
     await runtime.loadShopPayment(fake.client);
-    await runtime.loadShopOrders(fake.client);
+    await runtime.loadShopOrders(fake.client, backend);
   });
   act(() =>
     runtime.setState({ screen, cust: { ...(runtime.state.cust as object), box: { dcf: 2 } } })
   );
   return { runtime, ...fake };
 }
+
+const switchCheckoutSource = (runtime: OpsRuntime, client: OrderClient | null) =>
+  act(async () => {
+    await runtime.loadShopOrders(client);
+  });
 
 const custSet = (runtime: OpsRuntime, key: string, value: string) =>
   act(() =>
@@ -145,11 +155,87 @@ const placeCalls = (calls: Array<{ name: string; args: Record<string, unknown> }
 describe('B2: the live checkout', () => {
   beforeEach(() => {
     live = true;
+    sessionStorage.clear();
   });
   afterEach(() => {
     cleanup();
     replacePayAccounts(PORTED.map((m) => ({ ...m })));
     window.history.replaceState(null, '', '/');
+  });
+
+  it('restores the exact backend-scoped request after a new runtime without sending automatically', async () => {
+    const backend = 'https://recovery.example';
+    const first = await mounted(
+      { place_order: () => new TypeError('Lost reply') },
+      'checkout',
+      backend
+    );
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const original = placeCalls(first.calls)[0];
+    cleanup();
+    const second = await mounted({}, 'checkout', backend);
+    expect(placeCalls(second.calls)).toEqual([]);
+    expect(second.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    expect(second.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    await submit(second.runtime);
+    expect(placeCalls(second.calls)).toEqual([original]);
+    expect(second.runtime.renderVals().liveCheckout!.placed?.orderNo).toBe(PLACED.order_no);
+  });
+
+  it('keeps a saved request out of a different backend and refuses to retag a cached client', async () => {
+    const first = await mounted(
+      { place_order: () => new TypeError('Lost reply') },
+      'checkout',
+      'https://one.example'
+    );
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const original = placeCalls(first.calls)[0];
+    await act(async () => {
+      expect(await first.runtime.loadShopOrders(first.client, 'https://two.example')).toBe(false);
+    });
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)).toEqual([original]);
+    await act(async () => {
+      await first.runtime.loadShopOrders(first.client, 'https://one.example');
+    });
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    cleanup();
+    const second = await mounted({}, 'checkout', 'https://two.example');
+    expect(second.runtime.renderVals().liveCheckout!.frozen).toBe(false);
+    expect(second.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    expect(placeCalls(second.calls)).toEqual([]);
+  });
+
+  it('preserves an unreadable saved copy and offers storage-only recovery with sending disabled', async () => {
+    const key = 'hc-order-recovery-v1:https%3A%2F%2Frecovery.example';
+    sessionStorage.setItem(key, '{broken');
+    const { runtime, calls } = await mounted({}, 'checkout', 'https://recovery.example');
+    const ui = render(<CheckoutScreen v={runtime.renderVals()} />);
+    expect(ui.getByRole('button', { name: 'Place order' }).hasAttribute('disabled')).toBe(true);
+    expect(ui.getByRole('button', { name: 'Retry checkout recovery' })).toBeTruthy();
+    act(() => runtime.renderVals().liveCheckout!.recovery!.retry());
+    expect(sessionStorage.getItem(key)).toBe('{broken');
+    expect(placeCalls(calls)).toEqual([]);
+  });
+
+  it('keeps a restored receipt when viewing the order and clears it only for an explicit new order', async () => {
+    const first = await mounted({}, 'checkout', 'https://recovery.example');
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    cleanup();
+    const second = await mounted({}, 'checkout', 'https://recovery.example');
+    const placed = second.runtime.renderVals().liveCheckout!.placed!;
+    expect(placed?.orderNo).toBe(PLACED.order_no);
+    expect(placeCalls(second.calls)).toEqual([]);
+    const before = sessionStorage.length;
+    await act(async () => placed.seeOrder());
+    expect(sessionStorage.length).toBe(before);
+    act(() => second.runtime.setState({ screen: 'checkout' }));
+    act(() => second.runtime.renderVals().liveCheckout!.placed!.orderAgain());
+    expect(sessionStorage.length).toBe(0);
   });
 
   it('renders the live slot: her fields, no email, no amount, no screenshot', async () => {
@@ -207,6 +293,396 @@ describe('B2: the live checkout', () => {
     ).toMatch(/still need filling in/);
     expect(fake.rpc).not.toHaveBeenCalled();
     // Mutation: applying the live overrides outside the live-mode branch of the constructor breaks this.
+  });
+
+  it('uses the replacement checkout source instead of sending its reads to the first client', async () => {
+    const { runtime } = await mounted();
+    const replacement = fakeClient({
+      get_shop_order_rules: () => ({ data: { ...RULES, pickup_days: [3] }, error: null })
+    });
+    await switchCheckoutSource(runtime, replacement.client);
+    expect(replacement.calls.some((call) => call.name === 'get_shop_order_rules')).toBe(true);
+    expect(
+      runtime
+        .renderVals()
+        .liveCheckout!.dates.every((date) => new Date(date.value + 'T00:00:00Z').getUTCDay() === 3)
+    ).toBe(true);
+  });
+
+  it('retires checkout dates when its source is removed without sending an order', async () => {
+    const { runtime, calls } = await mounted();
+    await fillForm(runtime);
+    await switchCheckoutSource(runtime, null);
+    expect(runtime.renderVals().liveCheckout!.rulesState).toBe('failed');
+    expect(runtime.renderVals().liveCheckout!.dates).toEqual([]);
+    await submit(runtime);
+    expect(placeCalls(calls)).toEqual([]);
+  });
+
+  it('keeps an uncertain checkout request with its original client across a temporary source replacement', async () => {
+    let attempts = 0;
+    const first = await mounted({
+      place_order: () =>
+        ++attempts === 1
+          ? new TypeError('Lost reply')
+          : { data: [{ ...PLACED, replayed: true }], error: null }
+    });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const original = placeCalls(first.calls)[0];
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    const other = fakeClient();
+    await switchCheckoutSource(first.runtime, other.client);
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(false);
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    await switchCheckoutSource(first.runtime, first.client);
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)[1]).toEqual(original);
+    expect(placeCalls(other.calls)).toEqual([]);
+  });
+
+  it('rejects a retired checkout edit and submit after source A to B to A', async () => {
+    const first = await mounted();
+    await fillForm(first.runtime);
+    const retired = first.runtime.renderVals().liveCheckout!,
+      entry = first.runtime.renderVals();
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    await switchCheckoutSource(first.runtime, first.client);
+    act(() => retired.set('name', 'Retired edit'));
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    await act(async () => {
+      retired.submit();
+    });
+    expect(placeCalls(first.calls)).toEqual([]);
+    const reads = first.calls.length;
+    act(() => {
+      retired.retryRules();
+      retired.retryExtras();
+    });
+    expect(first.calls).toHaveLength(reads);
+    act(() => {
+      entry.openLookup();
+      entry.openWaitlist!();
+    });
+    expect(first.runtime.renderVals().sheet).toBeNull();
+  });
+
+  it('does not let an old Change order callback discard a restored uncertain request', async () => {
+    const first = await mounted({ place_order: () => new TypeError('Lost reply') });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const retired = first.runtime.renderVals().liveCheckout!;
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    await switchCheckoutSource(first.runtime, first.client);
+    act(() => retired.changeOrder());
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    expect(placeCalls(first.calls)).toHaveLength(1);
+  });
+
+  it('keeps an acknowledged order in its originating source while another checkout is visible', async () => {
+    let release!: (reply: Reply) => void;
+    const first = await mounted({
+      place_order: () =>
+        new Promise((resolve) => {
+          release = resolve;
+        })
+    });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const other = fakeClient();
+    await switchCheckoutSource(first.runtime, other.client);
+    await act(async () => {
+      release({ data: [PLACED], error: null });
+    });
+    expect(first.runtime.renderVals().liveCheckout!.placed).toBeNull();
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    await switchCheckoutSource(first.runtime, first.client);
+    expect(first.runtime.renderVals().liveCheckout!.placed?.orderNo).toBe(PLACED.order_no);
+    expect(placeCalls(first.calls)).toHaveLength(1);
+    expect(placeCalls(other.calls)).toEqual([]);
+  });
+
+  it('does not assign old fields to a source switched before React applies its empty checkout', async () => {
+    const first = await mounted();
+    await fillForm(first.runtime);
+    const other = fakeClient();
+    await act(async () => {
+      const one = first.runtime.loadShopOrders(other.client);
+      const two = first.runtime.loadShopOrders(first.client);
+      await Promise.all([one, two]);
+    });
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    await switchCheckoutSource(first.runtime, other.client);
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    expect(first.runtime.renderVals().liveCheckout!.fields.mobile).toBe('');
+  });
+
+  it('does not navigate a replacement checkout when an old lookup succeeds late', async () => {
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      },
+      'lookup'
+    );
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    const other = fakeClient();
+    await switchCheckoutSource(first.runtime, other.client);
+    act(() => first.runtime.setState({ screen: 'checkout' }));
+    await act(async () => {
+      release({ data: TOKEN, error: null });
+    });
+    await flush();
+    expect(first.runtime.state.screen).toBe('checkout');
+    expect(other.calls.some((call) => call.name === 'order_status')).toBe(false);
+  });
+
+  it('does not publish an old lookup after client A to B to A and a newer private link', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          }),
+        order_status: (args) => ({
+          data: { ...STATUS, order_no: args.p_token === wanted ? 'HC-2002' : 'HC-1001' },
+          error: null
+        })
+      },
+      'lookup'
+    );
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    await switchCheckoutSource(first.runtime, first.client);
+    act(() => first.runtime.go('status'));
+    act(() => {
+      window.history.replaceState(null, '', '/status#t=' + wanted);
+      first.runtime.syncStatusRoute();
+    });
+    await flush();
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    act(() => first.runtime.syncStatusRoute());
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(
+      first.calls.filter((call) => call.name === 'order_status').map((call) => call.args.p_token)
+    ).toEqual([wanted]);
+    expect(window.location.hash).toBe('#t=' + wanted);
+  });
+
+  it('retires a pending lookup immediately across a same-client route round trip', async () => {
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      },
+      'lookup'
+    );
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    act(() => first.runtime.go('shop'));
+    act(() => first.runtime.go('lookup'));
+    const returnedState = first.runtime.renderVals().liveLookup!.state;
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    expect(returnedState).toBe('idle');
+    expect(first.runtime.state.screen).toBe('lookup');
+    expect(first.calls.filter((call) => call.name === 'order_status')).toEqual([]);
+  });
+
+  it('keeps a newer lookup when a cancelled sheet returns late', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void,
+      requests = 0;
+    const first = await mounted({
+      find_order: () =>
+        ++requests === 1
+          ? new Promise((resolve) => {
+              release = resolve;
+            })
+          : { data: wanted, error: null },
+      order_status: (args) => ({
+        data: { ...STATUS, order_no: args.p_token === wanted ? 'HC-2002' : 'HC-1001' },
+        error: null
+      })
+    });
+    act(() => first.runtime.renderVals().openLookup());
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    act(() => first.runtime.renderVals().liveLookup!.close());
+    act(() => first.runtime.renderVals().openLookup());
+    await act(async () => first.runtime.renderVals().liveLookup!.run('HC-2002', '0917 123 4567'));
+    await flush();
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(
+      first.calls.filter((call) => call.name === 'order_status').map((call) => call.args.p_token)
+    ).toEqual([wanted]);
+  });
+
+  it('keeps the active private order until a lookup finishes and discards a cancelled status read', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () => ({ data: TOKEN, error: null }),
+        order_status: (args) =>
+          args.p_token === wanted
+            ? { data: { ...STATUS, order_no: 'HC-2002' }, error: null }
+            : new Promise((resolve) => {
+                release = resolve;
+              })
+      },
+      'status'
+    );
+    act(() => {
+      window.history.replaceState(null, '', '/status#t=' + wanted);
+      first.runtime.syncStatusRoute();
+    });
+    await flush();
+    act(() => first.runtime.renderVals().openLookup());
+    await act(async () => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    await flush();
+    const whileReading = first.runtime.renderVals().cust.orderNo;
+    act(() => first.runtime.renderVals().liveLookup!.close());
+    await act(async () => release({ data: STATUS, error: null }));
+    await flush();
+    expect(whileReading).toBe('HC-2002');
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(window.location.hash).toBe('#t=' + wanted);
+  });
+
+  it('preserves a newer status-link intent while a lookup in the same sheet is pending', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          }),
+        order_status: (args) => ({
+          data: { ...STATUS, order_no: args.p_token === wanted ? 'HC-2002' : 'HC-1001' },
+          error: null
+        })
+      },
+      'status'
+    );
+    act(() => first.runtime.renderVals().openLookup());
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    act(() => {
+      window.history.replaceState(null, '', '/status#t=' + wanted);
+      first.runtime.syncStatusRoute();
+    });
+    await flush();
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(
+      first.calls.filter((call) => call.name === 'order_status').map((call) => call.args.p_token)
+    ).toEqual([wanted]);
+  });
+
+  it('retires a customer sheet and its old Cancel when its checkout source changes', async () => {
+    const first = await mounted();
+    act(() => first.runtime.renderVals().openWaitlist!());
+    const retired = first.runtime.renderVals().liveWaitlist!;
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    expect(first.runtime.renderVals().liveWaitlist).toBeNull();
+    act(() => first.runtime.renderVals().openWaitlist!());
+    act(() => retired.close());
+    expect(first.runtime.renderVals().liveWaitlist).not.toBeNull();
+  });
+
+  it('offers local pickup Retry without losing customer fields or writing an order', async () => {
+    let failed = true;
+    const first = await mounted({
+      get_shop_order_rules: () =>
+        failed ? { data: null, error: { code: '57014' } } : { data: RULES, error: null }
+    });
+    custSet(first.runtime, 'name', 'Keep pickup draft');
+    const view = first.runtime.renderVals().liveCheckout!;
+    expect(typeof view.retryRules).toBe('function');
+    const page = render(<CheckoutScreen v={first.runtime.renderVals()} />);
+    expect(page.getByRole('button', { name: 'Retry pickup days' })).toBeTruthy();
+    act(() => first.runtime.setState({ online: false }));
+    const reads = first.calls.length;
+    act(() => view.retryRules());
+    expect(first.calls).toHaveLength(reads);
+    act(() => first.runtime.setState({ online: true }));
+    failed = false;
+    await act(async () => {
+      view.retryRules();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(first.runtime.renderVals().liveCheckout!.rulesState).toBe('ready');
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Keep pickup draft');
+    await fillForm(first.runtime, { name: 'Keep pickup draft' });
+    failed = true;
+    await switchCheckoutSource(first.runtime, first.client);
+    expect(first.runtime.renderVals().liveCheckout!.dates.length).toBeGreaterThan(0);
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)).toEqual([]);
+  });
+
+  it('rejects an older pickup answer after a newer read of the same source', async () => {
+    let reads = 0,
+      release!: (reply: Reply) => void;
+    const first = await mounted({
+      get_shop_order_rules: () =>
+        ++reads === 2
+          ? new Promise((resolve) => {
+              release = resolve;
+            })
+          : { data: { ...RULES, pickup_days: reads >= 3 ? [3] : [1] }, error: null }
+    });
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = first.runtime.loadShopOrders(first.client);
+    });
+    await switchCheckoutSource(first.runtime, first.client);
+    await act(async () => {
+      release({ data: { ...RULES, pickup_days: [1] }, error: null });
+      await pending;
+    });
+    expect(
+      first.runtime
+        .renderVals()
+        .liveCheckout!.dates.every((date) => new Date(date.value + 'T00:00:00Z').getUTCDay() === 3)
+    ).toBe(true);
+  });
+
+  it('keeps exact Try again available when pickup refresh fails after an unanswered order', async () => {
+    let failed = false,
+      attempts = 0;
+    const first = await mounted({
+      get_shop_order_rules: () =>
+        failed ? { data: null, error: { code: '57014' } } : { data: RULES, error: null },
+      place_order: () =>
+        ++attempts === 1
+          ? new TypeError('Lost reply')
+          : { data: [{ ...PLACED, replayed: true }], error: null }
+    });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    failed = true;
+    await switchCheckoutSource(first.runtime, first.client);
+    const page = render(<CheckoutScreen v={first.runtime.renderVals()} />);
+    expect((page.getByRole('button', { name: 'Try again' }) as HTMLButtonElement).disabled).toBe(
+      false
+    );
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)[1]).toEqual(placeCalls(first.calls)[0]);
   });
 
   it('offers only the owner’s pickup dates and times from the database', async () => {
@@ -495,6 +971,125 @@ describe('B2: the status page', () => {
       ).orderFlow.loadStatus(TOKEN);
     });
     expect(broken.runtime.renderVals().cust.heroTitle).toBe('We could not load your order');
+  });
+
+  it('exposes status payment details only from the order client and retires cached payment reads', async () => {
+    const { runtime, client, calls } = await mounted({}, 'status');
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    await act(async () => runtime.syncStatusRoute());
+    await flush();
+    const payment = runtime.renderVals().liveCustomerPayment!;
+    expect(payment).toMatchObject({
+      fresh: true,
+      order: { totalCents: 45000 },
+      methods: [{ label: 'GCash', number: '0999' }]
+    });
+    const before = calls.length;
+    const other = fakeClient();
+    await act(async () => runtime.loadShopPayment(other.client));
+    expect(runtime.renderVals().liveCustomerPayment).toMatchObject({
+      methods: null,
+      paymentState: 'failed',
+      canRetry: false
+    });
+    act(payment.retry);
+    expect(calls).toHaveLength(before);
+    await act(async () => runtime.loadShopPayment(client));
+    const retry = runtime.renderVals().liveCustomerPayment!.retry;
+    const count = calls.length;
+    act(() => runtime.go('shop'));
+    act(() => runtime.go('status'));
+    act(retry);
+    expect(calls).toHaveLength(count);
+    const next = runtime.renderVals().liveCustomerPayment!.retry;
+    window.history.replaceState(null, '', '/status#t=' + 'e'.repeat(64));
+    act(next);
+    expect(calls).toHaveLength(count);
+  });
+
+  it('shares the real status-link synchronizer with the local preview', async () => {
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(
+      <OpsRuntime ref={(r) => void (ref.current = r)}>
+        <LiveOrderRoute />
+      </OpsRuntime>
+    );
+    const runtime = ref.current!,
+      fake = fakeClient();
+    await act(async () => runtime.loadShopOrders(fake.client));
+    act(() => runtime.go('status'));
+    await act(async () =>
+      (
+        runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }
+      ).orderFlow.loadStatus(TOKEN)
+    );
+    await flush();
+    expect(window.location.hash).toBe('#t=' + TOKEN);
+    expect(fake.calls.filter((c) => c.name === 'order_status')).toHaveLength(1);
+    expect(runtime.renderVals().liveStatusRead!.state).toBe('loaded');
+  });
+
+  it('retries only the current private read, blocks repeated taps, and labels retained data', async () => {
+    let response: Reply | Promise<Reply> = { data: null, error: { code: '57014' } };
+    let release: (r: Reply) => void = () => undefined;
+    const { runtime, calls } = await mounted({ order_status: () => response }, 'status');
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    await act(async () => runtime.syncStatusRoute());
+    await flush();
+    const retry = runtime.renderVals().liveStatusRead!.retry;
+    expect(runtime.renderVals().liveStatusRead).toMatchObject({ state: 'error', stale: false });
+    response = new Promise<Reply>((resolve) => (release = resolve));
+    act(() => {
+      retry();
+      retry();
+    });
+    expect(runtime.renderVals().liveStatusRead!.state).toBe('loading');
+    expect(calls.filter((c) => c.name === 'order_status')).toHaveLength(2);
+    await act(async () => release({ data: STATUS, error: null }));
+    expect(runtime.renderVals().cust.orderNo).toBe('HC-1001');
+    response = { data: null, error: { code: '57014' } };
+    await act(async () => runtime.renderVals().liveStatusRead!.retry());
+    await flush();
+    expect(runtime.renderVals().cust.orderNo).toBe('HC-1001');
+    expect(runtime.renderVals().liveStatusRead).toMatchObject({ state: 'error', stale: true });
+    response = { data: null, error: null };
+    await act(async () => runtime.renderVals().liveStatusRead!.retry());
+    await flush();
+    expect(runtime.renderVals().cust.orderNo).toBe('—');
+    expect(runtime.renderVals().liveStatusRead).toMatchObject({ state: 'missing', stale: false });
+    expect(calls.filter((c) => c.name === 'order_status').map((c) => c.args.p_token)).toEqual([
+      TOKEN,
+      TOKEN,
+      TOKEN,
+      TOKEN
+    ]);
+    expect(calls.some((c) => /place_order|staff_|record_/.test(c.name))).toBe(false);
+  });
+
+  it('retires cached status Retry after navigation, changed links and client round trips', async () => {
+    const { runtime, client, calls } = await mounted({}, 'status');
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    await act(async () => runtime.syncStatusRoute());
+    await flush();
+    const retry = runtime.renderVals().liveStatusRead!.retry;
+    const count = calls.length;
+    act(() => runtime.go('shop'));
+    act(() => runtime.go('status'));
+    act(retry);
+    expect(calls).toHaveLength(count);
+    const another = runtime.renderVals().liveStatusRead!.retry;
+    window.history.replaceState(null, '', '/status');
+    act(another);
+    expect(calls).toHaveLength(count);
+    window.history.replaceState(null, '', '/status#t=' + 'e'.repeat(64));
+    act(another);
+    expect(calls).toHaveLength(count);
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    const beforeSwitch = runtime.renderVals().liveStatusRead!.retry;
+    await switchCheckoutSource(runtime, fakeClient().client);
+    await switchCheckoutSource(runtime, client);
+    act(beforeSwitch);
+    expect(calls.filter((c) => c.name === 'order_status')).toHaveLength(1);
   });
 
   it('adopts the status link from the URL fragment on a direct load, and validates it', async () => {

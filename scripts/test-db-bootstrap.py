@@ -6,6 +6,7 @@ import json
 import os
 import re
 import secrets
+import signal
 import shutil
 import socket
 import subprocess
@@ -15,14 +16,21 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SUPABASE = ROOT / "node_modules/.pnpm/@supabase+cli-windows-x64@2.116.0/node_modules/@supabase/cli-windows-x64/bin/supabase.exe"
+PLATFORM = "windows" if os.name == "nt" else "linux"
+ARCH = "arm64" if __import__("platform").machine().lower() in {"aarch64", "arm64"} else "x64"
+CLI_PACKAGE = f"@supabase+cli-{PLATFORM}-{ARCH}@2.116.0/node_modules/@supabase/cli-{PLATFORM}-{ARCH}/bin"
+SUPABASE = ROOT / "node_modules/.pnpm" / CLI_PACKAGE / ("supabase.exe" if os.name == "nt" else "supabase")
 MIGRATIONS = ROOT / "supabase/migrations"
 ASSERTIONS = ROOT / "tests/integration/db/bootstrap.sql"
 PINS = ROOT / "tests/fixtures/mp08g-source-pins.json"
 PREFIX = ".hcb-bootstrap-"
-DOCKER = ["docker", "--context", "default"]
-LOCAL_ENV = {key: value for key, value in __import__("os").environ.items() if key.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "COMSPEC", "PATHEXT"}}
-LOCAL_ENV["DOCKER_HOST"] = "npipe:////./pipe/docker_engine"
+LOCAL_ENDPOINT = "npipe:////./pipe/docker_engine" if os.name == "nt" else "unix:///var/run/docker.sock"
+DOCKER = ["docker", "--host", LOCAL_ENDPOINT]
+LOCAL_ENV = {key: value for key, value in os.environ.items() if key.upper() in {
+    "PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "COMSPEC", "PATHEXT",
+    "HOME", "DOCKER_CONFIG", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "ALL_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR",
+    "NODE_EXTRA_CA_CERTS", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"}}
+LOCAL_ENV["DOCKER_HOST"] = LOCAL_ENDPOINT
 REPORT = ROOT / "docs/state/evidence/MP-05a-bootstrap.json"
 IMAGE = "public.ecr.aws/supabase/postgres:15.8.1.085"
 LABEL = "io.happy-cookie.bootstrap"
@@ -46,12 +54,16 @@ def safe_error(output: str) -> str:
 def run(args: list[str], *, cwd: Path, timeout: int, input_text: str | None = None,
         extra_env: dict[str, str] | None = None) -> str:
     with subprocess.Popen(args, cwd=cwd, stdin=subprocess.PIPE, text=True, encoding="utf-8", errors="replace",
-                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=LOCAL_ENV | (extra_env or {})) as child:
+                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=LOCAL_ENV | (extra_env or {}),
+                          start_new_session=os.name != "nt") as child:
         try:
             output, _ = child.communicate(input_text, timeout=timeout)
         except subprocess.TimeoutExpired:
             try:
-                subprocess.run(["taskkill", "/PID", str(child.pid), "/T", "/F"], capture_output=True, timeout=10)
+                if os.name == "nt":
+                    subprocess.run(["taskkill", "/PID", str(child.pid), "/T", "/F"], capture_output=True, timeout=10)
+                else:
+                    os.killpg(child.pid, signal.SIGKILL)
             finally:
                 child.kill()
             child.communicate(timeout=10)
@@ -67,9 +79,12 @@ def docker(args: list[str], *, cwd: Path, timeout: int, input_text: str | None =
     return run(DOCKER + args, cwd=cwd, timeout=timeout, input_text=input_text)
 
 def require_local_docker(workdir: Path) -> None:
-    host = docker(["context", "inspect", "default", "--format", "{{.Endpoints.docker.Host}}"], cwd=workdir, timeout=30).strip().lower()
-    if host != LOCAL_ENV["DOCKER_HOST"]:
-        fail("Docker default context does not match the pinned Windows local endpoint")
+    if os.name == "nt":
+        host = docker(["context", "inspect", "default", "--format", "{{.Endpoints.docker.Host}}"], cwd=workdir, timeout=30).strip().lower()
+        if host != LOCAL_ENDPOINT:
+            fail("Docker default context does not match the pinned Windows local endpoint")
+    elif sys.platform != "linux" or not Path("/var/run/docker.sock").is_socket():
+        fail("Linux fixture requires the explicit local Docker Unix socket")
     docker(["version", "--format", "{{.Server.Version}}"], cwd=workdir, timeout=20)
 
 def local_ports() -> tuple[int, int, int]:
@@ -215,6 +230,8 @@ def cleanup(workdir: Path, project_id: str, image_id: str) -> None:
         fail("multiple containers claim this run; retain workdir for inspection")
     cid_path = workdir / "container.id"
     captured = cid_path.read_text().strip() if cid_path.is_file() else ""
+    if (workdir / "create-started").exists() and not captured:
+        fail("container creation outcome is unknown; retain owned workdir for reconciliation")
     if ((ids or captured) and (not re.fullmatch(r"[a-f0-9]{64}", captured) or ids != [captured])):
         fail("cleanup requires the captured creation ID and exactly one matching owned container")
     for container_id in ids:
@@ -254,9 +271,10 @@ def main(*, fail_after_start: bool = False, after_reset=None) -> int:
         sql = sql_for(expected_versions())
         image_id = docker(["image", "inspect", "--format", "{{.Id}}", IMAGE], cwd=workdir, timeout=20).strip()
         password = secrets.token_urlsafe(32)
+        (workdir / "create-started").touch()
         run(DOCKER + ["create", "--name", project_id, "--label", f"{LABEL}={project_id}",
             "--cidfile", str(workdir / "container.id"), "--network", "bridge", "-p", f"127.0.0.1:{port}:5432",
-            "-e", "POSTGRES_PASSWORD", image_id], cwd=workdir, timeout=30, extra_env={"POSTGRES_PASSWORD": password})
+            "-e", "POSTGRES_PASSWORD", image_id], cwd=workdir, timeout=120, extra_env={"POSTGRES_PASSWORD": password})
         container_id = (workdir / "container.id").read_text().strip()
 
         def check_binding(running: bool = True) -> None:

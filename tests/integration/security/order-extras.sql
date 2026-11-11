@@ -371,7 +371,8 @@ begin
   perform pg_temp.assert_ok(a, 'get_extras_keys',
     (select array_agg(k order by k) from jsonb_object_keys(base) k)
       = array['add_ons', 'box_sizes', 'same_day_enabled', 'same_day_on_extras', 'same_day_percent',
-              'sampler_max_qty', 'sampler_product_id']);
+              'sampler_flavours', 'sampler_max_qty', 'sampler_product_id']);
+  perform pg_temp.assert_ok(a, 'get_extras_flavours_empty', base -> 'sampler_flavours' = '[]'::jsonb);
   perform pg_temp.save(a, 'save_extras_keys_missing', base - 'add_ons', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_keys_extra', base || '{"price": 1}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_not_object', '[]'::jsonb, stamp, '22023');
@@ -383,6 +384,12 @@ begin
   perform pg_temp.save(a, 'save_extras_sampler_qty_high', base || '{"sampler_max_qty": 21}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_sampler_not_a_set', base || '{"sampler_product_id": "b4-cookie"}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_sampler_unknown', base || '{"sampler_product_id": "nope"}', stamp, '22023');
+  -- 20260101007000: the sampler's flavours are cookies on the menu, each once
+  perform pg_temp.save(a, 'save_extras_flavours_a_set', base || '{"sampler_flavours": ["b4-sampler"]}', stamp, '22023');
+  perform pg_temp.save(a, 'save_extras_flavours_unknown', base || '{"sampler_flavours": ["nope"]}', stamp, '22023');
+  perform pg_temp.save(a, 'save_extras_flavours_dup', base || '{"sampler_flavours": ["b4-cookie", "b4-cookie"]}', stamp, '22023');
+  perform pg_temp.save(a, 'save_extras_flavours_type', base || '{"sampler_flavours": "b4-cookie"}', stamp, '22023');
+  perform pg_temp.save(a, 'save_extras_flavours_number', base || '{"sampler_flavours": [1]}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_flag_type', base || '{"same_day_enabled": "yes"}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_box_small', base || '{"box_sizes": [{"size": 1, "charge_cents": 0, "active": true}]}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_box_dup',
@@ -423,6 +430,19 @@ begin
   s := public.get_order_extras();
   perform pg_temp.assert_ok(a, 'save_extras_normalised',
     s -> 'add_ons' = '[{"id": "sticker", "name": "Sticker", "active": true, "max_qty": 5, "text_max": 150, "variants": ["A", "B"], "price_cents": 2000, "text_label": null}]'::jsonb);
+  -- the flavours keep the owner's order, the customer read shows them, and a save without the key keeps them
+  perform pg_temp.save(a, 'save_extras_flavours_ok',
+    pg_temp.ex_json() || '{"sampler_flavours": ["b4-odd", "b4-cookie"]}', pg_temp.ex_stamp(), '00000');
+  perform pg_temp.assert_ok(a, 'save_extras_flavours_persisted',
+    public.get_order_extras() -> 'sampler_flavours' = '["b4-odd", "b4-cookie"]'::jsonb
+    and public.get_shop_extras() -> 'sampler' -> 'flavours' = '["b4-odd", "b4-cookie"]'::jsonb);
+  perform pg_temp.save(a, 'save_extras_flavours_old_page',
+    (pg_temp.ex_json() - 'sampler_flavours') || '{"same_day_percent": 35}', pg_temp.ex_stamp(), '00000');
+  perform pg_temp.assert_ok(a, 'save_extras_flavours_kept',
+    public.get_order_extras() -> 'sampler_flavours' = '["b4-odd", "b4-cookie"]'
+    and (public.get_order_extras() ->> 'same_day_percent')::integer = 35);
+  perform pg_temp.save(a, 'save_extras_flavours_restore',
+    pg_temp.ex_json() || '{"same_day_percent": 40}', pg_temp.ex_stamp(), '00000');
 end $$;
 
 -- ---------------------------------------------------------------- what the owner reads back
@@ -612,6 +632,17 @@ select pg_temp.phase_staff_reads('active_owner');
 select pg_temp.phase_owner('active_owner');
 select pg_temp.phase_erasure();
 reset role;
+
+-- 20260101007000: the customer read lists only chosen flavours that are active and published.
+do $$
+begin
+  update public.products set published = false where id = 'b4-odd';
+  if public.get_shop_extras() -> 'sampler' -> 'flavours' is distinct from '["b4-cookie"]'::jsonb then
+    raise exception 'extras check differs: an unpublished sampler flavour reached the shop';
+  end if;
+  update public.products set published = true where id = 'b4-odd';
+  insert into pg_temp.authority_results values ('shop_extras_flavours_published_only', 'preserved', 'ok');
+end $$;
 
 do $$
 begin

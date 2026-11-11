@@ -2,10 +2,24 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { authHistoryEnvironment } from '../../scripts/f1-backup.mjs';
+import { authHistoryEnvironment, dumpImageFor } from '../../scripts/f1-backup.mjs';
 
 const cliOutput = (exports: string[]) =>
   `--exclude-table "auth.schema_migrations"\n${exports.join('\n')}`;
+
+describe('F1 dump image', () => {
+  it('follows the server version the CLI recorded', () => {
+    expect(dumpImageFor('17.6.1.011\n')).toBe('public.ecr.aws/supabase/postgres:17.6.1.011');
+  });
+
+  it('falls back to the pinned image, never splicing in anything else', () => {
+    const pinned = 'public.ecr.aws/supabase/postgres:15.8.1.085';
+    expect(dumpImageFor(null)).toBe(pinned);
+    expect(dumpImageFor('')).toBe(pinned);
+    expect(dumpImageFor('17.6.1.011 --network host')).toBe(pinned);
+    expect(dumpImageFor('../evil')).toBe(pinned);
+  });
+});
 
 describe('F1 auth-history connection details', () => {
   it('resolves all five PostgreSQL exports as literal environment values', () => {

@@ -20,23 +20,21 @@ import {
   idleWasSpent,
   markIdleSpent,
   offlineBazaarRole,
-  rememberCheck
+  rememberCheck,
+  clearRememberedCheck,
+  clearIdleSpent
 } from '@/lib/auth/offline-trust';
 import type { LocalSale } from '@/lib/auth/sign-out-guard';
 import { OpsRuntime } from '@/store/ops-runtime';
 import type { Role } from '@/store/engine/ops-engine';
-import { registerLiveStockScreens } from '@/components/live/stock/register';
-import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
-import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
+import { registerAllLiveScreens } from '@/components/live/register-all';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
 
-// The live owner's New Stock screens (B5) take the guarded slot, once, when this module loads.
-registerLiveStockScreens();
-// The live Bazaar (S2) takes the `bazaar` slot too; it draws the ported till itself while this phone holds an event.
-registerLiveBazaarScreens();
-// The live recipe book (U7) takes the `recipes` slot; the ported Recipes screen is drawn inside it, for editing a recipe.
-registerLiveRecipeScreens();
+// The live screens (stock, Bazaar, recipes, Money, Home, Sell, Account, customer) take their guarded slots, once,
+// when this module loads. Each registers under the key of the ported screen it replaces; the Bazaar draws the
+// ported till itself while this phone holds an event, and the recipe book draws the ported editor.
+registerAllLiveScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;
@@ -171,8 +169,10 @@ export function LiveGate({
       // Nothing to read the payment methods from either (MP-09 c2): the checkout shows none.
       if (engine instanceof OpsRuntime) void engine.loadShopPayment(null);
       // Nothing to read the published menu from: the shop shows no flavours (MP-09 c1b).
-      if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)
+      if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime) {
         void engine.loadShopMenu(null);
+        void engine.loadShopStatus(null);
+      }
       return;
     }
     let cancelled = false;
@@ -180,6 +180,8 @@ export function LiveGate({
     let settingsStarted = false;
     let settingsLoaded = false;
     let flavoursStarted = false;
+    let flavoursRead: Promise<boolean> | null = null;
+    let productionReadKey: string | null = null;
     let idleRunning = false;
     // The role idle time is measured for: the verified one, or the remembered one offline.
     let idleRole: Role | null = null;
@@ -189,9 +191,12 @@ export function LiveGate({
     let stopIdleTimer = () => undefined as void;
     let recheck: ReturnType<typeof setInterval> | undefined;
     let outstanding = 0;
+    let identityEpoch = 0;
+    let verifiedUserId: string | null = null;
     let lastActivity = Date.now();
     const supabase = createClient();
     const setAccess = (next: Access) => {
+      if (next !== 'verified') productionReadKey = null;
       accessRef.current = next;
       setAccessState(next);
       // U2: Home on the till is offered only while the whole app is open, never in Bazaar-only mode.
@@ -203,7 +208,8 @@ export function LiveGate({
     // Slice B2: the shop's own name, contact line and tagline, on every live page.
     if (engine instanceof OpsRuntime) void engine.loadShopIdentity(supabase);
     // B2: the pickup rules, the checkout, "Find my order" and the waiting list, on every live page.
-    if (engine instanceof OpsRuntime) void engine.loadShopOrders(supabase);
+    if (engine instanceof OpsRuntime)
+      void engine.loadShopOrders(supabase, process.env.NEXT_PUBLIC_SUPABASE_URL ?? null);
     // B3: the owner's ordering window and "close now" switch, so every page says open or closed as the server does.
     if (engine instanceof OpsRuntime) void engine.loadShopStatus(supabase);
     // MP-09 c1b: customer pages show the owner's published menu (`shop_products`), signed
@@ -251,6 +257,7 @@ export function LiveGate({
     function lockOut() {
       if (cancelled) return;
       cancelled = true;
+      if (engine instanceof OpsRuntime) engine.bindStaffIdentity(null);
       stopIdle();
       stopRecheck();
       const path = window.location.pathname || '/';
@@ -284,7 +291,10 @@ export function LiveGate({
           ? Promise.resolve(engine.flushSales()).catch(() => undefined)
           : Promise.resolve();
       const limit = new Promise<void>((resolve) => setTimeout(resolve, FLUSH_BEFORE_SIGN_OUT_MS));
-      void Promise.race([sent, limit]).then(lockOut);
+      const epoch = identityEpoch;
+      void Promise.race([sent, limit]).then(() => {
+        if (epoch === identityEpoch) lockOut();
+      });
     }
 
     /**
@@ -299,7 +309,26 @@ export function LiveGate({
         offlineRole = role;
         if (engine instanceof OpsRuntime) engine.restoreStallCopy();
         // Slice B2: and the name this phone remembered for that role, for the sales it rings up.
-        if (engine instanceof OpsRuntime) engine.restoreStaffName(role);
+        const epoch = identityEpoch;
+        void limited(
+          Promise.resolve()
+            .then(() => supabase.auth.getSession())
+            .catch(() => null)
+        ).then((auth) => {
+          if (
+            cancelled ||
+            epoch !== identityEpoch ||
+            offlineRole !== role ||
+            accessRef.current !== 'bazaar'
+          )
+            return;
+          const userId = auth?.data.session?.user.id;
+          if (userId && engine instanceof OpsRuntime)
+            engine.restoreStaffName(role, {
+              userId,
+              business: process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+            });
+        });
         if (engine.state.role !== role) engine.setRole(role);
         if (engine.state.screen !== BAZAAR) engine.go(BAZAAR);
         setLanding(BAZAAR);
@@ -351,13 +380,14 @@ export function LiveGate({
      * queued; out of reach, the sign-out waits, re-checked once a minute.
      */
     function onIdle() {
+      const epoch = identityEpoch;
       if (!holdsOpenEvent()) {
         lockOut();
         return;
       }
       narrow();
       void limited(probe()).then((result) => {
-        if (cancelled || !result) return;
+        if (cancelled || !result || epoch !== identityEpoch) return;
         if (result.status === 'denied') lockOut();
         else if (result.status === 'ok') signOutAfterFlush();
       });
@@ -378,6 +408,12 @@ export function LiveGate({
         return;
       }
       const role = result.role;
+      if (verifiedUserId && result.userId && verifiedUserId !== result.userId) {
+        clearIdleSpent();
+        lastActivity = Date.now();
+        leaving = false;
+      }
+      verifiedUserId = result.userId ?? null;
       // The server answers again and the idle time ran out while it could not: the sign-out
       // that was put off happens now. Nothing is opened first.
       if (idleWasSpent() || idleSpent(role)) {
@@ -406,6 +442,23 @@ export function LiveGate({
       // next sale.
       const reopened = accessRef.current === 'bazaar' || accessRef.current === 'waiting';
       setAccess('verified');
+      let productionScope: { userId: string; business: string } | null = null;
+      if (engine instanceof OpsRuntime) {
+        let business = '';
+        try {
+          business = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').origin;
+        } catch {
+          /* closed until configured */
+        }
+        engine.bindStaffIdentity(
+          result.userId
+            ? { userId: result.userId, business: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '' }
+            : null
+        );
+        productionScope =
+          role === 'owner' && result.userId ? { userId: result.userId, business } : null;
+        void engine.setProductionIdentity(productionScope);
+      }
       if (reopened && engine instanceof OpsRuntime)
         void Promise.resolve(engine.flushSales()).catch(() => undefined);
       // Only once the owner's settings are in: before that `cfg` holds the engine's defaults,
@@ -413,8 +466,20 @@ export function LiveGate({
       const keepStallCopy = () => {
         if (!cancelled && settingsLoaded && engine instanceof OpsRuntime) engine.saveStallCopy();
       };
-      if (engine instanceof OpsRuntime && role !== 'helper')
-        void engine.loadOperationsHealth(supabase);
+      if (engine instanceof OpsRuntime && role !== 'helper') {
+        const epoch = identityEpoch,
+          userId = verifiedUserId;
+        // setRole is batched: read only after its retirement/update has committed.
+        engine.setState({}, () => {
+          if (
+            !cancelled &&
+            epoch === identityEpoch &&
+            userId === verifiedUserId &&
+            engine.state.role === role
+          )
+            void engine.loadOperationsHealth(supabase);
+        });
+      }
       // Slice B2: the signed-in person's own name (the greeting, and who rang a sale up). Asked
       // again at each later check until one read has answered: a stall on weak signal must not
       // spend the day selling as "Helper" because the first try was lost.
@@ -433,6 +498,9 @@ export function LiveGate({
         keepStallCopy();
       }
       if (!idleRunning) startIdle(role);
+      const nextProductionReadKey = productionScope ? JSON.stringify(productionScope) : null;
+      const productionScopeChanged = nextProductionReadKey !== productionReadKey;
+      productionReadKey = nextProductionReadKey;
       // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
       // customers see (the published menu), not flavours that are on the form but unpublished.
       if (
@@ -451,11 +519,26 @@ export function LiveGate({
         // E1: the owner's books, for the P&L, Home profit and the expense list.
         if (owner && !cancelled) void engine.loadBooks(supabase);
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
-        void Promise.resolve(engine.loadFlavours(supabase)).then((loaded) => {
+        flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
+        void flavoursRead.then((loaded) => {
           keepStallCopy();
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
           // A4: the owner's recipes, for the flavours the list just brought in.
-          if (owner && !cancelled && loaded !== false) void engine.loadRecipes(supabase);
+          if (owner && !cancelled && loaded !== false)
+            void engine.loadRecipes(supabase, undefined, undefined, productionScope);
+        });
+      } else if (
+        productionScopeChanged &&
+        productionScope &&
+        engine instanceof OpsRuntime &&
+        !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+      ) {
+        // Regranting owner access retires the old runtime clients. Rebind production sources
+        // after verification without replacing settings, catalogue edits or a held sale.
+        void engine.loadProduction(supabase);
+        void flavoursRead?.then((loaded) => {
+          if (!cancelled && loaded !== false)
+            void engine.loadRecipes(supabase, undefined, undefined, productionScope);
         });
       }
     }
@@ -473,7 +556,7 @@ export function LiveGate({
      * blank page (or a growing pile of requests) for as long as the radio keeps trying. Null
      * means the limit passed: the server counts as unreachable for now.
      */
-    async function limited(pending: Promise<ProfileCheck>): Promise<ProfileCheck | null> {
+    async function limited<T>(pending: Promise<T>): Promise<T | null> {
       let timer: ReturnType<typeof setTimeout> | undefined;
       const slow = new Promise<null>((resolve) => {
         timer = setTimeout(() => resolve(null), CHECK_TIMEOUT_MS);
@@ -485,8 +568,10 @@ export function LiveGate({
 
     async function verify(isFirstCheck: boolean) {
       if (cancelled) return;
+      const epoch = identityEpoch;
       const pending = probe();
       const answer = await limited(pending);
+      if (cancelled || epoch !== identityEpoch) return;
       if (answer) {
         apply(answer, isFirstCheck);
         return;
@@ -494,7 +579,7 @@ export function LiveGate({
       apply({ status: 'unknown' }, isFirstCheck);
       // The answer, if it still comes, is applied as a re-check.
       void pending.then((late) => {
-        if (late.status !== 'unknown') apply(late, false);
+        if (epoch === identityEpoch && late.status !== 'unknown') apply(late, false);
       });
     }
 
@@ -506,9 +591,27 @@ export function LiveGate({
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') lockOut();
-      else if (event === 'TOKEN_REFRESHED') void verify(false);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        identityEpoch += 1;
+        lockOut();
+      } else if (
+        event === 'SIGNED_IN' &&
+        (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey) || verifiedUserId)
+      ) {
+        identityEpoch += 1;
+        if (engine instanceof OpsRuntime && engine.staffAccountId !== session?.user.id)
+          engine.bindStaffIdentity(null);
+        // With no verified account yet (Bazaar Mode opened offline) there is nothing to compare: the
+        // till stays open and `verify` below decides, closing it only on a definite denial.
+        if (verifiedUserId !== null && session?.user.id !== verifiedUserId) {
+          if (engine instanceof OpsRuntime) void engine.setProductionIdentity(null);
+          clearRememberedCheck();
+          setAccess('closed');
+        }
+        if (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) void verify(false);
+        else verifiedUserId = null;
+      } else if (event === 'TOKEN_REFRESHED') void verify(false);
     });
 
     function onVisible() {

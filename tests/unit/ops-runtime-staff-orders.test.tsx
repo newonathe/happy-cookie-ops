@@ -10,6 +10,7 @@ import type { Role } from '@/store/engine/ops-engine';
 import type { ScreenKey } from '@/lib/screens';
 import type { StaffOrderClient } from '@/lib/data/staff-orders';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { ordersRead } from '@/lib/orders/orders-read-state';
 import { OrdersScreen } from '@/components/screens/orders';
 import { OrderDetailScreen } from '@/components/screens/order-detail';
 import { BakePlanScreen } from '@/components/screens/bake-plan';
@@ -106,6 +107,106 @@ async function mounted(role: Role, f: ReturnType<typeof fake>, load = true) {
 
 const orderIds = (r: OpsRuntime) => (r.state.orders as Array<{ id: string }>).map((o) => o.id);
 const toasts = (r: OpsRuntime) => JSON.stringify(r.state.toasts ?? r.state.toast ?? '');
+
+describe('Orders integration retires account, role and client readers', () => {
+  afterEach(() => {
+    cleanup();
+    ordersRead.reset();
+  });
+
+  it('an old acknowledgement cannot forget a newer uncertain exact replay after account ABA', async () => {
+    live = true;
+    const f = fake([raw()]);
+    const runtime = await mounted('owner', f, false);
+    const a = { userId: 'orders-a', business: 'https://orders.example' };
+    act(() => runtime.bindStaffIdentity(a));
+    await act(async () => void (await runtime.loadOrders(f.client)));
+    const pending: Array<(answer: { data?: unknown; error: { code: string } | null }) => void> = [];
+    f.rpc.mockImplementation(async (name) =>
+      name === 'get_staff_orders'
+        ? { data: f.state.list, error: null }
+        : new Promise((resolve) => pending.push(resolve))
+    );
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'dcf'));
+    const originalId = sent(f.rpc)[0]![1].p_client_id;
+    act(() => runtime.bindStaffIdentity({ ...a, userId: 'orders-b' }));
+    act(() => runtime.bindStaffIdentity(a));
+    await act(async () => void (await runtime.loadOrders(f.client)));
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'dcf'));
+    expect(sent(f.rpc)[1]![1].p_client_id).toBe(originalId);
+    await act(async () => pending[0]!({ data: [{ replayed: false }], error: null }));
+    await settle();
+    await act(async () => pending[1]!({ error: { code: '08006' } }));
+    await settle();
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'dcf'));
+    expect(sent(f.rpc)[2]![1].p_client_id).toBe(originalId);
+    await act(async () => pending[2]!({ data: [{ replayed: true }], error: null }));
+    await settle();
+  });
+
+  it.each(['account ABA', 'identity retirement', 'role ABA', 'unmount', 'client replacement'])(
+    '%s clears stale data and makes a retained Retry inert',
+    async (reason) => {
+      live = true;
+      const f = fake([raw()]);
+      const runtime = await mounted('owner', f, false);
+      const a = { userId: 'orders-a', business: 'https://orders.example' };
+      act(() => runtime.bindStaffIdentity(a));
+      await act(async () => void (await runtime.loadOrders(f.client)));
+      expect(orderIds(runtime)).toEqual(['HC-1001']);
+      const retry = ordersRead.get().retry!;
+      f.rpc.mockClear();
+      if (reason === 'account ABA') {
+        act(() => runtime.bindStaffIdentity({ ...a, userId: 'orders-b' }));
+        act(() => runtime.bindStaffIdentity(a));
+      } else if (reason === 'identity retirement') {
+        act(() => runtime.bindStaffIdentity(null));
+      } else if (reason === 'role ABA') {
+        act(() => runtime.setRole('helper'));
+        act(() => runtime.setRole('owner'));
+      } else if (reason === 'unmount') cleanup();
+      else {
+        const next = fake([raw({ id: 'HC-NEW' })]);
+        await act(async () => void (await runtime.loadOrders(next.client)));
+      }
+      const snapshot = ordersRead.get();
+      await act(async () => retry());
+      expect(f.rpc).not.toHaveBeenCalled();
+      expect(ordersRead.get()).toBe(snapshot);
+      if (reason !== 'client replacement') {
+        expect(snapshot).toMatchObject({ phase: 'idle', retry: null, everRead: false });
+        if (reason !== 'unmount') expect(orderIds(runtime)).toEqual([]);
+      } else expect(orderIds(runtime)).toEqual(['HC-NEW']);
+    }
+  );
+
+  it.each(['success', 'failure'])('a retired late %s cannot publish or apply', async (answer) => {
+    live = true;
+    const runtime = await mounted('owner', fake([]), false);
+    const a = { userId: 'orders-a', business: 'https://orders.example' };
+    act(() => runtime.bindStaffIdentity(a));
+    let finish!: (v: { data: unknown; error: { code: string } | null }) => void;
+    const rpc = vi.fn(() => new Promise((resolve) => (finish = resolve)));
+    let done!: Promise<boolean>;
+    act(() => {
+      done = runtime.loadOrders({ rpc } as unknown as StaffOrderClient);
+    });
+    act(() => runtime.bindStaffIdentity({ ...a, userId: 'orders-b' }));
+    await act(async () => {
+      finish(
+        answer === 'success'
+          ? { data: [raw()], error: null }
+          : { data: null, error: { code: '08006' } }
+      );
+      expect(await done).toBe(false);
+    });
+    expect(orderIds(runtime)).toEqual([]);
+    expect(ordersRead.get()).toMatchObject({ phase: 'idle', retry: null, everRead: false });
+    await act(async () => void (await runtime.loadOrders(fake([raw({ id: 'HC-B' })]).client)));
+    expect(orderIds(runtime)).toEqual(['HC-B']);
+    expect(ordersRead.get()).toMatchObject({ phase: 'read', everRead: true });
+  });
+});
 
 describe('B3: the owner reads and drives real orders (live mode)', () => {
   beforeEach(() => {

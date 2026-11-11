@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { cx } from './cx';
 
@@ -46,25 +47,21 @@ export function FlavourTile({
   stepper,
   onPress
 }: FlavourTileProps) {
-  const url = resolvedPhoto ?? resolveImagePath(photo);
+  const real = resolvedPhoto ?? resolveImagePath(photo);
+  const url = cookiePicture(real, name);
   const soldOut = state === 'soldOut';
   const pressable = Boolean(onPress) && !stepper && !soldOut;
   const body = (
     <>
       <span
         aria-hidden="true"
-        data-photo={url ? 'yes' : 'none'}
+        data-photo={real ? 'yes' : 'art'}
         className="relative block aspect-[4/3] w-full overflow-hidden rounded-control bg-chip bg-cover bg-center"
         style={{
-          ...(url ? { backgroundImage: `url(${url})` } : {}),
+          backgroundImage: `url(${url})`,
           ...(photoName ? { viewTransitionName: photoName } : {})
         }}
       >
-        {!url ? (
-          <span className="grid size-full place-items-center text-title text-ink-faint">
-            {name.slice(0, 1)}
-          </span>
-        ) : null}
         {badge ? (
           <span className="absolute bottom-1.5 left-1.5 rounded-tag bg-surface px-1.5 py-0.5 text-caption font-semibold text-ink shadow-chip">
             {badge}

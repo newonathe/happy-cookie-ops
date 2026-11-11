@@ -5,30 +5,32 @@ import type { OpsVals } from '@/view-models/vals';
 import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { FlavourTile } from '@/components/ui/flavour-tile';
-import { Sheet } from '@/components/ui/sheet';
-import { StatusPill } from '@/components/ui/status-pill';
-import { TillPanel } from './till-bar';
+import { FooterActions, PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
+import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
+import { saleLines } from '@/lib/bazaar/sale-lines';
+import { TillCard } from './till-card';
+import { CurrentSale } from './current-sale';
+import { TillTakings } from './till-takings';
+import { TillPanelPage, TillBack } from './till-bar';
 
 type Till = NonNullable<OpsVals['liveTill']>;
 type Sale = OpsVals['bzSales'][number];
-
-/** How many sales show before "See all". */
-const SALES_SHOWN = 5;
 
 /**
  * The consolidated till (Ethan, 19 October 2026; mockups K5nHQS8GjtBYGseDtYZDnZ). Only the look is new: every control
  * calls the handler the ported Bazaar Mode screen calls, from the same `v`, so selling, the offline queue and the close
  * are unchanged. The ported screen stays one tap away ("Use the classic till") and takes over if this one throws.
  *
- * A tile adds one when tapped; a minus on the tile takes one off. One bar holds the sale, Freebie and Charge. Leaving,
- * adding cookies, fees and the close sit behind the ⋯ menu; a sale is voided from its own sheet, after a confirm.
+ * A card adds one when tapped. The sale sits beside the cards with its steppers, Freebie and Charge (on a phone, behind a
+ * bar that stays in view). Under them are the day's trackers and every sale; a sale is voided from its row, after a confirm.
  */
 export function ConsolidatedTill({
   v,
   till,
-  panel
+  panel,
+  events
 }: {
+  events?: (() => void) | null;
   v: OpsVals;
   till: Till;
   panel: TillPanelView | null | undefined;
@@ -36,20 +38,17 @@ export function ConsolidatedTill({
   const [menu, setMenu] = useState(false);
   // The open sale, counted from the oldest: the list is newest first, so a sale arriving cannot move it.
   const [saleFromOldest, setSaleFromOldest] = useState<number | null>(null);
-  const [allSales, setAllSales] = useState(false);
+  const [voiding, setVoiding] = useState(false);
   const sales = v.bzSales ?? [];
+  const [reviewSale, setReviewSale] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(true);
   const sale = saleFromOldest === null ? undefined : sales[sales.length - 1 - saleFromOldest];
   const closeSale = () => setSaleFromOldest(null);
-  const shown = allSales ? sales : sales.slice(0, SALES_SHOWN);
   const pick = (run: () => void) => () => {
     setMenu(false);
     run();
   };
   const menuItems: Array<{ label: string; hint: string; run: () => void }> = [
-    ...(till.addCookies
-      ? [{ label: 'Add cookies', hint: 'Put more on the table', run: till.addCookies }]
-      : []),
-    { label: 'Fees and expenses', hint: 'Stall rent, ice, parking', run: v.openEventExpense },
     {
       label: 'Review and close the day',
       hint: 'Count the drawer, settle the leftovers',
@@ -62,9 +61,36 @@ export function ConsolidatedTill({
       label: 'Use the classic till',
       hint: 'The till from before, on this phone',
       run: () => till.setClassic(true)
-    }
+    },
+    ...(till.leave && !v.unsynced
+      ? [{ label: 'Leave this event', hint: 'An event from before bazaar days', run: till.leave }]
+      : [])
   ];
 
+  if (panel) return <TillPanelPage panel={panel} />;
+  if (sale && voiding)
+    return (
+      <VoidPage
+        sale={sale}
+        keep={() => {
+          setVoiding(false);
+          closeSale();
+        }}
+        confirm={() => {
+          setVoiding(false);
+          closeSale();
+          sale.void();
+        }}
+      />
+    );
+  if (menu)
+    return (
+      <TillSettings
+        v={v}
+        items={menuItems.map((item) => ({ ...item, run: pick(item.run) }))}
+        back={() => setMenu(false)}
+      />
+    );
   return (
     <>
       {/* One grid on a wide screen (tiles left, the sale and sales right); one column on a phone, where the sale bar is
@@ -73,217 +99,264 @@ export function ConsolidatedTill({
         aria-label="Till"
         data-screen-label="Bazaar Mode"
         data-till="consolidated"
-        className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-x-5 lg:gap-y-3"
+        className="flex flex-col gap-3 lg:gap-3"
       >
-        <div className="flex items-center gap-2.5 lg:col-span-2">
-          <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-body font-bold text-ink">{v.event?.name}</span>
-            <span className="text-caption text-ink-mute">{v.event?.date}</span>
-          </span>
-          <Button variant="secondary" aria-label="Till menu" onClick={() => setMenu(true)}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-              <circle cx="5" cy="12" r="1.8" />
-              <circle cx="12" cy="12" r="1.8" />
-              <circle cx="19" cy="12" r="1.8" />
-            </svg>
-          </Button>
-        </div>
-
-        <div className="lg:col-span-2">
-          <SaleStatus v={v} />
-        </div>
-
-        <div className="flex flex-col gap-3 lg:col-start-1 lg:row-span-2 lg:row-start-3">
-          {till.allGone ? (
-            <EmptyState
-              title="Everything on the table is sold"
-              body={
-                till.addCookies
-                  ? 'Add more cookies to keep selling.'
-                  : 'Tell the owner to add more cookies.'
-              }
-              action={
-                till.addCookies ? { label: 'Add cookies', onPress: till.addCookies } : undefined
-              }
-            />
-          ) : null}
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-            {(v.bzSell ?? []).map((p, i) => {
-              const name = String(p.name);
-              const count = Number(p.inCart) || 0;
-              return (
-                <div key={name} data-part="tile" className="relative">
-                  <FlavourTile
-                    name={name}
-                    photo=""
-                    resolvedPhoto={till.photos[i] ?? ''}
-                    price={String(p.priceText)}
-                    count={count}
-                    state={p.soldOut && !count ? 'soldOut' : count ? 'inCart' : 'idle'}
-                    meta={
-                      <span className="text-caption text-ink-mute tabular-nums">{p.left} left</span>
-                    }
-                    onPress={p.tap}
-                  />
-                  {count ? (
-                    <button
-                      type="button"
-                      aria-label={`One less ${name}`}
-                      onClick={p.minus}
-                      className="motion-press absolute top-1 left-1 grid size-11 place-items-center rounded-full border border-line-strong bg-surface text-ink shadow-chip"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="18"
-                        height="18"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M5 12h14" />
-                      </svg>
-                    </button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-          {till.soldOutCount > 0 ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="self-center"
-              aria-pressed={till.showSoldOut}
-              onClick={till.toggleSoldOut}
-            >
-              {till.showSoldOut ? 'Hide sold out' : `Show sold out (${till.soldOutCount})`}
-            </Button>
-          ) : null}
-        </div>
-
-        <div className="overflow-hidden rounded-card border border-line bg-surface lg:col-start-2 lg:row-start-4">
-          <div className="flex items-center gap-2 border-b border-divide px-3.5 py-3">
-            <span className="flex-1 text-body font-bold">Sales today</span>
-            <span className="text-caption text-ink-mute">
-              {sales.length ? 'Tap a sale to void it' : 'No sales yet'}
-            </span>
-          </div>
-          {shown.map((sl, i) => (
-            <SaleRow key={i} sale={sl} open={() => setSaleFromOldest(sales.length - 1 - i)} />
-          ))}
-          {sales.length > SALES_SHOWN ? (
-            <button
-              type="button"
-              onClick={() => setAllSales(!allSales)}
-              className="min-h-11 w-full bg-raise text-caption font-semibold text-ink-soft"
-            >
-              {allSales ? 'Show fewer' : `See all ${sales.length} sales`}
-            </button>
-          ) : null}
-        </div>
-
-        <div className="sticky bottom-3 z-10 flex items-center gap-2.5 rounded-card border border-line bg-surface/95 p-3 pl-4 shadow-lift backdrop-blur lg:top-3 lg:bottom-auto lg:col-start-2 lg:row-start-3">
-          <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-caption text-ink-soft">{v.bzCartCount} in this sale</span>
-            <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
-          </span>
-          <Button variant="secondary" onClick={v.recordFreebie}>
-            Freebie
-          </Button>
-          <Button variant="primary" size="lg" onClick={v.openPay}>
-            Charge
-          </Button>
-        </div>
-      </section>
-
-      {menu ? (
-        <Sheet title={String(v.event?.name ?? 'Till')} onClose={() => setMenu(false)}>
-          <div className="flex flex-col gap-1">
-            {menuItems.map((m) => (
-              <button
-                key={m.label}
-                type="button"
-                onClick={pick(m.run)}
-                className="flex min-h-14 items-center gap-3 rounded-control px-1 text-left hover:bg-raise"
-              >
-                <span className="flex flex-1 flex-col">
-                  <span className="text-body font-bold text-ink">{m.label}</span>
-                  <span className="text-caption text-ink-mute">{m.hint}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </Sheet>
-      ) : null}
-
-      {sale ? (
-        <Sheet
-          title="This sale"
-          onClose={closeSale}
-          footer={
-            <div className="flex flex-col gap-2">
-              <Button
-                variant="danger"
-                onClick={() => {
-                  closeSale();
-                  sale.void();
-                }}
-              >
-                Void this sale
-              </Button>
-              <Button variant="ghost" onClick={closeSale}>
-                Keep it
-              </Button>
+        <div>
+          {events ? (
+            <div className="mb-2">
+              <TillBack onBack={events} />
             </div>
-          }
-        >
-          <div className="flex flex-col gap-1">
-            <span className="text-body font-bold text-ink">{sale.summary}</span>
-            <span className="text-title tabular-nums">{sale.totalText}</span>
-            <span className="text-caption text-ink-mute">
-              <SaleMeta sale={sale} />
-            </span>
-            <span className="text-caption text-ink-soft">
-              Voiding puts its cookies back on the table.
-            </span>
-          </div>
-        </Sheet>
-      ) : null}
+          ) : null}
+          <PageTitle
+            title="Sell at the bazaar"
+            subtitle={
+              <>
+                {v.event?.name}
+                {v.event?.date ? ` · ${String(v.event.date)}` : ''}
+              </>
+            }
+            actions={
+              <>
+                <Button variant="secondary" onClick={v.askClose}>
+                  Close day
+                </Button>
+                <Button variant="secondary" aria-label="Till menu" onClick={() => setMenu(true)}>
+                  Settings
+                </Button>
+              </>
+            }
+          />
+        </div>
 
-      {panel ? <TillPanel panel={panel} /> : null}
+        {v.syncBanner ? (
+          <div>
+            <SyncNotice v={v} />
+          </div>
+        ) : null}
+
+        {/* Their own grid, so the sale stays in view beside the cookies and stops where they stop. On a phone the wrapper
+          steps aside and the sale bar below stays the section's last child, pinned the whole way down. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start lg:gap-4">
+          <section
+            aria-label="Cookies on the table"
+            className="@container order-1 min-w-0 lg:order-none"
+          >
+            {till.allGone ? (
+              <div className="mb-3">
+                <EmptyState
+                  title="Everything on the table is sold"
+                  body={
+                    till.addCookies
+                      ? 'Add more cookies to keep selling.'
+                      : 'Tell the owner to add more cookies.'
+                  }
+                  action={
+                    till.addCookies ? { label: 'Add cookies', onPress: till.addCookies } : undefined
+                  }
+                />
+              </div>
+            ) : null}
+            {(v.bzSell ?? []).length ? (
+              <div className="grid grid-cols-2 gap-2.5 @lg:grid-cols-3 @lg:gap-3">
+                {(v.bzSell ?? []).map((p, i) => {
+                  const name = String(p.name);
+                  const count = Number(p.inCart) || 0;
+                  return (
+                    <TillCard
+                      key={name}
+                      name={name}
+                      photo={till.photos[i] ?? ''}
+                      price={String(p.priceText)}
+                      left={p.left}
+                      count={count}
+                      soldOut={!!p.soldOut && !count}
+                      onPress={p.tap}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyState
+                title="Nothing is on the table"
+                body={
+                  till.addCookies
+                    ? 'Add cookies to start selling.'
+                    : 'Tell the owner to add cookies.'
+                }
+                action={
+                  till.addCookies ? { label: 'Add cookies', onPress: till.addCookies } : undefined
+                }
+              />
+            )}
+          </section>
+
+          <CurrentSale v={v} mobileOpen={reviewSale} closeMobile={() => setReviewSale(false)} />
+        </div>
+
+        <div className="order-3 flex min-w-0 flex-col gap-3 lg:order-none">
+          <TillTakings
+            v={v}
+            ledger={till.ledger}
+            open={summaryOpen}
+            setOpen={setSummaryOpen}
+            voidSale={(index) => {
+              setSaleFromOldest(sales.length - 1 - index);
+              setVoiding(true);
+            }}
+          />
+          <div className="flex flex-wrap justify-between gap-2 border-t border-divide pt-3">
+            {till.addCookies ? (
+              <Button variant="secondary" onClick={till.addCookies}>
+                Add cookies
+              </Button>
+            ) : null}
+            <Button variant="secondary" onClick={v.openEventExpense}>
+              Fees and expenses
+            </Button>
+          </div>
+        </div>
+
+        {Number(v.bzCartCount) ? (
+          <div
+            data-part="sale-bar"
+            style={{ bottom: 'calc(var(--workspace-dock, 0px) + 12px)' }}
+            className="order-4 sticky z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-card border border-line bg-surface/95 p-3 shadow-lift backdrop-blur lg:hidden"
+          >
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-caption text-ink-soft">{v.bzCartCount} in this sale</span>
+              <span className="text-title tabular-nums">{till.cartTotalText}</span>
+            </span>
+            <Button variant="secondary" onClick={() => setReviewSale(true)}>
+              Review sale
+            </Button>
+            <Button variant="primary" size="lg" className="col-span-2 w-full" onClick={v.openPay}>
+              Charge {till.cartTotalText}
+            </Button>
+          </div>
+        ) : null}
+      </section>
     </>
   );
 }
 
-/** Selling, the day's count and takings, and the sync line with its "Sync now" (never hidden behind a tap). */
-function SaleStatus({ v }: { v: OpsVals }) {
+function SaleFacts({ sale }: { sale: Sale }) {
   return (
-    <div className="flex flex-wrap items-center gap-2.5 rounded-control border border-line bg-surface px-3 py-2.5">
-      <StatusPill status="selling" />
-      <span className="flex-1 text-caption text-ink-soft">
-        {v.bzSalesCount} · <span className="font-bold text-ink tabular-nums">{v.bzRevenue}</span>
-      </span>
-      {v.syncBanner ? (
-        <span role="status" className="flex basis-full items-center gap-2.5">
-          {v.syncing ? (
-            <span
-              aria-hidden="true"
-              className="size-4 shrink-0 animate-spin rounded-full border-2 border-line-mute border-t-accent"
-            />
-          ) : null}
-          <span
-            className={`flex-1 text-caption font-semibold ${v.syncPartial ? 'text-danger' : v.syncDone ? 'text-ok' : 'text-ink'}`}
-          >
-            {v.syncText}
-          </span>
-          {v.unsynced ? (
+    <>
+      {saleLines(String(sale.summary ?? '')).map((line, i) => (
+        <FactRow key={i} label={`${line.qty}× ${line.name}`}>
+          {null}
+        </FactRow>
+      ))}
+      <FactRow label="Total">{sale.totalText}</FactRow>
+      <FactRow label="Paid by">
+        <SaleMeta sale={sale} />
+      </FactRow>
+      <FactRow label="Status">{sale.stateText}</FactRow>
+    </>
+  );
+}
+
+function VoidPage({ sale, keep, confirm }: { sale: Sale; keep: () => void; confirm: () => void }) {
+  return (
+    <section aria-label="Void this sale" className="flex flex-col gap-3">
+      <PageTitle title="Void this sale" subtitle="Only this sale will be changed." />
+      <Panel>
+        <SaleFacts sale={sale} />
+        <p className="mt-3 text-caption text-ink-soft">
+          Voiding puts its cookies back on the table.
+        </p>
+        <div className="mt-4">
+          <FooterActions
+            back={
+              <Button variant="secondary" onClick={keep}>
+                Keep sale
+              </Button>
+            }
+            forward={
+              <Button variant="danger" onClick={confirm}>
+                Confirm void
+              </Button>
+            }
+          />
+        </div>
+      </Panel>
+    </section>
+  );
+}
+
+/** The till's other ways in and out, and what this device holds. */
+function TillSettings({
+  v,
+  items,
+  back
+}: {
+  v: OpsVals;
+  items: Array<{ label: string; hint: string; run: () => void }>;
+  back: () => void;
+}) {
+  return (
+    <section aria-label="Till settings" className="flex flex-col gap-3">
+      <PageTitle
+        title="Selling settings"
+        subtitle={String(v.event?.name ?? '')}
+        actions={
+          <Button variant="secondary" onClick={back}>
+            Back to selling
+          </Button>
+        }
+      />
+      <Panel>
+        {items.map((item) => (
+          <OpenRow key={item.label} title={item.label} detail={item.hint} onOpen={item.run} />
+        ))}
+      </Panel>
+      <SectionHeading>Selling device</SectionHeading>
+      <Panel>
+        <FactRow label="This device">Can sell this day</FactRow>
+        <FactRow label="Connection">{v.offline ? 'Offline' : 'Online'}</FactRow>
+        <FactRow label="Sales">{v.bzSalesCount}</FactRow>
+        <FactRow label="Waiting to send">{v.unsynced ? String(v.unsynced) : 'None'}</FactRow>
+        {v.unsynced ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-caption text-ink-soft">
+              Keep this browser open while sales are waiting to send.
+            </p>
             <Button variant="secondary" size="sm" onClick={v.syncNow}>
               Sync now
             </Button>
-          ) : null}
-        </span>
+          </div>
+        ) : null}
+      </Panel>
+    </section>
+  );
+}
+
+/** Selling, the day's count and takings, and the sync line with its "Sync now" (never hidden behind a tap). */
+/** Only when sales are waiting, failed or offline: the sale records must never look safer than they are. */
+function SyncNotice({ v }: { v: OpsVals }) {
+  return (
+    <div
+      role="status"
+      className="flex flex-wrap items-center gap-2.5 rounded-control border border-line bg-surface px-3 py-2.5"
+    >
+      {v.syncing ? (
+        <span
+          aria-hidden="true"
+          className="size-4 shrink-0 animate-spin rounded-full border-2 border-line-mute border-t-accent"
+        />
+      ) : null}
+      <span
+        className={`flex-1 text-caption font-semibold ${v.syncPartial ? 'text-danger' : v.syncDone ? 'text-ok' : 'text-ink'}`}
+      >
+        {/* The engine's line always says "1 sale"; the count here is the real one. */}
+        {v.syncPartial && Number(v.unsynced) > 1
+          ? `${String(v.unsynced)} sales could not be sent — nothing was lost`
+          : v.syncText}
+      </span>
+      {v.unsynced ? (
+        <Button variant="secondary" size="sm" onClick={v.syncNow}>
+          Sync now
+        </Button>
       ) : null}
     </div>
   );
@@ -296,35 +369,6 @@ function SaleMeta({ sale }: { sale: Sale }) {
       {sale.refText ? <> · {sale.refText}</> : null}
       {sale.clerk ? <> · {sale.clerk}</> : null}
     </>
-  );
-}
-
-/** One sale: the row opens its sheet; a sale that could not be sent keeps "Send again" on the row itself. */
-function SaleRow({ sale, open }: { sale: Sale; open: () => void }) {
-  return (
-    <div data-part="sale" className="flex items-center gap-2 border-b border-divide pr-2">
-      <button
-        type="button"
-        onClick={open}
-        className="flex min-h-14 min-w-0 flex-1 items-center gap-2.5 py-2 pl-3.5 text-left"
-      >
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-body text-ink">{sale.summary}</span>
-          <span className="text-caption text-ink-mute">
-            <SaleMeta sale={sale} />
-          </span>
-        </span>
-        <span className="text-body font-bold tabular-nums">{sale.totalText}</span>
-        {sale.ok ? (
-          <span className="text-caption font-semibold text-ok">{sale.stateText}</span>
-        ) : null}
-      </button>
-      {sale.bad ? (
-        <Button variant="danger" size="sm" onClick={sale.retry}>
-          Send again
-        </Button>
-      ) : null}
-    </div>
   );
 }
 

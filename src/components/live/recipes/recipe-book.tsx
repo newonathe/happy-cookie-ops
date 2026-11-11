@@ -7,7 +7,6 @@ import type { LiveRecipesVals, RecipeBookItem } from '@/lib/recipes/live-recipes
 import { MARGIN_FLOOR_PERCENT, bookCounts, filterBook, type BookFilter } from '@/lib/recipes/book';
 import { RecipesScreen } from '@/components/screens/recipes';
 import { Banner } from '@/components/ui/banner';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { FilterChips } from '@/components/ui/filter-chips';
@@ -15,6 +14,8 @@ import { FlavourTile } from '@/components/ui/flavour-tile';
 import { supportsViewTransition, useViewTransition } from '@/components/ui/motion';
 import { cx } from '@/components/ui/cx';
 import { FlavourPage, PHOTO_TRANSITION } from './flavour-page';
+import { RecipeEditor } from './recipe-editor';
+import { RecipeReader } from './recipe-reader';
 
 /** `liveRecipes` as the runtime provides it. */
 export function liveRecipesOf(v: OpsVals): LiveRecipesVals | null {
@@ -47,7 +48,10 @@ function MarginBadge({ item }: { item: RecipeBookItem }) {
   );
 }
 
-type View = { kind: 'book' } | { kind: 'flavour'; id: string } | { kind: 'editor'; id: string };
+type View =
+  | { kind: 'book' }
+  | { kind: 'flavour'; id: string }
+  | { kind: 'editor'; id: string; origin?: 'recipe' };
 
 /**
  * The live recipe book (U7), in the slot of the ported Recipes screen. A grid of flavours with search and the On the menu
@@ -64,9 +68,10 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
   const [named, setNamed] = useState<string | null>(null);
   const [fade, setFade] = useState(false);
   const refresh = book?.refresh;
+  const readingRecipe = !!book?.recipePage && view.kind === 'book';
   useEffect(() => {
-    refresh?.();
-  }, [refresh]);
+    if (!readingRecipe) refresh?.();
+  }, [refresh, readingRecipe]);
 
   // Anyone but the owner has no recipe book (`liveRecipes` is null): they keep the ported Recipes screen as it was.
   if (!book) return <RecipesScreen v={v} />;
@@ -83,19 +88,27 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
   if (view.kind === 'editor') {
     const item = book.items.find((i) => i.id === view.id);
     return (
-      <section
-        aria-label="Recipes"
-        data-screen-label="Recipes"
-        className="flex flex-col gap-3 pb-24"
-      >
-        <Button
-          variant="ghost"
-          onClick={() => go(item ? { kind: 'flavour', id: view.id } : { kind: 'book' }, view.id)}
-          className="self-start"
-        >
-          <span aria-hidden="true">← </span>Back to the recipe book
-        </Button>
-        <RecipesScreen v={v} />
+      <section aria-label="Recipes" data-screen-label="Recipes" className="pb-24">
+        <RecipeEditor
+          v={v}
+          backLabel={
+            view.origin === 'recipe'
+              ? 'Back to recipe'
+              : book.recipePage
+                ? 'Back to costs'
+                : 'Back to the recipe book'
+          }
+          onBack={() =>
+            go(
+              view.origin === 'recipe'
+                ? { kind: 'book' }
+                : item
+                  ? { kind: 'flavour', id: view.id }
+                  : { kind: 'book' },
+              view.id
+            )
+          }
+        />
       </section>
     );
   }
@@ -110,6 +123,7 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
             fade={fade}
             note={book.note}
             onBack={() => go({ kind: 'book' }, item.id)}
+            backLabel={book.recipePage ? 'Back to recipe' : undefined}
             onEditRecipe={() => {
               item.editRecipe();
               go({ kind: 'editor', id: item.id }, null);
@@ -118,6 +132,20 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
         </section>
       );
   }
+
+  const recipePage = book.recipePage;
+  if (recipePage)
+    return (
+      <RecipeReader
+        key={recipePage.id}
+        page={recipePage}
+        onCosts={() => go({ kind: 'flavour', id: recipePage.id }, recipePage.id)}
+        onCreate={() => {
+          if (recipePage.createRecipe?.())
+            go({ kind: 'editor', id: recipePage.id, origin: 'recipe' }, null);
+        }}
+      />
+    );
 
   const counts = bookCounts(book.items);
   const shown = filterBook(book.items, filter, query);

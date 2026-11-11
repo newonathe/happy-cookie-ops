@@ -118,11 +118,24 @@ describe('recordStockMovement', () => {
     // Mutation: sending a quantity key the function does not list, or not trimming, is refused (22023).
   });
 
-  it('a save with no usable answer still counts as saved (the caller reads the quantity back)', async () => {
+  it('an empty answer is unconfirmed and must retain the retry identity', async () => {
     expect(await recordStockMovement(client({ data: [], error: null }).client, mv())).toEqual({
-      outcome: 'saved',
+      outcome: 'offline',
       onHand: null
     });
+  });
+
+  it('does not acknowledge a different item or a malformed balance', async () => {
+    for (const row of [
+      { item_id: 'another', on_hand: 1900, duplicate: false },
+      { item_id: 'butter', on_hand: -1, duplicate: false },
+      { item_id: 'butter', on_hand: '1900', duplicate: false },
+      { item_id: 'butter', on_hand: 1900 }
+    ])
+      expect(await recordStockMovement(client({ data: [row], error: null }).client, mv())).toEqual({
+        outcome: 'offline',
+        onHand: null
+      });
   });
 
   it('classifies a refusal, and everything else as not sent', async () => {
