@@ -10,6 +10,7 @@ import { readStaffName } from '@/lib/auth/staff-name';
  * until the test answers it, so the order of the replies is the test's to choose.
  */
 const net = vi.hoisted(() => ({
+  up: true,
   role: 'owner',
   userId: 'u1',
   reads: [] as Array<{ resolve: (value: unknown) => void; started: number }>,
@@ -31,12 +32,14 @@ vi.mock('@/lib/offline/idb', () => ({
   }
 }));
 
-vi.mock('@/lib/supabase/client', () => {
+vi.mock('@/lib/supabase/client', async () => {
+  const { AuthRetryableFetchError } = await import('@supabase/supabase-js');
   const client = {
     auth: {
       getSession: async () => ({ data: { session: { user: { id: net.userId } } }, error: null }),
       getUser: async () => {
         net.checks += 1;
+        if (!net.up) throw new AuthRetryableFetchError('Failed to fetch', 0);
         return { data: { user: { id: net.userId } }, error: null };
       },
       signOut: async () => ({ error: null }),
@@ -132,7 +135,7 @@ const changeRole = async (role: RoleName) => {
 
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example');
-  Object.assign(net, { role: 'owner', userId: 'u1', checks: 0, engine: null });
+  Object.assign(net, { up: true, role: 'owner', userId: 'u1', checks: 0, engine: null });
   net.reads = [];
   localStorage.clear();
   document.cookie = 'sb-local-auth-token=x; path=/';
@@ -299,9 +302,10 @@ describe('the engine ends on the last verified role when checks land in one batc
     expect(state().role).toBe('owner');
     const setRole = vi.spyOn(runtime(), 'setRole');
     const go = vi.spyOn(runtime(), 'go');
+    const checksBefore = net.checks;
     await changeRole('owner');
     await changeRole('owner');
-    expect(net.checks).toBeGreaterThan(0);
+    expect(net.checks).toBe(checksBefore + 2);
     expect(setRole).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
     expect(state().role).toBe('owner');
@@ -327,5 +331,56 @@ describe('the engine ends on the last verified role when checks land in one batc
     expect(engine.canSee('money')).toBe(false);
     expect(engine.canSee('today')).toBe(true);
     expect(engine.money()).toBe(false);
+  });
+  it('keeps the helper role when a later batch only re-checks the same role', async () => {
+    await openAs('helper');
+    await batchOf('owner', 'helper');
+    await tick();
+    expect(state().role).toBe('helper');
+    const setRole = vi.spyOn(runtime(), 'setRole');
+    const go = vi.spyOn(runtime(), 'go');
+    const checksBefore = net.checks;
+    await batchOf('helper');
+    await tick();
+    expect(net.checks).toBe(checksBefore + 1);
+    expect(setRole).not.toHaveBeenCalled();
+    expect(go).not.toHaveBeenCalled();
+    expect(state().role).toBe('helper');
+  });
+
+  describe('coming back online after an offline open as helper', () => {
+    const openOfflineAsHelper = async () => {
+      localStorage.setItem(
+        'hc-live-bazaar',
+        JSON.stringify({
+          event: { id: 'd1e0c105-0000-4000-8000-0000000000e1', name: 'Fair', stage: 'selling' },
+          eventStock: { dcf: 5 },
+          eventPrices: { dcf: 100 },
+          eventLoaded: {},
+          sales: [],
+          unsynced: 0
+        })
+      );
+      localStorage.setItem('hc-live-check', JSON.stringify({ role: 'helper', at: Date.now() }));
+      net.up = false;
+      render(<OpsApp initialScreen="bazaar" />);
+      await tick();
+      expect(state().role).toBe('helper');
+      expect((runtime().state as unknown as { screen: string }).screen).toBe('bazaar');
+      net.up = true;
+    };
+
+    it.each([
+      ['helper', 'owner'],
+      ['owner', 'helper']
+    ] as Array<[RoleName, RoleName]>)(
+      'ends on the last verified role after a batch %s, %s',
+      async (first, last) => {
+        await openOfflineAsHelper();
+        await batchOf(first, last);
+        await tick();
+        expect(state().role).toBe(last);
+      }
+    );
   });
 });
