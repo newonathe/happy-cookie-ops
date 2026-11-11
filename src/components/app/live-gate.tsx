@@ -186,6 +186,9 @@ export function LiveGate({
     // that starts Orders and Recipes when a Try again succeeds after a failed first read.
     let latestProductionScope: { userId: string; business: string } | null = null;
     let stopCatalogueWatch = () => undefined as void;
+    // Looks at the catalogue read again while the watch is armed: on every store change, and when
+    // a check verifies (an answer that came in during a re-check is caught there).
+    let evaluateCatalogueWatch = () => undefined as void;
     let productionReadKey: string | null = null;
     let idleRunning = false;
     // The role idle time is measured for: the verified one, or the remembered one offline.
@@ -197,6 +200,9 @@ export function LiveGate({
     let recheck: ReturnType<typeof setInterval> | undefined;
     let outstanding = 0;
     let identityEpoch = 0;
+    // The identity epoch of the newest check that verified: a re-check in flight (the epoch moved
+    // on, the answer not yet applied) must not start reads, and must not drop the catalogue watch.
+    let verifiedEpoch = -1;
     let verifiedUserId: string | null = null;
     // The role this gate last asked the engine to hold. `setRole` is batched, so two checks that
     // land before React commits would both read the old `engine.state.role`: the second must
@@ -458,6 +464,7 @@ export function LiveGate({
       // next sale.
       const reopened = accessRef.current === 'bazaar' || accessRef.current === 'waiting';
       setAccess('verified');
+      verifiedEpoch = identityEpoch;
       let productionScope: { userId: string; business: string } | null = null;
       if (engine instanceof OpsRuntime) {
         let business = '';
@@ -560,8 +567,7 @@ export function LiveGate({
           // A4: the owner's recipes, for the flavours the list just brought in.
           void engine.loadRecipes(supabase, undefined, undefined, scope);
         };
-        const epoch = identityEpoch,
-          userId = verifiedUserId;
+        const userId = verifiedUserId;
         flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
         void flavoursRead.then((loaded) => {
           keepStallCopy();
@@ -569,12 +575,19 @@ export function LiveGate({
           // HCB-004: the first read failed. Products' Try again reads it again; the first answer
           // from it starts the owner's reads, if this is still the same verified owner.
           if (!owner || cancelled || ownerReadsStarted) return;
-          stopCatalogueWatch = catalogueRead.subscribe(() => {
-            if (cancelled || epoch !== identityEpoch || userId !== verifiedUserId)
-              return stopCatalogueWatch();
+          evaluateCatalogueWatch = () => {
+            // A different person, or teardown: the watch ends. A re-check in flight (supabase-js
+            // signs the same person in again whenever the tab comes back) only waits.
+            if (cancelled || userId !== verifiedUserId) return stopCatalogueWatch();
+            if (verifiedEpoch !== identityEpoch || accessRef.current !== 'verified') return;
             if (catalogueRead.get().phase === 'read' && engine.state.role === 'owner')
               startOwnerReads(latestProductionScope);
-          });
+          };
+          const unsubscribe = catalogueRead.subscribe(evaluateCatalogueWatch);
+          stopCatalogueWatch = () => {
+            unsubscribe();
+            evaluateCatalogueWatch = () => undefined as void;
+          };
         });
       } else if (
         productionScopeChanged &&
@@ -590,6 +603,7 @@ export function LiveGate({
             void engine.loadRecipes(supabase, undefined, undefined, productionScope);
         });
       }
+      evaluateCatalogueWatch();
     }
 
     /** Counted, so the once-a-minute re-check never stacks behind a request that is still out. */
