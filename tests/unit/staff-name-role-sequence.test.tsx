@@ -254,3 +254,78 @@ describe('the signed-in name across a verified role sequence A → B → A (C4/C
     expect(readStaffName({ userId: 'u1', business: 'https://other.example' })).toBeNull();
   });
 });
+
+describe('the engine ends on the last verified role when checks land in one batch (C11)', () => {
+  /** Verified checks answered in turn, each applied before React commits any of them. */
+  const batchOf = (...roles: RoleName[]) =>
+    act(async () => {
+      for (const role of roles) {
+        net.role = role;
+        net.authEvent?.('TOKEN_REFRESHED', { user: { id: 'u1' } });
+        await microtasks();
+      }
+    });
+  const openAs = async (role: RoleName) => {
+    net.role = role;
+    await open();
+    expect(state().role).toBe(role);
+  };
+
+  it('leaves a helper on the helper role after a batch owner, helper', async () => {
+    await openAs('helper');
+    await batchOf('owner', 'helper');
+    await tick();
+    expect(state().role).toBe('helper');
+  });
+
+  it('leaves an owner on the owner role after a batch helper, owner', async () => {
+    await openAs('owner');
+    await batchOf('helper', 'owner');
+    await tick();
+    expect(state().role).toBe('owner');
+  });
+
+  it('ends on the last of three roles in one batch', async () => {
+    await openAs('support');
+    await batchOf('owner', 'helper', 'support');
+    await tick();
+    expect(state().role).toBe('support');
+  });
+
+  it('ends on A after unbatched A → B → A, and a repeat check of A does nothing', async () => {
+    await openAs('owner');
+    await changeRole('helper');
+    await changeRole('owner');
+    expect(state().role).toBe('owner');
+    const setRole = vi.spyOn(runtime(), 'setRole');
+    const go = vi.spyOn(runtime(), 'go');
+    await changeRole('owner');
+    await changeRole('owner');
+    expect(net.checks).toBeGreaterThan(0);
+    expect(setRole).not.toHaveBeenCalled();
+    expect(go).not.toHaveBeenCalled();
+    expect(state().role).toBe('owner');
+  });
+
+  it('does not repeat setRole for a same-role check inside a batch', async () => {
+    await openAs('helper');
+    const setRole = vi.spyOn(runtime(), 'setRole');
+    await batchOf('helper', 'helper');
+    await tick();
+    expect(setRole).not.toHaveBeenCalled();
+  });
+
+  it('shows the helper UI, not the owner one, after the batch owner, helper', async () => {
+    await openAs('helper');
+    await batchOf('owner', 'helper');
+    await tick();
+    const engine = runtime() as unknown as {
+      canSee: (key: string) => boolean;
+      money: () => boolean;
+    };
+    expect(engine.canSee('inventory')).toBe(false);
+    expect(engine.canSee('money')).toBe(false);
+    expect(engine.canSee('today')).toBe(true);
+    expect(engine.money()).toBe(false);
+  });
+});

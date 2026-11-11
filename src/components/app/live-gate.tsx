@@ -193,10 +193,17 @@ export function LiveGate({
     let outstanding = 0;
     let identityEpoch = 0;
     let verifiedUserId: string | null = null;
+    // The role this gate last asked the engine to hold. `setRole` is batched, so two checks that
+    // land before React commits would both read the old `engine.state.role`: the second must
+    // compare with what the first asked for, or the engine ends on the wrong one of the two.
+    let askedRole: Role | null = null;
     let lastActivity = Date.now();
     const supabase = createClient();
     const setAccess = (next: Access) => {
-      if (next !== 'verified') productionReadKey = null;
+      if (next !== 'verified') {
+        productionReadKey = null;
+        askedRole = null;
+      }
       accessRef.current = next;
       setAccessState(next);
       // U2: Home on the till is offered only while the whole app is open, never in Bazaar-only mode.
@@ -433,8 +440,12 @@ export function LiveGate({
       offlineRole = null;
       // The protected engine clears an in-progress stocktake on setRole. A same-role
       // token refresh or visibility check must not reset the owner's count.
-      if (!sellingOn && (accessRef.current !== 'verified' || engine.state.role !== role))
+      if (
+        !sellingOn &&
+        (accessRef.current !== 'verified' || (askedRole ?? engine.state.role) !== role)
+      )
         engine.setRole(role);
+      askedRole = role;
       rememberCheck(role);
       stopRecheck();
       // Reopening after a spell with no server: send what the phone is holding now. On a dead
