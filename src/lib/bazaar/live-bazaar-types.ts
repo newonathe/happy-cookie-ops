@@ -405,6 +405,11 @@ export interface LiveBazaarVals {
     heldName: string;
   };
   online: boolean;
+  /**
+   * HCB-004: whether the catalogue the engine holds is hers (read from the server, or the copy this phone kept for an
+   * offline open). When false, a day is not planned or started: the built-in flavours are not hers. Absent: held.
+   */
+  catalogue?: { held: boolean };
   /** False until the owner's bookings have been read: the list must not say there are none before it knows. */
   eventsRead: boolean;
   /** `loading` while a read is in flight; `failed` when it could not be read (shown with a retry). */

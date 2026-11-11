@@ -338,6 +338,7 @@ import {
   type FlavoursClient,
   type ShopClient
 } from '@/lib/data/flavours';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
@@ -2322,12 +2323,24 @@ export class OpsRuntime extends OpsProvider {
     saveStallCopy(this.state.cfg, this.flavourSync?.current() ?? []);
   }
 
+  /** HCB-004: the engine's list is the copy this phone kept (a flavour list read on an earlier page load). */
+  private catalogueRestored = false;
+
+  /**
+   * HCB-004: whether the engine's flavours are hers: a read has answered, or the copy kept for an offline open was put
+   * back. Otherwise they are the six built-in ones, which a day must not be planned or started from.
+   */
+  private catalogueHeld(): boolean {
+    return !isLiveMode() || this.catalogueRestored || flavoursRead.get().everRead;
+  }
+
   /** A2: puts that copy back, on a page load the server could not be reached for. */
   restoreStallCopy(): void {
     if (!isLiveMode()) return;
     const copy = readStallCopy();
     if (!copy) return;
     if (copy.flavours.length && !this.flavourSync) {
+      this.catalogueRestored = true;
       const { list, allergens } = engineCatalogue(copy.flavours);
       const onMenu = Object.fromEntries(copy.flavours.map((f) => [f.id, f.active]));
       replaceFlavours(list, allergens);
@@ -3655,6 +3668,7 @@ export class OpsRuntime extends OpsProvider {
         isLiveMode() && this.state.role === 'owner'
           ? {
               ...this.bazaarDays.vals(),
+              catalogue: { held: this.catalogueHeld() },
               kitchen: this.kitchenDesk?.vals() ?? null,
               entry: this.eventEntry.vals(),
               navigation: {
