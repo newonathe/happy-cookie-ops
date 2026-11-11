@@ -80,11 +80,30 @@ export function manilaMidnight(ymd: string): number {
   return guess - (wall - guess);
 }
 
+const displayFormats = new Map<string, Intl.DateTimeFormat>();
+const DISPLAY_FORMAT_LIMIT = 32;
+
 /** An instant worded on the business clock, whatever zone the device is set to. */
 export function formatManila(
   at: Instant,
   options: Intl.DateTimeFormatOptions,
   locale: string = 'en-US'
 ): string {
-  return new Intl.DateTimeFormat(locale, { ...options, timeZone: BUSINESS_TIME_ZONE }).format(at);
+  // Cache formatter configuration, never the instant or its text. Rebuilding Intl for every
+  // row makes a stock list expensive on every keystroke, even when that list is off screen.
+  const effective = { ...options, timeZone: BUSINESS_TIME_ZONE };
+  const key = JSON.stringify([
+    locale,
+    Object.entries(effective).sort(([a], [b]) => a.localeCompare(b))
+  ]);
+  let formatter = displayFormats.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, effective);
+    if (displayFormats.size >= DISPLAY_FORMAT_LIMIT) {
+      const oldest = displayFormats.keys().next().value;
+      if (oldest !== undefined) displayFormats.delete(oldest);
+    }
+    displayFormats.set(key, formatter);
+  }
+  return formatter.format(at);
 }

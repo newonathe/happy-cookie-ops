@@ -261,6 +261,30 @@ describe('PaymentSync', () => {
     texts: { ...EMPTY_TEXTS, tin_line: 'T' }
   };
 
+  it('keeps a newer public read when an earlier concurrent read fails late', async () => {
+    let release!: (reply: { data: null; error: { code: string } }) => void;
+    const rpc = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      )
+      .mockResolvedValue({ data: info, error: null });
+    const hooks = { apply: vi.fn(), changed: vi.fn(), toast: vi.fn() };
+    const client = { rpc } as unknown as PaymentClient & UploadClient;
+    const sync = new PaymentSync(client, hooks);
+    const earlier = sync.loadPublic();
+    expect(sync.publicState).toBe('loading');
+    expect(await sync.loadPublic()).toBe(true);
+    release({ data: null, error: { code: '57014' } });
+    expect(await earlier).toBe(false);
+    expect(sync.publicState).toBe('ready');
+    expect(sync.info?.methods[0]?.label).toBe('GCash');
+    expect(hooks.apply).toHaveBeenCalledTimes(1);
+  });
+
   it('applies the methods it read to the engine', async () => {
     const { sync, hooks } = syncFor(() => ({ data: info }));
     expect(await sync.loadPublic()).toBe(true);

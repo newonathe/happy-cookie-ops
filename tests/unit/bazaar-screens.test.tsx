@@ -13,7 +13,7 @@ import type {
 } from '@/lib/bazaar/live-bazaar-types';
 import type { OpsVals } from '@/view-models/vals';
 import { BazaarLive } from '@/components/live/bazaar/bazaar-live';
-import { DayReview } from '@/components/live/bazaar/day-review';
+import { DayReview, StockForm } from '@/components/live/bazaar/day-review';
 import { EventPage } from '@/components/live/bazaar/event-page';
 import { DayPlan } from '@/components/live/bazaar/day-plan';
 import { BooksForm } from '@/components/live/books-form';
@@ -131,8 +131,9 @@ describe('the day review', () => {
     expect(screen.getByText('Katipunan market')).toBeTruthy();
     expect(screen.getByText('Selling')).toBeTruthy();
     expect(screen.getByRole('status').textContent).toBe('Selling on another phone.');
-    expect(screen.getByText('20 made · 8 carried over')).toBeTruthy();
-    expect(screen.getByText('5 sold · 1 given away · 1 lost')).toBeTruthy();
+    expect(
+      screen.getByText('20 made · 8 carried over · 5 sold · 1 given away · 1 lost')
+    ).toBeTruthy();
     expect(screen.getAllByText('Should be left: 21')).toHaveLength(2);
     expect(screen.getByText(/Dropped/)).toBeTruthy();
   });
@@ -416,7 +417,7 @@ describe('the day review', () => {
     const { unmount } = render(<DayReview review={review({ canAddCarried: true })} />);
     const form = screen.getByRole('form', { name: 'Add stock' });
     expect(within(form).getByLabelText('Kind')).toBeTruthy();
-    expect(within(form).getByRole('option', { name: 'Made today' })).toBeTruthy();
+    expect(within(form).getByRole('option', { name: 'Made separately' })).toBeTruthy();
     expect(within(form).getByRole('option', { name: 'Carried over' })).toBeTruthy();
     unmount();
     render(<DayReview review={review({ canAddCarried: false })} />);
@@ -525,7 +526,6 @@ const livePanel = (over: Partial<LiveBazaarVals> = {}): LiveBazaarVals => ({
   closeReview: noop,
   add: noop,
   readHub: noop,
-  addEvent: async () => null,
   justAdded: null,
   retry: noop,
   back: noop,
@@ -679,7 +679,7 @@ const openCloseSheet = async () => {
       name: 'Close the event'
     })[0] as HTMLElement
   );
-  return screen.findByRole('dialog');
+  return screen.findByRole('region', { name: 'Close the event' });
 };
 
 describe('the event page', () => {
@@ -730,7 +730,7 @@ describe('the event page', () => {
   it('draws the fees as a receipt, adds one with the typed strings, and clears the form when saved', async () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
-    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const table = screen.getByRole('table', { name: 'Fees' });
     expect(within(table).getByText('Permit')).toBeTruthy();
@@ -762,7 +762,7 @@ describe('the event page', () => {
   it('sends a fee for the whole event with a null day', async () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
-    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.change(within(form).getByLabelText('What for'), {
@@ -784,7 +784,7 @@ describe('the event page', () => {
   it('points at the red fields of a fee, sends nothing, and clears a red field as she types', () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
-    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.click(within(form).getByRole('button', { name: 'Add the fee' }));
@@ -808,6 +808,7 @@ describe('the event page', () => {
   it('draws the target and saves what is typed', async () => {
     const saveTarget = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ saveTarget })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Target profit/ }));
     const form = screen.getByRole('form', { name: 'Target profit' });
     const target = within(form).getByLabelText('Target') as HTMLInputElement;
@@ -820,6 +821,7 @@ describe('the event page', () => {
   it('refuses a target that is not an amount, on the field', () => {
     const saveTarget = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ saveTarget })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Target profit/ }));
     const form = screen.getByRole('form', { name: 'Target profit' });
     fireEvent.change(within(form).getByLabelText('Target'), {
@@ -836,6 +838,7 @@ describe('the event page', () => {
     const first = e.costs[0];
     if (!first) throw new Error('a cost');
     render(<EventPage event={{ ...e, costs: [{ ...first, save }] }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Cost per cookie/ }));
     expect(screen.getByText('per cookie · from the recipe')).toBeTruthy();
     const table = screen.getByRole('table', {
@@ -865,6 +868,7 @@ describe('the event page', () => {
 
   it('sums the fees, the target and the costs on one card of rows', () => {
     render(<EventPage event={eventView()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     const card = screen.getByRole('list', { name: 'Costs' });
     const rows = within(card).getAllByRole('button');
     expect(rows).toHaveLength(3);
@@ -880,6 +884,7 @@ describe('the event page', () => {
     let answer: (v: string | null) => void = () => undefined;
     const addFee = vi.fn(() => new Promise<string | null>((r) => (answer = r)));
     render(<EventPage event={eventView({ addFee })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.change(within(form).getByLabelText('What for'), { target: { value: 'Ice' } });
@@ -926,7 +931,9 @@ describe('the event page', () => {
     ).toBeTruthy();
     expect(run).not.toHaveBeenCalled();
     fireEvent.click(within(sheet).getByRole('button', { name: 'Not yet' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Close the event' })).toBeNull()
+    );
     const again = await openCloseSheet();
     fireEvent.click(within(again).getByRole('button', { name: 'Close the event' }));
     await waitFor(() =>
@@ -1498,5 +1505,109 @@ describe('Keep is for the cash it was kept against (U5 review)', () => {
     };
     rerender(<DayReview review={{ ...r, close }} />);
     expect(screen.getByRole('alert').textContent).toContain('That is ₱1,200.00 over');
+  });
+});
+
+describe('price-only plan entry', () => {
+  it.each([true, false])('saves selected zero-stock prices from a new=%s plan', async (isNew) => {
+    const save = vi.fn(async (): Promise<string | null> => null);
+    render(<DayPlan editor={planEditor({ isNew, carryIn: null, save })} online />);
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'Double Chocolate Fudge: use recorded kitchen cookies' })
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save prices only →' }));
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    expect(save.mock.calls[0]).toEqual([
+      {
+        floatPesos: '',
+        priceOnlyIds: ['dcf'],
+        flavours: expect.arrayContaining([
+          expect.objectContaining({ id: 'dcf', made: '', carried: '' })
+        ])
+      }
+    ]);
+    expect(planValue('Double Chocolate Fudge made')).toBe('0');
+  });
+  it('retains an unselected count and refuses to discard it for a price-only plan', () => {
+    const save = vi.fn(async (): Promise<string | null> => null);
+    render(
+      <DayPlan
+        editor={planEditor({
+          carryIn: null,
+          save,
+          flavours: [planFlavour(), planFlavour({ id: 'other', name: 'Other cookie', made: '3' })]
+        })}
+        online
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'Double Chocolate Fudge: use recorded kitchen cookies' })
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save prices only →' }));
+    expect(screen.getByRole('alert')).toHaveTextContent(/zero.*price-only/i);
+    expect(planValue('Other cookie made')).toBe('3');
+    expect(save).not.toHaveBeenCalled();
+  });
+});
+
+describe('the separate physical stock routes', () => {
+  it('offers transfer from the stock form without submitting separately-made quantities', () => {
+    const transfer = vi.fn(),
+      addStock = vi.fn(async () => null);
+    render(
+      <StockForm
+        flavours={[{ id: 'dcf', name: 'Chocolate' }]}
+        canAddCarried
+        addStock={addStock}
+        kitchenTransfer={transfer}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Transfer from kitchen' }));
+    expect(transfer).toHaveBeenCalledOnce();
+    expect(addStock).not.toHaveBeenCalled();
+    expect(screen.getByRole('option', { name: 'Made separately' })).toBeInTheDocument();
+    expect(screen.getByText(/already recorded in Make/)).toBeInTheDocument();
+  });
+});
+
+describe('drafts while reviewing a kitchen transfer', () => {
+  it('retains unsent stock and close-out cash values across transfer navigation', () => {
+    const panel = livePanel({ reviewing: true, review: review() });
+    const kitchen = {
+      name: 'Fixture kitchen',
+      date: 'Sun, 8 Nov',
+      loading: false,
+      failed: false,
+      availabilityFailed: false,
+      phase: 'ready' as const,
+      products: [],
+      rows: [],
+      otherSaved: 0,
+      retry: noop,
+      retryStorage: noop,
+      add: () => null,
+      close: noop
+    };
+    const page = render(<BazaarLive v={valsWith(panel)} />);
+    fireEvent.change(
+      within(screen.getByRole('form', { name: 'Add stock' })).getByLabelText('How many'),
+      { target: { value: '7' } }
+    );
+    fireEvent.change(
+      within(screen.getByRole('form', { name: 'Close the day' })).getByLabelText(
+        'Cash counted (₱)'
+      ),
+      { target: { value: '301' } }
+    );
+    page.rerender(<BazaarLive v={valsWith({ ...panel, kitchen })} />);
+    expect(screen.getByRole('heading', { name: 'Transfer from kitchen' })).toBeInTheDocument();
+    expect(screen.queryByRole('form', { name: 'Add stock' })).toBeNull();
+    page.rerender(<BazaarLive v={valsWith(panel)} />);
+    expect(
+      within(screen.getByRole('form', { name: 'Add stock' })).getByLabelText('How many')
+    ).toHaveValue('7');
+    expect(
+      within(screen.getByRole('form', { name: 'Close the day' })).getByLabelText('Cash counted (₱)')
+    ).toHaveValue('301');
   });
 });

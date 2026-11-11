@@ -13,10 +13,13 @@ import {
   type FieldErrors,
   type OrderClient,
   type OrderFields,
+  type OrderBody,
   type OrderStatusView,
   type PlacedOrder,
   type WaitlistFields
 } from '@/lib/data/orders';
+import type { OrderRecovery } from '@/lib/orders/order-recovery';
+import { manilaToday } from '@/lib/time/business-clock';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import type { ShopOrderRules } from '@/lib/orders/pickup';
 import {
@@ -50,11 +53,14 @@ export interface OrderFlowHooks {
   /** Re-render the customer page. */
   changed: () => void;
   mintId: () => string;
+  current?: () => boolean;
 }
 
 export class OrderFlow {
   rules: ShopOrderRules | null = null;
   rulesState: RulesState = 'loading';
+  private rulesSeq = 0;
+  private extrasSeq = 0;
   /** B4b: the owner's boxes, add-ons, sampler and same-day rule, and what this customer picked from them. */
   extras: ShopExtras | null = null;
   extrasState: ExtrasState = 'loading';
@@ -70,6 +76,8 @@ export class OrderFlow {
   banner: Banner | null = null;
   errors: FieldErrors = {};
   placed: PlacedOrder | null = null;
+  private acknowledgedAttempt: Attempt | null = null;
+  recoveryState: ReturnType<OrderRecovery['read']>['phase'] = 'unscoped';
 
   status: OrderStatusView | null = null;
   statusToken: string | null = null;
@@ -77,6 +85,7 @@ export class OrderFlow {
   private statusSeq = 0;
 
   lookupState: LookupState = 'idle';
+  private lookupSeq = 0;
 
   waitlistAttempt: { id: string; body: ReturnType<typeof buildWaitlistBody> } | null = null;
   waitlistState: WaitlistState = 'idle';
@@ -85,32 +94,137 @@ export class OrderFlow {
 
   constructor(
     private readonly client: OrderClient,
-    private readonly hooks: OrderFlowHooks
+    private readonly hooks: OrderFlowHooks,
+    private readonly recovery?: OrderRecovery
   ) {}
 
-  /** The pickup rules, read fresh on every live page. A failed read leaves no dates to pick. */
-  async loadRules(): Promise<boolean> {
-    try {
-      this.rules = await fetchShopOrderRules(this.client);
-    } catch {
-      this.rules = null;
-    }
-    this.rulesState = this.rules ? 'ready' : 'failed';
-    this.hooks.changed();
-    return this.rules !== null;
+  usesClient(client: OrderClient): boolean {
+    return this.client === client;
   }
 
-  /** The owner's extras, read fresh on every live page. A failed read offers no extras; cookies still order. */
-  async loadExtras(): Promise<boolean> {
-    try {
-      this.extras = await fetchShopExtras(this.client);
-    } catch {
-      this.extras = null;
+  get hasRecovery(): boolean {
+    return !!this.recovery;
+  }
+  get recoveryReady(): boolean {
+    return !this.recovery || this.recoveryState === 'empty' || this.recoveryState === 'ready';
+  }
+  /** Explicit post-hydration restoration never sends a request. */
+  restoreRecovery(): OrderBody | null {
+    if (!this.recovery || this.hooks.current?.() === false) return null;
+    const read = this.recovery.read(),
+      saved = read.value;
+    const known = this.attempt ?? this.acknowledgedAttempt;
+    this.recoveryState = read.phase;
+    if (saved && known && JSON.stringify(saved.attempt) !== JSON.stringify(known)) {
+      this.recoveryState = 'invalid';
+      this.hooks.changed();
+      return null;
     }
-    this.extrasState = this.extras ? 'ready' : 'failed';
-    this.pruneSelection();
+    if (this.placed && this.acknowledgedAttempt) {
+      if (
+        saved?.placed &&
+        (saved.placed.orderNo !== this.placed.orderNo || saved.placed.token !== this.placed.token)
+      ) {
+        this.recoveryState = 'invalid';
+        this.hooks.changed();
+        return null;
+      }
+      if (!saved?.placed) this.recoveryState = 'unavailable';
+      this.hooks.changed();
+      return this.acknowledgedAttempt.body;
+    }
+    if (!saved) {
+      if (known) this.recoveryState = 'unavailable';
+      this.hooks.changed();
+      return null;
+    }
+    this.attempt = saved.placed ? null : saved.attempt;
+    this.placed = saved.placed ?? null;
+    this.acknowledgedAttempt = saved.placed ? saved.attempt : null;
+    this.boxQty = Object.fromEntries(
+      (saved.attempt.body.boxes ?? []).map((row) => [row.size, row.qty])
+    );
+    this.lines = Object.fromEntries(
+      (saved.attempt.body.add_ons ?? []).map((row) => [
+        row.id + LINE_SEP + (row.variant ?? ''),
+        { qty: row.qty, text: row.text ?? '' }
+      ])
+    );
+    this.placedLines = this.describeLines(this.selection());
+    this.banner = saved.placed
+      ? null
+      : { tone: 'notice', text: ORDER_COPY.unknown, canWaitlist: false };
     this.hooks.changed();
-    return this.extras !== null;
+    return saved.attempt.body;
+  }
+  retryRecovery(): OrderBody | null {
+    if (!this.recovery || this.sending || this.hooks.current?.() === false) return null;
+    if (this.placed && this.acknowledgedAttempt) {
+      this.recoveryState = this.recovery.write({
+        attempt: this.acknowledgedAttempt,
+        placed: this.placed
+      })
+        ? 'ready'
+        : 'unavailable';
+      this.hooks.changed();
+      return null;
+    }
+    const restored = this.restoreRecovery();
+    if (restored || !this.attempt) return restored;
+    this.recoveryState = this.recovery.write({ attempt: this.attempt }) ? 'ready' : 'unavailable';
+    this.hooks.changed();
+    return this.recoveryReady ? this.attempt.body : null;
+  }
+  private clearRecovery(): boolean {
+    if (!this.recovery) return true;
+    const expected = this.attempt ?? this.acknowledgedAttempt;
+    const cleared = expected
+      ? this.recovery.clear(expected)
+      : this.recovery.read().phase === 'empty';
+    this.recoveryState = cleared ? 'empty' : 'unavailable';
+    if (!cleared) this.hooks.changed();
+    return cleared;
+  }
+
+  /** Keep previous choices as unchecked context; only the latest active read may publish. */
+  async loadRules(): Promise<boolean> {
+    if (this.hooks.current?.() === false) return false;
+    const sequence = ++this.rulesSeq;
+    this.rulesState = 'loading';
+    this.hooks.changed();
+    let rules: ShopOrderRules | null = null;
+    try {
+      rules = await fetchShopOrderRules(this.client);
+    } catch {
+      /* retain the previous read */
+    }
+    if (sequence !== this.rulesSeq || this.hooks.current?.() === false) return false;
+    if (rules) this.rules = rules;
+    this.rulesState = rules ? 'ready' : 'failed';
+    this.hooks.changed();
+    return rules !== null;
+  }
+
+  /** An unavailable read must not erase selected boxes or add-on text. */
+  async loadExtras(): Promise<boolean> {
+    if (this.hooks.current?.() === false) return false;
+    const sequence = ++this.extrasSeq;
+    this.extrasState = 'loading';
+    this.hooks.changed();
+    let extras: ShopExtras | null = null;
+    try {
+      extras = await fetchShopExtras(this.client);
+    } catch {
+      /* retain choices and the previous read */
+    }
+    if (sequence !== this.extrasSeq || this.hooks.current?.() === false) return false;
+    if (extras) {
+      this.extras = extras;
+      if (!this.locked) this.pruneSelection();
+    }
+    this.extrasState = extras ? 'ready' : 'failed';
+    this.hooks.changed();
+    return extras !== null;
   }
 
   /** What was picked stays only while the owner still offers it. */
@@ -190,7 +304,7 @@ export class OrderFlow {
 
   /** True while an earlier attempt's outcome is unknown: the fields are frozen with it. */
   get unresolved(): boolean {
-    return this.attempt !== null;
+    return !this.sending && this.attempt !== null;
   }
 
   /**
@@ -202,10 +316,37 @@ export class OrderFlow {
   }
 
   async submit(fields: OrderFields): Promise<void> {
-    if (this.sending || this.placed) return;
+    if (this.sending || this.placed || this.hooks.current?.() === false) return;
+    if (!this.attempt && !this.recoveryReady) {
+      this.banner = {
+        tone: 'error',
+        text: 'This tab could not read its saved order. Retry checkout recovery before sending.',
+        canWaitlist: false
+      };
+      this.hooks.changed();
+      return;
+    }
     const picked = this.selection();
     fields = { ...fields, addOns: picked.addOns, boxes: picked.boxes };
     if (!this.attempt) {
+      const needsExtras =
+        fields.pickupDate === manilaToday() ||
+        picked.boxes.length > 0 ||
+        picked.addOns.length > 0 ||
+        (!!this.extras?.sampler.productId &&
+          (fields.items[this.extras.sampler.productId] ?? 0) > 0);
+      if (this.rulesState !== 'ready' || (needsExtras && this.extrasState !== 'ready')) {
+        this.banner = {
+          tone: 'error',
+          text:
+            this.rulesState !== 'ready'
+              ? ORDER_COPY.rulesUnavailable
+              : ORDER_COPY.optionsUnavailable,
+          canWaitlist: false
+        };
+        this.hooks.changed();
+        return;
+      }
       const errors = orderFieldErrors(fields);
       const x = this.extras;
       const samplerId = x?.sampler.productId ?? null;
@@ -237,16 +378,33 @@ export class OrderFlow {
     }
     this.errors = {};
     this.banner = null;
+    const attempt = attemptFor(this.attempt, fields, this.hooks.mintId);
+    this.attempt = attempt;
+    if (this.recovery && !this.recovery.write({ attempt })) {
+      this.recoveryState = 'unavailable';
+      this.banner = {
+        tone: 'error',
+        text: 'This tab could not keep your request safely. Nothing was sent this time. Keep this page open and retry checkout recovery.',
+        canWaitlist: false
+      };
+      this.hooks.changed();
+      return;
+    }
+    this.recoveryState = this.recovery ? 'ready' : 'unscoped';
     this.sending = true;
     this.hooks.changed();
-    const attempt = attemptFor(this.attempt, fields, this.hooks.mintId);
     const outcome = await placeOrder(this.client, attempt.body);
     this.attempt = settleAttempt(attempt, outcome);
     this.sending = false;
     if (outcome.kind === 'placed') {
       this.placed = outcome.order;
+      this.acknowledgedAttempt = attempt;
+      if (this.recovery && !this.recovery.write({ attempt, placed: outcome.order }))
+        this.recoveryState = 'unavailable';
       this.placedLines = this.describeLines(picked);
     } else if (outcome.kind === 'refused') {
+      if (this.recovery)
+        this.recoveryState = this.recovery.clear(attempt) ? 'empty' : 'unavailable';
       if (outcome.code === 'ZC007') void this.loadExtras();
       // A refusal a field can carry is shown on that field as well as in the banner.
       if (outcome.code === 'ZC004') this.errors = { date: outcome.message };
@@ -275,23 +433,39 @@ export class OrderFlow {
   }
 
   /** Drops the frozen attempt. The customer is told to check whether the last try went through. */
-  changeOrder(): void {
+  changeOrder(): boolean {
+    if (this.sending || this.placed || this.hooks.current?.() === false) return false;
+    if (this.recovery?.read().value?.placed) {
+      this.restoreRecovery();
+      if (this.placed) return false;
+    }
+    if (!this.clearRecovery()) return false;
     this.attempt = null;
     this.banner = { tone: 'notice', text: ORDER_COPY.changeWarning, canWaitlist: false };
     this.hooks.changed();
+    return true;
   }
 
-  /** After "See my order" or "Order again": the next order starts clean. */
-  resetCheckout(): void {
+  /** Starts another order only after the caller explicitly requests it. */
+  resetCheckout(): boolean {
+    if (
+      this.sending ||
+      this.hooks.current?.() === false ||
+      (this.recovery && this.attempt && !this.placed)
+    )
+      return false;
+    if (!this.clearRecovery()) return false;
     this.attempt = null;
     this.sending = false;
     this.banner = null;
     this.errors = {};
     this.placed = null;
+    this.acknowledgedAttempt = null;
     this.boxQty = {};
     this.lines = {};
     this.placedLines = [];
     this.hooks.changed();
+    return true;
   }
 
   /** The order for a status token. A later call wins over an earlier one still in flight. */
@@ -302,38 +476,71 @@ export class OrderFlow {
     this.statusToken = token;
     this.statusState = 'loading';
     this.hooks.changed();
-    let next: OrderStatusView | null = null;
-    let outcome: StatusState;
-    try {
-      next = await fetchOrderStatus(this.client, token);
-      outcome = next ? 'loaded' : 'missing';
-    } catch {
-      outcome = 'error';
-    }
+    const next = await this.statusSnapshot(token);
     if (seq !== this.statusSeq) return;
-    this.status = next;
-    this.statusState = outcome;
+    // Failed refreshes may retain only this token's last successful snapshot.
+    if (next.state !== 'error') this.status = next.status;
+    this.statusState = next.state;
     this.hooks.changed();
   }
 
-  /** Find my order: the token for an order number and phone, then the order itself. */
-  async lookup(orderNo: string, mobile: string): Promise<'found' | 'missed' | 'error'> {
-    if (this.lookupState === 'busy') return 'error';
+  private async statusSnapshot(
+    token: string
+  ): Promise<{ status: OrderStatusView | null; state: StatusState }> {
+    try {
+      const status = await fetchOrderStatus(this.client, token);
+      return { status, state: status ? 'loaded' : 'missing' };
+    } catch {
+      return { status: null, state: 'error' };
+    }
+  }
+
+  /** Publish a lookup only after both reads finish under its original view and status intent. */
+  async lookup(
+    orderNo: string,
+    mobile: string,
+    current: () => boolean = () => this.hooks.current?.() !== false
+  ): Promise<'found' | 'missed' | 'error'> {
+    if (this.lookupState === 'busy' || !current() || this.hooks.current?.() === false)
+      return 'error';
+    const seq = ++this.lookupSeq,
+      statusSeq = this.statusSeq;
+    const active = () =>
+      seq === this.lookupSeq &&
+      statusSeq === this.statusSeq &&
+      current() &&
+      this.hooks.current?.() !== false;
     this.lookupState = 'busy';
     this.hooks.changed();
-    const found = await findOrder(this.client, orderNo, mobile);
-    if (found.kind === 'found') {
-      this.lookupState = 'idle';
-      await this.loadStatus(found.token);
-      return 'found';
+    try {
+      const found = await findOrder(this.client, orderNo, mobile);
+      if (!active()) return 'error';
+      if (found.kind === 'found') {
+        const next = await this.statusSnapshot(found.token);
+        if (!active()) return 'error';
+        ++this.statusSeq;
+        this.statusToken = found.token;
+        this.status = next.status;
+        this.statusState = next.state;
+        this.lookupState = 'idle';
+        this.hooks.changed();
+        return 'found';
+      }
+      this.lookupState = found.kind === 'missed' ? 'missed' : 'error';
+      this.hooks.changed();
+      return found.kind === 'missed' ? 'missed' : 'error';
+    } finally {
+      if (seq === this.lookupSeq && this.lookupState === 'busy') {
+        this.lookupState = 'idle';
+        this.hooks.changed();
+      }
     }
-    this.lookupState = found.kind === 'missed' ? 'missed' : 'error';
-    this.hooks.changed();
-    return found.kind === 'missed' ? 'missed' : 'error';
   }
 
   clearLookup(): void {
+    ++this.lookupSeq;
     this.lookupState = 'idle';
+    this.hooks.changed();
   }
 
   async joinWaitlist(fields: WaitlistFields): Promise<void> {

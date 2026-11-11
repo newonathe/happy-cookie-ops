@@ -183,13 +183,18 @@ export function healthView(
       now - Date.parse(success.completed_at) <= maxAge;
     rows.push({
       label,
-      value: !latest
-        ? 'Not yet recorded — activation pending'
-        : latest.status === 'failed'
-          ? 'Failed ' + when(latest.completed_at)
-          : good
-            ? 'Completed ' + when(latest.completed_at)
-            : 'Last completed ' + when(latest.completed_at) + ' — needs checking',
+      value:
+        data === null
+          ? phase === 'loading'
+            ? 'Checking'
+            : 'Could not verify current health'
+          : !latest
+            ? 'Not yet recorded — activation pending'
+            : latest.status === 'failed'
+              ? 'Failed ' + when(latest.completed_at)
+              : good
+                ? 'Completed ' + when(latest.completed_at)
+                : 'Last completed ' + when(latest.completed_at) + ' — needs checking',
       hint:
         hint +
         (latest?.status === 'failed' && success

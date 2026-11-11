@@ -70,12 +70,19 @@ export class RecipeBook {
   private costs: ReadonlyMap<string, FlavourCost> | null = null;
   private reading: 'unread' | 'loading' | 'read' | 'failed' | 'missing' = 'unread';
   private seq = 0;
+  private generation = 0;
   private busy = false;
+  private refreshBinding: {
+    client: BazaarClient | null;
+    generation: number;
+    run: () => void;
+  } | null = null;
 
   constructor(private readonly deps: RecipeBookDeps) {}
 
   /** Back to nothing read: signing out must leave nothing of hers behind. */
   reset(): void {
+    this.generation += 1;
     this.costs = null;
     this.reading = 'unread';
     this.seq += 1;
@@ -86,10 +93,20 @@ export class RecipeBook {
    * `read` as a value that stays the same between renders: the book reads when it opens, and an effect that depends on a
    * new function every render would read again after every read.
    */
-  private readonly refresh = (): void => {
-    void this.read();
-    this.deps.reloadCosts();
-  };
+  private refreshFor(client: BazaarClient | null): () => void {
+    const generation = this.generation;
+    if (this.refreshBinding?.client !== client || this.refreshBinding.generation !== generation)
+      this.refreshBinding = {
+        client,
+        generation,
+        run: () => {
+          if (generation !== this.generation || client !== this.deps.client()) return;
+          void this.read();
+          this.deps.reloadCosts();
+        }
+      };
+    return this.refreshBinding.run;
+  }
 
   /** Reads her typed costs. Never throws. A newer read replaces an older one still out. */
   async read(): Promise<void> {
@@ -101,11 +118,14 @@ export class RecipeBook {
       return;
     }
     const mine = (this.seq += 1);
+    const generation = this.generation;
+    const current = () =>
+      mine === this.seq && generation === this.generation && client === this.deps.client();
     this.reading = 'loading';
     this.deps.rerender();
     try {
       const rows = await fetchFlavourCosts(client);
-      if (mine !== this.seq) return;
+      if (!current()) return;
       if (rows === null) {
         this.reading = 'failed';
       } else {
@@ -113,7 +133,7 @@ export class RecipeBook {
         this.reading = 'read';
       }
     } catch (e) {
-      if (mine !== this.seq) return;
+      if (!current()) return;
       this.reading = MISSING.test(e instanceof Error ? e.message : '') ? 'missing' : 'failed';
     }
     this.deps.rerender();
@@ -126,9 +146,12 @@ export class RecipeBook {
     if (!client || !this.deps.online()) return BOOK_COPY.offline;
     const parsed = parseCostField(pesos);
     if (parsed.error) return parsed.error;
+    const generation = this.generation;
+    const current = () => generation === this.generation && client === this.deps.client();
     this.busy = true;
     try {
       const outcome = await saveFlavourCost(client, productId, parsed.cents);
+      if (!current()) return BOOK_COPY.offline;
       if (outcome === 'offline') return BOOK_COPY.offline;
       if (outcome !== 'saved') return BOOK_COPY.refused;
       // What was just saved is shown at once: a read that fails after it must not leave the old figure on the page.
@@ -139,10 +162,11 @@ export class RecipeBook {
         this.costs = next;
       }
       await this.read();
+      if (!current()) return BOOK_COPY.offline;
       this.deps.toast(BOOK_COPY.saved);
       return null;
     } finally {
-      this.busy = false;
+      if (current()) this.busy = false;
     }
   }
 
@@ -156,6 +180,9 @@ export class RecipeBook {
   }
 
   vals(): LiveRecipesVals {
+    const generation = this.generation;
+    const client = this.deps.client();
+    const current = () => generation === this.generation && client === this.deps.client();
     const recipeState = this.deps.recipeCostsState();
     const flavours: BookFlavour[] = this.deps.flavours().map((f) => {
       const typed = this.costs?.get(f.id) ?? null;
@@ -193,9 +220,11 @@ export class RecipeBook {
         receiptNote: receipt && row.costSource === 'typed' ? BOOK_COPY.comparison : null,
         startingCost: startingCostText(f),
         typed: f.typedCents !== null,
-        save: (pesos) => this.save(f.id, pesos),
+        save: (pesos) => (current() ? this.save(f.id, pesos) : Promise.resolve(BOOK_COPY.offline)),
         saveBlocked: blocked ?? (this.deps.online() ? null : BOOK_COPY.offline),
-        editRecipe: () => this.deps.openRecipe(f.id)
+        editRecipe: () => {
+          if (current()) this.deps.openRecipe(f.id);
+        }
       };
     });
     const note =
@@ -214,7 +243,7 @@ export class RecipeBook {
             : 'read',
       note,
       items,
-      refresh: this.refresh
+      refresh: this.refreshFor(client)
     };
   }
 }

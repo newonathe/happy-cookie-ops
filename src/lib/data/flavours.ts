@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
 import type { EngineFlavour } from '@/store/engine/ops-engine';
@@ -65,11 +66,37 @@ export async function fetchFlavours(client: FlavoursClient): Promise<FlavourRow[
   return data ?? [];
 }
 
+const publicPrice = z
+  .union([
+    z.number(),
+    z
+      .string()
+      .regex(/^[0-9]+$/)
+      .transform(Number)
+  ])
+  .pipe(z.number().int().min(0).max(Number.MAX_SAFE_INTEGER));
+const publicMenu = z
+  .array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      short_name: z.string().min(1),
+      price_cents: publicPrice,
+      kind: z.string().min(1),
+      tag: z.string(),
+      description: z.string(),
+      image_path: z.string(),
+      sort_order: z.number().int(),
+      allergens: z.string()
+    })
+  )
+  .refine((rows) => new Set(rows.map((row) => row.id)).size === rows.length);
+
 /** The public projection, for the customer shop. Never the raw `products` table. */
 export async function fetchShopFlavours(client: ShopClient): Promise<ShopFlavourRow[]> {
   const { data, error } = await client.from('shop_products').select(SHOP_COLUMNS);
   if (error) throw new Error('shop menu load failed: ' + (error.code || error.message));
-  return (data ?? []) as ShopFlavourRow[];
+  return publicMenu.parse(data);
 }
 
 /**

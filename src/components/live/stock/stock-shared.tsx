@@ -15,14 +15,14 @@ export function liveStockOf(v: OpsVals): LiveStockVals | null {
   return (v as OpsVals & { liveStock?: LiveStockVals | null }).liveStock ?? null;
 }
 
-export const INK = '#3A1F14';
-export const INK_SOFT = '#6E574B';
-export const LINE = '#E7E1DC';
+export const INK = 'var(--color-ink)';
+export const INK_SOFT = 'var(--color-ink-soft)';
+export const LINE = 'var(--color-line-strong)';
 /** A status is a word first. The colour only backs it up: danger, warn, ok of the @theme. */
 export const STATUS_COLOUR: Record<StockStatus, string> = {
-  Out: '#A8231B',
-  Low: '#95600A',
-  Good: '#1B7A4B'
+  Out: 'var(--color-danger)',
+  Low: 'var(--color-warn)',
+  Good: 'var(--color-ok)'
 };
 
 export const screenStyle: React.CSSProperties = {
@@ -69,7 +69,7 @@ export const listStyle: React.CSSProperties = {
 export const cardStyle: React.CSSProperties = {
   border: `1px solid ${LINE}`,
   borderRadius: '12px',
-  background: '#FFFFFF',
+  background: 'var(--color-surface)',
   padding: '12px',
   boxSizing: 'border-box',
   minWidth: 0

@@ -70,7 +70,7 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
           onClick={v.openLookup}
           style={{
             alignSelf: 'flex-start',
-            minHeight: '38px',
+            minHeight: '44px',
             padding: '0',
             border: '0',
             background: 'transparent',
@@ -89,7 +89,7 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
             onClick={v.openWaitlist}
             style={{
               alignSelf: 'flex-start',
-              minHeight: '38px',
+              minHeight: '44px',
               padding: '0',
               border: '0',
               background: 'transparent',

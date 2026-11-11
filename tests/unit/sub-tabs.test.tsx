@@ -17,6 +17,14 @@ function tabs(open: string, extra: Partial<Record<string, SubTab['badge']>> = {}
 }
 
 describe('SubTabs', () => {
+  it('the refined appearance retains the same selected destination and actions', () => {
+    const { list, go } = tabs('a');
+    render(<SubTabs label="Places" tabs={list} refined />);
+    expect(screen.getByRole('button', { name: 'Orders' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Orders' })).toHaveStyle({ boxShadow: 'none' });
+    fireEvent.click(screen.getByRole('button', { name: 'Shop' }));
+    expect(go.c).toHaveBeenCalledOnce();
+  });
   it('renders one button per tab, in order, inside a labelled nav', () => {
     render(<SubTabs label="Places" tabs={tabs('a').list} />);
     const nav = screen.getByRole('navigation', { name: 'Places' });
@@ -67,10 +75,11 @@ describe('SubTabs', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('scrolls inside itself so the page cannot scroll sideways', () => {
+  it('wraps destinations so none is hidden beyond the edge of a narrow screen', () => {
     render(<SubTabs label="Places" tabs={tabs('a').list} />);
     const nav = screen.getByRole('navigation');
-    expect(nav.style.overflowX).toBe('auto');
+    expect(nav.style.flexWrap).toBe('wrap');
+    expect(nav.style.overflow).toBe('visible');
     expect(nav.style.display).toBe('flex');
     screen.getAllByRole('button').forEach((b) => {
       expect(b.style.flexShrink).toBe('0');

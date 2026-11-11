@@ -143,12 +143,21 @@ interface Fake {
   lastPaid?: unknown[];
 }
 function fakeClient(state: Fake) {
-  const rpc = vi.fn(async (name: string) => {
+  const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_stock_catalogue') return { data: state.data, error: null };
     if (name.startsWith('save_')) return state.save;
     if (name === 'record_stock_movement')
       return (
-        state.movement ?? { data: [{ item_id: 'x', on_hand: 0, duplicate: false }], error: null }
+        state.movement ?? {
+          data: [
+            {
+              item_id: (args?.p_movement as { item_id: string }).item_id,
+              on_hand: 0,
+              duplicate: false
+            }
+          ],
+          error: null
+        }
       );
     if (name === 'get_last_paid') return { data: state.lastPaid ?? [], error: null };
     // A database before B3b has no cost functions: the engine's own cost path stands.
@@ -208,6 +217,7 @@ interface InvActions {
 
 describe('A3: the catalogue reaches the ported screens (live mode)', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -418,6 +428,7 @@ describe('A3: the catalogue reaches the ported screens (live mode)', () => {
 
 describe('A3: the stock items form', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });
@@ -583,6 +594,7 @@ describe('A3: the stock items form', () => {
 
 describe('A3: the suppliers and prices form', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });
@@ -593,6 +605,204 @@ describe('A3: the suppliers and prices form', () => {
     await settle();
     return r.renderVals().liveStockSuppliers!;
   };
+
+  it('provides the supplier directory and real price history directly on its page', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    act(() => runtime.go('suppliers'));
+    const v = runtime.renderVals().liveSupplierDirectory;
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.renderVals().liveStockSuppliers).toBeNull();
+    expect(v).not.toBeNull();
+    expect(v!.editing).toBeNull();
+    expect(v!.rows[0]).toMatchObject({
+      id: 'sr',
+      phone: '',
+      notes: '',
+      prices: [{ itemName: 'Unsalted butter', pricePesos: 420, previousText: 'Before: ₱438' }]
+    });
+    act(() => v!.add());
+    expect(runtime.renderVals().liveStockSuppliers!.editing?.isNew).toBe(true);
+    expect(rpc).not.toHaveBeenCalled();
+    act(() => runtime.renderVals().liveStockSuppliers!.back());
+    expect(runtime.state.sheet).toBeNull();
+    act(() => runtime.setRole('helper'));
+    act(() => {
+      v!.add();
+      v!.edit('sr');
+    });
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.renderVals().liveStockSuppliers).toBeNull();
+    expect(runtime.renderVals().liveSupplierDirectory).toBeNull();
+  });
+
+  it('returns a confirmed supplier save directly to the directory page', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    act(() => runtime.go('suppliers'));
+    act(() => runtime.renderVals().liveSupplierDirectory!.add());
+    const form = runtime.renderVals().liveStockSuppliers!;
+    expect(form.backLabel).toBe('Back to suppliers');
+    act(() => form.save({ ...form.editing!, name: 'Fixture supplier' }));
+    await settle();
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.state.screen).toBe('suppliers');
+    expect(runtime.renderVals().liveSupplierDirectory).not.toBeNull();
+  });
+
+  it('a late supplier acknowledgement leaves a newer supplier draft open', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    act(() => runtime.go('suppliers'));
+    const directory = runtime.renderVals().liveSupplierDirectory!;
+    act(() => directory.edit('sr'));
+    const first = runtime.renderVals().liveStockSuppliers!;
+    let release: (value: Fake['save']) => void = () => {};
+    const reply = new Promise<Fake['save']>((resolve) => {
+      release = resolve;
+    });
+    rpc.mockImplementationOnce(async () => reply);
+    act(() => first.save({ ...first.editing!, name: 'Changed first supplier' }));
+    act(() => first.back());
+    act(() => directory.edit('lan'));
+    const second = runtime.state.sheet;
+    const version = runtime.renderVals().liveStockSuppliers!.version;
+    await act(async () => {
+      release(fresh().save);
+      await reply;
+    });
+    await settle();
+    expect(runtime.state.sheet).toBe(second);
+    expect(runtime.renderVals().liveStockSuppliers!.editing?.id).toBe('lan');
+    expect(runtime.renderVals().liveStockSuppliers!.version).toBe(version);
+  });
+
+  it('carries the item and pack to its supplier editor, preserving all existing price rows', async () => {
+    const state = fresh();
+    (state.data.items as Wire[])[0]!.supplier_id = null;
+    (state.data.prices as Wire[]).unshift({
+      ...(state.data.prices as Wire[])[0],
+      id: NEW_PRICE,
+      item_name: 'Box of 6'
+    });
+    const { runtime, rpc } = await mounted('owner', state);
+    act(() => runtime.go('inventory'));
+    act(() =>
+      runtime
+        .renderVals()
+        .liveStock!.items.find((i) => i.id === 'butter')!
+        .open()
+    );
+    const page = runtime.renderVals().liveStock!.page!;
+    act(() => page.openPrices?.());
+    act(() => page.managePrices?.());
+    const form = runtime.renderVals().liveStockSuppliers;
+    expect(form).not.toBeNull();
+    expect(form!.editing?.newPriceDefaults).toEqual({
+      itemName: 'Unsalted butter',
+      packLabel: '1 kg block'
+    });
+    expect(form!.editing?.prices.map((p) => p.id)).toEqual([P1, NEW_PRICE]);
+    expect(form!.editing?.focusNewPrice).toBe(true);
+    expect(form!.backLabel).toBe('Back to item prices');
+    act(() => form!.back());
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.renderVals().liveStock?.page?.pricesOpen).toBe(true);
+    act(() => page.chooseSupplier?.());
+    expect(runtime.renderVals().liveStockSuppliers?.editing).toBeNull();
+    act(() => runtime.renderVals().liveStockSuppliers!.back());
+    act(() => page.priceSources?.find((row) => row.id === P1)?.edit?.());
+    expect(runtime.renderVals().liveStockSuppliers?.editing?.focusPriceId).toBe(P1);
+    act(() => runtime.renderVals().liveStockSuppliers!.back());
+    act(() =>
+      runtime
+        .renderVals()
+        .liveStock!.items.find((i) => i.id === 'box')!
+        .open()
+    );
+    act(() => page.managePrices?.());
+    act(() => form!.save({ ...form!.editing!, name: 'Stale draft' }));
+    expect(runtime.state.sheet).toBeNull();
+    expect(rpc.mock.calls.filter(([name]) => name.startsWith('save_'))).toHaveLength(0);
+  });
+
+  it('asks for a supplier when preferences are ambiguous, then opens a saved supplier for its real quote', async () => {
+    const state = fresh();
+    (state.data.items as Wire[])[0]!.supplier_id = null;
+    (state.data.prices as Wire[])[1]!.preferred = true;
+    const { runtime, rpc } = await mounted('owner', state);
+    act(() => runtime.go('inventory'));
+    act(() =>
+      runtime
+        .renderVals()
+        .liveStock!.items.find((i) => i.id === 'butter')!
+        .open()
+    );
+    act(() => runtime.renderVals().liveStock!.page?.openPrices?.());
+    act(() => runtime.renderVals().liveStock!.page?.managePrices?.());
+    const chooser = runtime.renderVals().liveStockSuppliers;
+    expect(chooser).not.toBeNull();
+    expect(chooser!.editing).toBeNull();
+    act(() => chooser!.add());
+    const form = runtime.renderVals().liveStockSuppliers!;
+    const fields = { ...form.editing!, name: 'Fixture new supplier' };
+    (state.data.suppliers as Wire[]).push({
+      id: fields.id,
+      name: fields.name,
+      phone: fields.phone,
+      notes: fields.notes,
+      place: fields.place,
+      active: fields.active,
+      updated_at: STAMP
+    });
+    act(() => form.save(fields));
+    await settle();
+    const next = runtime.renderVals().liveStockSuppliers!;
+    expect(next.editing).toMatchObject({
+      id: fields.id,
+      isNew: false,
+      newPriceDefaults: { itemName: 'Unsalted butter', packLabel: '1 kg block' }
+    });
+    expect(called(rpc, 'save_supplier')).toHaveLength(1);
+    expect(called(rpc, 'save_supplier_price')).toHaveLength(0);
+    act(() => next.save(next.editing!));
+    // Opened to add this item's price and none was typed: it says so and stays.
+    expect(toasts(runtime)).toContain('Enter a price to add one');
+    expect(runtime.state.sheet).not.toBeNull();
+    expect(called(rpc, 'save_supplier_price')).toHaveLength(0);
+  });
+
+  it.each(['item name', 'price version', 'pack definition'])(
+    'refuses a contextual price submission after %s changes',
+    async (change) => {
+      const state = fresh();
+      const { runtime, rpc } = await mounted('owner', state);
+      act(() => runtime.go('inventory'));
+      act(() =>
+        runtime
+          .renderVals()
+          .liveStock!.items.find((i) => i.id === 'butter')!
+          .open()
+      );
+      act(() => runtime.renderVals().liveStock!.page?.managePrices?.());
+      const form = runtime.renderVals().liveStockSuppliers;
+      expect(form?.editing).toBeTruthy();
+      if (change === 'item name') (state.data.items as Wire[])[0]!.name = 'Renamed butter';
+      else if (change === 'price version')
+        Object.assign((state.data.prices as Wire[])[0]!, {
+          price_cents: 43000,
+          updated_at: '2026-10-03T00:00:00.000Z'
+        });
+      else
+        Object.assign((state.data.items as Wire[])[0]!, {
+          pack_size: 2000,
+          pack_label: '2 kg block'
+        });
+      await act(async () => {
+        await runtime.loadStockCatalogue(null);
+      });
+      act(() => form!.save({ ...form!.editing!, name: 'Changed contact' }));
+      expect(toasts(runtime)).toContain('Reopen its prices');
+      expect(rpc.mock.calls.filter(([name]) => name.startsWith('save_'))).toHaveLength(0);
+    }
+  );
 
   it('lists suppliers with their price counts, and opens one with its prices and what each was before', async () => {
     const { runtime } = await mounted('owner', fresh());
@@ -743,6 +953,7 @@ describe('A3: the suppliers and prices form', () => {
 
 describe('A3: reloads and lost replies', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });
@@ -851,6 +1062,7 @@ describe('A3: reloads and lost replies', () => {
 
 describe('A3: the ported inventory actions go to the database', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { pathForBazaar, readBazaarRoute } from '@/lib/bazaar/navigation';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { isScreenKey, pathForScreen, screenForPath, type ScreenKey } from '@/lib/screens';
@@ -74,14 +75,20 @@ export function landingScreen(
 export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
   // The engine context holds a stable class instance. Subscribe to its changing
   // render values so navigation also updates the browser address.
-  useOpsVals();
+  const vals = useOpsVals();
   const engine = useOpsEngine();
   const screen = engine.state.screen;
+  const bazaar = isLiveMode() ? vals.liveBazaar?.navigation : undefined;
+  const bazaarRoute = screen === 'bazaar' ? bazaar?.route : undefined;
+  const restoreBazaar = bazaar?.restore;
+  const bazaarRestored = useRef(initialScreen !== 'bazaar');
   const started = useRef(false);
   const initialRouteApplied = useRef(false);
   const stocktakeTick = useRef<number | null>(null);
   const stocktakeStarted = useRef(false);
-  const previousNavigation = useRef<{ screen: ScreenKey; tick: number } | null>(null);
+  const previousNavigation = useRef<{ screen: ScreenKey; tick: number; bazaar?: string } | null>(
+    null
+  );
   const popNavigationTick = useRef<number | null>(null);
   const browserIndex = useRef(0);
   // Decided once, at the page load: opening an order later must not change where this visit landed.
@@ -113,17 +120,24 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
       (engine as typeof engine & { startStocktake: () => void }).startStocktake();
   }, [engine, initialScreen, screen, navTick, countableItems]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    // Resolve the requested view before paint so a directory visit never flashes the held till.
     // The engine starts on Home while a direct URL is being adopted. Writing that
     // temporary screen to history can make Next remount Home before go() commits.
     if (!initialRouteApplied.current) {
       if (screen !== viewScreen) return;
       initialRouteApplied.current = true;
     }
+    // Adopt a direct/reloaded subview only once, after the normal landing screen is applied.
+    let currentBazaar = bazaarRoute;
+    if (!bazaarRestored.current && screen === 'bazaar' && restoreBazaar) {
+      bazaarRestored.current = true;
+      currentBazaar = restoreBazaar(readBazaarRoute(window.location.search));
+    }
     const previous = previousNavigation.current;
     const fromPop = popNavigationTick.current === navTick;
     if (fromPop) popNavigationTick.current = null;
-    previousNavigation.current = { screen, tick: navTick };
+    previousNavigation.current = { screen, tick: navTick, bazaar: currentBazaar };
     if (!previous) {
       const marker = readMarker(window.history.state);
       if (marker) {
@@ -145,11 +159,18 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
       navTick === stocktakeTick.current
     )
       return;
-    const path = pathForScreen(screen);
-    if (window.location.pathname === path) return;
+    const path = currentBazaar ? pathForBazaar(currentBazaar) : pathForScreen(screen);
+    const currentPath = window.location.pathname + (currentBazaar ? window.location.search : '');
+    if (currentPath === path) return;
     // Some protected engine actions switch screens without touching navTick
     // (for example, starting a bake batch). They still need a browser entry.
-    if (previous && (previous.tick !== navTick || previous.screen !== screen) && !fromPop) {
+    if (
+      previous &&
+      (previous.tick !== navTick ||
+        previous.screen !== screen ||
+        previous.bazaar !== currentBazaar) &&
+      !fromPop
+    ) {
       const index = browserIndex.current + 1;
       window.history.pushState(
         withMarker({ index, screens: screenHistory(engine.state.history) }),
@@ -164,7 +185,7 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
         path
       );
     }
-  }, [engine, screen, navTick, viewScreen]);
+  }, [engine, screen, navTick, viewScreen, bazaarRoute, restoreBazaar]);
 
   useEffect(() => {
     const onPop = () => {
@@ -182,6 +203,7 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
       popNavigationTick.current = nextTick;
       stocktakeTick.current = path === '/stocktake' ? nextTick : null;
       const target = path === '/stocktake' ? 'inventory' : screenForPath(path);
+      if (target === 'bazaar') restoreBazaar?.(readBazaarRoute(window.location.search));
       if (marker) {
         engine.setState({
           screen: target,
@@ -196,7 +218,7 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [engine]);
+  }, [engine, restoreBazaar]);
 
   return null;
 }

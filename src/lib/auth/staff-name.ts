@@ -48,24 +48,60 @@ export function cleanStaffName(raw: unknown): string {
   return out.trim();
 }
 
+export interface StaffIdentity {
+  userId: string;
+  business: string;
+}
+
+export function parseStaffIdentity(value: unknown): StaffIdentity | null {
+  if (!value || typeof value !== 'object') return null;
+  const { userId, business } = value as Record<string, unknown>;
+  if (
+    typeof userId !== 'string' ||
+    !userId.trim() ||
+    userId.length > 200 ||
+    typeof business !== 'string'
+  )
+    return null;
+  try {
+    const url = new URL(business);
+    if (
+      !['https:', 'http:'].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash
+    )
+      return null;
+    return { userId, business: url.origin + url.pathname.replace(/\/+$/, '') };
+  } catch {
+    return null;
+  }
+}
+
 export interface RememberedName {
   role: Role;
   name: string;
 }
 
-export function rememberStaffName(role: Role, name: string): void {
+export function rememberStaffName(role: Role, name: string, identity: StaffIdentity): void {
   try {
-    if (name) localStorage.setItem(KEY, JSON.stringify({ role, name }));
+    const scope = parseStaffIdentity(identity);
+    if (name && scope) localStorage.setItem(KEY, JSON.stringify({ role, name, ...scope }));
     else localStorage.removeItem(KEY);
   } catch {
     /* private mode or full: an offline reopen then shows the role word */
   }
 }
 
-export function readStaffName(): RememberedName | null {
+export function readStaffName(identity: StaffIdentity): RememberedName | null {
   try {
     const saved: unknown = JSON.parse(localStorage.getItem(KEY) ?? 'null');
     if (!saved || typeof saved !== 'object') return null;
+    const scope = parseStaffIdentity(identity),
+      stored = parseStaffIdentity(saved);
+    if (!scope || !stored || scope.userId !== stored.userId || scope.business !== stored.business)
+      return null;
     const { role, name } = saved as Record<string, unknown>;
     if (typeof role !== 'string' || !Object.hasOwn(ROLE_WORD, role)) return null;
     const clean = cleanStaffName(name);

@@ -1,12 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
+import { recordDoughPreparation } from './dough-preparation';
+import { recordBake } from './bake';
 
 /**
- * Production on the database (C2; `record_production` / `record_pack` / `get_production`, migration 20260101004700). A dough
- * mix or a baked batch takes every line of the recipe version it was made on off stock in one transaction (never more than is
- * there; what could not be covered is the shortfall); packing an order takes its packaging, once per order. The database works
- * out every quantity: this file only sends what the owner entered, mirrors the bounds (`productionError`) so a sure refusal is
- * never sent, and turns what the database holds back into the engine's state keys (`engineProduction`).
+ * Versioned preparation records recipe use independently of balls; versioned baking consumes
+ * recorded dough only. Frozen legacy requests retain their original RPC and body. The database
+ * computes stock/cost effects; this adapter validates inputs and acknowledgements and projects reads.
  */
 export type ProductionClient = Pick<SupabaseClient<Database>, 'rpc'>;
 
@@ -15,7 +15,7 @@ export interface ProductionFields {
   id: string;
   kind: 'dough' | 'batch';
   productId: string;
-  /** Dough: balls mixed (up to one recipe yield). Batch: everything that came out of the oven. */
+  /** Dough: actual balls. Batch: everything that came out of the oven, including rejects. */
   qty: number;
   /** Batch: what was planned. Dough: null. */
   target: number | null;
@@ -24,6 +24,10 @@ export interface ProductionFields {
   adj: Record<string, number>;
   /** The recipe version the screen showed; the database refuses if the recipe changed since. */
   recipeVersion: number;
+  /** Present only on SQL71 preparation requests; absent on every legacy frozen request. */
+  recipeAmount?: 0.5 | 1;
+  /** SQL72 bake protocol. Absent on legacy frozen requests; never infer it on replay. */
+  doughOnly?: true;
   dropNo: number;
   /** Epoch milliseconds. */
   at: number;
@@ -33,6 +37,7 @@ export interface Shortfall {
   name: string;
   by: number;
   unit: string;
+  why?: string;
 }
 
 export interface ProductionResult {
@@ -40,6 +45,8 @@ export interface ProductionResult {
   duplicate: boolean;
   usedDough: number;
   shortfall: Shortfall[];
+  problem?:
+    'preparation-update' | 'bake-update' | 'dough-shortage' | 'dough-chronology' | 'legacy-retired';
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -48,6 +55,13 @@ const whole = (v: number, min: number, max: number): boolean =>
 
 /** The same bounds `record_production` enforces. Null means the record is acceptable. */
 export function productionError(f: ProductionFields): string | null {
+  if (
+    f.doughOnly !== undefined &&
+    (f.doughOnly !== true || f.kind !== 'batch' || Object.keys(f.adj).length > 0)
+  )
+    return 'Baking uses recorded dough only. Review ingredient changes in Prepare dough.';
+  if (f.recipeAmount !== undefined && (f.kind !== 'dough' || ![0.5, 1].includes(f.recipeAmount)))
+    return 'Choose full or half of the recipe for dough preparation.';
   if (!UUID.test(f.id) || f.productId === '')
     return 'This change has no id yet. Reload and try again.';
   if (f.kind !== 'dough' && f.kind !== 'batch') return 'That is not a dough mix or a batch.';
@@ -56,7 +70,10 @@ export function productionError(f: ProductionFields): string | null {
     return 'Rejects are whole and not more than were baked.';
   if (f.kind === 'dough' ? f.target !== null : f.target === null || !whole(f.target, 0, 10000))
     return 'A batch has a planned number; dough has none.';
-  if (!whole(f.recipeVersion, 1, 1_000_000) || !whole(f.dropNo, 0, 100000))
+  if (
+    !whole(f.recipeVersion, 1, f.doughOnly ? 2147483647 : 1_000_000) ||
+    !whole(f.dropNo, 0, 100000)
+  )
     return 'The recipe version or the week is not valid.';
   for (const [name, steps] of Object.entries(f.adj))
     if (name === '' || !whole(steps, -50, 50)) return 'An adjustment is a whole number of steps.';
@@ -75,13 +92,16 @@ function parseShortfall(json: unknown): Shortfall[] | null {
       s === null ||
       typeof (s as { name?: unknown }).name !== 'string' ||
       typeof (s as { by?: unknown }).by !== 'number' ||
-      typeof (s as { unit?: unknown }).unit !== 'string'
+      typeof (s as { unit?: unknown }).unit !== 'string' ||
+      ((s as { why?: unknown }).why !== undefined &&
+        typeof (s as { why?: unknown }).why !== 'string')
     )
       return null;
     out.push({
       name: (s as Shortfall).name,
       by: (s as Shortfall).by,
-      unit: (s as Shortfall).unit
+      unit: (s as Shortfall).unit,
+      ...((s as Shortfall).why === undefined ? {} : { why: (s as Shortfall).why })
     });
   }
   return out;
@@ -118,6 +138,8 @@ export async function recordProduction(
   client: ProductionClient,
   f: ProductionFields
 ): Promise<ProductionResult> {
+  if (f.doughOnly !== undefined) return recordBake(client, f);
+  if (f.recipeAmount !== undefined) return recordDoughPreparation(client, f);
   try {
     const { data, error } = await client.rpc('record_production', {
       p_rec: {
@@ -133,6 +155,7 @@ export async function recordProduction(
         at: f.at
       }
     });
+    if (error?.code === 'ZP001') return { ...failed('refused'), problem: 'legacy-retired' };
     if (error) return failed(classify(error.code ?? ''));
     return parseResult(data, 'shortfall', 'used_dough');
   } catch {
@@ -226,8 +249,9 @@ export async function recordDiscard(
 
 export interface BatchRow {
   productId: string;
+  /** Effective GOOD output from get_production, including corrections; rejects are separate. */
   qty: number;
-  target: number;
+  target: number | null;
   rejects: number;
   version: number;
   at: number;
@@ -275,7 +299,7 @@ export function parseProduction(json: Json | null | undefined): Production | nul
     out.batches.push({
       productId: b.product_id,
       qty: b.qty,
-      target: typeof b.target === 'number' ? b.target : b.qty,
+      target: b.target,
       rejects: b.rejects,
       version: b.version,
       at: b.at
@@ -360,7 +384,7 @@ export function engineProduction(p: Production, shortName: (pid: string) => stri
     })),
     variances: p.batches.map((b) => ({
       pid: b.productId,
-      target: b.target,
+      target: b.target ?? b.qty,
       actual: b.qty,
       rejects: b.rejects,
       at: b.at

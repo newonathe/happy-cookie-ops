@@ -127,3 +127,58 @@ describe('eventWhen', () => {
     // Mutation: counting from the end date says "In 10 days" for a two-day event.
   });
 });
+
+describe('explicit price-only day planning', () => {
+  const empty = (over: Partial<PlanFlavour> = {}) => flavour({ made: '', carried: '', ...over });
+  it('saves only selected prices, including an off-menu flavour, without any stock', () => {
+    expect(
+      planFromForm({
+        floatPesos: '500',
+        priceOnlyIds: ['off'],
+        flavours: [empty(), empty({ id: 'off', onMenu: false, price: '38.44' })]
+      })
+    ).toEqual({
+      ok: true,
+      plan: {
+        floatCents: 50000,
+        lines: [{ productId: 'off', made: 0, carried: 0, priceCents: 3844 }]
+      }
+    });
+  });
+  it.each([
+    ['made', '2'],
+    ['carried', '3']
+  ] as const)('refuses existing %s quantities even on an unselected flavour', (field, value) => {
+    const input = {
+      floatPesos: '',
+      priceOnlyIds: ['dcf'],
+      flavours: [empty(), empty({ id: 'other', [field]: value })]
+    };
+    const saved = structuredClone(input);
+    expect(planFromForm(input)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/zero.*price-only/i)
+    });
+    expect(input).toEqual(saved);
+  });
+  it.each([{ ids: [] }, { ids: ['unknown'] }, { ids: ['dcf', 'dcf'] }])(
+    'refuses empty, unknown or repeated selection $ids',
+    ({ ids: priceOnlyIds }) => {
+      expect(planFromForm({ floatPesos: '', flavours: [empty()], priceOnlyIds })).toMatchObject({
+        ok: false,
+        errors: expect.arrayContaining([expect.objectContaining({ field: 'plan-price-selection' })])
+      });
+    }
+  );
+  it.each(['', '0', 'bad', '1.234', '1000001'])(
+    'checks the selected price %s even with zero cookies',
+    (price) => {
+      expect(
+        planFromForm({ floatPesos: '', flavours: [empty({ price })], priceOnlyIds: ['dcf'] })
+      ).toMatchObject({
+        ok: false,
+        errors: expect.arrayContaining([expect.objectContaining({ field: 'plan-price-dcf' })])
+      });
+    }
+  );
+});

@@ -271,6 +271,8 @@ export interface OrderStatusView {
   payState: string;
   payMethod: string;
   totalCents: number;
+  /** Missing on older schemas; null means no recorded payment amount. Never infer confirmation. */
+  paidCents?: number | null;
   pickupDate: string | null;
   pickupWindow: string | null;
   placedAt: string;
@@ -288,7 +290,7 @@ const STATES = [
   'No-show'
 ];
 
-/** Strict: a malformed answer is treated as no order, never as a half-shown one. */
+/** Strict parser: a malformed answer is never half-shown. The RPC reader distinguishes failure from absence. */
 export function parseOrderStatus(json: unknown): OrderStatusView | null {
   if (!json || typeof json !== 'object' || Array.isArray(json)) return null;
   const o = json as Record<string, unknown>;
@@ -303,6 +305,12 @@ export function parseOrderStatus(json: unknown): OrderStatusView | null {
     !Number.isInteger(o.total_cents) ||
     typeof o.placed_at !== 'string' ||
     !Array.isArray(o.items)
+  )
+    return null;
+  if (
+    o.paid_cents !== undefined &&
+    o.paid_cents !== null &&
+    (typeof o.paid_cents !== 'number' || !Number.isSafeInteger(o.paid_cents) || o.paid_cents < 0)
   )
     return null;
   const items: StatusItem[] = [];
@@ -330,6 +338,7 @@ export function parseOrderStatus(json: unknown): OrderStatusView | null {
     payState: o.pay_state,
     payMethod: o.pay_method,
     totalCents: o.total_cents,
+    ...(o.paid_cents !== undefined ? { paidCents: o.paid_cents as number | null } : {}),
     pickupDate: typeof o.pickup_date === 'string' ? o.pickup_date : null,
     pickupWindow: typeof o.pickup_window === 'string' ? o.pickup_window : null,
     placedAt: o.placed_at,
@@ -346,7 +355,10 @@ export async function fetchOrderStatus(
   if (!STATUS_TOKEN.test(token)) return null;
   const { data, error } = await client.rpc('order_status', { p_token: token });
   if (error) throw new Error('order status load failed: ' + (error.code || error.message));
-  return parseOrderStatus(data);
+  if (data === null) return null;
+  const parsed = parseOrderStatus(data);
+  if (!parsed) throw new Error('order status answer is malformed');
+  return parsed;
 }
 
 /** The status token in a URL fragment (`#t=…`); null unless it is exactly 64 lowercase hex. */

@@ -134,6 +134,11 @@ export async function pendingSales(): Promise<QueueRow[]> {
   return (await allSales()).filter((row) => row.state !== 'sent');
 }
 
+/** Something the retry timer may try again. A refused row waits for a person: the same body would be refused again. */
+export async function hasRetryable(): Promise<boolean> {
+  return (await pendingSales()).some((row) => !row.refused);
+}
+
 export async function pendingCount(): Promise<number> {
   return (await pendingSales()).length;
 }

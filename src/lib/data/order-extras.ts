@@ -36,6 +36,11 @@ export interface OrderExtrasFields {
   /** A flavour of kind `set`, or null. */
   sampler_product_id: string | null;
   sampler_max_qty: number;
+  /**
+   * The cookies in the sampler box, in the owner's order (migration 20260101007000). Null when the
+   * database does not have the list yet: the save then leaves the key out and the saved value stands.
+   */
+  sampler_flavours?: string[] | null;
   box_sizes: BoxSize[];
   add_ons: AddOn[];
 }
@@ -65,6 +70,12 @@ export function parseOrderExtras(json: Json | null | undefined): OrderExtras | n
     typeof r.updated_at !== 'string' ||
     !Array.isArray(r.box_sizes) ||
     !Array.isArray(r.add_ons)
+  )
+    return null;
+  const flavours = r.sampler_flavours;
+  if (
+    flavours !== undefined &&
+    (!Array.isArray(flavours) || !flavours.every((f) => typeof f === 'string'))
   )
     return null;
   const boxes: BoxSize[] = [];
@@ -105,6 +116,7 @@ export function parseOrderExtras(json: Json | null | undefined): OrderExtras | n
     same_day_on_extras: r.same_day_on_extras,
     sampler_product_id: r.sampler_product_id as string | null,
     sampler_max_qty: r.sampler_max_qty,
+    sampler_flavours: flavours === undefined ? null : (flavours as string[]),
     box_sizes: boxes,
     add_ons: addOns,
     updated_at: r.updated_at
@@ -116,6 +128,11 @@ export function orderExtrasError(f: OrderExtrasFields): string | null {
   if (!whole(f.same_day_percent, 0, 100))
     return 'The same-day extra is a whole number from 0 to 100.';
   if (!whole(f.sampler_max_qty, 1, 20)) return 'The sampler limit is a whole number from 1 to 20.';
+  if (f.sampler_flavours) {
+    if (f.sampler_flavours.length > 24) return 'A sampler box holds at most 24 flavours.';
+    if (new Set(f.sampler_flavours).size !== f.sampler_flavours.length)
+      return 'Each sampler flavour can be chosen once.';
+  }
   if (f.box_sizes.length > 12) return 'At most 12 box sizes.';
   const sizes = new Set<number>();
   for (const b of f.box_sizes) {
@@ -190,6 +207,10 @@ export async function saveOrderExtras(
         same_day_on_extras: fields.same_day_on_extras,
         sampler_product_id: fields.sampler_product_id,
         sampler_max_qty: fields.sampler_max_qty,
+        // Only a database that has the list is sent it; an older one refuses an unknown key.
+        ...(Array.isArray(fields.sampler_flavours)
+          ? { sampler_flavours: [...fields.sampler_flavours] }
+          : {}),
         box_sizes: fields.box_sizes.map((b) => ({
           size: b.size,
           charge_cents: b.charge_cents,
@@ -219,7 +240,8 @@ export async function saveOrderExtras(
 /** What a customer's checkout builds its pickers from (`get_shop_extras()`: active items only). */
 export interface ShopExtras {
   sameDay: { enabled: boolean; percent: number; onExtras: boolean };
-  sampler: { productId: string | null; maxQty: number };
+  /** `flavours`: the cookies in the sampler box, published ones only, in the owner's order; empty when none are chosen. */
+  sampler: { productId: string | null; maxQty: number; flavours?: string[] };
   boxes: Array<{ size: number; chargeCents: number }>;
   addOns: Array<{
     id: string;
@@ -243,7 +265,9 @@ export function parseShopExtras(json: unknown): ShopExtras | null {
     typeof sd.on_extras !== 'boolean' ||
     !whole(sd.percent, 0, 100) ||
     !whole(sampler.max_qty, 1, 20) ||
-    (sampler.product_id !== null && typeof sampler.product_id !== 'string')
+    (sampler.product_id !== null && typeof sampler.product_id !== 'string') ||
+    (sampler.flavours !== undefined &&
+      (!Array.isArray(sampler.flavours) || !sampler.flavours.every((f) => typeof f === 'string')))
   )
     return null;
   const outBoxes: ShopExtras['boxes'] = [];
@@ -278,7 +302,11 @@ export function parseShopExtras(json: unknown): ShopExtras | null {
   }
   return {
     sameDay: { enabled: sd.enabled, percent: sd.percent, onExtras: sd.on_extras },
-    sampler: { productId: sampler.product_id as string | null, maxQty: sampler.max_qty },
+    sampler: {
+      productId: sampler.product_id as string | null,
+      maxQty: sampler.max_qty,
+      flavours: (sampler.flavours as string[] | undefined) ?? []
+    },
     boxes: outBoxes.sort((a, b) => a.size - b.size),
     addOns: outAddOns
   };

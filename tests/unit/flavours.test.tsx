@@ -669,6 +669,141 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
     for (const name of portedNames) expect(shopText(unconfigured)).not.toContain(name);
   });
 
+  it('distinguishes menu failure from empty and retries the same public source', async () => {
+    const r = customer();
+    const select = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: { code: '503' } })
+      .mockResolvedValue({ data: [shopRow(OCTOBER)], error: null });
+    const client = { from: vi.fn(() => ({ select })) } as unknown as ShopClient;
+    await act(async () => {
+      expect(await r.loadShopMenu(client)).toBe(false);
+    });
+    expect(r.renderVals().liveShopMenuRead).toMatchObject({
+      state: 'failed',
+      stale: false,
+      empty: false
+    });
+    act(() => r.setState({ online: false }));
+    r.renderVals().liveShopMenuRead!.retry!();
+    expect(select).toHaveBeenCalledTimes(1);
+    act(() => r.setState({ online: true }));
+    await act(async () => {
+      r.renderVals().liveShopMenuRead!.retry!();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(r.renderVals().liveShopMenuRead).toMatchObject({
+      state: 'ready',
+      stale: false,
+      empty: false
+    });
+    expect(select).toHaveBeenCalledTimes(2);
+    expect(shopText(r)).toContain('Nutella Cookie Fries');
+  });
+
+  it('retains warned last-good menu data on refresh failure but clears it on source replacement', async () => {
+    const r = customer();
+    const select = vi
+      .fn()
+      .mockResolvedValueOnce({ data: [shopRow(OCTOBER)], error: null })
+      .mockResolvedValue({ data: null, error: { code: '503' } });
+    const client = { from: () => ({ select }) } as unknown as ShopClient;
+    await act(async () => {
+      await r.loadShopMenu(client);
+      await r.loadShopMenu(client);
+    });
+    expect(r.renderVals().liveShopMenuRead).toMatchObject({ state: 'failed', stale: true });
+    expect(shopText(r)).toContain('Nutella Cookie Fries');
+    await act(async () => {
+      await r.loadShopMenu(shopClient(null).client);
+    });
+    expect(r.renderVals().liveShopMenuRead).toMatchObject({
+      state: 'failed',
+      stale: false,
+      empty: false
+    });
+    expect(shopText(r)).not.toContain('Nutella Cookie Fries');
+  });
+
+  it('rejects older public menu answers and cached retries after source A to B to A', async () => {
+    const r = customer();
+    let release!: (value: unknown) => void;
+    const select = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      )
+      .mockResolvedValue({ data: null, error: { code: '503' } });
+    const a = { from: () => ({ select }) } as unknown as ShopClient;
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = r.loadShopMenu(a);
+    });
+    await act(async () => {
+      await r.loadShopMenu(shopClient([]).client);
+      release({ data: [shopRow(OCTOBER)], error: null });
+      expect(await pending).toBe(false);
+    });
+    expect(r.renderVals().liveShopMenuRead).toMatchObject({ state: 'ready', empty: true });
+    await act(async () => {
+      await r.loadShopMenu(a);
+    });
+    const retry = r.renderVals().liveShopMenuRead!.retry!;
+    await act(async () => {
+      await r.loadShopMenu(shopClient([]).client);
+      await r.loadShopMenu(a);
+    });
+    const calls = select.mock.calls.length;
+    await act(async () => {
+      retry();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(select).toHaveBeenCalledTimes(calls);
+  });
+
+  it('retains a selected custom flavour across empty refresh and source replacement', async () => {
+    const r = customer(),
+      a = shopClient([shopRow(OCTOBER)]).client;
+    await act(async () => {
+      await r.loadShopMenu(a);
+    });
+    act(() =>
+      r.setState((s) => ({
+        cust: { ...(s.cust as Record<string, unknown>), box: { [OCTOBER.id]: 2 } }
+      }))
+    );
+    for (const client of [a, shopClient([]).client]) {
+      if (client === a)
+        (client.from as ReturnType<typeof vi.fn>).mockReturnValue({
+          select: async () => ({ data: [], error: null })
+        });
+      await act(async () => {
+        await r.loadShopMenu(client);
+      });
+      for (const screen of ['shop', 'checkout'] as const) {
+        act(() => r.setState({ screen }));
+        expect(() => shopText(r)).not.toThrow();
+      }
+      expect((r.state.cust as { box: Record<string, number> }).box[OCTOBER.id]).toBe(2);
+      expect(r.renderVals().shopFlavours.some((p) => p.name === 'Nutella Cookie Fries')).toBe(
+        false
+      );
+    }
+  });
+
+  it.each([null, {}, [null], [{ id: 'broken' }]])(
+    'rejects a malformed public menu answer: %j',
+    async (data) => {
+      const client = {
+        from: () => ({ select: async () => ({ data, error: null }) })
+      } as unknown as ShopClient;
+      await expect(fetchShopFlavours(client)).rejects.toThrow();
+    }
+  );
+
   it(
     'renders every screen with a one-flavour published menu, and with none',
     async () => {

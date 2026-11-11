@@ -120,6 +120,20 @@ describe('recordProduction', () => {
     expect(r.duplicate).toBe(true);
   });
 
+  it('treats retirement of an unseen legacy request as a definite refusal without rerouting it', async () => {
+    const rpc = vi.fn(async () => ({ data: null, error: { code: 'ZP001' } }));
+    expect(await recordProduction(client(rpc), rec())).toMatchObject({
+      outcome: 'refused',
+      problem: 'legacy-retired',
+      duplicate: false
+    });
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith(
+      'record_production',
+      expect.objectContaining({ p_rec: expect.any(Object) })
+    );
+  });
+
   it.each([
     ['P0002', 'stale'],
     ['22023', 'refused'],
@@ -245,7 +259,7 @@ describe('parseProduction and engineProduction', () => {
   it('reads the answer strictly', () => {
     const p = parseProduction(WIRE);
     expect(p?.batches).toHaveLength(2);
-    expect(p?.batches[1]?.target).toBe(12); // no plan recorded: what was baked stands in
+    expect(p?.batches[1]?.target).toBeNull(); // no plan recorded must remain distinguishable in live results
     expect(p?.dough[1]?.at).toBeNull();
     for (const bad of [
       null,
@@ -267,6 +281,7 @@ describe('parseProduction and engineProduction', () => {
       { pid: 'hc', qty: 12, version: 1, at: 2000, rejects: 0 }
     ]);
     expect(e.variances[0]).toEqual({ pid: 'dcf', target: 6, actual: 7, rejects: 1, at: 1000 });
+    expect(e.variances[1]).toEqual({ pid: 'hc', target: 12, actual: 12, rejects: 0, at: 2000 });
     expect(e.dough).toEqual({ dcf: 4, hc: 2 });
     expect(e.doughAt).toEqual({ dcf: 500 }); // a flavour with no mix time has no entry: "Mix date not recorded"
     expect(e.baked).toEqual({ dcf: 30 });

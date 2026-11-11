@@ -151,7 +151,7 @@ const world = (over: Partial<World> = {}): World => ({
   ...over
 });
 function fakeClient(w: World) {
-  const rpc = vi.fn(async (name: string): Promise<Answer> => {
+  const rpc = vi.fn(async (name: string, args?: Record<string, unknown>): Promise<Answer> => {
     if (name === 'get_stock_catalogue') return { data: w.catalogue, error: null };
     if (name === 'get_last_paid') return { data: [], error: null };
     if (name === 'get_recipes') return { data: PRODUCTS.map((p) => recipeRow(p.id)), error: null };
@@ -161,7 +161,16 @@ function fakeClient(w: World) {
     if (name === 'get_production')
       return { data: { batches: [], dough: [], baked: [], shortfalls: [] }, error: null };
     if (name === 'record_stock_movement')
-      return { data: [{ item_id: 'x', on_hand: 0, duplicate: false }], error: null };
+      return {
+        data: [
+          {
+            item_id: (args?.p_movement as { item_id: string }).item_id,
+            on_hand: 0,
+            duplicate: false
+          }
+        ],
+        error: null
+      };
     if (name === 'record_discard') return { data: [{ duplicate: false }], error: null };
     return { data: null, error: null };
   });
@@ -175,6 +184,8 @@ interface Acts {
   costPerUnit: (name: string) => number;
   logSpoilage: (name: string, qty: unknown, why: string, pid?: string, kind?: string) => void;
   reconcile: () => void;
+  startStocktake: () => void;
+  countInput: (name: string, value: string) => void;
 }
 const acts = (r: OpsRuntime) => r as unknown as Acts;
 const settle = () => act(async () => void (await new Promise((r) => setTimeout(r, 30))));
@@ -208,6 +219,7 @@ const PENDING = 'Cost pending';
 
 describe('B3b-2: the screens read the database’s cost (live mode)', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -377,9 +389,8 @@ describe('B3b-2: the screens read the database’s cost (live mode)', () => {
 
   it('(c) a stocktake over items with no cost reports no value, not NaN', async () => {
     const { runtime } = await mounted(world());
-    act(() =>
-      runtime.setState({ stocktake: { i: 0, items: ['Eggs'], counts: { Eggs: '5' } } } as never)
-    );
+    act(() => acts(runtime).startStocktake());
+    act(() => acts(runtime).countInput('Eggs', '5'));
     act(() => acts(runtime).reconcile());
     await settle();
     expect(msg(runtime)).not.toContain('NaN');
@@ -563,6 +574,7 @@ function expectNoNaN(runtime: OpsRuntime) {
 
 describe('B3b-2: the books list what has no cost', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();

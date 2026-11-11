@@ -14,6 +14,7 @@ import { pesosToCentavos } from '@/lib/money';
 import { peso } from '@/lib/money/format';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
+import { PageTitle } from '@/components/ui/owner-kit';
 import { Card } from '@/components/ui/card';
 import { ErrorSummary } from '@/components/ui/error-summary';
 import { Field } from '@/components/ui/field';
@@ -47,6 +48,10 @@ function carriedText(carryIn: NonNullable<DayPlanEditor['carryIn']>, id: string)
  */
 export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boolean }) {
   const [floatPesos, setFloat] = useState(editor.floatPesos);
+  const [priceOnlyIds, setPriceOnlyIds] = useState<string[]>([]);
+  const priceOptions = priceOnlyIds.length > 0 ? { priceOnlyIds } : {};
+  const canSetPrices =
+    editor.isNew || editor.flavours.every((f) => num(f.made) + num(f.carried) === 0);
   const { carryIn } = editor;
   // A new day starts with what the earlier day set aside, unless she has typed otherwise (a saved plan is left as it is).
   const [flavours, setFlavours] = useState<PlanFlavour[]>(() =>
@@ -65,7 +70,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
   const [serverError, setServerError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const issues = useIssues((): FieldIssue[] => {
-    const r = validatePlan({ floatPesos, flavours });
+    const r = validatePlan({ floatPesos, flavours, ...priceOptions });
     return r.ok ? [] : r.errors;
   });
 
@@ -97,7 +102,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
     if (!issues.submit()) return;
     setSaving(true);
     try {
-      setServerError(await editor.save({ floatPesos, flavours }));
+      setServerError(await editor.save({ floatPesos, flavours, ...priceOptions }));
     } finally {
       setSaving(false);
     }
@@ -125,7 +130,29 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
           state={total > 0 ? 'inCart' : f.onMenu ? 'idle' : 'offMenu'}
           stepper={
             <div className="flex w-full flex-col items-center gap-2">
-              <span className="text-caption font-semibold text-ink-soft">Made</span>
+              {canSetPrices ? (
+                <label className="flex items-center gap-2 text-caption text-ink-soft">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 accent-brand"
+                    aria-label={`${f.name}: use recorded kitchen cookies`}
+                    checked={priceOnlyIds.includes(id)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setPriceOnlyIds((all) =>
+                        checked
+                          ? all.includes(id)
+                            ? all
+                            : [...all, id]
+                          : all.filter((pid) => pid !== id)
+                      );
+                      issues.clear();
+                    }}
+                  />
+                  Use recorded kitchen cookies
+                </label>
+              ) : null}
+              <span className="text-caption font-semibold text-ink-soft">Made separately</span>
               <Stepper
                 size="sm"
                 id={planIds.made(id)}
@@ -216,16 +243,15 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
       noValidate
       className="flex flex-col gap-4"
     >
-      <Button variant="ghost" onClick={editor.back} className="self-start">
-        <span aria-hidden="true">← </span>Back to the event
-      </Button>
-      <div className="flex flex-col gap-1">
-        <h1 className="m-0 text-title text-ink">
-          {editor.isNew ? 'Plan ' : 'Change '}
-          {editor.dateText}
-        </h1>
-        <span className="text-body text-ink-soft">{editor.eventName}</span>
-      </div>
+      <PageTitle
+        title={`${editor.isNew ? 'Plan' : 'Change'} ${editor.dateText}`}
+        subtitle={`${editor.eventName}. Fresh cookies, carried cookies and opening float.`}
+        actions={
+          <Button variant="secondary" onClick={editor.back}>
+            Back to the event
+          </Button>
+        }
+      />
       <ErrorSummary errors={issues.summary} focusKey={issues.focusKey} />
       {serverError ? <Banner tone="danger" title={serverError} /> : null}
       {editor.copy || carryIn ? (
@@ -268,7 +294,21 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
           }}
         />
       </Card>
-      <section aria-labelledby="plan-flavours" className="flex flex-col gap-3">
+      <section
+        id={planIds.selection}
+        tabIndex={-1}
+        aria-labelledby="plan-flavours"
+        className="flex flex-col gap-3"
+      >
+        {canSetPrices ? (
+          <p className="m-0 text-caption text-ink-mute">
+            For cookies already baked in Make, select their prices below and keep quantities at
+            zero. Save prices first, then transfer the cookies from the kitchen.
+          </p>
+        ) : null}
+        {issues.messageOf(planIds.selection) ? (
+          <p className="text-caption text-danger">{issues.messageOf(planIds.selection)}</p>
+        ) : null}
         <SectionHeader
           title={<span id="plan-flavours">Cookies on the table</span>}
           count={main.length}
@@ -295,17 +335,25 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
         ) : null}
       </section>
       <p className="m-0 text-caption text-ink-mute">
-        Leave a flavour at 0 to leave it off the table. The price you set is this day&apos;s price,
-        whatever the menu says.
+        {priceOnlyIds.length > 0 ? (
+          'Only selected prices are saved. Transfer recorded kitchen cookies after saving.'
+        ) : (
+          <>
+            Leave a flavour at 0 to leave it off the table. The price you set is this day&apos;s
+            price, whatever the menu says.
+          </>
+        )}
       </p>
       <div
         data-part="plan-footer"
         // On a phone the dock (and the floating add button above it) take the bottom 84 px and the right 78 px: the footer
         // stands above the dock and stops short of the button. The runtime lifts the toast above it (`liveToastVals`).
-        className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t border-line bg-surface px-4 py-3 max-md:bottom-[84px] max-md:flex-col max-md:items-stretch max-md:pr-[78px]"
+        className="sticky bottom-0 z-10 -mx-3.5 flex flex-wrap items-center justify-between gap-3 border-t border-line bg-surface px-3.5 py-3 md:-mx-4 md:px-4 max-md:bottom-[84px] max-md:flex-col max-md:items-stretch max-md:pr-[78px]"
       >
         <span aria-live="polite" className="text-body font-bold text-ink tabular-nums">
-          {planTotalsText(flavours)}
+          {priceOnlyIds.length > 0
+            ? `Prices for ${priceOnlyIds.length} flavour${priceOnlyIds.length === 1 ? '' : 's'}; quantities must be zero`
+            : planTotalsText(flavours)}
         </span>
         <Button
           type="submit"
@@ -316,7 +364,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
           disabled={!online}
           reason="Saving a plan needs signal."
         >
-          Save the plan →
+          {priceOnlyIds.length > 0 ? 'Save prices only →' : 'Save the plan →'}
         </Button>
       </div>
     </form>

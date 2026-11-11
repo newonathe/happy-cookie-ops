@@ -38,6 +38,35 @@ export interface RecipeBookItem {
 }
 
 export interface LiveRecipesVals {
+  recipePage?: {
+    id: string;
+    name: string;
+    photo: string;
+    state: 'loading' | 'read' | 'failed';
+    yieldText: string | null;
+    versionText: string | null;
+    /** Cookies one batch of the saved recipe makes; 0 when there is no saved recipe. */
+    savedYield: number;
+    createRecipe?: () => boolean;
+    rows: Array<{
+      name: string;
+      amountText: string;
+      qty: number;
+      unit: string;
+      kind?: 'ingredient' | 'packaging' | null;
+    }>;
+    /** Recorded stock of what the recipe uses, for reading only. Absent before stock is read. */
+    stock?: Array<{
+      name: string;
+      unit: string;
+      onHand: number;
+      counted: boolean;
+      count?: () => void;
+    }>;
+    startProduction?: (cookies?: number) => void;
+    back: () => void;
+    refresh: () => void;
+  };
   online: boolean;
   /** How the costs were read: `read`, still `loading`, or `failed` (the figures may then differ from the events'). */
   state: 'read' | 'loading' | 'failed';

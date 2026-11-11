@@ -28,6 +28,7 @@ const config = [
     ignores: [
       'src/store/engine/ops-engine.js',
       '.next/**',
+      'tools/owner-preview/**',
       'build/**',
       'spikes/cleanup-worker/build/**',
       'spikes/workers-web/build/**',

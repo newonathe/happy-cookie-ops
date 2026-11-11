@@ -23,8 +23,8 @@ export const STAFF_COPY = {
   rejected: 'Payment rejected. The order is cancelled and its slots are free again.',
   reopened: 'Back in your review queue.',
   packed: (first: string): string => `${first}’s order is packed and ready.`,
-  collected: (first: string): string => `${first}’s order is marked collected.`,
-  noShow: (first: string): string => `${first} did not collect. The order stays paid.`,
+  collected: (first: string): string => `${first}’s order is picked up.`,
+  noShow: (first: string): string => `${first} did not pick up. The order stays paid.`,
   refunded: (amount: string): string => `${amount} refund recorded. The order is cancelled.`,
   settled: (first: string): string => `Balance settled. ${first}’s order is fully paid.`,
   flagged: (flavour: string, first: string): string =>
@@ -40,7 +40,24 @@ export const STAFF_COPY = {
   noRoom: (left: number): string =>
     left <= 0
       ? 'There is no room left in that pickup week.'
-      : `Only ${left} slots are left in that pickup week.`
+      : `Only ${left} slots are left in that pickup week.`,
+  /** An order whose saved pickup date is missing or not a real date: never replaced by a default day. */
+  pickupMissing: 'Pickup date not saved',
+  pickupMissingLong:
+    'Pickup date not saved. Ask the customer which day they will collect before you plan the bake.',
+  pickupNoTime: 'time not saved',
+  /**
+   * HCB-002a: the Orders page before its read has answered, when it failed, and when a refresh
+   * failed. Never "no orders" for any of them.
+   */
+  ordersNotRead: 'Your orders have not been read yet.',
+  ordersReadFailed: 'Your orders could not be read. Nothing is shown or counted until they load.',
+  ordersStale: (time: string): string => `Could not refresh. Showing orders as of ${time}.`,
+  /** HCB-004 (Orders slice): rows the server sent that the screens cannot use. */
+  ordersDropped: (n: number): string =>
+    n === 1
+      ? '1 order could not be read. The lists and counts below leave it out.'
+      : `${n} orders could not be read. The lists and counts below leave them out.`
 } as const;
 
 /** The messages sheet (All tools → Customer messages). */
@@ -116,6 +133,8 @@ export const EXTRAS_COPY = {
 /** The upcoming bazaars form and the Bazaar screen's list (D4). PLACEHOLDER, like the rest of this file. */
 /** PLACEHOLDER wording (A4): saving a recipe in live mode. */
 export const RECIPE_COPY = {
+  unknown:
+    'Save result not confirmed. Your edits are kept; check the saved recipe before trying again.',
   saved: (version: number) =>
     'Saved as Version ' +
     version +
@@ -134,7 +153,7 @@ export const STOCK_COPY = {
   suppliersTitle: 'Suppliers & prices',
   suppliersSub: 'Who you buy from and what each one charges',
   itemsIntro:
-    'Your ingredients and packaging. Nothing is deleted: switch an item off instead. How much you have is counted on the Inventory screen once the stock ledger is built.',
+    'Your ingredients and packaging. Nothing is deleted: switch an item off instead. Quantities are counted and received on the Inventory page.',
   suppliersIntro:
     'Your suppliers and their prices. Nothing is deleted: switch a supplier or a price off instead. The cheapest active price is the best buy.',
   addItem: 'Add an item',

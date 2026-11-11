@@ -5,6 +5,7 @@ import type * as React from 'react';
 import { formIds } from '@/lib/bazaar/forms';
 import { MARGIN_FLOOR_PERCENT, costFieldChanged, parseCostField } from '@/lib/recipes/book';
 import type { RecipeBookItem } from '@/lib/recipes/live-recipes-types';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { ReceiptTable } from '@/components/ui/receipt-table';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatTile } from '@/components/ui/stat-tile';
 import { StatusPill } from '@/components/ui/status-pill';
+import { FactRow, ReviewPanel } from '@/components/ui/owner-patterns';
 import { useIssues } from '@/components/live/bazaar/use-issues';
 import { useSave } from '@/components/live/bazaar/use-save';
 
@@ -31,16 +33,40 @@ function CostForm({ item }: { item: RecipeBookItem }) {
     return message ? [{ field, message }] : [];
   });
   const changed = costFieldChanged(pesos, item.startingCost);
-  const submit = async (e: React.FormEvent) => {
+  const [reviewing, setReviewing] = useState(false);
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!changed || item.saveBlocked || !issues.submit()) return;
-    await run(() => item.save(pesos));
+    setReviewing(true);
   };
   const blocked = item.saveBlocked;
+  if (reviewing)
+    return (
+      <div className="flex flex-col gap-3 md:max-w-xl">
+        {error ? <Banner tone="danger" title={error} /> : null}
+        <ReviewPanel
+          note="Every bazaar uses this cost for the flavour, open ones and later ones."
+          backLabel="Change cost"
+          onBack={() => setReviewing(false)}
+          saveLabel="Save the cost"
+          saving={saving}
+          onSave={() =>
+            void run(() => item.save(pesos)).then((saved) => {
+              if (saved) setReviewing(false);
+            })
+          }
+        >
+          <FactRow label="Now">{item.costText}</FactRow>
+          <FactRow label="New cost per cookie">
+            {pesos.trim() ? `₱${pesos.trim()}` : 'The recipe’s cost'}
+          </FactRow>
+        </ReviewPanel>
+      </div>
+    );
   return (
     <form
       {...issues.formProps}
-      onSubmit={(e) => void submit(e)}
+      onSubmit={submit}
       aria-label={'Cost per cookie for ' + item.name}
       noValidate
       className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 md:max-w-xl"
@@ -74,12 +100,10 @@ function CostForm({ item }: { item: RecipeBookItem }) {
         <Button
           type="submit"
           variant="secondary"
-          busy={saving}
-          busyLabel="Saving…"
           disabled={!changed || blocked !== null}
           reason={blocked ?? undefined}
         >
-          Save the cost
+          Review the cost
         </Button>
         {item.typed ? (
           <Button
@@ -101,6 +125,7 @@ export function FlavourPage({
   onBack,
   onEditRecipe,
   note,
+  backLabel,
   fade
 }: {
   item: RecipeBookItem;
@@ -108,6 +133,7 @@ export function FlavourPage({
   onEditRecipe: () => void;
   /** What could not be read, said above the page (the book's note). */
   note?: string | null;
+  backLabel?: string;
   /** True where there is no view transition: the page fades in instead. */
   fade: boolean;
 }) {
@@ -115,14 +141,16 @@ export function FlavourPage({
   useEffect(() => {
     heading.current?.focus();
   }, []);
-  const url = resolveImagePath(item.photo);
+  const real = resolveImagePath(item.photo);
+  const url = cookiePicture(real, item.name);
   const r = item.receipt;
   const margin = item.tone === 'none' ? undefined : item.tone;
   return (
     <div className={fade ? 'motion-enter flex flex-col gap-4' : 'flex flex-col gap-4'}>
       {note ? <Banner tone="warn" title={note} /> : null}
       <Button variant="ghost" onClick={onBack} className="self-start">
-        <span aria-hidden="true">← </span>Back to the recipe book
+        <span aria-hidden="true">← </span>
+        {backLabel ?? 'Back to the recipe book'}
       </Button>
       <Card
         as="section"
@@ -131,15 +159,13 @@ export function FlavourPage({
       >
         <span
           aria-hidden="true"
-          data-photo={url ? 'yes' : 'none'}
+          data-photo={real ? 'yes' : 'art'}
           className="relative grid aspect-[16/9] w-full place-items-center overflow-hidden rounded-control bg-chip bg-cover bg-center md:aspect-[4/3] md:w-72 md:shrink-0"
           style={{
-            ...(url ? { backgroundImage: `url(${url})` } : {}),
+            backgroundImage: `url(${url})`,
             viewTransitionName: PHOTO_TRANSITION
           }}
-        >
-          {!url ? <span className="text-title text-ink-faint">{item.name.slice(0, 1)}</span> : null}
-        </span>
+        ></span>
         <div className="flex flex-wrap items-center gap-2 px-1 pb-1">
           <h1 ref={heading} tabIndex={-1} className="m-0 min-w-0 text-title text-ink outline-none">
             {item.name}
@@ -213,11 +239,10 @@ export function FlavourPage({
       <section aria-labelledby="book-recipe" className="flex flex-col gap-2">
         <SectionHeader title={<span id="book-recipe">The recipe</span>} />
         <p className="m-0 text-caption text-ink-mute md:max-w-xl">
-          Recipes are still edited in the older Recipes screen. Look there, but do not save yet:
-          saving turns packaging lines into ingredients until that is fixed (B6).
+          Editing saves a new version. What has been baked keeps its own.
         </p>
         <Button variant="secondary" onClick={onEditRecipe} className="self-start">
-          Open the older Recipes screen
+          Edit recipe
         </Button>
       </section>
     </div>

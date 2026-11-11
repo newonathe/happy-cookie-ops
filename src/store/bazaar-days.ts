@@ -18,9 +18,10 @@ import {
   type BazaarSummary,
   type TillFigures
 } from '@/lib/data/bazaar-days';
-import { saveScheduledEvent, type ScheduledEvent } from '@/lib/data/scheduled-events';
+import { type ScheduledClient, type ScheduledEvent } from '@/lib/data/scheduled-events';
+import { matchesEventEntry, sendEventEntry } from '@/lib/data/event-entry';
+import type { FrozenEventRequest } from '@/lib/bazaar/event-entry-recovery';
 import { dayRange, dayText as dayWords } from '@/lib/date/day-text';
-import { validateEventForm, type EventFormInput } from '@/lib/bazaar/event-form';
 import {
   hubFactsOf,
   hubNeedsRead,
@@ -78,6 +79,8 @@ import { formatManila } from '@/lib/time/business-clock';
  */
 export interface BazaarDaysDeps {
   client: () => BazaarClient | null;
+  /** Verified owner/backend generation. Null when the full owner workspace is not authorized. */
+  eventActor: () => number | null;
   online: () => boolean;
   bookings: () => readonly ScheduledEvent[];
   /** False until the owner's bookings have been read. */
@@ -93,6 +96,9 @@ export interface BazaarDaysDeps {
   }>;
   /** True while this phone holds an event (a started day, or one from before): a second cannot start. */
   holdsEvent: () => boolean;
+  resumeTill?: () => void;
+  /** Captures the verified production owner/client when drawing a selected-day action. */
+  kitchenTransfer?: (bookingId: string, dayId: string) => (() => void) | null;
   /**
    * U5: whether a flavour has a recipe (the database refuses a flavour with none sent to the shop); null while the recipes
    * have not been read. Only chooses where the last day's leftover is suggested to go.
@@ -281,6 +287,8 @@ const stamp = (at: number): string =>
   );
 
 export class BazaarDays {
+  private listPosition: LiveBazaarVals['listPosition'];
+  private hubFilter: 'upcoming' | 'past' = 'upcoming';
   private bookingId: string | null = null;
   private data: Bazaar | null = null;
   private reading: 'read' | 'loading' | 'failed' = 'read';
@@ -304,11 +312,16 @@ export class BazaarDays {
   private hubFacts = new Map<string, HubFacts>();
   private hubState = new Map<string, 'reading' | 'failed'>();
   private justAdded: string | null = null;
+  private selectionVersion = 0;
+  selectionEpoch(): number {
+    return this.selectionVersion;
+  }
 
   constructor(private readonly deps: BazaarDaysDeps) {}
 
   /** The owner's way out of every view: back to the list, nothing kept. */
   reset(): void {
+    this.selectionVersion += 1;
     this.justAdded = null;
     this.bookingId = null;
     this.data = null;
@@ -319,7 +332,12 @@ export class BazaarDays {
     this.seq += 1;
   }
 
+  selectedBookingId(): string | null {
+    return this.bookingId;
+  }
+
   open(bookingId: string): void {
+    this.selectionVersion += 1;
     this.justAdded = null;
     this.bookingId = bookingId;
     this.data = null;
@@ -334,6 +352,7 @@ export class BazaarDays {
    * is drawn only from a read made now, so the close is given back the hash of exactly what she is shown.
    */
   openReview(bookingId: string, dayId: string, from: 'till' | 'event'): void {
+    this.selectionVersion += 1;
     this.bookingId = bookingId;
     this.data = null;
     this.editing = null;
@@ -356,6 +375,7 @@ export class BazaarDays {
     this.deps.rerender();
     try {
       const data = await fetchBazaar(client, id);
+      if (data.booking.id !== id) throw new Error('bazaar answer does not match the event');
       // A newer read, or a different booking, has taken over: this answer is stale.
       if (seq !== this.seq || id !== this.bookingId) return false;
       this.data = data;
@@ -400,8 +420,24 @@ export class BazaarDays {
     return {
       online: this.deps.online(),
       eventsRead: this.deps.bookingsRead(),
-      state: this.bookingId && !this.data ? this.reading : 'read',
+      state:
+        this.bookingId && !booking
+          ? this.deps.bookingsRead()
+            ? 'failed'
+            : 'loading'
+          : this.bookingId && !this.data
+            ? this.reading
+            : 'read',
       list: this.hubList(),
+      listPosition: this.listPosition,
+      rememberListPosition: (id, top) => {
+        this.listPosition = { id, top: Number.isFinite(top) && top > 0 ? top : 0 };
+      },
+      listFilter: this.hubFilter,
+      setListFilter: (filter) => {
+        this.hubFilter = filter;
+        this.deps.rerender();
+      },
       event,
       editor: event && this.editing ? this.editorView(booking!, this.data!) : null,
       reviewing: this.reviewing !== null,
@@ -410,7 +446,6 @@ export class BazaarDays {
       closeReview: this.leaveReview,
       add: () => this.deps.openAdd(),
       readHub: () => void this.readHub(),
-      addEvent: (input) => this.addEvent(input),
       justAdded: this.justAdded,
       retry: () => (this.bookingId ? void this.reload() : this.deps.rerender()),
       back: this.back
@@ -426,7 +461,12 @@ export class BazaarDays {
       // A booking nobody has asked about yet is "reading" only while a read can still come.
       const read: HubRead =
         this.hubFacts.get(b.id) ?? this.hubState.get(b.id) ?? (online ? undefined : 'failed');
-      const place = hubPlace(b, today, read);
+      const placed = hubPlace(b, today, read);
+      // The phone's held day stays reachable even outside the booking's planned dates.
+      const place =
+        placed && this.deps.held()?.scheduledId === b.id
+          ? { ...placed, group: 'active' as const, status: 'selling' as const }
+          : placed;
       return place ? [{ b, place, read }] : [];
     });
     const rank = { active: 0, upcoming: 1, past: 2 } as const;
@@ -444,7 +484,12 @@ export class BazaarDays {
         group: place.group,
         status: place.status,
         reading: place.reading,
-        whenText: place.group === 'past' ? null : eventWhen(b.startsOn, b.endsOn, today),
+        whenText:
+          this.deps.held()?.scheduledId === b.id
+            ? 'Selling on this device'
+            : place.group === 'past'
+              ? null
+              : eventWhen(b.startsOn, b.endsOn, today),
         figures:
           place.group === 'active' && facts?.today
             ? {
@@ -493,34 +538,48 @@ export class BazaarDays {
   }
 
   /**
-   * U3: adds one event. The id is the sheet's own, kept while it is open, so a retry after a lost reply is the same event.
-   * Whatever the answer, the bookings are read again: an event that is now listed was saved, whatever the reply said.
+   * U3: sends one retained create request. Its id is fixed before the first send, so a retry after a lost
+   * reply is the same event. Only its receipt or a successful fresh full-body match resolves it.
    */
-  async addEvent(input: EventFormInput): Promise<string | null> {
-    const checked = validateEventForm(input, new Date(this.deps.now()));
-    if (!checked.ok) return checked.errors[0]?.message ?? COPY.eventRefused;
+  async sendEventEntry(body: FrozenEventRequest): Promise<boolean> {
     const client = this.deps.client();
-    if (!client || !this.deps.online()) return COPY.eventOffline;
-    const outcome = await saveScheduledEvent(client, checked.fields, null);
-    await this.deps.refreshBookings();
-    const listed = this.deps.bookings().some((b) => b.id === checked.fields.id);
-    if (outcome !== 'saved' && !listed) {
-      if (outcome === 'conflict') return COPY.eventConflict;
-      return outcome === 'refused' ? COPY.eventRefused : COPY.eventOffline;
-    }
+    const actor = this.deps.eventActor();
+    if (!client || actor === null || !this.deps.online()) return false;
+    const current = () => this.deps.eventActor() === actor;
+    const id = body.p_event.id;
+    const confirmed = await sendEventEntry(client as unknown as ScheduledClient, body);
+    if (!current()) return false;
+    const read = await this.deps.refreshBookings().catch(() => false);
+    if (!current() || (!confirmed && (!read || !this.matchesListed(body)))) return false;
     // An event that was just created has no day and is not closed: that is known without a read, so its row is placed at once.
-    this.hubFacts.set(checked.fields.id, {
-      finalised: false,
-      sellingNow: false,
-      dayStarted: false,
-      costPending: false,
-      today: null
-    });
-    this.hubState.delete(checked.fields.id);
-    this.justAdded = checked.fields.id;
+    if (!this.deps.bookings().find((row) => row.id === id)?.started && !this.hubFacts.has(id))
+      this.hubFacts.set(id, {
+        finalised: false,
+        sellingNow: false,
+        dayStarted: false,
+        costPending: false,
+        today: null
+      });
+    this.hubState.delete(id);
+    this.justAdded = id;
     this.deps.toast(COPY.eventAdded);
     this.deps.rerender();
-    return null;
+    return true;
+  }
+
+  private matchesListed(body: FrozenEventRequest): boolean {
+    return this.deps.bookings().some((booking) => matchesEventEntry(body, booking));
+  }
+
+  /** Whether the server has this event. Null when it could not be read: that is not the same as no. */
+  async eventListed(body: FrozenEventRequest): Promise<boolean | null> {
+    const actor = this.deps.eventActor();
+    if (!this.deps.client() || actor === null || !this.deps.online()) return null;
+    const read = await Promise.resolve(this.deps.refreshBookings()).then(
+      (answer) => answer !== false,
+      () => false
+    );
+    return read && this.deps.eventActor() === actor ? this.matchesListed(body) : null;
   }
 
   /** A day's review is open (it is drawn ahead of the till). */
@@ -537,6 +596,7 @@ export class BazaarDays {
   openTillPanel(kind: 'fees' | 'cookies'): void {
     const held = this.deps.held();
     if (!held || !this.deps.online()) return;
+    this.selectionVersion += 1;
     this.bookingId = held.scheduledId;
     this.data = null;
     this.editing = null;
@@ -570,6 +630,7 @@ export class BazaarDays {
               name: this.names().get(l.productId) ?? l.name
             })),
             canAddCarried: Object.keys(this.carryIn(data!, day.day)?.byFlavour ?? {}).length > 0,
+            kitchenTransfer: this.deps.kitchenTransfer?.(held.scheduledId, day.id) ?? null,
             addStock: (input) => this.addHeldStock(input)
           }
         : null;
@@ -636,6 +697,7 @@ export class BazaarDays {
 
   /** From a review: to the till while this phone is selling, otherwise to the event's page. */
   private leaveReview = (): void => {
+    this.selectionVersion += 1;
     const from = this.reviewing?.from;
     if (from === 'till' && this.deps.holdsEvent()) this.reset();
     else {
@@ -864,9 +926,10 @@ export class BazaarDays {
         else if (this.deps.holdsEvent()) note = COPY.holding;
       }
     } else if (day.state === 'open') {
-      // An open day this phone does not hold (one it holds is drawn as the till): it can still be reviewed and closed here.
-      action = 'review';
-      hint = COPY.openElsewhere;
+      // Browsing does not transfer ownership: resume this phone's day, review any other day.
+      const own = this.deps.held()?.dayId === day.id && !!this.deps.resumeTill;
+      action = own ? 'resume' : 'review';
+      hint = own ? 'Selling on this device' : COPY.openElsewhere;
       if (!this.deps.online()) note = COPY.needSignal;
     } else {
       action = 'see';
@@ -890,6 +953,7 @@ export class BazaarDays {
             peso(l.priceCents)
         ),
       edit: day.state === 'planned' ? () => this.edit(day) : null,
+      kitchenTransfer: this.deps.kitchenTransfer?.(booking.id, day.id) ?? null,
       action,
       actionNote: note,
       hint,
@@ -901,19 +965,23 @@ export class BazaarDays {
       run: () =>
         day.state === 'planned'
           ? void this.start(booking, day, false, startPrompt !== null)
-          : this.openReview(booking.id, day.id, 'event')
+          : action === 'resume'
+            ? this.deps.resumeTill?.()
+            : this.openReview(booking.id, day.id, 'event')
     };
   }
 
   private plan(ymd: string): void {
     const existing = this.data?.days.find((d) => d.day === ymd);
     if (existing) return this.edit(existing);
+    this.selectionVersion += 1;
     // The id is minted once for this form: a save whose reply was lost is repeated under the same id.
     this.editing = { dayId: this.deps.newId(), ymd, stamp: null };
     this.deps.rerender();
   }
 
   private edit(day: BazaarDay): void {
+    this.selectionVersion += 1;
     this.editing = { dayId: day.id, ymd: day.day, stamp: day.updatedAt };
     this.deps.rerender();
   }
@@ -977,6 +1045,7 @@ export class BazaarDays {
       carryIn: this.carryIn(data, editing.ymd),
       save: (input) => this.save(booking, input),
       back: () => {
+        this.selectionVersion += 1;
         this.editing = null;
         this.deps.rerender();
       }
@@ -1033,6 +1102,7 @@ export class BazaarDays {
         name: names.get(l.productId) ?? l.name
       })),
       addLoss: open ? (input) => this.addLoss(day, input) : null,
+      kitchenTransfer: this.deps.kitchenTransfer?.(data.booking.id, day.id) ?? null,
       addStock: open ? (input) => this.addStock(day, input) : null,
       canAddCarried: Object.keys(this.carryIn(data, day.day)?.byFlavour ?? {}).length > 0,
       // The close is given back this read's own day: its hash and its flavours, exactly what is on the screen.
@@ -1141,7 +1211,7 @@ export class BazaarDays {
 
   private async save(
     booking: ScheduledEvent,
-    input: { floatPesos: string; flavours: PlanFlavour[] }
+    input: { floatPesos: string; flavours: PlanFlavour[]; priceOnlyIds?: readonly string[] }
   ): Promise<string | null> {
     const editing = this.editing;
     if (!editing || this.busy) return null;
@@ -1162,6 +1232,7 @@ export class BazaarDays {
         editing.stamp
       );
       if (outcome === 'saved') {
+        this.selectionVersion += 1;
         this.editing = null;
         this.deps.toast(COPY.saved);
         await this.reload();

@@ -1,4 +1,7 @@
+'use client';
+
 import type * as React from 'react';
+import { useEffect, useRef } from 'react';
 import type { LiveStockPriceRow, LiveStockSupplierEdit, OpsVals } from '@/view-models/vals';
 import { STOCK_COPY as C } from '@/lib/orders/staff-copy';
 import {
@@ -20,7 +23,7 @@ const rowCard = {
   display: 'flex',
   flexDirection: 'column' as const,
   gap: '8px',
-  border: '1px solid #E7E1DC',
+  border: '1px solid var(--color-line-strong)',
   borderRadius: '12px',
   padding: '11px'
 };
@@ -34,10 +37,20 @@ export function readSupplierForm(
   before: LiveStockSupplierEdit
 ): LiveStockSupplierEdit {
   const prices: LiveStockPriceRow[] = [];
-  for (let i = 0; i <= before.prices.length; i += 1) {
+  for (let i = 0; !before.isNew && i <= before.prices.length; i += 1) {
     const itemName = fieldValue(form, 'prItem' + i).trim();
-    if (i === before.prices.length && itemName === '') continue;
     const raw = fieldValue(form, 'prPrice' + i).trim();
+    const defaults = before.newPriceDefaults;
+    if (
+      i === before.prices.length &&
+      raw === '' &&
+      itemName === (defaults?.itemName ?? '') &&
+      fieldValue(form, 'prPack' + i).trim() === (defaults?.packLabel ?? '') &&
+      fieldValue(form, 'prBought' + i).trim() === '' &&
+      isChecked(form, 'prPref' + i) &&
+      isChecked(form, 'prOn' + i)
+    )
+      continue;
     prices.push({
       id: before.prices[i]?.id ?? before.newPriceId,
       itemName,
@@ -69,8 +82,27 @@ export function readSupplierForm(
  */
 export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSuppliers }) {
   const editing = liveStock.editing;
+  const form = useRef<HTMLFormElement>(null);
+  const match = editing
+    ? editing.prices.findIndex((row) =>
+        editing.focusPriceId
+          ? row.id === editing.focusPriceId
+          : row.itemName === editing.newPriceDefaults?.itemName
+      )
+    : -1;
+  const focusPrice = editing?.newPriceDefaults
+    ? editing.focusNewPrice || match < 0
+      ? editing.prices.length
+      : match
+    : -1;
+  useEffect(() => {
+    if (focusPrice >= 0)
+      (
+        form.current?.elements.namedItem('prPrice' + focusPrice) as HTMLInputElement | null
+      )?.focus();
+  }, [editing?.id, editing?.isNew, liveStock.version, focusPrice]);
   const offline = !liveStock.online ? (
-    <span style={{ fontSize: '12px', color: '#A8231B' }}>
+    <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
       Offline. Changes here will not save until this device is back online.
     </span>
   ) : null;
@@ -78,7 +110,10 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {offline}
-        <span style={{ fontSize: '11px', color: '#66524A' }}>{C.suppliersIntro}</span>
+        {liveStock.itemContextName ? (
+          <p>Choose a supplier for {liveStock.itemContextName}.</p>
+        ) : null}
+        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.suppliersIntro}</span>
         <button type="button" onClick={liveStock.add} style={primaryButton}>
           {C.addSupplier}
         </button>
@@ -95,7 +130,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
                   gap: '10px',
                   minHeight: '54px',
                   border: '0',
-                  borderBottom: '1px solid #F2EEEB',
+                  borderBottom: '1px solid var(--color-divide)',
                   background: 'transparent',
                   padding: '8px 2px',
                   textAlign: 'left',
@@ -106,7 +141,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
                   style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}
                 >
                   <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                  <span style={{ fontSize: '11px', color: '#66524A' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
                     {row.place ? row.place + ' · ' : ''}
                     {row.priceCount === 1 ? '1 price' : row.priceCount + ' prices'}
                     {row.active ? '' : ' · switched off'}
@@ -116,7 +151,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
             ))}
           </div>
         ) : (
-          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.noSuppliers}</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.noSuppliers}</span>
         )}
         <button type="button" onClick={liveStock.close} style={secondaryButton}>
           Close
@@ -131,11 +166,13 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
   const all = [...editing.prices, null];
   return (
     <form
+      ref={form}
       key={liveStock.version + ':' + editing.id}
       onSubmit={onSubmit}
       style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
       {offline}
+      {liveStock.itemContextName ? <p>Prices for {liveStock.itemContextName}</p> : null}
       <label style={labelStyle}>
         <span style={smallLabel}>Name</span>
         <input
@@ -169,17 +206,33 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
         <span style={smallLabel}>In use</span>
       </label>
       <span style={{ fontSize: '13px', fontWeight: 600 }}>Prices</span>
-      <span style={{ fontSize: '11px', color: '#66524A' }}>{C.priceHint}</span>
+      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.priceHint}</span>
       {editing.isNew ? (
-        <span style={{ fontSize: '11px', color: '#66524A' }}>
+        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
           Save the supplier first, then add its prices.
         </span>
       ) : (
         all.map((r, i) => (
-          <div key={r?.id ?? 'new'} style={rowCard}>
+          <PriceGroup
+            key={r?.id ?? 'new'}
+            summary={
+              r &&
+              editing.newPriceDefaults &&
+              (editing.focusNewPrice ||
+                (editing.focusPriceId
+                  ? r.id !== editing.focusPriceId
+                  : r.itemName !== editing.newPriceDefaults.itemName))
+                ? `${r.itemName} · ${r.packLabel || 'Pack not specified'}`
+                : undefined
+            }
+          >
             <label style={labelStyle}>
               <span style={smallLabel}>{r ? 'Item' : 'Add a price: item'}</span>
-              <select name={'prItem' + i} defaultValue={r?.itemName ?? ''} style={inputStyle}>
+              <select
+                name={'prItem' + i}
+                defaultValue={r?.itemName ?? editing.newPriceDefaults?.itemName ?? ''}
+                style={inputStyle}
+              >
                 <option value="">Pick an item</option>
                 {liveStock.itemNames.map((n) => (
                   <option key={n} value={n}>
@@ -196,7 +249,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
               <input
                 name={'prPack' + i}
                 maxLength={40}
-                defaultValue={r?.packLabel ?? ''}
+                defaultValue={r?.packLabel ?? editing.newPriceDefaults?.packLabel ?? ''}
                 style={inputStyle}
               />
             </label>
@@ -223,7 +276,9 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
               />
             </label>
             {r ? (
-              <span style={{ fontSize: '11px', color: '#66524A' }}>{r.previousText}</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+                {r.previousText}
+              </span>
             ) : null}
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <input name={'prPref' + i} type="checkbox" defaultChecked={r?.preferred ?? true} />
@@ -233,15 +288,26 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
               <input name={'prOn' + i} type="checkbox" defaultChecked={r?.active ?? true} />
               <span style={smallLabel}>Price in use</span>
             </label>
-          </div>
+          </PriceGroup>
         ))
       )}
       <button type="submit" style={primaryButton}>
         Save
       </button>
       <button type="button" onClick={liveStock.back} style={secondaryButton}>
-        Back to the list
+        {liveStock.backLabel ?? 'Back to the list'}
       </button>
     </form>
+  );
+}
+
+function PriceGroup({ summary, children }: { summary?: string; children: React.ReactNode }) {
+  return summary ? (
+    <details style={rowCard}>
+      <summary>{summary}</summary>
+      {children}
+    </details>
+  ) : (
+    <div style={rowCard}>{children}</div>
   );
 }
