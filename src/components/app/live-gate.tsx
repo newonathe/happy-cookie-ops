@@ -27,31 +27,14 @@ import {
 import type { LocalSale } from '@/lib/auth/sign-out-guard';
 import { OpsRuntime } from '@/store/ops-runtime';
 import type { Role } from '@/store/engine/ops-engine';
-import { registerLiveStockScreens } from '@/components/live/stock/register';
-import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
-import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
-import { registerLiveMoneyScreens } from '@/components/live/money/register';
-import { registerLiveHomeScreens } from '@/components/live/home/register';
-import { registerLiveSellScreens } from '@/components/live/sell/register';
-import { registerLiveCustomerScreens } from '@/components/live/customer/register';
-import { registerLiveAccountScreens } from '@/components/live/account/register';
+import { registerAllLiveScreens } from '@/components/live/register-all';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
 
-// The live owner's New Stock screens (B5) take the guarded slot, once, when this module loads.
-registerLiveStockScreens();
-// The live Bazaar (S2) takes the `bazaar` slot too; it draws the ported till itself while this phone holds an event.
-registerLiveBazaarScreens();
-// The live recipe book (U7) takes the `recipes` slot; the ported Recipes screen is drawn inside it, for editing a recipe.
-registerLiveRecipeScreens();
-// The live Money page takes the `pnl` slot: one period for every figure, chart and list.
-registerLiveMoneyScreens();
-// The live Home takes the `today` slot: real orders, stock, unfinished work and this month.
-registerLiveHomeScreens();
-// The live Sell pages take `orders`, `order`, `reconcile` and `drops`; Account takes `settings`, `health` and `notifications`.
-registerLiveSellScreens();
-registerLiveAccountScreens();
-registerLiveCustomerScreens();
+// The live screens (stock, Bazaar, recipes, Money, Home, Sell, Account, customer) take their guarded slots, once,
+// when this module loads. Each registers under the key of the ported screen it replaces; the Bazaar draws the
+// ported till itself while this phone holds an event, and the recipe book draws the ported editor.
+registerAllLiveScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;
