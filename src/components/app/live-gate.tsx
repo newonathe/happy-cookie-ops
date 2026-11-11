@@ -483,8 +483,22 @@ export function LiveGate({
       // Slice B2: the signed-in person's own name (the greeting, and who rang a sale up). Asked
       // again at each later check until one read has answered: a stall on weak signal must not
       // spend the day selling as "Helper" because the first try was lost.
-      if (engine instanceof OpsRuntime && engine.staffNameRole !== role)
-        void engine.loadStaffName(supabase, role);
+      // setRole is batched: `loadStaffName` refuses a role the engine has not committed yet, so
+      // ask only once the update has landed, and only if the role is still the verified one.
+      if (engine instanceof OpsRuntime && engine.staffNameRole !== role) {
+        const epoch = identityEpoch,
+          userId = verifiedUserId;
+        engine.setState({}, () => {
+          if (
+            !cancelled &&
+            epoch === identityEpoch &&
+            userId === verifiedUserId &&
+            engine.state.role === role &&
+            engine.staffNameRole !== role
+          )
+            void engine.loadStaffName(supabase, role);
+        });
+      }
       if (!settingsStarted) {
         settingsStarted = true;
         // First verified check only: re-checks (token refresh, tab visible again) must not
