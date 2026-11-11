@@ -266,6 +266,23 @@ describe('the owner Orders and Recipes reads follow the first successful catalog
     expect(started()).toEqual([1, 1]);
   });
 
+  it('z. an answer that arrives during a re-check that then verifies a helper starts nothing', async () => {
+    await open();
+    await answer(down);
+    let release!: () => void;
+    net.hold = new Promise<void>((resolve) => void (release = resolve));
+    await signedIn();
+    await tryAgain();
+    await answer(ok(GOOD));
+    net.role = 'helper';
+    net.hold = null;
+    await act(async () => {
+      release();
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(started()).toEqual([0, 0]);
+  });
+
   it('e2. a different person verified between the failure and the retry starts nothing', async () => {
     await open();
     await answer(down);
