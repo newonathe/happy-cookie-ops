@@ -973,6 +973,7 @@ export class OpsRuntime extends OpsProvider {
         photo: p.img,
         onMenu: (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
       })),
+    catalogueHeld: () => this.catalogueHeld(),
     holdsEvent: () => !!this.state.event,
     resumeTill: () => this.resumeBazaarTill(),
     hasRecipe: (productId) =>

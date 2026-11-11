@@ -17,7 +17,9 @@ export function useCatalogue(bazaar: LiveBazaarVals | null) {
     flavoursRead.get,
     flavoursRead.getServer
   );
-  const held = bazaar?.catalogue?.held !== false;
+  // The read state is reported after the engine's list is replaced, so a successful Try again clears the notice here, on its
+  // own render, without waiting for the next engine render to refresh `bazaar.catalogue`.
+  const held = bazaar?.catalogue?.held !== false || read.everRead;
   return { held, failed: read.phase === 'failed', retry: read.retry };
 }
 

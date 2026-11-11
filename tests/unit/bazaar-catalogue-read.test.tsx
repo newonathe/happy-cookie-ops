@@ -80,8 +80,26 @@ const ok = (rows: FlavourRow[]): Answer => ({ data: rows, error: null });
 const down: Answer = { data: null, error: { code: '', message: 'network' } };
 
 /** The bookings client the Bazaar uses: one booking, no day yet, and a day it will start at its own prices. */
-function bazaarClient() {
-  const days: Array<Record<string, unknown>> = [];
+function bazaarClient(planned: string[] = []) {
+  const days: Array<Record<string, unknown>> = planned.map((ymd, i) => ({
+    ...dayFacts(),
+    id: `d5a00000-0000-4000-8000-00000000000${i + 1}`,
+    day: ymd,
+    event_id: null,
+    float_cents: 50000,
+    state: 'planned',
+    hash: HASH,
+    lines: [
+      {
+        product_id: 'qa-one',
+        name: 'QA Alpha',
+        made: 10,
+        carried: 0,
+        price_cents: 17500,
+        ...lineFacts
+      }
+    ]
+  }));
   const rpc = vi.fn(async (name: string, args: Record<string, unknown> = {}) => {
     if (name === 'get_scheduled_events') return { data: [booking], error: null };
     if (name === 'get_bazaar')
@@ -169,7 +187,7 @@ const click = async (name: RegExp | string) => {
 const tryAgain = () => screen.queryByRole('button', { name: /try again/i });
 const pesos = () => screen.queryAllByText(/₱\s?\d/);
 
-async function mount(role: Role = 'owner') {
+async function mount(role: Role = 'owner', planned: string[] = []) {
   const ref: { current: OpsRuntime | null } = { current: null };
   const view = render(
     <OpsRuntime ref={(r) => void (ref.current = r)}>
@@ -179,7 +197,7 @@ async function mount(role: Role = 'owner') {
   const runtime = ref.current!;
   act(() => runtime.setRole(role));
   act(() => runtime.setState({ device: 'mobile' }));
-  const fake = bazaarClient();
+  const fake = bazaarClient(planned);
   (runtime as unknown as { saleClient: unknown }).saleClient = fake.client;
   if (role === 'owner')
     await act(async () => void (await runtime.loadScheduledEvents(fake.client as never)));
@@ -301,6 +319,7 @@ describe('HCB-004 a: the Bazaar plan and a failed or unread catalogue read', () 
     expect(screen.queryByText('Double Chocolate Fudge')).toBeNull();
     expect(screen.queryByRole('group', { name: /Double Chocolate Fudge made/ })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Save the plan →' })).toBeNull();
+    expect(screen.getByText(/have not been read yet/i)).toBeTruthy();
   });
 
   it('C. offline with the catalogue the phone kept: the day she is selling carries on, and its flavours are hers', async () => {
@@ -380,6 +399,76 @@ describe('HCB-004 a: the Bazaar plan and a failed or unread catalogue read', () 
     expect(within(form).getByRole('group', { name: 'QA Alpha made' })).toBeTruthy();
     expect(within(form).queryByText('Double Chocolate Fudge')).toBeNull();
     expect(screen.getByRole('button', { name: 'Save the plan →' })).toBeTruthy();
+  });
+
+  it('G. every disabled Plan, Start and Change-the-plan button gives the reason as its accessible description', async () => {
+    const { runtime } = await mount('owner', ['2026-10-24', '2026-10-25']);
+    await readCatalogue(runtime, down);
+    await click(/Katipunan market/);
+    const buttons = [
+      screen.getByRole('button', { name: /^Start the day/ }),
+      screen.getByRole('button', { name: 'Start this day' }),
+      ...screen.getAllByRole('button', { name: 'Change the plan' })
+    ];
+    expect(buttons.length).toBeGreaterThanOrEqual(3);
+    for (const b of buttons) {
+      expect((b as HTMLButtonElement).disabled).toBe(true);
+      expect(b).toHaveAccessibleDescription('Needs your products and prices.');
+      // No dangling reference: every id the button points at is on the page.
+      for (const id of (b.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean))
+        expect(document.getElementById(id)).not.toBeNull();
+    }
+  });
+
+  it('G2. a Plan button on a day not yet planned is described the same way', async () => {
+    const { runtime } = await mount();
+    await readCatalogue(runtime, down);
+    await click(/Katipunan market/);
+    for (const b of screen.getAllByRole('button', { name: /^Plan / }))
+      expect(b).toHaveAccessibleDescription('Needs your products and prices.');
+  });
+
+  it('H. a read that succeeded and a later retry that FAILS keeps her rows, and Plan and Start stay enabled', async () => {
+    const { runtime } = await mount('owner', ['2026-10-24']);
+    const c = await readCatalogue(runtime, ok(GOOD));
+    act(() => flavoursRead.get().retry!());
+    await act(async () => {
+      c.answer(down);
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expect(flavoursRead.get()).toMatchObject({ phase: 'failed', everRead: true });
+    await click(/Katipunan market/);
+    expect(screen.queryByText(/products and prices (have not been|could not be) read/i)).toBeNull();
+    expect(
+      (screen.getByRole('button', { name: /^Start the day/ }) as HTMLButtonElement).disabled
+    ).toBe(false);
+    await click('Change the plan');
+    const form = screen.getByRole('form', { name: /Plan for Sat, 24 Oct/ });
+    expect(within(form).getByRole('group', { name: 'QA Alpha made' })).toBeTruthy();
+    expect(within(form).queryByText('Double Chocolate Fudge')).toBeNull();
+  });
+
+  it('I. the notice clears and buttons enable on the render of a successful Try again, with no engine render after it', async () => {
+    const { runtime } = await mount('owner', ['2026-10-24']);
+    await readCatalogue(runtime, down);
+    await click(/Katipunan market/);
+    expect(screen.getByText(/could not be read/i)).toBeTruthy();
+    // The read state moves on; the runtime is not asked to render (nothing here touches its state).
+    const reader = {};
+    act(() => {
+      flavoursRead.claim(reader);
+      flavoursRead.publish(reader, {
+        phase: 'read',
+        everRead: true,
+        empty: false,
+        readAt: Date.now(),
+        retry: null
+      });
+    });
+    expect(screen.queryByText(/could not be read/i)).toBeNull();
+    expect(
+      (screen.getByRole('button', { name: /^Start the day/ }) as HTMLButtonElement).disabled
+    ).toBe(false);
   });
 
   it('F1. a catalogue answer after the page is gone changes nothing', async () => {
