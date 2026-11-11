@@ -1066,9 +1066,11 @@ export class OpsRuntime extends OpsProvider {
         }
       })),
     flavourCount: () =>
-      PRODUCTS.filter(
-        (p) => (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
-      ).length,
+      this.catalogueHeld()
+        ? PRODUCTS.filter(
+            (p) => (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+          ).length
+        : null,
     greeting: () => this.homeGreeting.greeting,
     dateText: () => this.homeGreeting.date,
     openStockItem: (id) => {
@@ -1092,7 +1094,10 @@ export class OpsRuntime extends OpsProvider {
   private bakePlan = new BakePlan({
     production: (rows) => this.shoppingProductionAction(rows),
     scope: () => (this.state.role === 'owner' ? this.productionRecovery.scope : null),
-    products: () => PRODUCTS.map((row) => ({ id: row.id, name: row.short })),
+    // HCB-004: no product to plan with until her own are read; the built-in six are not hers.
+    ready: () => this.catalogueHeld(),
+    products: () =>
+      this.catalogueHeld() ? PRODUCTS.map((row) => ({ id: row.id, name: row.short })) : [],
     recipe: (productId) => {
       const recipe = this.recipeRows?.find((row) => row.productId === productId);
       return recipe ? { savedYield: recipe.yield, lines: recipe.lines } : null;
@@ -3720,6 +3725,11 @@ export class OpsRuntime extends OpsProvider {
       liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
       liveShopMenuRead: this.onCustomerScreen() && !this.flavourSync ? this.shopMenu.view() : null,
+      // HCB-004: told only to a signed-in phone that reads her catalogue: a staff screen, or the owner's preview of the
+      // shop. A public visitor's engine role is 'owner' too, and never reads it: the shop keeps its own menu notice.
+      ...(this.flavourSync || !this.onCustomerScreen()
+        ? { catalogueHeld: this.catalogueHeld() }
+        : {}),
       liveShopAvailability: this.onCustomerScreen() ? this.shopAvailability.view() : null,
       liveShopOverride:
         this.state.role === 'owner' && !this.gateNarrow ? this.shopOverrideWrites.view() : null,
@@ -3740,10 +3750,10 @@ export class OpsRuntime extends OpsProvider {
           : flavour
       ),
       // MP-09 c1b: until the published menu is read, a customer page shows no flavours
-      // (the engine still holds the ported list, which is not the owner's menu).
+      // (the engine still holds the ported list, which is not the owner's menu). HCB-004: for the owner's
+      // preview the same holds until her own products are in hand.
       ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
-      !this.flavourSync &&
-      !this.shopMenu.loaded
+      (this.flavourSync ? !this.catalogueHeld() : !this.shopMenu.loaded)
         ? { shopFlavours: [] }
         : {}),
       // MP-09 b4: helpers (and any other non-owner) never see cost, expenses or profit, and

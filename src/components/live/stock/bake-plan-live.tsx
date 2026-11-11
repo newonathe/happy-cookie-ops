@@ -12,6 +12,18 @@ import {
   SectionHeading
 } from '@/components/ui/owner-kit';
 import { FactRow } from '@/components/ui/owner-patterns';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { CatalogueNotice } from '@/components/live/bazaar/catalogue-notice';
+
+/** HCB-004: the words and the way to try again, while her products have not been read. */
+export const BAKE_PLAN_CATALOGUE_COPY = {
+  notRead: STAFF_COPY.bakePlanCatalogueNotRead,
+  failed: STAFF_COPY.bakePlanCatalogueFailed
+};
+export interface BakePlanUnread {
+  failed: boolean;
+  retry: (() => void) | null;
+}
 
 const selectClass =
   'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]';
@@ -32,7 +44,19 @@ function Retention({ plan }: { plan: LiveBakePlan }) {
 }
 
 /** Planned bake: how many cookies of what. Shopping works out the rest. */
-export function BakePlanPage({ plan }: { plan: LiveBakePlan }) {
+export function BakePlanPage({ plan, unread }: { plan: LiveBakePlan; unread?: BakePlanUnread }) {
+  if (unread)
+    return (
+      <div className="w-full">
+        <PageTitle title="Planned bake" />
+        <CatalogueNotice {...unread} copy={BAKE_PLAN_CATALOGUE_COPY} />
+        <div className="mt-4">
+          <Button variant="secondary" onClick={plan.close}>
+            Back to shopping
+          </Button>
+        </div>
+      </div>
+    );
   return (
     <div className="w-full">
       <PageTitle

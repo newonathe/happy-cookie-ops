@@ -73,6 +73,15 @@ export const STAFF_COPY = {
   bazaarCatalogueReason: 'Needs your products and prices.',
   bazaarCatalogueFailed:
     'Your products and prices could not be read, so a day cannot be planned or started yet.',
+  /** HCB-004 (owner screens), PLACEHOLDER under OD-12: what each says while her products have not been read. */
+  bakePlanCatalogueNotRead:
+    'Your products have not been read yet, so a bake cannot be planned yet.',
+  bakePlanCatalogueFailed: 'Your products could not be read, so a bake cannot be planned yet.',
+  shopMenuCatalogueNotRead:
+    'Your products and prices have not been read yet, so no cookies are shown here yet.',
+  shopMenuCatalogueFailed:
+    'Your products and prices could not be read, so no cookies are shown here.',
+  homeProductsNotRead: 'Not read yet',
   /** HCB-004 (Orders slice): rows the server sent that the screens cannot use. */
   ordersDropped: (n: number): string =>
     n === 1
