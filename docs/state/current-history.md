@@ -2912,3 +2912,17 @@ Orders integration is accepted/pushed as`071a1c373fba773fbe3261a5607bf3849c8aa9f
 - **HCB-003 (Products after a failed read): reproduced at `07c9a06`, fixed in the working tree, not yet committed.** A failed first read listed the engine's six built-in products and prices (Double Chocolate Fudge at 130 pesos) with Edit and Hide offered; a late answer after unmount or from a replaced reader overwrote the engine list. Now `src/lib/data/flavours-read-state.ts` (same shape as `orders-read-state.ts`) is written by `FlavourSync`; Products shows a not-read status, a failure notice with Try again and no prices, last good prices labelled "as of" after a failed refresh, and a genuine-empty line. 8 tests in `tests/unit/products-read-state.test.tsx`. Synthetic visual only (390 and 1440 px); owner wording is PLACEHOLDER (OD-12). A failed first read still leaves Orders and Recipes unread until reload (live-gate starts them only after a good flavour read): belongs to HCB-004.
 
 Hosted, device and owner acceptance remain pending.
+
+## HCB-004 and earlier release slices — 11 November 2026
+
+Moved from current.md (superseded by the 11 November `a1f0615` checkpoint).
+
+HCB-004 finding a (built-in products shown as hers after a failed or unanswered first catalogue read, nothing kept): the Bazaar plan and Start day are fixed in `42083fc`, with review follow-ups in `3ccde27` (review clear with notes; the till itself was never affected; offline selling is unchanged). In the working tree, not yet committed: the Bake plan, Home, the owner's Shop preview and the Shop page's This drop's menu all reproduced and are fixed through `OpsRuntime.catalogueHeld()` and one `OpsVals.catalogueHeld` flag (`tests/unit/catalogue-held-screens.test.tsx`). The public shop is unaffected. A probe found Make > Recipes still lists the six built-ins (finding a2, next in `next-goal.md`).
+
+- **C4/C11 `333d62b`:** the gate asks for the staff name after the batched role change has committed (5 tests; review clear with notes).
+
+- **C11 `705588d`:** the engine ends on the last verified role when checks land in one batch (a verified helper could previously be left on owner screens; server-side checks unaffected). Tests `07c9a06`. Review clear with notes; the offline path's similar comparison (`live-gate.tsx` ~339) is theoretical/low, unchanged.
+
+- **HCB-003 `fbf4b52`:** Products shows products and prices only once the catalogue has been read (status line when unread; alert and Try again after a failed first read; last good list labelled "as of" after a failed refresh; genuine-empty line). New `src/lib/data/flavours-read-state.ts`; `FlavourSync` numbers reads and ignores older/retired answers. New copy is PLACEHOLDER (OD-12). Review clear with notes. Synthetic visual check at 390 and 1440 px, not a connected database.
+
+- **HCB-004 (part) `de26d26`, corrected by `5b3e979` and `47285e1`:** after a failed first catalogue read, a successful Try again starts the Orders and Recipes reads once, only for the verified owner, and keeps working after the tab is hidden and shown again; the first product can be created on a confirmed-empty menu (unread, failed or in-flight reads still refuse). The first version was BLOCKED by review (watch dropped on a same-person re-check); the re-review is clear with one gap, closed in `47285e1`. Gate at `47285e1`: `pnpm verify` 233 files / 3,736 tests + 2 TODO.
