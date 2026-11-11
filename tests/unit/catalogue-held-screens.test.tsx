@@ -284,4 +284,37 @@ describe('HCB-004 a: the entry points and the public shop', () => {
     expect(tryAgain()).toBeNull();
     expect(leaks()).toEqual([]);
   });
+
+  it('g2. the public shop with its menu loaded shows the menu and prices, no owner notice, no catalogueHeld', async () => {
+    const runtime = await mount('shop');
+    const rows = GOOD.map((f) => ({
+      id: f.id,
+      name: f.name,
+      short_name: f.short_name,
+      price_cents: f.price_cents,
+      kind: f.kind,
+      tag: f.tag,
+      description: f.description,
+      image_path: f.image_path,
+      sort_order: f.sort_order,
+      allergens: f.allergens
+    }));
+    const client = {
+      from: vi.fn(() => ({ select: vi.fn(async () => ({ data: rows, error: null })) }))
+    };
+    await act(async () => {
+      expect(await runtime.loadShopMenu(client as never)).toBe(true);
+    });
+    act(() => runtime.setState({ now: Date.now() }));
+    await settle();
+    expect(runtime.renderVals().catalogueHeld).toBeUndefined();
+    expect(text()).toContain('QA Alpha');
+    expect(text()).toContain('QA Beta');
+    expect(text()).toMatch(/₱\s?175/);
+    expect(text()).toMatch(/₱\s?210/);
+    expect(screen.queryByText(/products and prices/i)).toBeNull();
+    expect(screen.queryByText(/could not be read|have not been read/i)).toBeNull();
+    expect(tryAgain()).toBeNull();
+    expect(leaks()).toEqual([]);
+  });
 });
