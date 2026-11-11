@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BazaarDays, type BazaarDaysDeps } from '@/store/bazaar-days';
 import type { BazaarClient } from '@/lib/data/bazaar-days';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import example from '../fixtures/bazaar-example.json';
 
 /**
@@ -932,6 +933,38 @@ describe('U4: the event page asks what the books need before it closes, and star
     expect(fresh.event.days[1]!.startPrompt!.body).toMatch(
       /the stall rent will be booked on Sun, 25 Oct\.$/
     );
+  });
+
+  it('HCB-004: without her catalogue a plan is not saved and a day is not started, and each says why; held or absent changes nothing', async () => {
+    const { h, event } = await open(planned(clone(), 1));
+    const day = event.days[1]!;
+    day.edit!();
+    const editor = h.store.vals().editor!;
+    const input = {
+      floatPesos: '0',
+      flavours: editor.flavours.map((f, i) => ({ ...f, made: i === 0 ? '5' : '', carried: '' }))
+    };
+    const deps = h.deps as unknown as BazaarDaysDeps;
+    deps.catalogueHeld = () => false;
+    expect(await editor.save(input)).toBe(STAFF_COPY.bazaarCatalogueNotRead);
+    expect(h.calls('save_bazaar_day')).toHaveLength(0);
+    day.start(true);
+    await settle();
+    expect(h.deps.begin).not.toHaveBeenCalled();
+    expect(h.deps.toast).toHaveBeenCalledWith(STAFF_COPY.bazaarCatalogueNotRead, 'warn');
+    // Held: both go through as before.
+    deps.catalogueHeld = () => true;
+    h.reply('save_bazaar_day', { data: [{ id: DAY2, updated_at: '2026-10-24T01:00:00Z' }] });
+    expect(await editor.save(input)).toBeNull();
+    expect(h.calls('save_bazaar_day')).toHaveLength(1);
+    day.start(true);
+    await settle();
+    expect(h.deps.begin).toHaveBeenCalledTimes(1);
+    // Absent (the dependency every older caller leaves out): held.
+    delete deps.catalogueHeld;
+    day.start(true);
+    await settle();
+    expect(h.deps.begin).toHaveBeenCalledTimes(2);
   });
 
   it('the plan is read with its event, the menu flavours and the flavour photos', async () => {

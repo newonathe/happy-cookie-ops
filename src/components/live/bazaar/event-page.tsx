@@ -6,6 +6,7 @@ import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-typ
 import { primaryActionOf, type PrimaryAction } from '@/lib/bazaar/event-rules';
 import { formIds, validateCostForm, validateFeeForm, validateTargetForm } from '@/lib/bazaar/forms';
 import { peso } from '@/lib/money/format';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import { PageTitle, Panel } from '@/components/ui/owner-kit';
 import { OpenRow } from '@/components/ui/owner-patterns';
 import { Banner } from '@/components/ui/banner';
@@ -102,7 +103,9 @@ function DayRow({
   noCatalogue: boolean;
 }) {
   const noteId = 'day-note-' + day.id;
-  const blocked = day.actionNote !== null || (noCatalogue && day.action === 'start');
+  const noted = day.actionNote !== null;
+  const catalogueOnly = noCatalogue && !noted;
+  const blocked = noted || (noCatalogue && day.action === 'start');
   const o = day.outcome;
   return (
     <li className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
@@ -149,7 +152,10 @@ function DayRow({
             size="sm"
             onClick={day.action === 'start' ? () => onStart(day) : day.run}
             disabled={blocked}
-            aria-describedby={blocked ? noteId : undefined}
+            reason={
+              catalogueOnly && day.action === 'start' ? STAFF_COPY.bazaarCatalogueReason : undefined
+            }
+            aria-describedby={noted && !primary ? noteId : undefined}
           >
             {day.action === 'start'
               ? 'Start this day'
@@ -161,7 +167,13 @@ function DayRow({
           </Button>
         ) : null}
         {day.edit ? (
-          <Button variant="ghost" size="sm" onClick={day.edit} disabled={noCatalogue}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={day.edit}
+            disabled={noCatalogue}
+            reason={noCatalogue ? STAFF_COPY.bazaarCatalogueReason : undefined}
+          >
             Change the plan
           </Button>
         ) : null}
@@ -475,6 +487,7 @@ function PrimaryButton({
         size="lg"
         onClick={() => event.planDay(action.ymd)}
         disabled={noCatalogue}
+        reason={noCatalogue ? STAFF_COPY.bazaarCatalogueReason : undefined}
         className="self-start"
       >
         {`Plan ${when} →`}
@@ -495,7 +508,7 @@ function PrimaryButton({
           blocked
             ? d.actionNote === 'Needs signal'
               ? NEEDS_SIGNAL
-              : (d.actionNote ?? undefined)
+              : (d.actionNote ?? STAFF_COPY.bazaarCatalogueReason)
             : undefined
         }
         className="self-start"
@@ -736,6 +749,7 @@ export function EventPage({
                   size="sm"
                   onClick={() => event.planDay(u.ymd)}
                   disabled={noCatalogue}
+                  reason={noCatalogue ? STAFF_COPY.bazaarCatalogueReason : undefined}
                 >
                   {u.text}
                 </Button>
