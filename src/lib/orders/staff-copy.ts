@@ -53,6 +53,16 @@ export const STAFF_COPY = {
   ordersNotRead: 'Your orders have not been read yet.',
   ordersReadFailed: 'Your orders could not be read. Nothing is shown or counted until they load.',
   ordersStale: (time: string): string => `Could not refresh. Showing orders as of ${time}.`,
+  /**
+   * HCB-003: the Products page before the catalogue read has answered, when it failed, when a
+   * refresh failed, and when the menu is genuinely empty. Never built-in prices as hers.
+   */
+  productsNotRead: 'Your products and prices have not been read yet.',
+  productsReadFailed:
+    'Your products and prices could not be read. Nothing is shown until they load.',
+  productsStale: (time: string): string =>
+    `Could not refresh. Showing products and prices as of ${time}.`,
+  productsEmpty: 'No products yet. Choose Add product to make the first one.',
   /** HCB-004 (Orders slice): rows the server sent that the screens cannot use. */
   ordersDropped: (n: number): string =>
     n === 1

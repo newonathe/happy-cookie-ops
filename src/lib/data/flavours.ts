@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
 import type { EngineFlavour } from '@/store/engine/ops-engine';
 import { resolveImagePath } from '@/lib/media/resolve-image';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { centavosFromDb, centavosToPesos, pesosToCentavos, type Pesos } from '@/lib/money';
 
 /**
@@ -310,6 +311,8 @@ export interface FlavourHost {
   restore(id: string, edit: FlavourEdit): void;
   online(): boolean;
   toast(message: string, tone?: 'ok' | 'warn'): void;
+  /** A read started by the Products page's Try again has settled; `loaded` is `load()`'s answer. */
+  retried?(loaded: boolean): void;
 }
 
 /**
@@ -324,11 +327,25 @@ export class FlavourSync {
   private readonly again = new Set<string>();
   /** True only once `load()` has actually populated `rows` from the server. */
   private loaded = false;
+  /**
+   * HCB-003: every read gets a number. The list only ever moves to a newer read's answer, and
+   * the reported state follows the newest settled read (`flavours-read-state.ts`).
+   */
+  private started = 0;
+  private shownRead = 0;
+  private failedRead = 0;
+  private readAt: number | null = null;
+  private emptyRead = false;
+  private retired = false;
+  private readonly retry = (): void =>
+    void this.load().then((loaded) => this.host.retried?.(loaded));
 
   constructor(
     private readonly client: FlavoursClient,
     private readonly host: FlavourHost
-  ) {}
+  ) {
+    flavoursRead.claim(this);
+  }
 
   /** The rows last read or saved, in no particular order. */
   current(): FlavourRow[] {
@@ -338,26 +355,65 @@ export class FlavourSync {
   /** True when the last read was answered and held no flavour: an empty menu, not a failed read. */
   readEmpty = false;
 
+  /** A retired reader (its page is gone) or a replaced one applies and reports nothing more. */
+  private isCurrent(): boolean {
+    return !this.retired && flavoursRead.owns(this);
+  }
+
+  retire(): void {
+    this.retired = true;
+    flavoursRead.release(this);
+  }
+
   /** False if the read failed or returned nothing; the engine keeps its list. */
   async load(): Promise<boolean> {
-    let rows: FlavourRow[];
+    if (!this.isCurrent()) return false;
+    const read = ++this.started;
+    const askedAt = Date.now();
     this.readEmpty = false;
+    this.report();
+    let rows: FlavourRow[];
     try {
       rows = await fetchFlavours(this.client);
     } catch {
+      if (!this.isCurrent()) return false;
+      this.failedRead = Math.max(this.failedRead, read);
+      this.report();
       return false;
     }
+    // Retired or replaced while the read was out: this answer changes nothing.
+    if (!this.isCurrent()) return false;
+    // An answer older than the one already shown cannot overwrite it.
+    if (read < this.shownRead) return rows.length > 0;
+    this.shownRead = read;
+    this.readAt = askedAt;
+    this.emptyRead = !rows.length;
     if (!rows.length) {
       // Answered, with nothing in it. Still not `loaded`: publishing or adding from an empty
       // cache stays refused (the c1c review's P0), but the screens may say "no flavours".
       this.readEmpty = true;
+      this.report();
       return false;
     }
     this.rows.clear();
     for (const row of rows) this.rows.set(row.id, row);
     this.loaded = true;
     this.host.apply(rows);
+    this.report();
     return true;
+  }
+
+  /** The read state for the Products page, from the newest read that has an answer. */
+  private report(): void {
+    if (!this.isCurrent()) return;
+    const everRead = this.shownRead > 0;
+    flavoursRead.publish(this, {
+      phase: this.failedRead > this.shownRead ? 'failed' : everRead ? 'read' : 'loading',
+      everRead,
+      empty: everRead && this.emptyRead,
+      readAt: this.readAt,
+      retry: this.retry
+    });
   }
 
   /**

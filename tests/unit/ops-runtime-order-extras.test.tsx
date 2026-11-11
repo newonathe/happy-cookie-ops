@@ -80,7 +80,8 @@ async function mounted(role: Role, f: ReturnType<typeof fake>) {
       { id: 'c1', name: 'Cookie', item_type: 'cookie' },
       { id: 's1', name: 'Sampler box', item_type: 'set' }
     ],
-    dispose: () => undefined
+    dispose: () => undefined,
+    retire: () => undefined
   };
   f.rpc.mockClear();
   return runtime;
