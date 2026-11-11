@@ -291,7 +291,7 @@ HCB-008 refund reference (OD-02), HCB-009 close-day cash pre-fill (OD-01), and t
 | HCB-080 | `ops-runtime.tsx` ~9.7k lines; concentration of change risk                                                 | SA-F10                            | open (do not rewrite during release)         |
 | HCB-081 | HCB-001 fix awaiting independent review before acceptance                                                   | process                           | open: draft PR newonathe/happy-cookie-ops#51 |
 | HCB-082 | Placeholder customer and owner copy awaiting owner wording                                                  | staff-copy.ts, ORDER_COPY         | decision required (OD-12)                    |
-| HCB-083 | `/bazaar` Lighthouse Total Blocking Time is at or over its 800 ms budget on slower CI runners, at the base  | CI run 42161225346, PR #51 review | reproduced (see below)                       |
+| HCB-083 | `/bazaar` Lighthouse Total Blocking Time is at or over its 800 ms budget on slower CI runners, at the base  | CI run 42161225346, PR #51 review | open; partly reduced 11 Nov (see below)      |
 
 #### HCB-083 · `/bazaar` TBT budget fails at the base on slower runners
 
@@ -316,6 +316,20 @@ HCB-008 refund reference (OD-02), HCB-009 close-day cash pre-fill (OD-01), and t
 
   Both change the gate's method and need Ethan's approval.
 
+- **Update, 11 November 2026 (still open):** commit `dcf615c` (`perf(build): leave the live screens out of demo builds`) cut `/bazaar` from 659,366 to 585,750 bytes locally (limit 655,000) and local TBT from 903 to 838 ms. CI passed on it (run 42950921345), but `/bazaar` blocking time still sits at the 800 ms limit.
+  - **Evidence from failing run 42842854050** (benchmarkIndex about 2,450): TBT 831, 823 and 797 ms. Long tasks: 431 ms (application chunk evaluation) and 316 ms (first render). 268,393 of 333,505 bytes of the application chunk were unused on `/bazaar`.
+  - **CI values for the three passing runs** (`lighthouse-reports` artifacts, values in report-file order; the first `/` run of each report is also the first run, with the lowest benchmarkIndex in runs 1 and 2):
+
+    | Run                             | `/bazaar` TBT (ms) | `/bazaar` bytes | `/bazaar` benchmarkIndex | `/` TBT (ms)      | `/` bytes |
+    | ------------------------------- | ------------------ | --------------- | ------------------------ | ----------------- | --------- |
+    | 42950921345 (`dcf615c`)         | 657 / 728 / 666    | 585,742         | 2,452 to 2,479           | 1,395 / 612 / 572 | 858,707   |
+    | 42952203720 (`main`, `ced7b82`) | 696 / 784 / 828    | 585,750         | 2,445 to 2,477           | 1,199 / 758 / 633 | 858,715   |
+    | 42952255396 (trial, `ced7b82`)  | 373 / 391 / 475    | 585,749         | 3,282 to 3,443           | 1,435 / 376 / 371 | 858,714   |
+
+    `/` benchmarkIndex per run: 1,550 / 2,436 / 2,468; 1,897 / 2,454 / 2,456; 2,892 / 3,371 / 3,116.
+
+  - **Proposed C14 items:** split the live build by section, with service-worker caching of the section chunks and live offline acceptance; measure the live export's payload in CI (budgeting it is Ethan's decision).
+  - **Also from run 42842854050:** Shop accessibility scored 0.88. Ported markup has 10 px `#a98a5f` text on white at 3.23:1, and the viewport has `maximum-scale=1`.
 - **Dependencies:** none. **Conflicts:** none recorded. **Status:** reproduced (baseline), open.
 
 ---
