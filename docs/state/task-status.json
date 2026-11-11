@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-11",
-    "source_checkpoint": "47285e1db45e7f520619b923bab800ae6093c5dc",
+    "source_checkpoint": "a1f0615762d2c9be20152a1ffd5886fd56cb832b",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -320,17 +320,20 @@
           "fbf4b52",
           "de26d26",
           "5b3e979",
-          "47285e1"
+          "47285e1",
+          "42083fc",
+          "3ccde27",
+          "590f58c"
         ],
         "accepted_functionality": "Scoped stock/books/menu/opening/payment/checkout/status reads; neutral identity fallback; actor/backend-bound staff names and retired reply rejection. Health facts/Retry/timers now retire on source/account/role/unmount changes; post-role-commit reads and an explicit read-only UI check are locally accepted.",
         "evidence": "Current acceptance commit: focused111/5files+2existingTODO, actual SQL/browser390/1440, build, visual and independent review; full gate in commit log.",
         "remaining_engineering": [
-          "Bazaar till and Start day still show built-in products and prices after a failed first catalogue read (HCB-004 finding a, ops-runtime.tsx ~9906); then Bake plan, Home and Shop preview only if each reproduces. Other open findings b to f are in the HCB-004 register entry.",
+          "Owner views still reading the engine built-in product list without the held check after a failed first catalogue read (HCB-004 a2): Make > Recipes, Production completed flavours, Inventory made rows, Settings Products subtitles, pricing example, saved batch names; Shopping Cookies to bake can understate. Fix at the source first (next-goal.md item 1). Other open findings b to f are in the HCB-004 register entry.",
           "Finish principal-flow first-read failure, stale data, Retry, navigation, uncertain write and malformed-answer cases against original F09."
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "Reproduce, then fix, the Bazaar till and Start day built-in products and prices after a failed first catalogue read."
+        "next_authorized_unblocked_task": "Stop the engine built-in product list standing in for hers at the source in live mode until catalogueHeld() is true, or gate the remaining owner views one by one (HCB-004 a2)."
       },
       "C5": {
         "title": "Sell/payments",
@@ -540,13 +543,13 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "Bazaar till and Start day after a failed first catalogue read: list no built-in product or price and offer no sale (HCB-004 finding a).",
+      "requirement": "Remaining owner views after a failed first catalogue read: no built-in product or price shown as hers, and Cookies to bake shown as unknown, not a number (HCB-004 a2).",
       "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "47285e1db45e7f520619b923bab800ae6093c5dc",
-      "behavior": "Not yet reproduced for the till. Pre-existing: engine built-in products and prices at ops-runtime.tsx ~9906.",
-      "evidence": "None yet for this slice. Gate at 47285e1: pnpm verify 233 files / 3,736 tests + 2 TODO.",
+      "source_checkpoint": "a1f0615762d2c9be20152a1ffd5886fd56cb832b",
+      "behavior": "Bazaar plan, Start day, Bake plan, Home, Shop preview and the drop menu are fixed (42083fc, 3ccde27, 590f58c). Still reading the engine list without the held check: Recipes, Production completed rows, Inventory made rows, Settings Products subtitles, pricing example, saved batch names; Cookies to bake can understate.",
+      "evidence": "590f58c independently reviewed by the Sonnet security-reviewer (high): clear with notes. Gate at 590f58c: pnpm verify 235 files / 3,773 tests + 2 TODO.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
-      "next": "Write the failing till and Start day test first."
+      "next": "Write one parametrised test over every owner view first (no built-in name or price while the catalogue is not held), then fix at the source."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
