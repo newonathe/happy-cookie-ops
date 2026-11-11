@@ -13,6 +13,8 @@ const net = vi.hoisted(() => ({
   role: 'owner',
   waiting: [] as Array<(answer: unknown) => void>,
   engine: null as unknown,
+  /** While set, the gate's server check (`getUser`) waits for it: a re-check held in flight. */
+  hold: null as Promise<void> | null,
   authEvent: null as null | ((event: string, session: { user: { id: string } } | null) => void)
 }));
 
@@ -33,7 +35,10 @@ vi.mock('@/lib/supabase/client', () => {
   const client = {
     auth: {
       getSession: async () => ({ data: { session: { user: { id: net.userId } } }, error: null }),
-      getUser: async () => ({ data: { user: { id: net.userId } }, error: null }),
+      getUser: async () => {
+        await net.hold;
+        return { data: { user: { id: net.userId } }, error: null };
+      },
       signOut: async () => ({ error: null }),
       onAuthStateChange: (listener: NonNullable<typeof net.authEvent>) => {
         net.authEvent = listener;
@@ -109,7 +114,7 @@ let loadRecipes: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example');
-  Object.assign(net, { userId: 'u1', role: 'owner', engine: null, waiting: [] });
+  Object.assign(net, { userId: 'u1', role: 'owner', engine: null, waiting: [], hold: null });
   flavoursRead.reset();
   localStorage.clear();
   document.cookie = 'sb-local-auth-token=x; path=/';
@@ -219,12 +224,80 @@ describe('the owner Orders and Recipes reads follow the first successful catalog
     expect(started()).toEqual([0, 0]);
   });
 
-  it('e2. an account change between the failure and the retry starts nothing', async () => {
+  // supabase-js signs the same person in again whenever the tab comes back to the foreground.
+  const signedIn = (id = 'u1') =>
+    act(async () => {
+      net.authEvent?.('SIGNED_IN', { user: { id } });
+      await new Promise((r) => setTimeout(r, 30));
+    });
+
+  it('x. the same person signed in again (tab visible) between the failure and the retry still starts each once', async () => {
+    await open();
+    await answer(down);
+    await signedIn();
+    await tryAgain();
+    await answer(ok(GOOD));
+    expect(started()).toEqual([1, 1]);
+    await signedIn();
+    await tryAgain();
+    await answer(ok(GOOD));
+    expect(started()).toEqual([1, 1]);
+  });
+
+  it('y. an answer that arrives while a re-check is still out starts each once when the check verifies', async () => {
+    await open();
+    await answer(down);
+    let release!: () => void;
+    net.hold = new Promise<void>((resolve) => void (release = resolve));
+    await signedIn();
+    await tryAgain();
+    await answer(ok(GOOD));
+    expect(flavoursRead.get().phase).toBe('read');
+    // Nothing yet: the check that decides who she is has not answered.
+    expect(started()).toEqual([0, 0]);
+    net.hold = null;
+    await act(async () => {
+      release();
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(started()).toEqual([1, 1]);
+    await tryAgain();
+    await answer(ok(GOOD));
+    expect(started()).toEqual([1, 1]);
+  });
+
+  it('e2. a different person verified between the failure and the retry starts nothing', async () => {
     await open();
     await answer(down);
     net.userId = 'u2';
+    await signedIn('u2');
+    await tryAgain();
+    await answer(ok(GOOD));
+    expect(started()).toEqual([0, 0]);
+  });
+
+  it('e2b. a different person whose check is still out when the answer arrives starts nothing', async () => {
+    await open();
+    await answer(down);
+    let release!: () => void;
+    net.hold = new Promise<void>((resolve) => void (release = resolve));
+    net.userId = 'u2';
+    await signedIn('u2');
+    await tryAgain();
+    await answer(ok(GOOD));
+    net.hold = null;
     await act(async () => {
-      net.authEvent?.('SIGNED_IN', { user: { id: 'u2' } });
+      release();
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(started()).toEqual([0, 0]);
+  });
+
+  it('e4. a gate locked out by a sign-out between the failure and the retry starts nothing', async () => {
+    await open();
+    await answer(down);
+    await act(async () => {
+      net.authEvent?.('SIGNED_OUT', null);
       await new Promise((r) => setTimeout(r, 30));
     });
     await tryAgain();
