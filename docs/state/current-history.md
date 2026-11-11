@@ -2889,3 +2889,11 @@ Root is the sole coding agent while Claude is unavailable until10November. Read-
 Closing paragraph (next-goal.md):
 
 After the guarded release checkpoint, reproduce staff-name profile-read timing across batched role changes, fix only a demonstrated defect, then continue remaining C4/C11 and connected full-goal work. Pinned browser downloads are locally blocked403; system Chromium provides functional local E2E, while exact pinned Chromium/WebKit/visual/performance remain CI gates. Do not count route smoke as the original7v2/15v3 business journeys.
+
+## PR reconciliation — 9 November 2026
+
+PR reconciliation (read-only runtime delta rechecked9November; common base `c84d23d`): #51 `e407b7020fab95a8afe934639621c95d6efe5452` and stacked #53 `7500b6c2b3623650e9175b5cab4828e6c949c2ce` both have zero textual conflicts in a source-level three-way. #51 saved-pickup projection is compatible with retained Cloud actor/client fences; OD12 wording remains open. #53 requires one scoped read-state source and retirement of old Retry callbacks on identity/client/role change. Preserve its malformed-list/dropped-row behavior and latest-read ordering; add runtime retirement/regrant/late-Retry tests and Customers scope checks. The preserved Root draft duplicates these read-state concerns; its earlier six conflicts are not conflicts against accepted HEAD. Do not integrate both stores. Recommend #51 first, then deliberate #53 reconciliation after authority; integration/merge is now authorized after compatibility and verification; no rebase, force-push or discarded work. Claude Code is the current coding writer.
+
+## Orders, health and trial preflight acceptance — 9 to 10 November 2026
+
+Orders integration is accepted/pushed as`071a1c373fba773fbe3261a5607bf3849c8aa9fd` (full228/3670+2TODO). Health truth is accepted asfc2bbe4. Read-only trial schema preflight is accepted/pushed as`0063b6287142a0813c70153073c07c427ca55f5a` (full229/3694+2TODO,80focused, two actual SQL/catalog resets:83versions/173functions, clear review). Full details are in history/tracker; hosted execution and OD-12 remain pending.
