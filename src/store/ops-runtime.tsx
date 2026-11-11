@@ -2289,14 +2289,16 @@ export class OpsRuntime extends OpsProvider {
       edit: (id) => this.flavourEdit(id),
       restore: (id, edit) => this.restoreFlavour(id, edit),
       online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
-      toast: (message, tone) => this.toast(message, tone)
+      toast: (message, tone) => this.toast(message, tone),
+      retried: (loaded) => void settle(loaded)
     });
     // B2: a shop whose menu is empty shows no flavour, not the engine's six ported ones. Only
     // on an answered, empty read: then no record can name a flavour. While the read is out, or
     // after it fails, the list in hand stays, because batches, baked stock and a running event
     // name flavours and the engine cannot draw a name it does not hold (system-audit.md, R11).
     const sync = this.flavourSync;
-    return sync.load().then((loaded) => {
+    // HCB-003: the page's Try again settles through the same rule as the first read.
+    const settle = (loaded: boolean): boolean => {
       if (loaded) return true;
       if (!sync.readEmpty) return false;
       // Never under a running event: a stall keeps the list it is selling from, whatever a
@@ -2306,7 +2308,8 @@ export class OpsRuntime extends OpsProvider {
       replaceFlavours([], {});
       this.setState((s) => catalogueStatePatch([], {}, s));
       return true;
-    });
+    };
+    return sync.load().then(settle);
   }
 
   /**
@@ -3092,6 +3095,7 @@ export class OpsRuntime extends OpsProvider {
 
   componentWillUnmount(): void {
     this.clearOrderRead(false);
+    this.flavourSync?.retire();
     this.retireOperationsHealth();
     this.closeKitchenTransfer();
     this.eventEntry.dispose();
