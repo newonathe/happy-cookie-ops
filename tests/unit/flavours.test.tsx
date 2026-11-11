@@ -1082,6 +1082,82 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
       expect(host.apply).not.toHaveBeenCalled();
     });
 
+    /** A sync whose catalogue read answers with `list` (null: the read fails), saves answered by `saved`. */
+    function emptyCatalogueSync(list: FlavourRow[] | null) {
+      const rpc: Rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
+        if (name === 'get_flavours')
+          return list
+            ? { data: list, error: null }
+            : { data: null, error: { code: '', message: 'down' } };
+        return name === 'publish_flavours' ? { data: [], error: null } : saved(args ?? {});
+      });
+      const host = {
+        apply: vi.fn(),
+        edit: vi.fn(),
+        restore: vi.fn(),
+        online: () => true,
+        toast: vi.fn()
+      };
+      return { sync: new FlavourSync({ rpc } as unknown as FlavoursClient, host), rpc, host };
+    }
+
+    // HCB-004 (defect 2): the guard above protects an UNREAD or FAILED cache (the c1c P0). A read
+    // that was answered with no flavours is a confirmed empty menu: the owner's first product is
+    // allowed, and the engine's list becomes exactly that one row.
+    it('creates the first flavour after a read that was answered with none', async () => {
+      const { sync: s, rpc, host } = emptyCatalogueSync([]);
+      expect(await s.load()).toBe(false);
+      expect(s.readEmpty).toBe(true);
+      expect(await s.saveWhole('first-one', editorFields(), null)).toBe('saved');
+      expect(rpc.mock.calls.filter((c) => c[0] === 'save_flavour')).toHaveLength(1);
+      expect(host.apply).toHaveBeenCalledTimes(1);
+      expect(s.current().map((r) => r.id)).toEqual(['first-one']);
+      expect(host.apply.mock.calls[0]![0]).toHaveLength(1);
+    });
+
+    it('still refuses to create from a read that failed', async () => {
+      const { sync: s, rpc, host } = emptyCatalogueSync(null);
+      expect(await s.load()).toBe(false);
+      expect(s.readEmpty).toBe(false);
+      expect(await s.saveWhole('first-one', editorFields(), null)).toBe('rejected');
+      expect(rpc.mock.calls.some((c) => c[0] === 'save_flavour')).toBe(false);
+      expect(host.apply).not.toHaveBeenCalled();
+    });
+
+    it('refuses to create before any read has been asked for', async () => {
+      const { sync: s, rpc } = emptyCatalogueSync([]);
+      expect(await s.saveWhole('first-one', editorFields(), null)).toBe('rejected');
+      expect(rpc.mock.calls.some((c) => c[0] === 'save_flavour')).toBe(false);
+    });
+
+    it('refuses to create while a new read is out after an empty one', async () => {
+      const waiting: Array<(a: unknown) => void> = [];
+      let first = true;
+      const rpc: Rpc = vi.fn((name: string, args?: Record<string, unknown>) => {
+        if (name !== 'get_flavours') return Promise.resolve(saved(args ?? {}));
+        if (first) {
+          first = false;
+          return Promise.resolve({ data: [], error: null });
+        }
+        return new Promise((resolve) => void waiting.push(resolve));
+      });
+      const s = new FlavourSync({ rpc } as unknown as FlavoursClient, {
+        apply: vi.fn(),
+        edit: vi.fn(),
+        restore: vi.fn(),
+        online: () => true,
+        toast: vi.fn()
+      });
+      await s.load();
+      expect(s.readEmpty).toBe(true);
+      const again = s.load();
+      // The second read has not answered: the first answer no longer vouches for the menu.
+      expect(await s.saveWhole('first-one', editorFields(), null)).toBe('rejected');
+      waiting.shift()!({ data: null, error: { code: '', message: 'down' } });
+      await again;
+      expect(rpc.mock.calls.some((c) => c[0] === 'save_flavour')).toBe(false);
+    });
+
     it('publish reloads first when the cache was never loaded, then publishes the fresh list', async () => {
       const { sync: s, rpc } = customSync({ publish: () => ({ data: [], error: null }) });
       expect(await s.publish()).toBe('published');

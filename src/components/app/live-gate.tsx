@@ -26,6 +26,7 @@ import {
 } from '@/lib/auth/offline-trust';
 import type { LocalSale } from '@/lib/auth/sign-out-guard';
 import { OpsRuntime } from '@/store/ops-runtime';
+import { flavoursRead as catalogueRead } from '@/lib/data/flavours-read-state';
 import type { Role } from '@/store/engine/ops-engine';
 import { registerAllLiveScreens } from '@/components/live/register-all';
 import { OfflineHold } from './offline-hold';
@@ -181,6 +182,10 @@ export function LiveGate({
     let settingsLoaded = false;
     let flavoursStarted = false;
     let flavoursRead: Promise<boolean> | null = null;
+    // HCB-004: the production scope of the newest verified check, and the catalogue-read watch
+    // that starts Orders and Recipes when a Try again succeeds after a failed first read.
+    let latestProductionScope: { userId: string; business: string } | null = null;
+    let stopCatalogueWatch = () => undefined as void;
     let productionReadKey: string | null = null;
     let idleRunning = false;
     // The role idle time is measured for: the verified one, or the remembered one offline.
@@ -526,6 +531,7 @@ export function LiveGate({
       const nextProductionReadKey = productionScope ? JSON.stringify(productionScope) : null;
       const productionScopeChanged = nextProductionReadKey !== productionReadKey;
       productionReadKey = nextProductionReadKey;
+      latestProductionScope = productionScope;
       // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
       // customers see (the published menu), not flavours that are on the form but unpublished.
       if (
@@ -544,13 +550,31 @@ export function LiveGate({
         // E1: the owner's books, for the P&L, Home profit and the expense list.
         if (owner && !cancelled) void engine.loadBooks(supabase);
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
+        // Orders and Recipes start once per page load, on the first catalogue read that succeeds.
+        let ownerReadsStarted = false;
+        const startOwnerReads = (scope: typeof productionScope) => {
+          if (ownerReadsStarted) return;
+          ownerReadsStarted = true;
+          stopCatalogueWatch();
+          void engine.loadOrders(supabase);
+          // A4: the owner's recipes, for the flavours the list just brought in.
+          void engine.loadRecipes(supabase, undefined, undefined, scope);
+        };
+        const epoch = identityEpoch,
+          userId = verifiedUserId;
         flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
         void flavoursRead.then((loaded) => {
           keepStallCopy();
-          if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
-          // A4: the owner's recipes, for the flavours the list just brought in.
-          if (owner && !cancelled && loaded !== false)
-            void engine.loadRecipes(supabase, undefined, undefined, productionScope);
+          if (owner && !cancelled && loaded !== false) return startOwnerReads(productionScope);
+          // HCB-004: the first read failed. Products' Try again reads it again; the first answer
+          // from it starts the owner's reads, if this is still the same verified owner.
+          if (!owner || cancelled || ownerReadsStarted) return;
+          stopCatalogueWatch = catalogueRead.subscribe(() => {
+            if (cancelled || epoch !== identityEpoch || userId !== verifiedUserId)
+              return stopCatalogueWatch();
+            if (catalogueRead.get().phase === 'read' && engine.state.role === 'owner')
+              startOwnerReads(latestProductionScope);
+          });
         });
       } else if (
         productionScopeChanged &&
@@ -669,6 +693,7 @@ export function LiveGate({
 
     return () => {
       cancelled = true;
+      stopCatalogueWatch();
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('online', onOnline);
