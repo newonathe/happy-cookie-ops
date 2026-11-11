@@ -216,8 +216,8 @@
     "S3 bazaar days, built 14 October 2026 (docs/state/bazaar-days.md, S3 as built; branch claude/bazaar-days-s3; local only, no new migration, the trial stays at 67 of 67): the day review (src/lib/bazaar/review.ts formats bazaar_summary only), losses, more stock, Close the day with the leftover split, carrying over, fees, target, typed cost per cookie, Close the event with the drop number, the books held line. Tests: bazaar-close, bazaar-review, bazaar-store, ops-runtime-bazaar-close, bazaar-screens; the live smoke suite runs the whole two-day event (14 steps). Ethan 14 October: no bake for bazaar cookies; all four small forms in S3."
   ],
   "full_application": {
-    "updated_client_date": "2026-11-10",
-    "source_checkpoint": "0063b6287142a0813c70153073c07c427ca55f5a",
+    "updated_client_date": "2026-11-11",
+    "source_checkpoint": "ced7b8217771881b965b15cfb79736240ca52e8c",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -249,7 +249,7 @@
     "cycles": {
       "C1": {
         "title": "Orders PR reconciliation",
-        "local_status": "scoped Orders integration accepted locally and pushed; main/release pending",
+        "local_status": "integrated on main at ced7b82; release blocked on the missing OPS_SUPABASE_ACCESS_TOKEN secret (nothing deployed)",
         "full_cycle_accepted": false,
         "accepted_sha": [
           "efe14d590efd0b425740089d43999e297af457a8",
@@ -508,7 +508,8 @@
         "accepted_sha": [
           "611d7c62799d73863c7e7bda336187408ad9cbbb",
           "efe14d590efd0b425740089d43999e297af457a8",
-          "0063b6287142a0813c70153073c07c427ca55f5a"
+          "0063b6287142a0813c70153073c07c427ca55f5a",
+          "dcf615c7d1eb77c2f8f2af64b7e9848a666c9c84"
         ],
         "accepted_functionality": "Pinned patched dependencies, protected-port checks and recurring full verify/Live build/visual checks.",
         "evidence": "Dependency checkpoint611d7c6 audited all production severities0; current source tests/build pass in acceptance commits, not a release claim. Read-only trial compatibility preflight:80focused/3files, two actual local SQL/catalog resets (83migrations/173public functions), official Management API source shape and clear independent review; full gate recorded by acceptance commit. Hosted execution unverified. Schema gate accepted0063b62 full229files/3694tests+2TODO. PR44: frozen installs,286production/1044unrelated-toolchain snapshots and metadata unchanged, final Storybook/Live builds, zero production advisories and clear bounded review. Initial Babel graph drift failed before corrected lock merge; acceptance commit records full gate.",
@@ -525,14 +526,14 @@
     },
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
-      "cycle": "C4",
-      "requirement": "F09 distinguish unknown job facts from confirmed no-run results",
-      "branch": "codex/cloud-health-read-truth-20261110",
-      "source_checkpoint": "4d005ad01477cdd176d4211c27c9d144868024fa",
-      "behavior": "Null job data is Checking/unverified; actual successful no-run data retains approved activation-pending behavior.",
-      "evidence": "2first-read reds;36focused; type/lint/review; two actual SQL/browser resets; real UI first-read failure\u2192SQLconfirmation; inspected390/1440 visuals; Live build. Full gate recorded by acceptance commit.",
-      "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred; no job writers/policy changes.",
-      "next": "Reproduce staff-name read scheduling across batched role changes."
+      "cycle": "C4/C11",
+      "requirement": "Reproduce staff-name profile-read timing across batched role changes (A to B to A); write the test first and change code only if it shows a wrong name.",
+      "branch": "claude/dreamy-faraday-74rshc",
+      "source_checkpoint": "ced7b8217771881b965b15cfb79736240ca52e8c",
+      "behavior": "Not yet reproduced. loadStaffName at src/store/ops-runtime.tsx:2445; caller src/components/app/live-gate.tsx:503-504; bindStaffIdentity caller not yet traced.",
+      "evidence": "None yet.",
+      "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
+      "next": "Write the A to B to A staff-name test."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
