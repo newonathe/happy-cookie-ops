@@ -6,7 +6,8 @@ import type { OpsVals } from '@/view-models/vals';
 import type { GroceryRowView, LiveStockVals, StockItemView } from '@/lib/stock/live-stock-types';
 import { OfflineLine, StatusWord, StockLoading, liveStockOf } from './stock-shared';
 import { ReceiveLive } from './stock-entry-live';
-import { BakePlanNeeds, BakePlanPage } from './bake-plan-live';
+import { BAKE_PLAN_CATALOGUE_COPY, BakePlanNeeds, BakePlanPage } from './bake-plan-live';
+import { CatalogueNotice, useCatalogueHeld } from '@/components/live/bazaar/catalogue-notice';
 import { Button } from '@/components/ui/button';
 import { SectionNavigation } from '@/components/live/section-navigation';
 import { useAreaSettings } from '@/components/live/account/settings-areas';
@@ -119,6 +120,8 @@ function uncounted(items: StockItemView[]): StockItemView[] {
 export function GroceryLive({ v }: { v: OpsVals }) {
   const stock = liveStockOf(v);
   const settings = useAreaSettings(v, 'stock', 'Back to shopping');
+  // HCB-004: a bake is planned from her own products, which this phone may not have read.
+  const catalogue = useCatalogueHeld(v.catalogueHeld);
   if (!stock)
     return v.liveStockRead ? (
       <section aria-label="Shopping">
@@ -129,7 +132,13 @@ export function GroceryLive({ v }: { v: OpsVals }) {
       <StockLoading title="Shopping" label="Shopping" />
     );
   if (stock.receive) return <ReceiveLive receive={stock.receive} backLabel="Back to shopping" />;
-  if (stock.bakePlan?.open) return <BakePlanPage plan={stock.bakePlan} />;
+  if (stock.bakePlan?.open)
+    return (
+      <BakePlanPage
+        plan={stock.bakePlan}
+        unread={catalogue.held ? undefined : { failed: catalogue.failed, retry: catalogue.retry }}
+      />
+    );
   if (settings.page) return settings.page;
   const { grocery } = stock;
   const bySupplier = new Map<string, GroceryRowView[]>();
@@ -144,7 +153,7 @@ export function GroceryLive({ v }: { v: OpsVals }) {
         actions={
           <>
             {stock.bakePlan ? (
-              <Button variant="secondary" onClick={stock.bakePlan.edit}>
+              <Button variant="secondary" onClick={stock.bakePlan.edit} disabled={!catalogue.held}>
                 {stock.bakePlan.cookies ? 'Edit planned bake' : 'Plan a bake'}
               </Button>
             ) : null}
@@ -158,6 +167,15 @@ export function GroceryLive({ v }: { v: OpsVals }) {
         <SectionNavigation v={v} refined tools={false} />
       </div>
       <StockReadNotice read={v.liveStockRead} />
+      {catalogue.held ? null : (
+        <div className="mb-3">
+          <CatalogueNotice
+            failed={catalogue.failed}
+            retry={catalogue.retry}
+            copy={BAKE_PLAN_CATALOGUE_COPY}
+          />
+        </div>
+      )}
       <OfflineLine online={stock.online} />
       <section aria-label="Totals">
         <Panel>

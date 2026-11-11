@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { StockReadNotice } from '@/components/live/stock/stock-read-notice';
-import { STOCK_COPY } from '@/lib/orders/staff-copy';
+import { STAFF_COPY, STOCK_COPY } from '@/lib/orders/staff-copy';
 import type { LiveHome, OpsVals } from '@/view-models/vals';
 import { NextEventCard, SellingCard } from '@/components/live/bazaar/home-card';
 import { Button } from '@/components/ui/button';
@@ -132,7 +132,9 @@ export function HomeLive({ v }: { v: OpsVals }) {
     { title: 'Count stock', detail: 'Enter a physical count', onOpen: go.count },
     {
       title: 'Products & recipes',
-      detail: `${home.flavours} on the menu`,
+      // HCB-004: a count of the built-in six is not hers; until her products are read it says so.
+      detail:
+        home.flavours === null ? STAFF_COPY.homeProductsNotRead : `${home.flavours} on the menu`,
       onOpen: go.products
     },
     {

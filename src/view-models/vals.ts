@@ -497,6 +497,8 @@ export interface OpsVals {
     retry: () => void;
   } | null;
   liveShopMenuRead?: ShopMenuReadView | null;
+  /** HCB-004: whether the engine's products are hers (owner, live mode only); false shows the built-in six, which no owner screen may. */
+  catalogueHeld?: boolean;
   liveShopAvailability?: ShopAvailabilityView | null;
   liveShopOverride?: ShopOverrideView | null;
   livePaymentRead?: {
@@ -1972,7 +1974,8 @@ export interface LiveHome {
   production: Array<{ id: string; name: string; detail: string; open: () => void }>;
   /** This month's books; null until they are read. */
   month: { revenue: number; expenses: number; profit: number } | null;
-  flavours: number;
+  /** How many are on the menu, or null while her products have not been read: the built-in six are not hers. */
+  flavours: number | null;
   go: Record<
     | 'orders'
     | 'payments'
