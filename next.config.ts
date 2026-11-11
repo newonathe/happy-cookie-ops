@@ -8,6 +8,23 @@ const config: NextConfig = {
   // Vercel's adapter packages its own runtime; standalone remains for local/Docker use.
   output: process.env.VERCEL === '1' ? undefined : 'standalone',
   poweredByHeader: false,
+  // Live screens are only drawn when NEXT_PUBLIC_APP_MODE is 'live'. In every other build the
+  // module that registers them is swapped for an empty one, so ~80 live-only modules stay out of
+  // the demo bundle (Lighthouse budget). The live build (scripts/build-pages-spike.mjs) writes
+  // its own next.config and never reads this file, so it still gets the real register-all.
+  webpack(webpackConfig, { webpack }) {
+    if (process.env.NEXT_PUBLIC_APP_MODE !== 'live') {
+      webpackConfig.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /components[\\/]live[\\/]register-all$/,
+          (resource: { request: string }) => {
+            resource.request = resource.request.replace(/register-all$/, 'register-none');
+          }
+        )
+      );
+    }
+    return webpackConfig;
+  },
   // The books live on the device until Postgres is wired (docs/TECH-DEBT.md, item 1),
   // so nothing in this app may be cached by a shared proxy.
   async headers() {
