@@ -63,6 +63,14 @@ export const STAFF_COPY = {
   productsStale: (time: string): string =>
     `Could not refresh. Showing products and prices as of ${time}.`,
   productsEmpty: 'No products yet. Choose Add product to make the first one.',
+  /**
+   * HCB-004 (Bazaar slice), PLACEHOLDER under OD-12: planning or starting a day needs her real products and
+   * prices. A day already selling on this phone is not touched by either line.
+   */
+  bazaarCatalogueNotRead:
+    'Your products and prices have not been read yet, so a day cannot be planned or started yet.',
+  bazaarCatalogueFailed:
+    'Your products and prices could not be read, so a day cannot be planned or started yet.',
   /** HCB-004 (Orders slice): rows the server sent that the screens cannot use. */
   ordersDropped: (n: number): string =>
     n === 1

@@ -19,6 +19,8 @@ import { DayPlan } from './day-plan';
 import { DayReview } from './day-review';
 import { TillBar } from './till-bar';
 import { ConsolidatedTill, TillBoundary } from './till';
+import { CatalogueNotice, useCatalogue } from './catalogue-notice';
+import { PageTitle } from '@/components/ui/owner-kit';
 
 /** `liveBazaar` as the runtime provides it. Typed through the contract so this compiles before and after vals.ts widens. */
 export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
@@ -163,18 +165,43 @@ function Reviewing({ bazaar }: { bazaar: LiveBazaarVals }) {
 }
 
 function Days({ bazaar }: { bazaar: LiveBazaarVals }) {
+  const catalogue = useCatalogue(bazaar);
   if (bazaar.editor && bazaar.event)
     return (
       <>
         <OfflineLine online={bazaar.online} />
-        <DayPlan key={bazaar.editor.key} editor={bazaar.editor} online={bazaar.online} />
+        {catalogue.held ? (
+          <DayPlan key={bazaar.editor.key} editor={bazaar.editor} online={bazaar.online} />
+        ) : (
+          // HCB-004: the plan form lists her products at her prices; the built-in ones are not hers.
+          <div className="flex flex-col gap-4">
+            <PageTitle
+              title={`Plan ${bazaar.editor.dateText}`}
+              subtitle={bazaar.editor.eventName}
+              actions={
+                <Button variant="secondary" onClick={bazaar.editor.back}>
+                  Back to the event
+                </Button>
+              }
+            />
+            <CatalogueNotice failed={catalogue.failed} retry={catalogue.retry} />
+          </div>
+        )}
       </>
     );
   if (bazaar.event)
     return (
       <>
         <OfflineLine online={bazaar.online} />
-        <EventPage event={bazaar.event} onEditEvents={bazaar.add} />
+        <EventPage
+          event={bazaar.event}
+          onEditEvents={bazaar.add}
+          planning={
+            catalogue.held ? undefined : (
+              <CatalogueNotice failed={catalogue.failed} retry={catalogue.retry} />
+            )
+          }
+        />
       </>
     );
   if (bazaar.state !== 'read')

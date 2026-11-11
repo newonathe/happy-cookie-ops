@@ -26,7 +26,8 @@ import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
 import { BazaarLive } from '@/components/live/bazaar/bazaar-live';
 import { clearBazaar } from '@/lib/offline/bazaar-state';
 import { dayEventId } from '@/lib/data/bazaar-days';
-import type { Role } from '@/store/engine/ops-engine';
+import { ALLERGENS, PRODUCTS, replaceFlavours, type Role } from '@/store/engine/ops-engine';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { answerFacts, dayFacts, lineFacts, summaryFacts } from '../fixtures/bazaar-answer';
 
 /**
@@ -35,6 +36,28 @@ import { answerFacts, dayFacts, lineFacts, summaryFacts } from '../fixtures/baza
  * line names a change one of these tests must catch.
  */
 const NOW = new Date('2026-10-20T03:00:00Z');
+/**
+ * HCB-004: a day is planned and started only from her read catalogue, so the owner here has read one: the same six
+ * flavours at the same prices the engine starts with, so every test below still plans with what it always did.
+ */
+const PORTED = { list: PRODUCTS.map((p) => ({ ...p })), allergens: { ...ALLERGENS } };
+const catalogueRows = PORTED.list.map((p, i) => ({
+  id: p.id,
+  name: p.short,
+  short_name: p.short,
+  price_cents: p.price * 100,
+  kind: p.kind,
+  item_type: 'cookie',
+  capacity_weight: 1,
+  tag: p.tag,
+  description: p.desc,
+  image_path: p.img,
+  allergens: '',
+  active: true,
+  published: false,
+  sort_order: i + 1,
+  updated_at: '2026-11-01T01:00:00.000Z'
+}));
 const BOOKING = 'd5b00000-0000-4000-8000-000000000001';
 const DAY1 = 'd5a00000-0000-4000-8000-000000000001';
 const STAMP = '2026-10-20T02:00:00.123456+00:00';
@@ -161,7 +184,12 @@ async function mount(role: Role, f: Fake = { days: [], stamps: [] }) {
   const fake = fakeClient(f);
   (runtime as unknown as { saleClient: unknown }).saleClient = fake.client;
   if (role === 'owner')
-    await act(async () => void (await runtime.loadScheduledEvents(fake.client as never)));
+    await act(async () => {
+      await runtime.loadScheduledEvents(fake.client as never);
+      await runtime.loadFlavours({
+        rpc: async () => ({ data: catalogueRows, error: null })
+      } as never);
+    });
   act(() => runtime.go('bazaar'));
   return { runtime, ...fake };
 }
@@ -187,6 +215,7 @@ beforeEach(() => {
   // JSDOM has no layout/scroll implementation; the real viewport is checked with Playwright.
   vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
   live = true;
+  flavoursRead.reset();
   store.clear();
   localStorage.clear();
   clearBazaar();
@@ -198,6 +227,11 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   vi.useRealTimers();
+  flavoursRead.reset();
+  replaceFlavours(
+    PORTED.list.map((p) => ({ ...p })),
+    PORTED.allergens
+  );
 });
 
 describe('S2: the live Bazaar registers in the live slot', () => {
