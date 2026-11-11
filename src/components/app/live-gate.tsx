@@ -580,7 +580,14 @@ export function LiveGate({
             // signs the same person in again whenever the tab comes back) only waits.
             if (cancelled || userId !== verifiedUserId) return stopCatalogueWatch();
             if (verifiedEpoch !== identityEpoch || accessRef.current !== 'verified') return;
-            if (catalogueRead.get().phase === 'read' && engine.state.role === 'owner')
+            // `setRole` is batched: the engine can still say owner right after a check verified
+            // a helper, so the newest verified role (`askedRole`) and its scope decide too.
+            if (
+              catalogueRead.get().phase === 'read' &&
+              engine.state.role === 'owner' &&
+              askedRole === 'owner' &&
+              latestProductionScope
+            )
               startOwnerReads(latestProductionScope);
           };
           const unsubscribe = catalogueRead.subscribe(evaluateCatalogueWatch);
