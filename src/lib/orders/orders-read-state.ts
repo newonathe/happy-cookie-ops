@@ -15,6 +15,9 @@
  *   `readAt` is when it was asked for.
  *
  * `dropped` counts rows of the last good read that the screens could not use.
+ *
+ * `savedNotRefreshed` (HCB-006) is the id of an order whose change the database acknowledged but
+ * whose list refresh failed: the page says so until the next successful read (or retire) clears it.
  */
 export type OrdersReadPhase = 'idle' | 'loading' | 'read' | 'failed';
 
@@ -24,6 +27,7 @@ export interface OrdersReadSnapshot {
   /** When the shown list was asked for (ms), or null if nothing was ever read. */
   readonly readAt: number | null;
   readonly dropped: number;
+  readonly savedNotRefreshed: string | null;
   /** Reads again through the current reader; null when there is none. */
   readonly retry: (() => void) | null;
 }
@@ -33,6 +37,7 @@ const IDLE: OrdersReadSnapshot = Object.freeze({
   everRead: false,
   readAt: null,
   dropped: 0,
+  savedNotRefreshed: null,
   retry: null
 });
 
@@ -45,6 +50,7 @@ const same = (a: OrdersReadSnapshot, b: OrdersReadSnapshot) =>
   a.everRead === b.everRead &&
   a.readAt === b.readAt &&
   a.dropped === b.dropped &&
+  a.savedNotRefreshed === b.savedNotRefreshed &&
   a.retry === b.retry;
 
 function replace(next: OrdersReadSnapshot): void {

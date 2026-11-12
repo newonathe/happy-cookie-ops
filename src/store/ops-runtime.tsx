@@ -9039,7 +9039,9 @@ export class OpsRuntime extends OpsProvider {
     if (sync !== this.orderSync || !sync.isCurrent()) return outcome;
     if (outcome.kind === 'ok') {
       this.closeSheet();
-      this.toast(done, 'ok', undo);
+      // HCB-006: saved, but the list could not be refreshed: say that, not the plain success.
+      if (outcome.refreshed) this.toast(done, 'ok', undo);
+      else this.toast(STAFF_COPY.savedNotRefreshed, 'warn');
       if (this.state.role === 'owner') void this.loadBooks(null);
     }
     return outcome;
@@ -9135,11 +9137,15 @@ export class OpsRuntime extends OpsProvider {
       const sync = this.orderSync;
       const flagged = (sync?.find(id)?.items ?? []).filter((i) => i.unavailable);
       void (async () => {
+        let refreshed = true;
         for (const item of flagged) {
           const outcome = await sync?.flag(id, item.productId, false);
           if (sync !== this.orderSync || !sync?.isCurrent() || outcome?.kind !== 'ok') return;
+          refreshed = refreshed && outcome.refreshed;
         }
-        if (sync === this.orderSync && sync?.isCurrent()) this.toast(STAFF_COPY.cleared);
+        if (sync !== this.orderSync || !sync?.isCurrent()) return;
+        if (refreshed) this.toast(STAFF_COPY.cleared);
+        else this.toast(STAFF_COPY.savedNotRefreshed, 'warn');
       })();
     };
     eng.replaceLine = (id, from, to) => {

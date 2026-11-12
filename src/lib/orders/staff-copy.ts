@@ -65,6 +65,8 @@ export const STAFF_COPY = {
    */
   ordersNotRead: 'Your orders have not been read yet.',
   ordersReadFailed: 'Your orders could not be read. Nothing is shown or counted until they load.',
+  /** HCB-006 (PLACEHOLDER wording): a change the database saved, whose list refresh then failed. */
+  savedNotRefreshed: 'Saved. Could not refresh the list.',
   ordersStale: (time: string): string => `Could not refresh. Showing orders as of ${time}.`,
   /**
    * HCB-003: the Products page before the catalogue read has answered, when it failed, when a

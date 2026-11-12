@@ -1,10 +1,12 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { orderStepWords } from '@/lib/orders/owner-words';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { ordersRead } from '@/lib/orders/orders-read-state';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
+import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
 import { Sheet } from '@/components/ui/sheet';
@@ -214,6 +216,8 @@ function Progress({ od }: { od: Order }) {
  */
 export function OrderLive({ v }: { v: OpsVals }) {
   const od = v.od;
+  // HCB-006: this order's change was saved but the list could not be refreshed.
+  const read = useSyncExternalStore(ordersRead.subscribe, ordersRead.get, ordersRead.getServer);
   if (!od) return <RecordUnavailable backLabel="Back to orders" onBack={() => v.goBack()} />;
   return (
     <div className="w-full max-w-[860px]">
@@ -235,6 +239,16 @@ export function OrderLive({ v }: { v: OpsVals }) {
             </span>
           ))}
         </p>
+      ) : null}
+
+      {read.savedNotRefreshed !== null && read.savedNotRefreshed === String(od.id) ? (
+        <div className="mb-4">
+          <Banner
+            tone="warn"
+            title={STAFF_COPY.savedNotRefreshed}
+            action={read.retry ? { label: 'Try again', onPress: read.retry } : undefined}
+          />
+        </div>
       ) : null}
 
       {od.needsReview ? <PaymentReview od={od} /> : null}
