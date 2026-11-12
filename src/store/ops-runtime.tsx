@@ -9981,15 +9981,33 @@ export class OpsRuntime extends OpsProvider {
   /**
    * U4: on a phone the ported toast sits 96 px from the bottom, over the day plan's sticky footer. While that footer is on
    * screen the toast is lifted above it (spec rule 8). Only the value is changed; the locked frame draws it as before.
+   *
+   * HCB-005: on a phone or tablet the toast never covers what the sale is waiting on. Under the consolidated till it stands
+   * above the sale bar (`--till-sale-bar`, measured by the till; the 76 px fallback keeps the ported 96 px where the bar is
+   * not drawn, as at 1024 px). While the payment sheet is open it moves to the top, clear of the wallet buttons.
    */
   private liveToastVals(starved: OpsVals): { toastStyle?: string } {
-    if (!isLiveMode() || this.state.screen !== 'bazaar' || this.state.device !== 'mobile')
+    const device = this.state.device;
+    if (
+      !isLiveMode() ||
+      this.state.screen !== 'bazaar' ||
+      (device !== 'mobile' && device !== 'tablet')
+    )
       return {};
+    const style = String(starved.toastStyle);
+    if ((this.state.sheet as { kind?: string } | null)?.kind === 'pay')
+      return { toastStyle: style.replace(/bottom: \d+px/, 'top: 14px; bottom: auto') };
     // The consolidated till stands on a sticky sale bar: its toast goes above the bar, for every role (spec rule 8).
     if (this.consolidatedTillShowing())
-      return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 104px') };
-    if (this.state.role !== 'owner' || !this.bazaarDays.hasStickyFooter()) return {};
-    return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 196px') };
+      return {
+        toastStyle: style.replace(
+          /bottom: \d+px/,
+          'bottom: calc(var(--workspace-dock, 0px) + 12px + var(--till-sale-bar, 76px) + 8px)'
+        )
+      };
+    if (device !== 'mobile' || this.state.role !== 'owner' || !this.bazaarDays.hasStickyFooter())
+      return {};
+    return { toastStyle: style.replace(/bottom: \d+px/, 'bottom: 196px') };
   }
 
   /** An event is selling on this phone, under the consolidated till (not the classic one, not a review). */

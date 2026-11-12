@@ -599,7 +599,8 @@ describe('in the frame', () => {
     const runtime = mountFrame();
     act(() => runtime.toast('Test toast'));
     const toast = screen.getByText('Test toast').closest('[style*="bottom"]') as HTMLElement | null;
-    expect(toast?.style.bottom).toBe('104px');
+    // HCB-005: the height is the sale bar's own, measured by the till, not a guess.
+    expect(toast?.getAttribute('style')).toContain('var(--till-sale-bar');
   });
 
   it('a helper sells on the consolidated till, with no Home and no Add cookies', () => {
