@@ -195,7 +195,7 @@ Source ID key: `V-n` = audit findings.md section n; `M-*` = audit measured-layou
 #### HCB-014 · Till "Settings" button is announced as "Till menu"
 
 - **Source:** V-10b. **Code:** `src/components/live/bazaar/till.tsx:123`.
-- **Status:** reproduced (Source@HEAD; literal `aria-label`). **Impact:** WCAG 2.5.3 Label in Name failure; voice-control users cannot say what they see. **S3 / P2**, one-line fix.
+- **Status:** fixed `3b294cb` (12 November): the aria-label is gone, the button's name is "Settings"; tests and the live smoke script follow. **Impact:** was a WCAG 2.5.3 Label in Name failure. **S3 / P2**.
 - **Correction:** remove the `aria-label` or make it start with the visible word ("Settings").
 - **Tests:** `getByRole('button', { name: 'Settings' })` finds it.
 
