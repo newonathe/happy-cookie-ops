@@ -85,6 +85,10 @@ export interface BazaarDaysDeps {
   bookings: () => readonly ScheduledEvent[];
   /** False until the owner's bookings have been read. */
   bookingsRead: () => boolean;
+  /** True when the newest settled read of the bookings failed (HCB-002e). Absent: never. */
+  bookingsFailed?: () => boolean;
+  /** True while a read of the bookings is out. Absent: never. */
+  bookingsRefreshing?: () => boolean;
   /** The flavours a day can be planned with: the engine's, with their menu price in centavos. */
   flavours: () => ReadonlyArray<{
     id: string;
@@ -425,6 +429,9 @@ export class BazaarDays {
     return {
       online: this.deps.online(),
       eventsRead: this.deps.bookingsRead(),
+      eventsFailed: this.deps.bookingsFailed?.() ?? false,
+      eventsRefreshing: this.deps.bookingsRefreshing?.() ?? false,
+      refreshEvents: () => void this.deps.refreshBookings().catch(() => false),
       state:
         this.bookingId && !booking
           ? this.deps.bookingsRead()
