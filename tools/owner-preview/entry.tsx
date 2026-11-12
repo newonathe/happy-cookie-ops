@@ -76,7 +76,7 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
   if(name==='get_staff_orders'){const day=(n:number)=>new Date(Date.now()+n*86400000).toISOString().slice(0,10);const O=(id:string,nm:string,state:string,pay:string,items:Array<[string,number]>,pickup:number,placed:number)=>({id,name:nm,phone:'09170000000',ig:'',state,pay_state:pay,pay_method:'GCash',pay_ref:pay==='unpaid'?null:'REF-'+id.slice(3),total_cents:items.reduce((t,[p,q])=>t+q*(PRODUCTS.find(x=>x.id===p)?.price??120)*100,0),paid_cents:pay==='confirmed'?items.reduce((t,[p,q])=>t+q*(PRODUCTS.find(x=>x.id===p)?.price??120)*100,0):null,refund_ref:null,pickup_date:day(pickup),pickup_window:'10:00',placed_at:new Date(Date.now()-placed*3600000).toISOString(),updated_at:'2026-11-01T02:00:00.000Z',status_token:'b'.repeat(64),holds:true,items:items.map(([p,q])=>({product_id:p,qty:q,unit_price_cents:(PRODUCTS.find(x=>x.id===p)?.price??120)*100,unavailable:false})),swaps:[]});
     return {data:[O('HC-1101','Bea Villanueva','Payment review','unpaid',[['dcf',3],['hc',3]],2,5),O('HC-1102','Miguel Santos','Confirmed','confirmed',[['wcb',4],['dcf',2]],2,20),O('HC-1103','Joanna Reyes','Preparing','confirmed',[['hc',6]],1,30),O('HC-1104','Karla Mendoza','Ready','confirmed',[['dcf',6]],0,40),O('HC-1105','Paolo Cruz','Confirmed','confirmed',[['wcb',3],['hc',3]],3,8)],error:null};}
   if(name==='get_production')return (window as unknown as {qaProductionFail?:boolean}).qaProductionFail ? {data:null,error:{code:'08006'}} : {data:(window as unknown as {qaProductionEmpty?:boolean}).qaProductionEmpty ? {batches:[],dough:[],baked:[],shortfalls:[]} : production,error:null};
-  if(name==='get_flavours') return {data:flavours,error:null};
+  if(name==='get_flavours') return (window as unknown as {qaFlavoursFail?:boolean}).qaFlavoursFail ? {data:null,error:{code:'08006'}} : {data:flavours,error:null};
   if(name==='get_recipes') return (window as unknown as {qaRecipeFail?:boolean}).qaRecipeFail ? {data:null,error:{code:'08006'}} : {data:fullDemo?demoRecipes:[{product_id:'dcf',yield:12,version:3,updated_at:source.updated_at,lines:[{name:'Unsalted butter',qty:320,unit:'g'},{name:'Eggs',qty:2,unit:'pcs'}],history:[]}],error:null};
   if (name === 'get_stock_catalogue') return { data: { items: fullDemo ? [{...source,par_level:1000},...demoStock] : [source, { ...source, id: 'qa-butter', name: 'Unsalted butter', on_hand: 300, pack_size: 250, pack_label: '250 g' }, { ...source, id: 'qa-pouch', name: 'Cookie pouch', category: 'Packaging', unit: 'pcs', on_hand: 7, par_level: 10, pack_size: 25, pack_label: '25 pouches' }, { ...source, id: 'qa-old', name: 'Old packaging jar', active: false, category: 'Ingredients' }], suppliers:fullDemo?[...suppliers,...demoSuppliers]:suppliers, prices }, error: null };
   if (name === 'save_supplier') {
@@ -121,7 +121,10 @@ function App() {
     if (new URLSearchParams(window.location.search).has('public-shop')) { runtime.go('shop'); setNavigationReady(true); return; }
     runtime.setRole('owner');
     const scope = {userId:'11111111-1111-4111-8111-111111111111',business:'https://preview.happy-cookie.test'};
-    void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => runtime.loadFlavours(client as never)).then(() => runtime.loadStockCatalogue(client as never)).then(() => runtime.loadRecipes(client as never,undefined,undefined,scope)).then(() => runtime.loadOrders(client as never)).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
+    let catalogueHeld = true;
+    void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => runtime.loadFlavours(client as never)).then((held) => { catalogueHeld = held !== false; return runtime.loadStockCatalogue(client as never); })
+      // As the live gate does: Recipes and Orders are read only once the catalogue has answered (`window.qaFlavoursFail` makes it fail).
+      .then(() => catalogueHeld ? runtime.loadRecipes(client as never,undefined,undefined,scope) : undefined).then(() => catalogueHeld ? runtime.loadOrders(client as never) : undefined).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
   }, []);
   return <OpsRuntime ref={ref}><Frame navigationReady={navigationReady} /><OfflineBridge /></OpsRuntime>;
 }
@@ -131,4 +134,5 @@ function App() {
 (window as unknown as {qaPriceWrites:unknown[]}).qaPriceWrites = [];
 (window as unknown as {qaCalls:string[]}).qaCalls = [];
 (window as unknown as {qaProductIds:string[]}).qaProductIds = PRODUCTS.map(p=>p.id);
+(window as unknown as {qaBuiltIn:string[]}).qaBuiltIn = PRODUCTS.flatMap(p=>[String(p.short),String(p.name)]);
 createRoot(document.getElementById('root')!).render(<App />);
