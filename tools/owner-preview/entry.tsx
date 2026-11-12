@@ -16,6 +16,7 @@ import { registerLiveSellScreens } from '@/components/live/sell/register';
 import { registerLiveCustomerScreens } from '@/components/live/customer/register';
 import { registerLiveAccountScreens } from '@/components/live/account/register';
 import { PRODUCTS } from '@/store/engine/ops-engine';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { demoRecipes, demoStock, demoSuppliers } from './demo-records';
 import '@/app/globals.css';
 import '@/app/fonts/onest.css';
@@ -124,10 +125,11 @@ function App() {
     runtime.setRole('owner');
     const scope = {userId:'11111111-1111-4111-8111-111111111111',business:'https://preview.happy-cookie.test'};
     let catalogueHeld = true;
-    void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => { const w = window as unknown as {qaFlavoursSkip?:boolean;qaFlavoursHold?:boolean}; if (w.qaFlavoursSkip) return false; const read = runtime.loadFlavours(client as never); return w.qaFlavoursHold ? false : read; }).then((held) => { catalogueHeld = held !== false; return runtime.loadStockCatalogue(client as never); })
+    void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => { const w = window as unknown as {qaFlavoursSkip?:boolean;qaFlavoursHold?:boolean;qaExpectCatalogue?:boolean}; if (w.qaFlavoursSkip) { if (w.qaExpectCatalogue) flavoursRead.expect(); return false; } const read = runtime.loadFlavours(client as never); return w.qaFlavoursHold ? false : read; }).then((held) => { catalogueHeld = held !== false; return runtime.loadStockCatalogue(client as never); })
       // As the live gate does: Recipes and Orders are read only once the catalogue has answered (`window.qaFlavoursFail` makes it fail;
       // `window.qaProductionForeign` adds a batch of a product outside the built-in six, HCB-004 g; `window.qaFlavoursSkip` starts no
-      // catalogue reader at all, as the gate did before HCB-004 a3 when a check verified on the shop).
+      // catalogue reader at all, as the gate did before HCB-004 a3 when a check verified on the shop; with `window.qaExpectCatalogue`
+      // the store is told a reader is due, exactly as the live gate's staff-screen layout effect does).
       .then(() => catalogueHeld ? runtime.loadRecipes(client as never,undefined,undefined,scope) : undefined).then(() => catalogueHeld ? runtime.loadOrders(client as never) : undefined).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
   }, []);
   return <OpsRuntime ref={ref}><Frame navigationReady={navigationReady} /><OfflineBridge /></OpsRuntime>;
