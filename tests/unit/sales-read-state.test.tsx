@@ -126,6 +126,82 @@ describe('Money > Sales before and after the books are read', () => {
     expect(view.queryByText('Books not loaded yet')).toBeNull();
   });
 
+  const eventSale = (items: Record<string, number>, total = 120) => ({
+    id: 'sale-1',
+    items,
+    total,
+    gross: total,
+    discount: 0,
+    pay: 'cash',
+    ref: '',
+    clerk: 'Ana',
+    at: NOW - 5 * 60_000,
+    tendered: total,
+    change: 0,
+    synced: false,
+    failed: false,
+    ledgerId: null
+  });
+
+  it('books unread, one event sale on this phone: the panel, then that sale under its own heading', async () => {
+    const r = await mounted();
+    await act(async () => void (await r.loadBooks({ rpc: async () => fail } as never)));
+    act(() =>
+      r.setState({
+        event: { id: 'ev1', name: 'Bazaar Sunday', stage: 'open' },
+        sales: [eventSale({ unknown_cookie: 2 }, 150)]
+      } as never)
+    );
+    open(r);
+    const view = render(<SalesLive v={r.renderVals()} />);
+    expect(view.getByText('Books not loaded yet')).toBeTruthy();
+    expect(view.getByText('Recorded on this phone')).toBeTruthy();
+    expect(
+      view.getByText(
+        'Only the sales this phone recorded at the open event are shown; the full log appears once your books load.'
+      )
+    ).toBeTruthy();
+    expect(view.getByText('Product unavailable')).toBeTruthy();
+    expect(view.getByText('2×')).toBeTruthy();
+    expect(view.getByText('₱150')).toBeTruthy();
+    expect(view.getByText(/Bazaar Sunday · 5 min ago · Ana/)).toBeTruthy();
+    expect(view.queryByText(/sales? recorded/)).toBeNull();
+    expect(view.queryByText('No sales recorded yet.')).toBeNull();
+    // Mutation: dropping phoneSales from the not-loaded branch hides this phone's sales again.
+  });
+
+  it('books unread, no event sales: the panel only', async () => {
+    const r = await mounted();
+    await act(async () => void (await r.loadBooks({ rpc: async () => fail } as never)));
+    open(r);
+    const v = r.renderVals();
+    expect(v.phoneSales).toEqual([]);
+    const view = render(<SalesLive v={v} />);
+    expect(view.getByText('Books not loaded yet')).toBeTruthy();
+    expect(view.queryByText('Recorded on this phone')).toBeNull();
+    expect(view.queryByText(/sales? recorded/)).toBeNull();
+  });
+
+  it('books read: the engine log is unchanged, no phone-only panel', async () => {
+    const r = await mounted();
+    await act(async () => {
+      await r.loadBooks({
+        rpc: async () => ({ data: wire([line('o1', 'revenue', 800, 2)]), error: null })
+      } as never);
+    });
+    act(() =>
+      r.setState({
+        event: { id: 'ev1', name: 'Bazaar Sunday', stage: 'open' },
+        sales: [eventSale({}, 0)]
+      } as never)
+    );
+    open(r);
+    const view = render(<SalesLive v={r.renderVals()} />);
+    expect(view.getByText('2 sales recorded')).toBeTruthy();
+    expect(view.queryByText('Recorded on this phone')).toBeNull();
+    expect(view.queryByText('Books not loaded yet')).toBeNull();
+  });
+
   it('demo mode is unchanged: no books state, the engine log as before', async () => {
     live = false;
     const r = await mounted();
