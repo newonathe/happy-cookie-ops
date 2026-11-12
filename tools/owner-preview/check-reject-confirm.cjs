@@ -45,6 +45,7 @@ const LABEL = 'SYNTHETIC (owner preview, fake data, not a connected database)';
     else {
       const text = (await dialog.textContent()) ?? '';
       if (!/HC-1101/.test(text)) fail('the dialog does not name the order');
+      if (!/Bea Villanueva/.test(text)) fail('the dialog does not name the customer');
       await page.screenshot({ path: `${out}/synthetic-reject-dialog-${width}.png` });
       // 2. Keep order sends nothing and closes.
       await dialog.getByRole('button', { name: 'Keep order', exact: true }).click();
