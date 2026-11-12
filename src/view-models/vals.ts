@@ -435,6 +435,8 @@ export interface OpsVals {
    * here that the books do not already sum. `loaded` is false until the books are read.
    */
   liveMoney?: LiveMoney | null;
+  /** Live owner on Money > Sales only: whether the books behind the sales log have been read. */
+  liveBooksRead?: Pick<LiveMoney, 'loaded' | 'read'> | null;
   /** Live owner only: customers, from their orders. */
   liveCustomers?: LiveCustomers | null;
   /** Live owner only: what the Make pages need beyond the engine's rows. */

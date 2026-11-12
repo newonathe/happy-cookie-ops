@@ -3690,6 +3690,10 @@ export class OpsRuntime extends OpsProvider {
               }))
             }
           : null,
+      liveBooksRead:
+        isLiveMode() && this.state.role === 'owner' && this.state.screen === 'sales'
+          ? this.moneyDesk.booksRead()
+          : null,
       liveMake: this.state.role === 'owner' && isLiveMode() ? this.makeDesk.vals() : null,
       liveCustomers: this.state.role === 'owner' && isLiveMode() ? this.customerDesk.vals() : null,
       liveHome: this.liveHomeVals(starved),
