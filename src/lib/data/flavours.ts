@@ -61,12 +61,7 @@ export function engineCatalogue(
   return { list: sorted.map(engineFlavour), allergens };
 }
 
-export async function fetchFlavours(client: FlavoursClient): Promise<FlavourRow[]> {
-  const { data, error } = await client.rpc('get_flavours');
-  if (error) throw new Error('flavour load failed: ' + (error.code || error.message));
-  return data ?? [];
-}
-
+/** A bigint column can arrive as a number or a digit string through the client. */
 const publicPrice = z
   .union([
     z.number(),
@@ -76,6 +71,45 @@ const publicPrice = z
       .transform(Number)
   ])
   .pipe(z.number().int().min(0).max(Number.MAX_SAFE_INTEGER));
+
+/**
+ * HCB-004: the `get_flavours` answer, checked field by field. ANY malformed row fails the whole
+ * read: a partial list would be shown as her whole menu, a save or publish from that cache could
+ * shrink it, and an order naming a dropped id would crash the engine's render.
+ */
+const staffMenu = z
+  .array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      short_name: z.string().min(1),
+      kind: z.string().min(1),
+      price_cents: publicPrice,
+      capacity_weight: z.number().int(),
+      sort_order: z.number().int(),
+      tag: z.string(),
+      description: z.string(),
+      image_path: z.string(),
+      allergens: z.string(),
+      item_type: z.string(),
+      active: z.boolean(),
+      published: z.boolean(),
+      updated_at: z.string()
+    })
+  )
+  .refine((rows) => new Set(rows.map((row) => row.id)).size === rows.length);
+
+export async function fetchFlavours(client: FlavoursClient): Promise<FlavourRow[]> {
+  const { data, error } = await client.rpc('get_flavours');
+  if (error) throw new Error('flavour load failed: ' + (error.code || error.message));
+  // `null` is an answered, empty menu (the read state keeps that distinct from a failure).
+  if (data == null) return [];
+  const parsed = staffMenu.safeParse(data);
+  // No row values in the message: a failed read reports that it failed, not what it held.
+  if (!parsed.success) throw new Error('flavour load failed: malformed answer');
+  return parsed.data;
+}
+
 const publicMenu = z
   .array(
     z.object({
