@@ -22,6 +22,19 @@ export const STAFF_COPY = {
     `${first}’s order is marked paid. ${balance} is still to collect.`,
   rejected: 'Payment rejected. The order is cancelled and its slots are free again.',
   reopened: 'Back in your review queue.',
+  /**
+   * HCB-007, the OD-03 default form (a dialog; PLACEHOLDER wording under OD-03/OD-12): the question
+   * asked before a payment is rejected. It says only what `staff_reject_payment` does (the order is
+   * cancelled and its slots freed) and nothing about telling the customer, which nothing here does.
+   */
+  rejectConfirm: {
+    title: 'Reject this payment?',
+    body: (name: string, id: string): string =>
+      `${name}’s order ${id} will be cancelled and its pickup slots will be free again.`,
+    note: 'Nothing is sent to the customer. If they send a valid payment later, you can reopen the order for review.',
+    keep: 'Keep order',
+    confirm: 'Reject and cancel order'
+  },
   packed: (first: string): string => `${first}’s order is packed and ready.`,
   collected: (first: string): string => `${first}’s order is picked up.`,
   noShow: (first: string): string => `${first} did not pick up. The order stays paid.`,
