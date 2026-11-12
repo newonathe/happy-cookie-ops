@@ -17,6 +17,8 @@ const net = vi.hoisted(() => ({
   engine: null as unknown,
   /** While set, the gate's server check (`getUser`) waits for it: a re-check held in flight. */
   hold: null as Promise<void> | null,
+  /** How many server checks (`getUser`) were ever asked. */
+  checks: 0,
   authEvent: null as null | ((event: string, session: { user: { id: string } } | null) => void)
 }));
 
@@ -38,6 +40,7 @@ vi.mock('@/lib/supabase/client', () => {
     auth: {
       getSession: async () => ({ data: { session: { user: { id: net.userId } } }, error: null }),
       getUser: async () => {
+        net.checks += 1;
         await net.hold;
         return { data: { user: { id: net.userId } }, error: null };
       },
@@ -123,6 +126,7 @@ beforeEach(() => {
     engine: null,
     waiting: [],
     hold: null,
+    checks: 0,
     flavourCalls: 0
   });
   flavoursRead.reset();
@@ -444,6 +448,91 @@ describe('HCB-004 a3: the owner reaches a staff screen after a check verified on
     await answer(ok(GOOD));
     expect(started()).toEqual([0, 0]);
     expect(ownerReads()).toEqual([0, 0, 0, 0]);
+  });
+
+  it('a3-4. a same-person sign-in on the shop, then a move to a staff screen: the read is due at once and a check runs', async () => {
+    const { release } = await heldOnShop();
+    await release();
+    // supabase-js signs the same person in again while she is on the shop: the identity moves on
+    // and nothing is verified for it.
+    await act(async () => {
+      net.authEvent?.('SIGNED_IN', { user: { id: 'u1' } });
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(engineNow().state.screen).toBe('shop');
+    expect(net.flavourCalls).toBe(0);
+    expect(flavoursRead.get().phase).toBe('idle');
+    const checksBefore = net.checks;
+    let answerCheck!: () => void;
+    net.hold = new Promise<void>((resolve) => void (answerCheck = resolve));
+    await goTo('recipes');
+    // In that same act: the read is due (the views say "not read", never the built-in six), there
+    // is no reader and nothing to retry yet, and the profile check has been asked.
+    expect(flavoursRead.get().phase).toBe('loading');
+    expect(flavoursRead.get().retry).toBeNull();
+    expect(net.flavourCalls).toBe(0);
+    expect(net.checks).toBe(checksBefore + 1);
+    // Another staff screen while that check is out asks for no second one.
+    await goTo('today');
+    expect(net.checks).toBe(checksBefore + 1);
+    net.hold = null;
+    await act(async () => {
+      answerCheck();
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(net.flavourCalls).toBe(1);
+    expect(started()).toEqual([0, 0]);
+    await answer(ok(GOOD));
+    expect(flavoursRead.get().phase).toBe('read');
+    expect(started()).toEqual([1, 1]);
+  });
+
+  it('a3-6. a same-person sign-in while a check is out, then a move to a staff screen: the stale answer asks again', async () => {
+    const { release } = await heldOnShop();
+    await release();
+    // A re-check is out (a token refresh) when supabase-js signs the same person in again on the shop.
+    let answerFirst!: () => void;
+    net.hold = new Promise<void>((resolve) => void (answerFirst = resolve));
+    await act(async () => {
+      net.authEvent?.('TOKEN_REFRESHED', { user: { id: 'u1' } });
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    const checksBefore = net.checks;
+    await act(async () => {
+      net.authEvent?.('SIGNED_IN', { user: { id: 'u1' } });
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    net.hold = null;
+    await goTo('recipes');
+    // The views say "not read"; no second check while the first is out, and nothing read for an unverified identity.
+    expect(flavoursRead.get().phase).toBe('loading');
+    expect(net.checks).toBe(checksBefore);
+    expect(net.flavourCalls).toBe(0);
+    // The first check answers for the identity before the sign-in: not applied, but a fresh check is asked at once.
+    await act(async () => {
+      answerFirst();
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(net.checks).toBe(checksBefore + 1);
+    await tick();
+    expect(net.flavourCalls).toBe(1);
+    await answer(ok(GOOD));
+    expect(flavoursRead.get().phase).toBe('read');
+    expect(started()).toEqual([1, 1]);
+  });
+
+  it('a3-5. the gate unmounted leaves the store idle', async () => {
+    const { view, release } = await heldOnShop();
+    await release();
+    await act(async () => {
+      net.authEvent?.('SIGNED_IN', { user: { id: 'u1' } });
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    net.hold = new Promise<void>(() => undefined);
+    await goTo('recipes');
+    expect(flavoursRead.get().phase).toBe('loading');
+    view.unmount();
+    expect(flavoursRead.get().phase).toBe('idle');
   });
 
   it('a3-3a. nothing starts on the move while the check is still out', async () => {

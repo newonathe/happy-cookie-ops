@@ -654,7 +654,15 @@ export function LiveGate({
       const epoch = identityEpoch;
       const pending = probe();
       const answer = await limited(pending);
-      if (cancelled || epoch !== identityEpoch) return;
+      if (cancelled) return;
+      if (epoch !== identityEpoch) {
+        // HCB-004 a3: the identity moved while this check was out, so its answer is not applied. If she
+        // is on a staff screen waiting for the reads, ask again once this check is no longer out
+        // (the move itself skipped asking while it was), instead of waiting for the next event.
+        if (answer) actions.current.staffScreen();
+        else void pending.then(() => actions.current.staffScreen());
+        return;
+      }
       if (answer) {
         apply(answer, isFirstCheck);
         return;
@@ -678,11 +686,17 @@ export function LiveGate({
       if (
         cancelled ||
         accessRef.current !== 'verified' ||
-        verifiedEpoch !== identityEpoch ||
-        !askedRole ||
-        engine.state.role !== askedRole
+        CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
       )
         return;
+      // The identity moved without a check (supabase-js signs the same person in again on the shop):
+      // nothing may start for an identity no check has verified. Ask for the check now, unless one is
+      // out already; its answer applies on this staff screen and starts the reads.
+      if (verifiedEpoch !== identityEpoch) {
+        if (!outstanding) void verify(false);
+        return;
+      }
+      if (!askedRole || engine.state.role !== askedRole) return;
       startStaffReads(askedRole, latestProductionScope);
       evaluateCatalogueWatch();
     };
@@ -743,6 +757,8 @@ export function LiveGate({
     return () => {
       cancelled = true;
       stopCatalogueWatch();
+      // Only clears a wait no reader answered (a started reader's state is its own).
+      catalogueRead.unexpect();
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('online', onOnline);
@@ -761,8 +777,15 @@ export function LiveGate({
   // view never draws the engine's built-in six for a frame. A no-op unless access is verified and
   // the staff reads have not started.
   useLayoutEffect(() => {
-    if (needsGate) actions.current.staffScreen();
-  }, [needsGate, screen]);
+    if (!needsGate) return;
+    // A verified person on a staff screen is owed a catalogue reader: until one binds, the views say
+    // "not read" rather than draw the engine's built-in six. Not before a check verified (the gate
+    // draws no staff view then), and never on a customer screen or in demo mode (`needsGate`).
+    if (configured && accessRef.current === 'verified' && engine instanceof OpsRuntime)
+      catalogueRead.expect();
+    actions.current.staffScreen();
+    // `access` too: a check that verifies on this screen is looked at again (each step is idempotent).
+  }, [needsGate, screen, configured, engine, access]);
 
   const view = (hold: React.ReactNode) =>
     typeof children === 'function' ? children({ landing, hold }) : (hold ?? children);

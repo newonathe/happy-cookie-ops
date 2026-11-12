@@ -390,6 +390,17 @@ describe.each(VIEWS)('HCB-004 a2: $label', (view) => {
     if (view.saysUnread) expect(pageText(view, runtime)).toMatch(SAYS_UNREAD);
   });
 
+  it('e. no reader bound yet, but one is due (the gate is on a staff screen): no built-in product, price or count', async () => {
+    const runtime = await mount();
+    // The live gate is on a staff screen and has not started the reads (identity moved without a check).
+    act(() => flavoursRead.expect());
+    await view.prepare(runtime, BUILT_IN_ID);
+    await view.open?.();
+    expect(flavoursRead.get().phase).toBe('loading');
+    expectNothingBuiltIn(view, runtime);
+    if (view.saysUnread) expect(pageText(view, runtime)).toMatch(SAYS_UNREAD);
+  });
+
   it('c. a read that succeeded shows her own products', async () => {
     const runtime = await mount();
     await readCatalogue(runtime, ok(GOOD));
