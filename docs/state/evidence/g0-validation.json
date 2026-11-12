@@ -6145,7 +6145,7 @@
       "check": "current_and_master_local_document_links",
       "passed": true,
       "detail": {
-        "checked": 1048,
+        "checked": 1049,
         "broken": []
       }
     },
@@ -6316,6 +6316,6 @@
     ".agents/skills/source-command-review/SKILL.md",
     ".agents/skills/source-command-verify/SKILL.md"
   ],
-  "generator_scratch": "/tmp/happy-cookie-catalog-_d_ntyt5",
+  "generator_scratch": "/tmp/happy-cookie-catalog-00a3352u",
   "failures": []
 }
