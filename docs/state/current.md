@@ -4,7 +4,7 @@
 
 ## Cloud checkout and accepted source
 
-Work is on `claude/dreamy-faraday-74rshc`, continuing from the accepted checkpoints in current-history.md. Private/local work listed in full-goal.md was not applied.
+Work is on `claude/beautiful-knuth-b5hg1z` (it continues `claude/dreamy-faraday-74rshc` from `fb733c0`), continuing from the accepted checkpoints in current-history.md. Private/local work listed in full-goal.md was not applied.
 
 Accepted and pushed development checkpoints are recorded in current-history.md. Latest acceptance work is below.
 
@@ -52,7 +52,7 @@ Checkout source isolation is accepted as`6672012c8e1bc5fa15d3dd8eea76ded620000c3
 
 Checkout pickup/extras F09 is accepted as`6856b646f50a3d8d06d9c71a68c15232c69cbad1`: full215files/3469tests+2TODO,184focused, actual390/1440/SQL, inspected views, build and clear review. Failed reads keep choices and text; new unchecked choices/same-day charges are blocked, exact frozen retries and future cookies-only ordering are preserved.
 
-HCB-004 finding a (built-in products shown as hers after a failed or unanswered first catalogue read, nothing kept): the Bazaar plan and Start day are fixed (`42083fc`, `3ccde27`), and the Bake plan, Home, the owner's Shop preview and the Sell > Shop "This drop's menu" are fixed in `590f58c` through `OpsRuntime.catalogueHeld()` and one `OpsVals.catalogueHeld` flag. Details are in [history](current-history.md#hcb-004-and-earlier-release-slices--11-november-2026).
+HCB-004 finding a (built-in products shown as hers after a failed or unanswered first catalogue read, nothing kept) is fixed on every owner view found: the Bazaar plan and Start day (`42083fc`, `3ccde27`), the Bake plan, Home, the owner's Shop preview and the drop menu (`590f58c`), and the remaining views in `a6ae8a2` (a2, below). Details are in [history](current-history.md#hcb-004-a2--12-november-2026).
 
 ## Remaining objective and gates
 
@@ -62,13 +62,13 @@ Physical dough-count correction is unanswered. Hosted/schema, off-device backup 
 
 PR reconciliation (9 November; #51 then #53, one read-state source, no force-push) is in [history](current-history.md#pr-reconciliation--9-november-2026).
 
-**Release checkpoint, 11 November 2026.** Working branch `claude/dreamy-faraday-74rshc` at `a1f0615`; `main` is `ced7b82`; none of the later commits are on `main`; no pull request is open. Active agent: Claude Code.
+**Release checkpoint, 12 November 2026.** Working branch `claude/beautiful-knuth-b5hg1z` at `26a6772` plus this note; `main` is `ced7b82`; none of the later commits are on `main`; no pull request is open. Active agent: Claude Code.
 
 - **Release unchanged, blocked (Gate 16).** The read-only schema check stopped with `Trial migration inventory differs from the verified checkout; deployment blocked`, because the hosted trial's migration list differs from the checkout. Nothing deployed (deployed source is still `ed64a515`); the next step is Ethan's (back up, apply the twelve added migrations when the owner is not baking, re-run the deploy job). Do not push to the trial branch.
-- **`590f58c`** (Bake plan, Home, the owner's Shop preview and the Sell > Shop "This drop's menu" show no built-in products until the catalogue is held) was independently reviewed by the Sonnet `security-reviewer` (high): clear with notes. The public customer shop is unaffected (a visitor never gets the flag; checkout prices are computed server-side from `products.price_cents`). Helpers get `flavourSync` too. The till and an open Bazaar day are untouched. Side effect: while the read has failed the owner cannot toggle sold-out on the Shop page menu. Gate at `590f58c`: `pnpm verify` 235 files / 3,773 tests + 2 TODO. `a1f0615` adds the public-shop test g2 (tests only).
-- **Still reading the engine's built-in product list without the held check** (`ops-runtime.tsx` unless noted; lines approximate): Make > Recipes `recipeBook.flavours` (~1303) and recipe draft rows (~4509); the Production page's "Completed flavours" rows (`src/components/live/production/production-live.tsx` ~79, ~150); Inventory "made" rows (~6503); the Settings Products launcher subtitle (~2803) and `pageSub` (~3571); the pricing example (~2747); saved batch names fall back to "Product no longer listed" (~7129). Production Start is clean (`productionStartView` reads `flavourSync.current()`, ~7561).
-- **Shopping's "Cookies to bake"** is her confirmed orders' demand, summed only over the engine's product ids, so after a failed read it can understate (`ops-engine.js` ~2730-2782 via `ops-runtime.tsx` ~9108): not a built-in leak, but an unknown shown as a number.
-- **Next:** the root-cause slice in [next-goal.md](next-goal.md) item 1. Open findings b to f are in the HCB-004 register entry.
+- **`a6ae8a2` (HCB-004 a2)**: after a failed or unanswered first catalogue read with nothing kept, the recipe book and recipe drafts, Production (order plan, work, saved batch names), Inventory dough and baked rows, the Settings and launcher subtitles, the Products subtitle, the pricing example, Shopping's "Cookies to bake" and the All tools "Menu & flavours" count show no built-in product, price or count, and say "not read" instead of a zero or "none". The source-level proposal (emptying the engine's list) was tested and rejected: it fails `products-read-state` 6a and 8 and the B2 test in `flavours`, and the protected engine throws in `setPrice` and `toggleDropProduct`. The views are gated through `heldProducts()` and `catalogueUnread()` beside `catalogueHeld()`. Test `tests/unit/catalogue-held-owner-views.test.tsx` (41; 18 failed first). Review by the Sonnet `security-reviewer` (high): clear with notes. Gate: `pnpm verify` 236 files / 3,815 tests + 2 TODO. Synthetic captures at 390 and 1440 px (fake data, not a connected database) were inspected; `26a6772` adds the preview's failed-catalogue switch.
+- **Open, found in this slice (HCB-004 g, not fixed):** with the catalogue read failed, a production read that names a product the engine does not hold throws in the engine's render (`ops-engine.js` 3869, `P[v.pid].short`, "Yield against plan"). Reproduced in a unit test on `fb733c0` too, so it predates this slice. Not yet checked: the real gate, an ordinary load where production answers before the catalogue, and what the error boundary then shows.
+- **Open (HCB-004 a3, low):** `catalogueUnread()` is false while no catalogue reader exists (nine original tests mount live mode without one). An owner who moves to the shop during the first check and back sees the built-in list on the a2 views until the next check, at most 60 seconds (`live-gate.tsx` ~545).
+- **Next:** finding g, in [next-goal.md](next-goal.md) item 1. Findings b to f are in the HCB-004 register entry.
 - **Method:** Sonnet builder (high) for logic slices; independent review by the Sonnet `security-reviewer` (high), Opus only for SQL, RLS and money-posting diffs; one writer at a time; synthetic visual captures at 390 and 1440 px, labelled synthetic.
 
 Hosted, device and owner acceptance remain pending.
