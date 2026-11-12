@@ -135,7 +135,7 @@ Source ID key: `V-n` = audit findings.md section n; `M-*` = audit measured-layou
 - **Observed:** toast "marked paid" while the page still shows "Check this payment" and Confirm payment.
 - **Evidence:** audit `sell/order/saved-refresh-failed/d1440.webp`.
 - **Code:** `src/lib/data/staff-orders.ts` `StaffOrderSync.run` (`if (outcome.kind === 'ok') await this.load();` ignores the result); `src/store/ops-runtime.tsx` `liveOrder` toasts success regardless.
-- **Status:** reproduced (Source@HEAD).
+- **Status:** fixed `b9e5efe` (12 November). The acknowledged row is shown when the refresh fails, with "Saved. Could not refresh the list." and Try again; the action is not re-offered; an older refresh cannot bring the old order back. Tests `order-saved-not-refreshed`, `staff-orders`; browser check `tools/owner-preview/check-saved-not-refreshed.cjs`. Review clear with notes (swap/refund partial patch open, low).
 - **Impact:** owner may press Confirm again (server replay is idempotent, so no double charge) or distrust the app. **S3 / P2.**
 - **Correction:** after an acknowledged change whose refresh fails, show the acknowledged state for that order (from the RPC answer) with "Saved. Could not refresh the list" + Retry; never re-offer the same action.
 - **Dependencies:** HCB-002a (shared read-state). **Tests:** ack ok + reload fails → no Confirm button, saved message, Retry.

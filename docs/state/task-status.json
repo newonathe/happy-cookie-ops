@@ -334,7 +334,7 @@
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "HCB-006: after an acknowledged order change whose refresh fails, show the saved state and never re-offer the action."
+        "next_authorized_unblocked_task": "HCB-002b to i: establish which owner screens still show a failed first read as loading or empty, then fix the highest-impact one."
       },
       "C5": {
         "title": "Sell/payments",
@@ -544,13 +544,13 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "After an acknowledged order change whose refresh fails, the page shows the saved state and never re-offers the action (HCB-006).",
+      "requirement": "No owner screen shows a failed first read as loading or a genuine empty result (HCB-002b to i).",
       "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "7a1bd63",
-      "behavior": "HCB-004 fixed through 6ff0340; HCB-005 fixed in 941380c; HCB-007 fixed in 7a1bd63 (Reject asks first, OD-03 default dialog).",
-      "evidence": "7a1bd63 reviewed by the Sonnet security-reviewer (high): clear with notes, Keep moved first. order-reject-confirm 7 tests failed first. Gate: pnpm verify 239 files / 3,910 tests + 2 TODO. Synthetic captures at 390 and 1440 px inspected.",
+      "source_checkpoint": "b9e5efe",
+      "behavior": "HCB-004 fixed through 6ff0340; HCB-005 941380c; HCB-007 7a1bd63 (Reject asks first); HCB-006 b9e5efe (a saved change whose refresh fails is shown as saved, never re-offered).",
+      "evidence": "b9e5efe reviewed by the Sonnet security-reviewer (high): clear with notes; race delta clear with notes. 14 tests failed on fd31562 (run by Claude); browser check fails before and passes after at 390 and 1440 px (synthetic). Gate: pnpm verify 240 files / 3,924 tests + 2 TODO.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
-      "next": "HCB-006 saved-but-refresh-failed, test first, independent review."
+      "next": "HCB-002b to i: probe each screen with its read failed, record, fix the highest-impact one test first."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
