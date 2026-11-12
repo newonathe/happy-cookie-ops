@@ -397,3 +397,118 @@ describe('dbValueFor', () => {
     expect(dbValueFor('inactiveCats', [])).toEqual({ ok: true, value: [] });
   });
 });
+
+/**
+ * HCB-004 correction: a malformed `get_settings` / `get_operating_settings` answer is a failed
+ * read. `load` answers false and the engine keeps its defaults; `reload` patches nothing. It used
+ * to throw "rows is not iterable" (or a row's `.key` of undefined) after the try.
+ */
+describe('HCB-004: a malformed settings answer is a failed read', () => {
+  const malformed: Array<[string, unknown]> = [
+    ['an object', {}],
+    ['a string', 'x'],
+    ['a row without a key', [{ ...row('capacity', { int_value: 320 }), key: undefined }]],
+    ['an empty key', [row('', { int_value: 320 })]],
+    [
+      'an int_value that is not a number',
+      [row('capacity', { int_value: 'abc' as unknown as number })]
+    ],
+    ['a fractional int_value', [row('capacity', { int_value: 3.5 })]],
+    [
+      'a cents_value that is not a number',
+      [row('drawerFloat', { cents_value: 'abc' as unknown as number })]
+    ],
+    ['a text_value that is a number', [row('priceMode', { text_value: 5 as unknown as string })]],
+    [
+      'a good row beside a bad one',
+      [row('capacity', { int_value: 320 }), row('openH', { int_value: 'abc' as unknown as number })]
+    ]
+  ];
+  const roles: Role[] = ['owner', 'helper'];
+
+  it.each(malformed)('load answers false and applies nothing for %s', async (_name, data) => {
+    for (const role of roles) {
+      const handler = () => ({ data, error: null });
+      const { client } = fakeClient({ get_settings: handler, get_operating_settings: handler });
+      const host = fakeHost(role);
+      const apply = vi.spyOn(host, 'apply');
+      await expect(new SettingsSync(client, host).load(DEFAULT_CFG)).resolves.toBe(false);
+      expect(apply).not.toHaveBeenCalled();
+      expect(host.cfgState).toEqual(DEFAULT_CFG);
+    }
+  });
+
+  it.each(malformed)('reload answers false and patches nothing for %s', async (_name, data) => {
+    const answers: unknown[] = [OWNER_ROWS, data];
+    const { client } = fakeClient({
+      get_settings: () => ({ data: answers.shift(), error: null })
+    });
+    const host = fakeHost('owner');
+    const sync = new SettingsSync(client, host);
+    await expect(sync.load(DEFAULT_CFG)).resolves.toBe(true);
+    const after = { ...host.cfgState };
+    const apply = vi.spyOn(host, 'apply');
+    await expect(sync.reload()).resolves.toBe(false);
+    expect(apply).not.toHaveBeenCalled();
+    expect(host.cfgState).toEqual(after);
+  });
+
+  it('accepts digit strings for cents_value and int_value, as a bigint can arrive', async () => {
+    const { client } = fakeClient({
+      get_settings: () => ({
+        data: [
+          row('packagingFee', { cents_value: '4250' as unknown as number }),
+          row('capacity', { int_value: '320' as unknown as number })
+        ],
+        error: null
+      })
+    });
+    const host = fakeHost('owner');
+    await expect(new SettingsSync(client, host).load(DEFAULT_CFG)).resolves.toBe(true);
+    expect(host.cfgState.packagingFee).toBe(42.5);
+    expect(host.cfgState.capacity).toBe(320);
+  });
+
+  it('accepts a negative int_value (the table sets no sign; each key range is the server check)', async () => {
+    const { client } = fakeClient({
+      get_settings: () => ({
+        data: [
+          row('somethingNew', { int_value: -2 }),
+          row('capacity', { int_value: '-1' as unknown as number })
+        ],
+        error: null
+      })
+    });
+    const host = fakeHost('owner');
+    await expect(new SettingsSync(client, host).load(DEFAULT_CFG)).resolves.toBe(true);
+    expect(host.cfgState.capacity).toBe(-1);
+  });
+
+  it('still skips an unknown key and accepts null columns and any json_value', async () => {
+    const { client } = fakeClient({
+      get_settings: () => ({
+        data: [
+          row('somethingNew', { int_value: 7 }),
+          row('taxRate', { json_value: 5, updated_at: null as unknown as string }),
+          row('categories', { json_value: ['A'] }),
+          // A key no row has saved yet: json_value null, is_default true.
+          row('channels', {
+            json_value: null,
+            is_default: true,
+            updated_at: null as unknown as string
+          })
+        ],
+        error: null
+      })
+    });
+    const host = fakeHost('owner');
+    await expect(new SettingsSync(client, host).load(DEFAULT_CFG)).resolves.toBe(true);
+    expect(host.cfgState.taxRate).toBe(5);
+    expect('somethingNew' in host.cfgState).toBe(false);
+  });
+
+  it('still reads null data as no rows', async () => {
+    const { client } = fakeClient({ get_settings: () => ({ data: null, error: null }) });
+    await expect(new SettingsSync(client, fakeHost('owner')).load(DEFAULT_CFG)).resolves.toBe(true);
+  });
+});

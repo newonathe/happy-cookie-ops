@@ -11,11 +11,13 @@ import { OpsRuntime } from '@/store/ops-runtime';
 import { AppFrame } from '@/components/shell/app-frame';
 import { ALLERGENS, PRODUCTS, replaceFlavours } from '@/store/engine/ops-engine';
 import { SCREEN_KEYS } from '@/lib/screens';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
 import {
   FLAVOUR_TOASTS,
   FlavourSync,
   SHOP_COLUMNS,
   engineCatalogue,
+  fetchFlavours,
   fetchShopFlavours,
   shopCatalogue,
   type FlavourEdit,
@@ -1166,5 +1168,120 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
         p_ids: liveRows().map((r) => r.id)
       });
     });
+  });
+});
+
+/**
+ * HCB-004 correction: `get_flavours` answered with something that is not the documented shape is
+ * a FAILED read, never a partial menu. A dropped row would be shown as her whole menu, a save or
+ * publish from that cache could shrink it, and an order naming a dropped id would crash the render.
+ */
+describe('HCB-004: a malformed get_flavours answer is a failed read', () => {
+  beforeEach(() => {
+    live = true;
+  });
+  afterEach(() => {
+    cleanup();
+    replaceFlavours(
+      PORTED.list.map((p) => ({ ...p })),
+      PORTED.allergens
+    );
+  });
+
+  const answering = (data: unknown): FlavoursClient =>
+    ({ rpc: vi.fn(async () => ({ data, error: null })) }) as unknown as FlavoursClient;
+  const good = (): FlavourRow[] => liveRows();
+  const withRow = (change: Record<string, unknown>): unknown[] => [
+    ...good().slice(0, 2),
+    { ...good()[2]!, ...change },
+    ...good().slice(3)
+  ];
+  const withoutId = (): unknown[] => {
+    const row: Record<string, unknown> = { ...good()[2]! };
+    delete row.id;
+    return [...good().slice(0, 2), row, ...good().slice(3)];
+  };
+  const malformed: Array<[string, unknown]> = [
+    ['an object', {}],
+    ['a string', 'x'],
+    ['a row without an id', withoutId()],
+    ['a price that is not a number', withRow({ price_cents: 'abc' })],
+    ['a negative price', withRow({ price_cents: -1 })],
+    ['a fractional price', withRow({ price_cents: 12.5 })],
+    ['a null sort_order', withRow({ sort_order: null })],
+    ['a duplicate id', [...good(), { ...good()[0]!, name: 'again' }]],
+    ['a good row beside a bad one', [good()[0], { ...good()[1]!, price_cents: 'abc' }, good()[2]]]
+  ];
+
+  it.each(malformed)('fetchFlavours rejects %s without echoing a value', async (_name, data) => {
+    const read = fetchFlavours(answering(data));
+    await expect(read).rejects.toThrow('flavour load failed: malformed answer');
+    await expect(read).rejects.not.toThrow(/abc|again|dcf/);
+  });
+
+  it.each(malformed)(
+    'FlavourSync.load answers false, reports failed and applies nothing for %s',
+    async (_name, data) => {
+      const host = {
+        apply: vi.fn(),
+        edit: vi.fn(),
+        restore: vi.fn(),
+        online: () => true,
+        toast: vi.fn()
+      };
+      const sync = new FlavourSync(answering(data), host);
+      expect(await sync.load()).toBe(false);
+      expect(flavoursRead.get().phase).toBe('failed');
+      expect(flavoursRead.get().everRead).toBe(false);
+      expect(sync.readEmpty).toBe(false);
+      expect(sync.current()).toEqual([]);
+      expect(host.apply).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(malformed)(
+    'OpsRuntime.loadFlavours resolves false and keeps the engine list for %s',
+    async (_name, data) => {
+      const ref: { current: OpsRuntime | null } = { current: null };
+      render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
+      const before = PRODUCTS.map((p) => p.id);
+      let loaded: boolean | undefined;
+      await act(async () => {
+        loaded = await ref.current!.loadFlavours(answering(data));
+      });
+      expect(loaded).toBe(false);
+      expect(PRODUCTS.map((p) => p.id)).toEqual(before);
+      expect(flavoursRead.get().phase).toBe('failed');
+    }
+  );
+
+  it('accepts a price that arrives as a digit string, and returns a number', async () => {
+    const rows = await fetchFlavours(answering(withRow({ price_cents: '17500' })));
+    expect(rows).toHaveLength(good().length);
+    expect(rows[2]!.price_cents).toBe(17500);
+    expect(rows.every((r) => typeof r.price_cents === 'number')).toBe(true);
+    const sync = new FlavourSync(answering(withRow({ price_cents: '17500' })), {
+      apply: vi.fn(),
+      edit: vi.fn(),
+      restore: vi.fn(),
+      online: () => true,
+      toast: vi.fn()
+    });
+    expect(await sync.load()).toBe(true);
+  });
+
+  it('still reads null as answered-empty, and an empty array the same', async () => {
+    for (const data of [null, []]) {
+      const sync = new FlavourSync(answering(data), {
+        apply: vi.fn(),
+        edit: vi.fn(),
+        restore: vi.fn(),
+        online: () => true,
+        toast: vi.fn()
+      });
+      expect(await sync.load()).toBe(false);
+      expect(sync.readEmpty).toBe(true);
+      expect(flavoursRead.get().phase).toBe('read');
+    }
   });
 });

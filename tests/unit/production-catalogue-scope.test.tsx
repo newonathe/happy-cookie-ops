@@ -32,7 +32,7 @@ const flavour = {
   kind: 'Permanent',
   tag: '',
   description: '',
-  image_path: null,
+  image_path: '',
   allergens: '',
   active: true,
   published: false,

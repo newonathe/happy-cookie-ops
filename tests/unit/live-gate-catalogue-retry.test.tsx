@@ -350,6 +350,36 @@ describe('the owner Orders and Recipes reads follow the first successful catalog
   });
 });
 
+describe('HCB-004: a malformed catalogue answer is a failed read the gate survives', () => {
+  const ownerReads = () =>
+    (['loadProduction', 'loadBooks', 'loadScheduledEvents', 'loadStockCatalogue'] as const).map(
+      (name) => vi.mocked(OpsRuntime.prototype[name]).mock.calls.length
+    );
+  const malformed: Array<[string, unknown]> = [
+    ['a non-array', { data: {}, error: null }],
+    ['a row without an id', { data: [{ ...GOOD[0], id: undefined }], error: null }],
+    ['a string price', { data: [{ ...GOOD[0], price_cents: 'abc' }], error: null }],
+    ['a null sort_order', { data: [{ ...GOOD[0], sort_order: null }], error: null }]
+  ];
+
+  it.each(malformed)(
+    'a malformed first answer (%s) shows Try again, starts the owner reads and not Orders or Recipes; a good retry starts each once',
+    async (_name, bad) => {
+      await open();
+      await answer(bad);
+      expect(flavoursRead.get().phase).toBe('failed');
+      expect(flavoursRead.get().retry).toEqual(expect.any(Function));
+      expect(ownerReads()).toEqual([1, 1, 1, 1]);
+      expect(started()).toEqual([0, 0]);
+      await tryAgain();
+      await answer(ok(GOOD));
+      expect(flavoursRead.get().phase).toBe('read');
+      expect(started()).toEqual([1, 1]);
+      expect(ownerReads()).toEqual([1, 1, 1, 1]);
+    }
+  );
+});
+
 /**
  * HCB-004 a3: a check that verifies while she is on the shop starts no staff read (the shop shows
  * what customers see). The catalogue read must start when she then reaches a staff screen, not at
