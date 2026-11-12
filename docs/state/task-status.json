@@ -334,7 +334,7 @@
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "Finish HCB-002: Home's Orders tile and the Order rules/Boxes openers say a read failed (low)."
+        "next_authorized_unblocked_task": "Recipe book's own failed read (inconclusive in the probe), then HCB-014 (till Settings accessible name)."
       },
       "C5": {
         "title": "Sell/payments",
@@ -544,13 +544,13 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "Home's Orders tile and the Order rules/Boxes openers say a read failed (the last HCB-002 screens).",
+      "requirement": "A failed recipe read is never shown as a recipe-less state; the till's Settings button announces its visible name (HCB-002 recipe book, HCB-014).",
       "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "a19acf5",
-      "behavior": "HCB-004 through 6ff0340; HCB-005 941380c; HCB-007 7a1bd63; HCB-006 b9e5efe; HCB-002d 0ec8b06 (Payments makes no all-clear from an unread orders list); HCB-002e eac51ab (a failed events read says so with Try again); HCB-002g a19acf5 (the Sales log says when the books could not be read). Probe of every HCB-002 screen recorded in the register.",
-      "evidence": "a19acf5 reviewed by the Sonnet security-reviewer (high): clear with notes. sales-read-state 3 of 5 failed on b45bfbf (run by Claude). Probe captures at 390 and 1440 px before and after. Gate: pnpm verify 243 files / 3,946 tests + 2 TODO.",
+      "source_checkpoint": "97d6b24",
+      "behavior": "HCB-004 through 6ff0340; HCB-005 941380c; HCB-007 7a1bd63; HCB-006 b9e5efe; HCB-002d 0ec8b06 (Payments makes no all-clear from an unread orders list); HCB-002e eac51ab (a failed events read says so with Try again); HCB-002g a19acf5 (the Sales log says when the books could not be read); HCB-002h/i 97d6b24 (Home orders tile, order rules and boxes say a read failed). HCB-002 done for every screen that made a false claim; Recipe book inconclusive. Probe of every HCB-002 screen recorded in the register.",
+      "evidence": "97d6b24 reviewed by the Sonnet security-reviewer (high): clear with notes. 5 tests failed on 4824c67 (run by Claude). Probe captures at 390 and 1440 px before and after. Gate: pnpm verify 243 files / 3,950 tests + 2 TODO.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
-      "next": "Home Orders tile and Order rules/Boxes read failures, test first, independent review."
+      "next": "Recipe book failed-read probe and HCB-014, test first, independent review."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
