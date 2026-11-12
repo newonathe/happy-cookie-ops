@@ -566,6 +566,67 @@ describe('an acknowledged change whose refresh failed (HCB-006)', () => {
     expect(ordersRead.get().savedNotRefreshed).toBeNull();
   });
 
+  it.each(['swap', 'flag'] as const)(
+    'a %s keeps the old total, because the items on the list are still the old ones',
+    async (action) => {
+      const f = await loadedReview([row()]);
+      const acked = row({ total_cents: 32000 });
+      f.rpc.mockImplementation(async (name: string) =>
+        name === 'get_staff_orders'
+          ? ({ data: null, error: { code: '57014' } } as never)
+          : ({ data: [acked], error: null } as never)
+      );
+      const outcome =
+        action === 'swap'
+          ? await f.sync.swap('HC-1001', 'wcb', 'rvc', 'b3f00000-0000-4000-8000-000000000001')
+          : await f.sync.flag('HC-1001', 'wcb', true);
+      expect(outcome).toEqual({ kind: 'ok', replayed: false, refreshed: false });
+      // State, payment and the stamp are patched; the total stays consistent with the old items.
+      expect(f.sync.find('HC-1001')).toMatchObject({
+        totalCents: 20000,
+        updatedAt: STAMP2,
+        items: [{ productId: 'wcb', qty: 2, unitCents: 10000 }]
+      });
+      expect(ordersRead.get().savedNotRefreshed).toBe('HC-1001');
+    }
+  );
+
+  it('a status change still patches the total from the acknowledged row', async () => {
+    const f = await loadedReview([row()]);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_staff_orders'
+        ? ({ data: null, error: { code: '57014' } } as never)
+        : ({ data: [row({ total_cents: 21000 })], error: null } as never)
+    );
+    await f.sync.settle('HC-1001');
+    expect(f.sync.find('HC-1001')).toMatchObject({ totalCents: 21000 });
+  });
+
+  it('a refund also keeps the reference the owner sent', async () => {
+    const f = await loadedReview([row()]);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_staff_orders'
+        ? ({ data: null, error: { code: '57014' } } as never)
+        : ({ data: [row({ pay_state: 'refunded' })], error: null } as never)
+    );
+    expect(f.sync.find('HC-1001')?.refundRef).toBe('');
+    await f.sync.refund('HC-1001', 'GC-77');
+    expect(f.sync.find('HC-1001')).toMatchObject({ payState: 'refunded', refundRef: 'GC-77' });
+    expect(f.hooks.apply.mock.calls[0][0][0]).toMatchObject({ refunded: true, refundRef: 'GC-77' });
+  });
+
+  it('a replayed refund does not show the new reference: the database kept the first one', async () => {
+    const f = await loadedReview([row()]);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_staff_orders'
+        ? ({ data: null, error: { code: '57014' } } as never)
+        : ({ data: [row({ pay_state: 'refunded', replayed: true })], error: null } as never)
+    );
+    await f.sync.refund('HC-1001', 'GC-99');
+    expect(f.sync.find('HC-1001')).toMatchObject({ payState: 'refunded' });
+    expect(f.sync.find('HC-1001')?.refundRef).not.toBe('GC-99');
+  });
+
   it('a successful refresh reports refreshed and records nothing', async () => {
     const f = await loadedReview([row()]);
     const outcome = await f.sync.confirm('HC-1001');

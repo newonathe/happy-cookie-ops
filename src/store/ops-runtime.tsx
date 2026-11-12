@@ -522,6 +522,8 @@ const STAFF_ACCESS: Record<Role, { can: string; extra: string }> = {
 };
 
 /** The engine's ledger window (`periodFrom`): what the P&L screen itself says it covers. */
+/** The owner's events read is given this long before it counts as failed (Try again shows). */
+const SCHEDULED_READ_LIMIT_MS = 15_000;
 const PNL_PERIOD = 'Last 30 days';
 /** ISO weekday (Monday = 1) to the word Settings shows for a pickup day. */
 const PICKUP_DAY = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -4105,9 +4107,10 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** Read fresh first, so the stamp the form saves against is the current one. */
-  private openOrderRules = async (): Promise<void> => {
-    if (!(await this.loadOrderRules()) || !this.rulesRow) return;
+  private openOrderRules = async (): Promise<boolean> => {
+    if (!(await this.loadOrderRules()) || !this.rulesRow) return false;
     this.sheet('orderrules', { updatedAt: this.rulesRow.updated_at });
+    return true;
   };
 
   private liveOrderRulesVals(): OpsVals['liveOrderRules'] {
@@ -4157,7 +4160,13 @@ export class OpsRuntime extends OpsProvider {
       await this.loadOrderRules('refresh');
     } else if (outcome === 'conflict') {
       this.toast(RULES_COPY.conflict, 'warn');
-      await this.openOrderRules();
+      // Their version is shown by reading it again. If that read fails, the form still holds the stale values:
+      // close it rather than leave them editable (the read-failure toast stays).
+      if (
+        !(await this.openOrderRules()) &&
+        (this.state.sheet as FlavourSheetState | null)?.kind === 'orderrules'
+      )
+        this.closeSheet();
     } else this.toast(outcome === 'refused' ? RULES_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
@@ -4177,9 +4186,10 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** Read fresh first, so the stamp the form saves against is the current one. */
-  private openOrderExtras = async (): Promise<void> => {
-    if (!(await this.loadOrderExtras()) || !this.extrasRow) return;
+  private openOrderExtras = async (): Promise<boolean> => {
+    if (!(await this.loadOrderExtras()) || !this.extrasRow) return false;
     this.sheet('orderextras', { updatedAt: this.extrasRow.updated_at });
+    return true;
   };
 
   private liveOrderExtrasVals(): OpsVals['liveOrderExtras'] {
@@ -4280,7 +4290,13 @@ export class OpsRuntime extends OpsProvider {
       await this.loadOrderExtras('refresh');
     } else if (outcome === 'conflict') {
       this.toast(EXTRAS_COPY.conflict, 'warn');
-      await this.openOrderExtras();
+      // Their version is shown by reading it again. If that read fails, the form still holds the stale values:
+      // close it rather than leave them editable (the read-failure toast stays).
+      if (
+        !(await this.openOrderExtras()) &&
+        (this.state.sheet as FlavourSheetState | null)?.kind === 'orderextras'
+      )
+        this.closeSheet();
     } else this.toast(outcome === 'refused' ? EXTRAS_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
@@ -4304,10 +4320,31 @@ export class OpsRuntime extends OpsProvider {
     const retrying = this.scheduledReadFailedActor === actor;
     this.scheduledReading = true;
     if (retrying) this.forceUpdate();
+    // A read that never answers must not leave "Reading your events…" for good: past the limit it counts as failed
+    // (Try again shows). It is still the same read, so a late answer may still apply and clears the failure.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const read = fetchScheduledEvents(use);
     try {
-      const rows = await fetchScheduledEvents(use);
+      const limit = new Promise<'slow'>((resolve) => {
+        timer = setTimeout(() => resolve('slow'), SCHEDULED_READ_LIMIT_MS);
+      });
+      const rows = await Promise.race([read, limit]);
       if (seq === this.scheduledReadSeq) this.scheduledReading = false;
       if (!ownerCurrent() || seq !== this.scheduledReadSeq) return false;
+      if (rows === 'slow') {
+        this.scheduledReadFailedActor = actor;
+        this.forceUpdate();
+        void read.then(
+          (late) => {
+            if (!ownerCurrent() || seq !== this.scheduledReadSeq) return;
+            this.scheduledRows = late;
+            this.scheduledReadFailedActor = null;
+            this.afterScheduledRead(use, ownerCurrent);
+          },
+          () => undefined
+        );
+        return false;
+      }
       this.scheduledRows = rows;
       this.scheduledReadFailedActor = null;
     } catch {
@@ -4316,13 +4353,19 @@ export class OpsRuntime extends OpsProvider {
       this.scheduledReadFailedActor = actor;
       this.forceUpdate();
       return false;
+    } finally {
+      clearTimeout(timer);
     }
+    this.afterScheduledRead(use, ownerCurrent);
+    return true;
+  }
+
+  private afterScheduledRead(use: ScheduledClient, ownerCurrent: () => boolean): void {
     this.forceUpdate();
     void this.retryPendingLink(use, ownerCurrent);
     void this.confirmHeldDay(ownerCurrent);
     // Home's next-event card must not offer a closed event: only a read of each event can say so (U4).
     if (this.state.role === 'owner') void this.bazaarDays.readHub();
-    return true;
   }
 
   /**

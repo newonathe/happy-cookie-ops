@@ -227,6 +227,25 @@ describe('B4a: the boxes and add-ons form', () => {
     expect(called(f.rpc, 'get_order_extras').length).toBeGreaterThanOrEqual(2);
   });
 
+  it('a conflict whose re-read fails closes the form, so no stale value stays editable', async () => {
+    const f = fake({ save: { error: { code: 'P0002' } } });
+    const runtime = await mounted('owner', f);
+    const vals = await open(runtime);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_order_extras'
+        ? { data: null, error: { code: '57014' } }
+        : name === 'save_order_extras'
+          ? { error: { code: 'P0002' } }
+          : { data: null, error: null }
+    );
+    act(() => vals.save({ ...vals.extras, sameDayPercent: 10 }));
+    await settle();
+    // The read-failure toast is the one left showing.
+    expect(toasts(runtime)).toContain('could not be read');
+    expect(runtime.renderVals().liveOrderExtras ?? null).toBeNull();
+    expect(runtime.state.sheet).toBeNull();
+  });
+
   it('a refusal and a lost connection each say so and keep the sheet', async () => {
     for (const [save, words] of [
       [{ error: { code: '22023' } }, 'could not be saved'],
