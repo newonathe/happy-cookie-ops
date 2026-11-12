@@ -19,6 +19,7 @@ import {
   PESO2,
   PRODUCTS,
   ROLES,
+  relWhen,
   replaceFlavours,
   replacePayAccounts
 } from '@/store/engine/ops-engine';
@@ -3512,6 +3513,27 @@ export class OpsRuntime extends OpsProvider {
     });
   }
 
+  /**
+   * This phone's own event sales, formatted as the engine's sales log formats a live sale. They reach the books only
+   * once sent, so Money > Sales lists them while the books are unread. Read only; an unknown product id reads
+   * "Product unavailable" rather than throwing.
+   */
+  private phoneSalesRows(): OpsVals['phoneSales'] {
+    const st = this.state;
+    const now = Number(st.now);
+    return ((st.sales as EventSale[] | undefined) ?? []).map((x) => ({
+      what:
+        Object.keys(x.items)
+          .map((k) => `${x.items[k]} ${RENDER_PRODUCTS[k]?.short ?? 'Product unavailable'}`)
+          .join(', ') || 'Sale',
+      when:
+        (st.event?.name ? `${st.event.name} · ` : '') +
+        relWhen(x.at, now) +
+        (x.clerk ? ` · ${x.clerk}` : ''),
+      amount: x.total === 0 ? 'Free' : PESO(x.total)
+    }));
+  }
+
   renderVals(): OpsVals {
     const vals = isLiveMode()
       ? renderWithSaleLabels(
@@ -3717,6 +3739,10 @@ export class OpsRuntime extends OpsProvider {
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'sales'
           ? this.moneyDesk.booksRead()
           : null,
+      phoneSales:
+        isLiveMode() && this.state.role === 'owner' && this.state.screen === 'sales'
+          ? this.phoneSalesRows()
+          : [],
       liveMake: this.state.role === 'owner' && isLiveMode() ? this.makeDesk.vals() : null,
       liveCustomers: this.state.role === 'owner' && isLiveMode() ? this.customerDesk.vals() : null,
       liveHome: this.liveHomeVals(starved),

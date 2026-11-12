@@ -37,12 +37,26 @@ function SaleLog({ row }: { row: OpsVals['salesLog']['rows'][number] }) {
 export function SalesLive({ v }: { v: OpsVals }) {
   const log = v.salesLog;
   const books = v.liveBooksRead;
+  const phone = v.phoneSales ?? [];
   // Live: the log is the books plus this phone's event sales. Until the books are read, any count
-  // or "none yet" would read as the whole log, so say so and list nothing (event sales included).
+  // or "none yet" would read as the whole log, so say so and list only what this phone recorded, labelled as such.
   if (books && !books.loaded)
     return (
       <div className="w-full">
         <BooksNotLoaded read={books.read} />
+        {phone.length ? (
+          <HeadedPanel title="Recorded on this phone">
+            <p className="px-4 py-3 text-caption text-ink-mute">
+              Only the sales this phone recorded at the open event are shown; the full log appears
+              once your books load.
+            </p>
+            <ul>
+              {phone.map((row, i) => (
+                <SaleLog key={i} row={row} />
+              ))}
+            </ul>
+          </HeadedPanel>
+        ) : null}
       </div>
     );
   return (

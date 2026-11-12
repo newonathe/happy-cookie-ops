@@ -437,6 +437,11 @@ export interface OpsVals {
   liveMoney?: LiveMoney | null;
   /** Live owner on Money > Sales only: whether the books behind the sales log have been read. */
   liveBooksRead?: Pick<LiveMoney, 'loaded' | 'read'> | null;
+  /**
+   * Live owner on Money > Sales only: sales recorded on this phone at an open event, already formatted like the
+   * engine's sales log. They are in the books only once sent; [] when none or not on that screen.
+   */
+  phoneSales?: Array<{ what: string; when: string; amount: string }>;
   /** Live owner only: customers, from their orders. */
   liveCustomers?: LiveCustomers | null;
   /** Live owner only: what the Make pages need beyond the engine's rows. */

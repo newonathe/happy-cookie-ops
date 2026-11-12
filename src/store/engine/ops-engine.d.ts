@@ -171,6 +171,7 @@ export const EPHEMERAL: string[];
 
 export function PESO(n: number): string;
 export function PESO2(n: number): string;
+export function relWhen(ts: number | null | undefined, now: number): string;
 export function amt(n: number, unit: string): string;
 export function amtExact(n: number, unit: string): string;
 export function plural(n: number, one: string, many: string): string;
