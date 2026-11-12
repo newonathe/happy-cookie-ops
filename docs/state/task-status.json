@@ -334,7 +334,7 @@
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "HCB-002e: a failed Bazaar events read says so with Try again instead of reading forever."
+        "next_authorized_unblocked_task": "HCB-002g: the Sales log says when the books could not be read instead of 0 sales recorded."
       },
       "C5": {
         "title": "Sell/payments",
@@ -544,13 +544,13 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "A failed Bazaar events read is shown as failed with Try again, never as endless reading (HCB-002e).",
+      "requirement": "The Sales log and Expenses say when the books could not be read (HCB-002g).",
       "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "0ec8b06",
-      "behavior": "HCB-004 through 6ff0340; HCB-005 941380c; HCB-007 7a1bd63; HCB-006 b9e5efe; HCB-002d 0ec8b06 (Payments makes no all-clear from an unread orders list). Probe of every HCB-002 screen recorded in the register.",
-      "evidence": "0ec8b06 reviewed by the Sonnet security-reviewer (high): clear with notes; delta clear with notes. payments-read-state failed first (6 of 9 on 2d3bed0, run by Claude). Synthetic probe captures at 390 and 1440 px before and after. Gate: pnpm verify 241 files / 3,934 tests + 2 TODO.",
+      "source_checkpoint": "eac51ab",
+      "behavior": "HCB-004 through 6ff0340; HCB-005 941380c; HCB-007 7a1bd63; HCB-006 b9e5efe; HCB-002d 0ec8b06 (Payments makes no all-clear from an unread orders list); HCB-002e eac51ab (a failed events read says so with Try again). Probe of every HCB-002 screen recorded in the register.",
+      "evidence": "eac51ab reviewed by the Sonnet security-reviewer (high): clear with notes. events-read-state 6 of 7 failed on 119c05a (run by Claude). Probe captures at 390 and 1440 px before and after. Gate: pnpm verify 242 files / 3,941 tests + 2 TODO.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
-      "next": "HCB-002e events read state, test first, independent review."
+      "next": "HCB-002g Sales log books read state, test first, independent review."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
