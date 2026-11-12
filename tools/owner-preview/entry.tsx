@@ -66,6 +66,8 @@ Object.assign(historyAnswer.summary.days[0], {state:'open',closed_at:null,count:
 Object.assign(historyAnswer,{finalised_at:null,final_hash:null,final_summary:null});
 const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
   (window as unknown as {qaCalls:string[]}).qaCalls.push(name);
+  // HCB-002: `window.qaFailRpcs` lists reads that fail as a network error would (synthetic probe of each screen's failed read).
+  if(((window as unknown as {qaFailRpcs?:string[]}).qaFailRpcs ?? []).includes(name)) return {data:null,error:{code:'08006'}};
   if(name==='get_scheduled_events') return {data:[{...historyAnswer.summary.booking,started:true,updated_at:'2026-10-20T02:00:00Z'}],error:null};
   if(name==='get_bazaar') return {data:historyAnswer,error:null};
   if(name==='get_shop_status') return {data:{open_dow:1,open_h:9,open_m:0,close_dow:4,close_h:21,close_m:0,extend_h:0,override:null},error:null};
