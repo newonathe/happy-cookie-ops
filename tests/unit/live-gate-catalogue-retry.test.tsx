@@ -12,6 +12,8 @@ const net = vi.hoisted(() => ({
   userId: 'u1',
   role: 'owner',
   waiting: [] as Array<(answer: unknown) => void>,
+  /** How many `get_flavours` reads were ever started. */
+  flavourCalls: 0,
   engine: null as unknown,
   /** While set, the gate's server check (`getUser`) waits for it: a re-check held in flight. */
   hold: null as Promise<void> | null,
@@ -52,10 +54,11 @@ vi.mock('@/lib/supabase/client', () => {
         })
       })
     }),
-    rpc: (name: string) =>
-      name === 'get_flavours'
-        ? new Promise((resolve) => void net.waiting.push(resolve))
-        : Promise.resolve({ data: [], error: null })
+    rpc: (name: string) => {
+      if (name !== 'get_flavours') return Promise.resolve({ data: [], error: null });
+      net.flavourCalls += 1;
+      return new Promise((resolve) => void net.waiting.push(resolve));
+    }
   };
   return { createClient: () => client };
 });
@@ -114,7 +117,14 @@ let loadRecipes: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example');
-  Object.assign(net, { userId: 'u1', role: 'owner', engine: null, waiting: [], hold: null });
+  Object.assign(net, {
+    userId: 'u1',
+    role: 'owner',
+    engine: null,
+    waiting: [],
+    hold: null,
+    flavourCalls: 0
+  });
   flavoursRead.reset();
   localStorage.clear();
   document.cookie = 'sb-local-auth-token=x; path=/';
@@ -332,6 +342,141 @@ describe('the owner Orders and Recipes reads follow the first successful catalog
     });
     await tryAgain();
     await answer(ok(GOOD));
+    expect(started()).toEqual([0, 0]);
+  });
+});
+
+/**
+ * HCB-004 a3: a check that verifies while she is on the shop starts no staff read (the shop shows
+ * what customers see). The catalogue read must start when she then reaches a staff screen, not at
+ * the next check up to a minute later: until then the a2 views would show the built-in six.
+ */
+describe('HCB-004 a3: the owner reaches a staff screen after a check verified on the shop', () => {
+  // While the first check is held the gate draws no frame, so the engine is caught as the gate
+  // reads the payment methods from it on mount.
+  beforeEach(() => {
+    const read = OpsRuntime.prototype.loadShopPayment as unknown as ReturnType<typeof vi.fn>;
+    read.mockImplementation(function (this: OpsRuntime) {
+      net.engine = this;
+      return Promise.resolve(false);
+    });
+  });
+  const engineNow = () => net.engine as OpsRuntime;
+  const goTo = (screen: string) =>
+    act(async () => {
+      engineNow().go(screen as never);
+    });
+  /**
+   * Verifies the held check. `stay` keeps her on the shop through it: the protected `setRole` moves
+   * a first verified check to Home, which is a staff screen and would start the read by itself.
+   */
+  const releaseCheck = (release: () => void, stay: boolean) =>
+    act(async () => {
+      const engine = engineNow();
+      const go = engine.go;
+      if (stay) engine.go = (() => undefined) as typeof engine.go;
+      net.hold = null;
+      release();
+      await new Promise((r) => setTimeout(r, 30));
+      engine.go = go;
+    });
+  /** Opens on the shop, asks for a staff screen (which starts the first check, held), then back. */
+  async function heldOnShop() {
+    let release!: () => void;
+    net.hold = new Promise<void>((resolve) => void (release = resolve));
+    const view = render(<OpsApp initialScreen="shop" />);
+    await tick();
+    await goTo('recipes');
+    await tick();
+    await goTo('shop');
+    await tick();
+    expect(engineNow().state.screen).toBe('shop');
+    return { view, release: (stay = true) => releaseCheck(release, stay) };
+  }
+  const proto = () => OpsRuntime.prototype as unknown as Record<string, ReturnType<typeof vi.fn>>;
+  const ownerReads = () =>
+    ['loadScheduledEvents', 'loadStockCatalogue', 'loadProduction', 'loadBooks'].map(
+      (name) => proto()[name]?.mock.calls.length ?? 0
+    );
+
+  it('a3-1. the catalogue read starts in the same act as the move, once, and Orders and Recipes follow it', async () => {
+    const { release } = await heldOnShop();
+    await release();
+    expect(net.flavourCalls).toBe(0);
+    expect(flavoursRead.get().phase).toBe('idle');
+    await goTo('recipes');
+    // No timer, no second check: the read is already out and says "loading", so the staff views
+    // say "not read" instead of drawing the engine's built-in list.
+    expect(net.flavourCalls).toBe(1);
+    expect(flavoursRead.get().phase).toBe('loading');
+    expect(started()).toEqual([0, 0]);
+    await answer(ok(GOOD));
+    expect(flavoursRead.get().phase).toBe('read');
+    expect(started()).toEqual([1, 1]);
+    // Back to the shop and to a staff screen again starts nothing more.
+    await goTo('shop');
+    await goTo('today');
+    await tick();
+    expect(net.flavourCalls).toBe(1);
+    expect(started()).toEqual([1, 1]);
+  });
+
+  it('a3-1b. a check that verifies on the shop and lands her on Home starts the read at once', async () => {
+    const { release } = await heldOnShop();
+    // The protected `setRole` goes Home after a first verified check; the screen the check read
+    // was still the shop, so nothing started there.
+    await release(false);
+    expect(engineNow().state.screen).toBe('today');
+    expect(net.flavourCalls).toBe(1);
+    expect(flavoursRead.get().phase).toBe('loading');
+    await answer(ok(GOOD));
+    expect(started()).toEqual([1, 1]);
+  });
+
+  it('a3-2. a helper reaches the catalogue read too, but starts no owner read', async () => {
+    net.role = 'helper';
+    const { release } = await heldOnShop();
+    await release();
+    expect(net.flavourCalls).toBe(0);
+    await goTo('today');
+    expect(net.flavourCalls).toBe(1);
+    expect(flavoursRead.get().phase).toBe('loading');
+    await answer(ok(GOOD));
+    expect(started()).toEqual([0, 0]);
+    expect(ownerReads()).toEqual([0, 0, 0, 0]);
+  });
+
+  it('a3-3a. nothing starts on the move while the check is still out', async () => {
+    await heldOnShop();
+    await goTo('recipes');
+    await tick();
+    expect(net.flavourCalls).toBe(0);
+    expect(flavoursRead.get().phase).toBe('idle');
+  });
+
+  it('a3-3b. nothing starts on the move after a sign-out while the check is out', async () => {
+    const { release } = await heldOnShop();
+    await act(async () => {
+      net.authEvent?.('SIGNED_OUT', null);
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    await goTo('recipes');
+    await release();
+    // The answer to the check that was out when she signed out belongs to the old identity.
+    expect(net.flavourCalls).toBe(0);
+    expect(started()).toEqual([0, 0]);
+    expect(ownerReads()).toEqual([0, 0, 0, 0]);
+  });
+
+  it('a3-3c. nothing starts on the move after the gate is torn down', async () => {
+    const { view, release } = await heldOnShop();
+    await release();
+    view.unmount();
+    await act(async () => {
+      engineNow().go('recipes' as never);
+    });
+    await tick();
+    expect(net.flavourCalls).toBe(0);
     expect(started()).toEqual([0, 0]);
   });
 });
