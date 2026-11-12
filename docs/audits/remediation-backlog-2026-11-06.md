@@ -146,7 +146,7 @@ Source ID key: `V-n` = audit findings.md section n; `M-*` = audit measured-layou
 - **Observed:** one press cancels the order and frees its slots; no question first.
 - **Evidence:** audit `sell/order/rejected-at-once/d1440.webp`. Live@HEAD: `head-c84d23d-b/rejectFirstPress-{390,1440}.webp` (`dialogShown: false, sentReject: true`).
 - **Code:** `src/components/live/sell/order-live.tsx:62-63`; `src/store/ops-runtime.tsx:8051` (`eng.rejectPayment` sends at once).
-- **Status:** reproduced (Live@HEAD).
+- **Status:** fixed `7a1bd63` (12 November), the OD-03 default form (a dialog through the shared Sheet; Keep order first; Confirm sends `staff_reject_payment` once). Test `order-reject-confirm`. Review clear with notes. OD-03 stays open for the owner's choice of form.
 - **Impact:** a mis-tap cancels a customer's order and releases capacity; Reopen exists but the customer may already have been told. **S2 / P1.**
 - **Conflicts:** owner rule 5 Nov "explicit confirmation for consequential changes" requires a fix; only the form is open (OD-03).
 - **Correction:** a confirmation step naming the customer and consequence, reusing the existing void-confirmation pattern on the till.
