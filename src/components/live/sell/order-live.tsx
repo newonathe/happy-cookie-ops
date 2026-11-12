@@ -1,12 +1,16 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { orderStepWords } from '@/lib/orders/owner-words';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
+import { Sheet } from '@/components/ui/sheet';
 import { PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
 import { RecordUnavailable } from '@/components/ui/owner-patterns';
+import theme from '../owner-theme.module.css';
 import { OrderPill } from './sell-shared';
 
 type Order = NonNullable<OpsVals['od']>;
@@ -17,6 +21,58 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
       <span className="text-caption text-ink-mute">{label}</span>
       <span className="text-right text-[14px] font-semibold text-ink tabular-nums">{children}</span>
     </div>
+  );
+}
+
+/**
+ * Reject cancels the order and frees its slots, so it asks first (HCB-007, the OD-03 default form:
+ * a dialog). Keep, Close and Escape send nothing; Confirm sends once. Keyed by order in the caller,
+ * so the question never carries over to another order.
+ */
+function RejectButton({ od }: { od: Order }) {
+  const [asking, setAsking] = useState(false);
+  const sent = useRef(false);
+  const copy = STAFF_COPY.rejectConfirm;
+  const confirm = () => {
+    if (sent.current) return;
+    sent.current = true;
+    setAsking(false);
+    od.reject();
+  };
+  return (
+    <>
+      <Button
+        variant="danger"
+        onClick={() => {
+          sent.current = false;
+          setAsking(true);
+        }}
+      >
+        Reject
+      </Button>
+      {asking ? (
+        <Sheet
+          className={theme.theme}
+          side="bottom"
+          title={copy.title}
+          onClose={() => setAsking(false)}
+          footer={
+            <>
+              {/* Keep first: the safe choice is the first button and the first thing a hurried tap meets. */}
+              <Button variant="secondary" onClick={() => setAsking(false)}>
+                {copy.keep}
+              </Button>
+              <Button variant="danger" onClick={confirm}>
+                {copy.confirm}
+              </Button>
+            </>
+          }
+        >
+          <p className="m-0 text-body text-ink">{copy.body(String(od.name), String(od.id))}</p>
+          <p className="mt-2 text-caption text-ink-mute">{copy.note}</p>
+        </Sheet>
+      ) : null}
+    </>
   );
 }
 
@@ -59,9 +115,7 @@ function PaymentReview({ od }: { od: Order }) {
         <Button variant="secondary" onClick={od.askClearer}>
           Ask for clearer proof
         </Button>
-        <Button variant="danger" onClick={od.reject}>
-          Reject
-        </Button>
+        <RejectButton key={String(od.id)} od={od} />
       </div>
       <p className="mt-3 text-caption text-ink-mute">
         Nothing is reserved until you confirm. Confirming books capacity and adds this order to the
