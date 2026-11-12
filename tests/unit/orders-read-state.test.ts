@@ -4,7 +4,14 @@ import { ordersRead } from '@/lib/orders/orders-read-state';
 /** HCB-002a: the read-state store the Orders page subscribes to with useSyncExternalStore. */
 afterEach(() => ordersRead.reset());
 
-const READ = { phase: 'read', everRead: true, readAt: 1, dropped: 0, retry: null } as const;
+const READ = {
+  phase: 'read',
+  everRead: true,
+  readAt: 1,
+  dropped: 0,
+  savedNotRefreshed: null,
+  retry: null
+} as const;
 
 describe('ordersRead store', () => {
   it('starts idle, and the server snapshot is one constant idle object', () => {

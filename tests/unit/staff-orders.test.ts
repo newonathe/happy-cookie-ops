@@ -11,6 +11,7 @@ import {
   type StaffOrderClient
 } from '@/lib/data/staff-orders';
 import { messagesFor, statusLink } from '@/lib/orders/messages';
+import { ordersRead } from '@/lib/orders/orders-read-state';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
 
 /**
@@ -248,6 +249,39 @@ describe('classify', () => {
     });
   });
 
+  it('carries the acknowledged row when it parses, and nothing when it does not (HCB-006)', () => {
+    const row = {
+      order_id: 'HC-1001',
+      state: 'Confirmed',
+      pay_state: 'confirmed',
+      total_cents: 20000,
+      paid_cents: 20000,
+      updated_at: STAMP,
+      replayed: false
+    };
+    expect(classify({ data: [row], error: null })).toEqual({
+      kind: 'ok',
+      replayed: false,
+      saved: {
+        orderId: 'HC-1001',
+        state: 'Confirmed',
+        payState: 'confirmed',
+        paidCents: 20000,
+        totalCents: 20000,
+        updatedAt: STAMP
+      }
+    });
+    for (const bad of [
+      { ...row, state: 'Baked' },
+      { ...row, pay_state: 'nope' },
+      { ...row, total_cents: 'x' },
+      { ...row, updated_at: undefined },
+      { ...row, order_id: '' }
+    ])
+      expect(classify({ data: [bad], error: null })).not.toHaveProperty('saved');
+    expect(classify({ data: [], error: null })).toEqual({ kind: 'ok', replayed: false });
+  });
+
   it('separates a conflict, a capacity refusal with the slots left, and a missing order', () => {
     expect(classify({ error: { code: 'P0002' } })).toEqual({ kind: 'conflict' });
     expect(classify({ error: { code: 'ZC002', details: '3' } })).toEqual({
@@ -316,7 +350,11 @@ describe('StaffOrderSync', () => {
     const { sync, calls } = fakeSync();
     await sync.load();
     calls.length = 0;
-    expect(await sync.confirm('HC-1001')).toEqual({ kind: 'ok', replayed: false });
+    expect(await sync.confirm('HC-1001')).toEqual({
+      kind: 'ok',
+      replayed: false,
+      refreshed: true
+    });
     expect(calls[0]).toEqual({
       name: 'staff_confirm_payment',
       args: { p_order_id: 'HC-1001', p_expected_updated_at: STAMP, p_force: false }
@@ -411,6 +449,128 @@ describe('StaffOrderSync', () => {
       p_client_id: 'b3f00000-0000-4000-8000-000000000001'
     });
     expect(sent[4].args.p_ref).toBe('GC-1');
+  });
+});
+
+describe('an acknowledged change whose refresh failed (HCB-006)', () => {
+  const STAMP2 = '2026-09-29T03:00:00.000000+00:00';
+  const row = (over: Record<string, unknown> = {}) => ({
+    order_id: 'HC-1001',
+    state: 'Confirmed',
+    pay_state: 'confirmed',
+    total_cents: 20000,
+    paid_cents: 20000,
+    updated_at: STAMP2,
+    replayed: false,
+    ...over
+  });
+
+  async function loadedReview(ackData: unknown) {
+    const f = fakeSync({
+      results: { staff_confirm_payment: { data: ackData, error: null } }
+    });
+    f.setList([raw({ state: 'Payment review', pay_state: 'claimed', paid_cents: null })]);
+    await f.sync.load();
+    f.hooks.apply.mockClear();
+    return f;
+  }
+  const failReads = (f: ReturnType<typeof fakeSync>) =>
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_staff_orders'
+        ? ({ data: null, error: { code: '57014' } } as never)
+        : ({ data: [row()], error: null } as never)
+    );
+
+  it('patches the order from the acknowledged row, re-applies it, and records it', async () => {
+    const f = await loadedReview([row()]);
+    failReads(f);
+    const outcome = await f.sync.confirm('HC-1001');
+    expect(outcome).toEqual({ kind: 'ok', replayed: false, refreshed: false });
+    expect(f.sync.find('HC-1001')).toMatchObject({
+      state: 'Confirmed',
+      payState: 'confirmed',
+      paidCents: 20000,
+      totalCents: 20000,
+      updatedAt: STAMP2
+    });
+    // The engine is given the patched order, so the page stops offering the saved change.
+    expect(f.hooks.apply).toHaveBeenCalledOnce();
+    expect(f.hooks.apply.mock.calls[0][0][0]).toMatchObject({
+      id: 'HC-1001',
+      status: 'Confirmed'
+    });
+    expect(ordersRead.get().savedNotRefreshed).toBe('HC-1001');
+  });
+
+  it('a read started before the change and answered after the patch cannot bring the old order back', async () => {
+    const f = await loadedReview([row()]);
+    let answerOld!: (v: unknown) => void;
+    let reads = 0;
+    f.rpc.mockImplementation(async (name: string) => {
+      if (name !== 'get_staff_orders') return { data: [row()], error: null } as never;
+      reads += 1;
+      // The first read (a tab-visible refresh) is still out when the change is made; the read after it fails.
+      if (reads === 1) return new Promise((resolve) => void (answerOld = resolve)) as never;
+      return { data: null, error: { code: '57014' } } as never;
+    });
+    const older = f.sync.load();
+    await f.sync.confirm('HC-1001');
+    answerOld({
+      data: [raw({ state: 'Payment review', pay_state: 'claimed', paid_cents: null })],
+      error: null
+    });
+    await older;
+    expect(f.sync.find('HC-1001')).toMatchObject({ state: 'Confirmed', payState: 'confirmed' });
+    expect(ordersRead.get().savedNotRefreshed).toBe('HC-1001');
+  });
+
+  it('an acknowledgement with no readable row invents nothing, and still records it', async () => {
+    const f = await loadedReview([{ replayed: false }]);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_staff_orders'
+        ? ({ data: null, error: { code: '57014' } } as never)
+        : ({ data: [{ replayed: false }], error: null } as never)
+    );
+    const outcome = await f.sync.confirm('HC-1001');
+    expect(outcome).toEqual({ kind: 'ok', replayed: false, refreshed: false });
+    expect(f.sync.find('HC-1001')).toMatchObject({ state: 'Payment review', payState: 'claimed' });
+    expect(f.hooks.apply).not.toHaveBeenCalled();
+    expect(ordersRead.get().savedNotRefreshed).toBe('HC-1001');
+  });
+
+  it('ignores an acknowledged row for a different order', async () => {
+    const f = await loadedReview([row({ order_id: 'HC-9999' })]);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_staff_orders'
+        ? ({ data: null, error: { code: '57014' } } as never)
+        : ({ data: [row({ order_id: 'HC-9999' })], error: null } as never)
+    );
+    await f.sync.confirm('HC-1001');
+    expect(f.sync.find('HC-1001')).toMatchObject({ state: 'Payment review' });
+    expect(ordersRead.get().savedNotRefreshed).toBe('HC-1001');
+  });
+
+  it('the next successful read clears the record; so does retire', async () => {
+    const f = await loadedReview([row()]);
+    failReads(f);
+    await f.sync.confirm('HC-1001');
+    expect(ordersRead.get().savedNotRefreshed).toBe('HC-1001');
+    f.rpc.mockImplementation(async () => ({ data: [raw()], error: null }) as never);
+    expect(await f.sync.load()).toBe(true);
+    expect(ordersRead.get().savedNotRefreshed).toBeNull();
+
+    failReads(f);
+    await f.sync.confirm('HC-1001');
+    expect(ordersRead.get().savedNotRefreshed).toBe('HC-1001');
+    f.sync.retire();
+    expect(ordersRead.get().savedNotRefreshed).toBeNull();
+  });
+
+  it('a successful refresh reports refreshed and records nothing', async () => {
+    const f = await loadedReview([row()]);
+    const outcome = await f.sync.confirm('HC-1001');
+    expect(outcome).toEqual({ kind: 'ok', replayed: false, refreshed: true });
+    expect(ordersRead.get().savedNotRefreshed).toBeNull();
   });
 });
 
