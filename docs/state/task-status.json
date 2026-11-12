@@ -334,7 +334,7 @@
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "HCB-007: ask before Reject cancels an order (dialog per the OD-03 default)."
+        "next_authorized_unblocked_task": "HCB-006: after an acknowledged order change whose refresh fails, show the saved state and never re-offer the action."
       },
       "C5": {
         "title": "Sell/payments",
@@ -544,13 +544,13 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "Reject must ask before it cancels an order (HCB-007).",
+      "requirement": "After an acknowledged order change whose refresh fails, the page shows the saved state and never re-offers the action (HCB-006).",
       "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "941380c",
-      "behavior": "HCB-004 fixed through 6ff0340. HCB-005 fixed in 941380c: till messages stand above the sale bar on phone and tablet and at the top while paying, so Charge and the wallet buttons stay pressable.",
-      "evidence": "941380c reviewed by the Sonnet security-reviewer (high): clear with notes, closed. Browser check tools/owner-preview/check-till-toast.cjs failed on the old code at 320/390/768 and passes at 320 to 1440 px (synthetic preview). Gate: pnpm verify 238 files / 3,903 tests + 2 TODO.",
+      "source_checkpoint": "7a1bd63",
+      "behavior": "HCB-004 fixed through 6ff0340; HCB-005 fixed in 941380c; HCB-007 fixed in 7a1bd63 (Reject asks first, OD-03 default dialog).",
+      "evidence": "7a1bd63 reviewed by the Sonnet security-reviewer (high): clear with notes, Keep moved first. order-reject-confirm 7 tests failed first. Gate: pnpm verify 239 files / 3,910 tests + 2 TODO. Synthetic captures at 390 and 1440 px inspected.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
-      "next": "HCB-007 reject confirmation, test first, independent review."
+      "next": "HCB-006 saved-but-refresh-failed, test first, independent review."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
