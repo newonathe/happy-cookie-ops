@@ -123,7 +123,7 @@ Source ID key: `V-n` = audit findings.md section n; `M-*` = audit measured-layou
 - **Observed:** at 768 the offline toast covers Charge (`elementFromPoint` returned the toast; click did nothing until it left); at 390 the reference toast covers GCash.
 - **Evidence:** audit `bazaar/till/offline-toast-over-charge/{t768,p390}.webp`, `flows/bazaar-event-to-finalize/10-wallet-needs-reference/p390.webp`.
 - **Code:** toasts from protected engine `ops-engine.js:813`, `:3101`; placement overridden in `src/store/ops-runtime.tsx` `liveToastVals` (~8862-8870) only when `device === 'mobile'`, so tablets get the default position; 104 px lift on phones is below the taller sale bar.
-- **Status:** reproduced (Source@HEAD; not re-run live in this pass).
+- **Status:** fixed `941380c` (12 November). Reproduced in a browser (owner preview, synthetic): covered at 320, 390 and 768. The till measures its sale bar into `--till-sale-bar`; on phone and tablet the toast stands above it; while paying it moves to the top. `tools/owner-preview/check-till-toast.cjs` passes at 320 to 1440 px (Charge, wallet buttons, reference field, Close, Undo). Review clear with notes.
 - **Impact:** owner cannot take payment at the stall while the message shows. **S2 / P1.**
 - **Correction:** in `liveToastVals`, lift above the measured sale bar on every device class showing the consolidated till, and for the payment sheet place the message inside the sheet (the pattern already used for production sheets).
 - **Alternatives:** make the toast click-through (breaks Undo buttons in toasts).
