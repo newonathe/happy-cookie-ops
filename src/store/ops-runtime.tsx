@@ -870,6 +870,9 @@ export class OpsRuntime extends OpsProvider {
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
   private scheduledReadSeq = 0;
+  /** HCB-002e: the actor whose newest settled events read failed (null after a good read), and whether the newest read is still out. */
+  private scheduledReadFailedActor: number | null = null;
+  private scheduledReading = false;
   private kitchenDesk: KitchenTransferDesk | null = null;
   private kitchenSelectionEpoch = 0;
   private closeKitchenTransfer(): void {
@@ -974,6 +977,8 @@ export class OpsRuntime extends OpsProvider {
     online: () => Boolean(this.state.online),
     bookings: () => this.scheduledRows ?? [],
     bookingsRead: () => this.scheduledRows !== null,
+    bookingsFailed: () => this.scheduledReadFailedActor === this.productionActorEpoch,
+    bookingsRefreshing: () => this.scheduledReading,
     flavours: () =>
       PRODUCTS.map((p) => ({
         id: p.id,
@@ -4268,11 +4273,21 @@ export class OpsRuntime extends OpsProvider {
       this.state.role === 'owner' &&
       actor === this.productionActorEpoch &&
       use === this.scheduledClient;
+    // A retry out replaces the failure notice with the reading line; a first read has no notice to replace.
+    const retrying = this.scheduledReadFailedActor === actor;
+    this.scheduledReading = true;
+    if (retrying) this.forceUpdate();
     try {
       const rows = await fetchScheduledEvents(use);
+      if (seq === this.scheduledReadSeq) this.scheduledReading = false;
       if (!ownerCurrent() || seq !== this.scheduledReadSeq) return false;
       this.scheduledRows = rows;
+      this.scheduledReadFailedActor = null;
     } catch {
+      if (seq === this.scheduledReadSeq) this.scheduledReading = false;
+      if (!ownerCurrent() || seq !== this.scheduledReadSeq) return false;
+      this.scheduledReadFailedActor = actor;
+      this.forceUpdate();
       return false;
     }
     this.forceUpdate();

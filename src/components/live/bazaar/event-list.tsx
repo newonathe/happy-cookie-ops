@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BazaarListRow, LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
+import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FilterChips } from '@/components/ui/filter-chips';
@@ -15,6 +16,12 @@ import { PageTitle, Panel } from '@/components/ui/owner-kit';
 import { EventEntryPage } from './event-form';
 
 type Chip = 'upcoming' | 'past';
+
+const EVENTS_COPY = {
+  unread: 'Your events could not be read.',
+  stale: 'Could not refresh your events.',
+  retry: 'Try again'
+} as const;
 
 /**
  * The events hub (U3, docs/design/bazaar-v2.md 5.2): Add an event at the top right, what is on now pinned as Active, and
@@ -127,8 +134,30 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
           }
         />
 
+        {eventsRead && bazaar.online && bazaar.eventsFailed && !bazaar.eventsRefreshing ? (
+          <Banner
+            tone="warn"
+            title={EVENTS_COPY.stale}
+            action={
+              bazaar.refreshEvents
+                ? { label: EVENTS_COPY.retry, onPress: bazaar.refreshEvents }
+                : undefined
+            }
+          />
+        ) : null}
+
         {!eventsRead ? (
-          bazaar.online ? (
+          bazaar.online && bazaar.eventsFailed && !bazaar.eventsRefreshing ? (
+            <Banner
+              tone="warn"
+              title={EVENTS_COPY.unread}
+              action={
+                bazaar.refreshEvents
+                  ? { label: EVENTS_COPY.retry, onPress: bazaar.refreshEvents }
+                  : undefined
+              }
+            />
+          ) : bazaar.online ? (
             <div aria-live="polite">
               <p style={mutedStyle}>Reading your events…</p>
               <Skeleton lines={3} />

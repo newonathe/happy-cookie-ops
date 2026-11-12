@@ -412,6 +412,12 @@ export interface LiveBazaarVals {
   catalogue?: { held: boolean };
   /** False until the owner's bookings have been read: the list must not say there are none before it knows. */
   eventsRead: boolean;
+  /** HCB-002e: the newest settled read of the events failed. With `eventsRead` false the list says so and offers a retry. */
+  eventsFailed?: boolean;
+  /** A read of the events is out (a retry in flight). */
+  eventsRefreshing?: boolean;
+  /** Reads the events again. */
+  refreshEvents?: () => void;
   /** `loading` while a read is in flight; `failed` when it could not be read (shown with a retry). */
   state: 'read' | 'loading' | 'failed';
   list: BazaarListRow[];
