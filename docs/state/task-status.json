@@ -323,17 +323,18 @@
           "47285e1",
           "42083fc",
           "3ccde27",
-          "590f58c"
+          "590f58c",
+          "a6ae8a2"
         ],
         "accepted_functionality": "Scoped stock/books/menu/opening/payment/checkout/status reads; neutral identity fallback; actor/backend-bound staff names and retired reply rejection. Health facts/Retry/timers now retire on source/account/role/unmount changes; post-role-commit reads and an explicit read-only UI check are locally accepted.",
         "evidence": "Current acceptance commit: focused111/5files+2existingTODO, actual SQL/browser390/1440, build, visual and independent review; full gate in commit log.",
         "remaining_engineering": [
-          "Owner views still reading the engine built-in product list without the held check after a failed first catalogue read (HCB-004 a2): Make > Recipes, Production completed flavours, Inventory made rows, Settings Products subtitles, pricing example, saved batch names; Shopping Cookies to bake can understate. Fix at the source first (next-goal.md item 1). Other open findings b to f are in the HCB-004 register entry.",
+          "HCB-004 g (found 12 November, not fixed): with the catalogue read failed, a production read naming a product the engine does not hold throws in the engine render (ops-engine.js 3869). Real reach not yet established (next-goal.md item 1). HCB-004 a3 (low): the a2 views show the built-in list for up to 60 seconds when no catalogue reader is bound. Other open findings b to f are in the HCB-004 register entry.",
           "Finish principal-flow first-read failure, stale data, Retry, navigation, uncertain write and malformed-answer cases against original F09."
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "Stop the engine built-in product list standing in for hers at the source in live mode until catalogueHeld() is true, or gate the remaining owner views one by one (HCB-004 a2)."
+        "next_authorized_unblocked_task": "Establish the reach of the render crash after a failed catalogue read and fix it in the runtime, test first (HCB-004 g); then start the catalogue read on a move to a staff screen (HCB-004 a3)."
       },
       "C5": {
         "title": "Sell/payments",
@@ -543,13 +544,13 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "Remaining owner views after a failed first catalogue read: no built-in product or price shown as hers, and Cookies to bake shown as unknown, not a number (HCB-004 a2).",
-      "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "a1f0615762d2c9be20152a1ffd5886fd56cb832b",
-      "behavior": "Bazaar plan, Start day, Bake plan, Home, Shop preview and the drop menu are fixed (42083fc, 3ccde27, 590f58c). Still reading the engine list without the held check: Recipes, Production completed rows, Inventory made rows, Settings Products subtitles, pricing example, saved batch names; Cookies to bake can understate.",
-      "evidence": "590f58c independently reviewed by the Sonnet security-reviewer (high): clear with notes. Gate at 590f58c: pnpm verify 235 files / 3,773 tests + 2 TODO.",
+      "requirement": "A production read after a failed first catalogue read must not crash the owner page (HCB-004 g); then no built-in list while no catalogue reader is bound (HCB-004 a3).",
+      "branch": "claude/beautiful-knuth-b5hg1z",
+      "source_checkpoint": "26a6772d735e057df2a45dae4a65cde880497683",
+      "behavior": "HCB-004 finding a is fixed on every owner view found (42083fc, 3ccde27, 590f58c, a6ae8a2): no built-in product, price or count, and unknown shown as not read. Emptying the engine list was tested and rejected; the views are gated. Open: a render crash when production names a product the engine does not hold after a failed catalogue read (g, reach not established); a 60-second window with no catalogue reader (a3).",
+      "evidence": "a6ae8a2 independently reviewed by the Sonnet security-reviewer (high): clear with notes. tests/unit/catalogue-held-owner-views.test.tsx 41 tests (18 failed first). Gate at a6ae8a2: pnpm verify 236 files / 3,815 tests + 2 TODO. Synthetic captures at 390 and 1440 px inspected.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
-      "next": "Write one parametrised test over every owner view first (no built-in name or price while the catalogue is not held), then fix at the source."
+      "next": "Reproduce finding g in the app, write one failing test, fix in the runtime (the engine is protected)."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
