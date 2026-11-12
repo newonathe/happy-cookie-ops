@@ -546,9 +546,9 @@
       "cycle": "C4",
       "requirement": "Back and reload keep her place: Compare prices returns to its origin; the recipe editor survives a reload (HCB-012, HCB-013).",
       "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "2b0e16c",
-      "behavior": "HCB-004 through 6ff0340; HCB-005 941380c; HCB-007 7a1bd63; HCB-006 b9e5efe; HCB-002d 0ec8b06 (Payments makes no all-clear from an unread orders list); HCB-002e eac51ab (a failed events read says so with Try again); HCB-002g a19acf5 (the Sales log says when the books could not be read); HCB-002h/i 97d6b24 (Home orders tile, order rules and boxes say a read failed). HCB-002 done for every screen that made a false claim; Recipe book inconclusive. Probe of every HCB-002 screen recorded in the register. HCB-014 and the open low items fixed in 3b294cb and 2b0e16c.",
-      "evidence": "3b294cb and 2b0e16c reviewed by the Sonnet security-reviewer (high): clear with notes, closed. Failing first: 14 on 8b717fd, 7 on 3b294cb (run by Claude). Synthetic checks check-low-items.cjs and check-events-timeout.cjs fail before and pass after at 390 and 1440 px. Gate: pnpm verify 244 files / 3,968 tests + 2 TODO.",
+      "source_checkpoint": "143823b",
+      "behavior": "HCB-004 through 6ff0340; HCB-005 941380c; HCB-007 7a1bd63; HCB-006 b9e5efe; HCB-002d 0ec8b06 (Payments makes no all-clear from an unread orders list); HCB-002e eac51ab (a failed events read says so with Try again); HCB-002g a19acf5 (the Sales log says when the books could not be read); HCB-002h/i 97d6b24 (Home orders tile, order rules and boxes say a read failed). HCB-002 done for every screen that made a false claim; Recipe book inconclusive. Probe of every HCB-002 screen recorded in the register. HCB-014 and every open low item fixed in 3b294cb, 2b0e16c and 143823b.",
+      "evidence": "3b294cb and 2b0e16c reviewed by the Sonnet security-reviewer (high): clear with notes, closed. Failing first: 14 on 8b717fd, 7 on 3b294cb (run by Claude). Synthetic checks check-low-items.cjs and check-events-timeout.cjs fail before and pass after at 390 and 1440 px. 143823b: 2 tests failed on 5be0048; check-phone-sales.cjs fails before, passes after; review clear with notes. Gate: pnpm verify 244 files / 3,971 tests + 2 TODO.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
       "next": "HCB-012/013, test first, independent review."
     },
