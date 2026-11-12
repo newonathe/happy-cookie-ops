@@ -329,12 +329,12 @@
         "accepted_functionality": "Scoped stock/books/menu/opening/payment/checkout/status reads; neutral identity fallback; actor/backend-bound staff names and retired reply rejection. Health facts/Retry/timers now retire on source/account/role/unmount changes; post-role-commit reads and an explicit read-only UI check are locally accepted.",
         "evidence": "Current acceptance commit: focused111/5files+2existingTODO, actual SQL/browser390/1440, build, visual and independent review; full gate in commit log.",
         "remaining_engineering": [
-          "HCB-004 g fixed in 9e657c0 (render crash when production names a product the engine does not hold after a failed or unanswered catalogue read). HCB-004 a3 (low): the a2 views show the built-in list for up to 60 seconds when no catalogue reader is bound. Other open findings b to f are in the HCB-004 register entry.",
+          "HCB-004 g fixed in 9e657c0 and a3 fixed in b097b4c. Remaining: boundary validation of the get_flavours and get_settings answers (HCB-004 correction); open findings b to f are in the HCB-004 register entry.",
           "Finish principal-flow first-read failure, stale data, Retry, navigation, uncertain write and malformed-answer cases against original F09."
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "Start the catalogue read when the owner reaches a staff screen, so no built-in list shows while no reader is bound (HCB-004 a3)."
+        "next_authorized_unblocked_task": "Validate the get_flavours and get_settings answers at the boundary with Zod: a malformed answer is a failed read, not a crash (HCB-004 correction)."
       },
       "C5": {
         "title": "Sell/payments",
@@ -544,13 +544,13 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C4",
-      "requirement": "No built-in list while no catalogue reader is bound (HCB-004 a3).",
+      "requirement": "Validate the get_flavours and get_settings answers at the boundary (HCB-004 correction).",
       "branch": "claude/dreamy-faraday-74rshc",
-      "source_checkpoint": "8b8ca5c",
-      "behavior": "HCB-004 finding a is fixed on every owner view found (42083fc, 3ccde27, 590f58c, a6ae8a2). HCB-004 g fixed in 9e657c0: a production batch of a product outside the engine list, read while the catalogue had failed or not answered, no longer blanks the app (the runtime lends the one-render placeholder to variance product ids). Open: a 60-second window with no catalogue reader bound (a3).",
-      "evidence": "9e657c0 independently reviewed by the Sonnet security-reviewer (high): clear with notes. Tests g1-g3 (5 failed first at ops-engine.js:3869). Gate: pnpm verify 236 files / 3,820 tests + 2 TODO. Synthetic captures at 390 and 1440 px, before (blank) and after, inspected.",
+      "source_checkpoint": "d478425",
+      "behavior": "HCB-004 a fixed on every owner view found (42083fc, 3ccde27, 590f58c, a6ae8a2); g fixed in 9e657c0 (no blank app when production names a product the engine does not hold); a3 fixed in b097b4c (the staff reads start when she reaches a staff screen after a check verified on /shop). Open: boundary validation; findings b to f.",
+      "evidence": "b097b4c independently reviewed by the Sonnet security-reviewer (high): clear with notes. Tests a3-1 to a3-3c (3 failed first). Gate: pnpm verify 236 files / 3,826 tests + 2 TODO. Synthetic captures at 390 and 1440 px inspected.",
       "external_limits": "No hosted, native offline-auth, physical-device, owner or release acceptance inferred.",
-      "next": "HCB-004 a3: start the catalogue read on a move to a staff screen, test first, independent review."
+      "next": "HCB-004 boundary validation of get_flavours and get_settings, test first, independent review."
     },
     "publishing_authorization": "10November2026 owner: merge all safely compatible changes to main and deploy the existing version after applicable verification. Preserve work and unresolved business/device/owner gates; no force-push or arbitrary data edits."
   }
