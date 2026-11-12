@@ -7,6 +7,11 @@ import type { LiveRecipesVals, RecipeBookItem } from '@/lib/recipes/live-recipes
 import { MARGIN_FLOOR_PERCENT, bookCounts, filterBook, type BookFilter } from '@/lib/recipes/book';
 import { RecipesScreen } from '@/components/screens/recipes';
 import { Banner } from '@/components/ui/banner';
+import {
+  CatalogueNotice,
+  PRODUCTS_NOTICE_COPY,
+  useCatalogueHeld
+} from '@/components/live/bazaar/catalogue-notice';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { FilterChips } from '@/components/ui/filter-chips';
@@ -60,6 +65,8 @@ type View =
  */
 export function RecipeBookLive({ v }: { v: OpsVals }) {
   const book = liveRecipesOf(v);
+  // HCB-004 a2: the book lists her own products, which this phone may not have read yet.
+  const catalogue = useCatalogueHeld(v.catalogueHeld);
   const run = useViewTransition();
   const [view, setView] = useState<View>({ kind: 'book' });
   const [filter, setFilter] = useState<BookFilter>('menu');
@@ -145,6 +152,22 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
             go({ kind: 'editor', id: recipePage.id, origin: 'recipe' }, null);
         }}
       />
+    );
+
+  if (!catalogue.held && catalogue.started)
+    return (
+      <section
+        aria-label="Recipe book"
+        data-screen-label="Recipes"
+        className={cx('flex flex-col gap-3 pb-24', fade && 'motion-enter')}
+      >
+        <h1 className="m-0 text-title text-ink">Recipe book</h1>
+        <CatalogueNotice
+          failed={catalogue.failed}
+          retry={catalogue.retry}
+          copy={PRODUCTS_NOTICE_COPY}
+        />
+      </section>
     );
 
   const counts = bookCounts(book.items);

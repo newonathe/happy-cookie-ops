@@ -1,6 +1,11 @@
 'use client';
 
 import { StockReadNotice } from './stock-read-notice';
+import {
+  CatalogueNotice,
+  PRODUCTS_NOTICE_COPY,
+  useCatalogueHeld
+} from '../bazaar/catalogue-notice';
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type * as React from 'react';
@@ -32,9 +37,27 @@ const known = (item: StockItemView) => !unknown(item) && item.confidence !== 'un
 const MADE_CATEGORIES = ['Dough', 'Baked stock'];
 
 /** Dough and baked cookies by product: read from production, changed only by production and waste. */
-function MadeList({ stock, category }: { stock: LiveStockVals; category: string }) {
+function MadeList({
+  stock,
+  category,
+  catalogueHeld
+}: {
+  stock: LiveStockVals;
+  category: string;
+  catalogueHeld?: boolean;
+}) {
+  // HCB-004 a2: these are listed by her own products, which this phone may not have read.
+  const catalogue = useCatalogueHeld(catalogueHeld);
   const rows = category === 'Dough' ? stock.made?.dough : stock.made?.baked;
   const read = stock.madeRead;
+  if (!catalogue.held && catalogue.started)
+    return (
+      <CatalogueNotice
+        failed={catalogue.failed}
+        retry={catalogue.retry}
+        copy={PRODUCTS_NOTICE_COPY}
+      />
+    );
   return (
     <>
       {category === 'Baked stock' && read?.periodText ? (
@@ -127,13 +150,15 @@ function InventoryList({
   category,
   filter,
   setCategory,
-  setFilter
+  setFilter,
+  catalogueHeld
 }: {
   stock: LiveStockVals;
   category: string;
   filter: Filter;
   setCategory: (category: string) => void;
   setFilter: (filter: Filter) => void;
+  catalogueHeld?: boolean;
 }) {
   const active = stock.items.filter((item) => item.active);
   const categories = [
@@ -162,7 +187,9 @@ function InventoryList({
           </button>
         ))}
       </div>
-      {MADE_CATEGORIES.includes(category) ? <MadeList stock={stock} category={category} /> : null}
+      {MADE_CATEGORIES.includes(category) ? (
+        <MadeList stock={stock} category={category} catalogueHeld={catalogueHeld} />
+      ) : null}
       <div hidden={MADE_CATEGORIES.includes(category)} className={styles.toolbar}>
         <div role="group" aria-label="Stock counts" className={styles.counts}>
           <span>{items.length === 1 ? '1 item' : `${items.length} items`}</span>
@@ -408,6 +435,7 @@ export function InventoryLive({ v }: { v: OpsVals }) {
                 filter={filter}
                 setCategory={setCategory}
                 setFilter={setFilter}
+                catalogueHeld={v.catalogueHeld}
               />
             </>
           ) : !v.liveStockRead ? (
