@@ -97,6 +97,14 @@ export const STAFF_COPY = {
   shopMenuCatalogueFailed:
     'Your products and prices could not be read, so no cookies are shown here.',
   homeProductsNotRead: 'Not read yet',
+  /** Payments: said in place of the "Everything matched" hero when the list is incomplete (copy placeholder, OD-12). */
+  paymentsDropped: 'Some orders could not be read; check them in Orders.',
+  paymentsStale: 'The list could not be refreshed; check Orders.',
+  /** Payments: Tick all ticks what is shown but must not say the books agree (copy placeholder, OD-12). */
+  tickAllDropped:
+    'All shown references ticked. Some orders could not be read, so this list may be incomplete.',
+  tickAllStale:
+    'All shown references ticked. The list could not be refreshed, so it may be incomplete.',
   /** HCB-004 (Orders slice): rows the server sent that the screens cannot use. */
   ordersDropped: (n: number): string =>
     n === 1

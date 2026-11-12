@@ -131,6 +131,34 @@ describe('HCB-003: the owner Products page and a failed catalogue read', () => {
     expect(tryAgain()).toBeTruthy();
   });
 
+  it('1b. Start production is disabled until the catalogue has been read, as on Production', async () => {
+    const { runtime } = await openProducts();
+    expect(
+      (screen.getByRole('button', { name: 'Start production' }) as HTMLButtonElement).disabled
+    ).toBe(true);
+    const c = controlled();
+    const read = start(runtime, c.client);
+    await act(async () => {
+      c.answer(down);
+      expect(await read).toBe(false);
+    });
+    expect(
+      (screen.getByRole('button', { name: 'Start production' }) as HTMLButtonElement).disabled
+    ).toBe(true);
+    expect(tryAgain()).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(tryAgain()!);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      c.answer(ok(GOOD));
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expect(
+      (screen.getByRole('button', { name: 'Start production' }) as HTMLButtonElement).disabled
+    ).toBe(false);
+  });
+
   it('2. a later failed refresh keeps the last good prices, labelled with when they were read', async () => {
     const { runtime } = await openProducts();
     const c = controlled((name) => ({

@@ -120,8 +120,8 @@ function PaymentReview({ od }: { od: Order }) {
         <RejectButton key={String(od.id)} od={od} />
       </div>
       <p className="mt-3 text-caption text-ink-mute">
-        Nothing is reserved until you confirm. Confirming books capacity and adds this order to the
-        bake plan and grocery list.
+        Its pickup slots are held while it waits here, unless it is unpaid and past your hold time.
+        Confirming adds it to the bake plan and grocery list.
       </p>
     </Panel>
   );

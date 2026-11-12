@@ -83,6 +83,17 @@ describe('rejecting a payment asks first', () => {
     cleanup();
   });
 
+  it('the review footer does not claim nothing is reserved: its slots are held (decision D1)', async () => {
+    await open();
+    expect(screen.queryByText(/Nothing is reserved/)).toBeNull();
+    expect(screen.queryByText(/books capacity/)).toBeNull();
+    expect(
+      screen.getByText(
+        'Its pickup slots are held while it waits here, unless it is unpaid and past your hold time. Confirming adds it to the bake plan and grocery list.'
+      )
+    ).toBeTruthy();
+  });
+
   it('the first press on Reject sends nothing and shows a dialog naming the customer and order', async () => {
     const { rpc } = await open();
     press('Reject');
