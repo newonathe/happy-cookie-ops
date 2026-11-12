@@ -127,7 +127,11 @@ export function RecipeReader({
         <Banner
           tone={page.state === 'failed' ? 'warn' : 'info'}
           title={
-            page.state === 'failed' ? 'The recipe could not be refreshed.' : 'Reading the recipe…'
+            page.state === 'failed'
+              ? page.rows.length
+                ? 'The recipe could not be refreshed.'
+                : 'The recipe could not be read.'
+              : 'Reading the recipe…'
           }
           body={page.rows.length ? 'Showing the last saved copy.' : undefined}
           action={

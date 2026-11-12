@@ -24,6 +24,10 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
     read.phase === 'loading' || (read.phase === 'idle' && isLiveMode() && !!v.ownerView);
   const failedFirst = read.phase === 'failed' && !read.everRead;
   const stale = read.phase === 'failed' && read.everRead && read.readAt !== null;
+  // The engine's "Everything matched" only counts the rows it was given, so it is never shown beside a list that is
+  // incomplete: a good read that had to drop an order, or a refresh that failed after a good one.
+  const partial =
+    read.dropped > 0 ? STAFF_COPY.paymentsDropped : stale ? STAFF_COPY.paymentsStale : null;
   const retry = read.retry ? { label: 'Try again', onPress: read.retry } : undefined;
   const header = (
     <>
@@ -71,7 +75,9 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
 
       <Panel tone="hero">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-[15px] font-semibold text-ink">{v.recLeftText}</span>
+          <span className="text-[15px] font-semibold text-ink">
+            {v.recAllDone && partial ? partial : v.recLeftText}
+          </span>
           <span className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={v.recTickAll}>
               Tick all
@@ -89,7 +95,7 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
                 <span className="text-[17px] font-semibold text-ink tabular-nums">
                   {method.totalText}
                 </span>
-                {method.done ? (
+                {method.done && !partial ? (
                   <span className="text-caption font-semibold text-ok">
                     All matched · {method.n}
                   </span>

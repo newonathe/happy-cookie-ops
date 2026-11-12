@@ -345,6 +345,7 @@ import {
   type ShopClient
 } from '@/lib/data/flavours';
 import { flavoursRead } from '@/lib/data/flavours-read-state';
+import { ordersRead } from '@/lib/orders/orders-read-state';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
@@ -2348,6 +2349,25 @@ export class OpsRuntime extends OpsProvider {
   private catalogueRestored = false;
 
   /**
+   * Payments' Tick all ticks exactly as the locked engine does, but its toast ("your wallet and your books agree") is
+   * only true of a complete list. On a read that dropped an order, or a refresh that failed after a good read, it
+   * says the list may be incomplete instead.
+   */
+  private liveTickAll(tickAll: OpsVals['recTickAll']): OpsVals['recTickAll'] {
+    return (event) => {
+      tickAll(event);
+      const read = ordersRead.get();
+      const copy =
+        read.dropped > 0
+          ? STAFF_COPY.tickAllDropped
+          : read.phase === 'failed' && read.everRead
+            ? STAFF_COPY.tickAllStale
+            : null;
+      if (copy) this.toast(copy);
+    };
+  }
+
+  /**
    * HCB-004: whether the engine's flavours are hers: a read has answered, or the copy kept for an offline open was put
    * back. Otherwise they are the six built-in ones, which a day must not be planned or started from.
    */
@@ -3590,6 +3610,7 @@ export class OpsRuntime extends OpsProvider {
       liveScreenFor(this.state.screen as ScreenKey)
         ? { pageMax: 'none', pagePad: '0' }
         : {}),
+      recTickAll: this.liveTickAll(starved.recTickAll),
       bareFrame: true,
       showFlowStrip: false,
       flow: null,

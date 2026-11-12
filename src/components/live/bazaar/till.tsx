@@ -145,7 +145,7 @@ export function ConsolidatedTill({
                 <Button variant="secondary" onClick={v.askClose}>
                   Close day
                 </Button>
-                <Button variant="secondary" aria-label="Till menu" onClick={() => setMenu(true)}>
+                <Button variant="secondary" onClick={() => setMenu(true)}>
                   Settings
                 </Button>
               </>

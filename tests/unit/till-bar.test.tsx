@@ -209,7 +209,7 @@ describe('leaving the till and coming back, in the frame', () => {
     expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
     expect(screen.getByRole('button', { name: /Double Chocolate Fudge.*sold out/ })).toBeTruthy();
     expect(screen.getByText('White Chocolate Biscoff')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /Back to Home/ }));
     expect(runtime.state.screen).toBe('today');
     expect(runtime.state.event).toMatchObject({ dayId: DAY });

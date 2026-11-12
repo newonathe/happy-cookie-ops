@@ -193,6 +193,78 @@ describe('Payments read lifecycle on the actual page (live mode)', () => {
     expect(screen.queryByText(ACCOUNTED)).toBeNull();
   });
 
+  it('dropped rows never sit beside an "Everything matched" hero or a per-method "All matched"', async () => {
+    const rt = await owner(
+      client([
+        {
+          data: [
+            row('HC-1101', 'Bea Villanueva', 'GC-7781'),
+            row('HC-1102', 'Miguel Santos', 'GC-7782', { items: [] })
+          ],
+          error: null
+        }
+      ]).client
+    );
+    act(() => (rt.renderVals() as { recTickAll: () => void }).recTickAll());
+    page(rt);
+    expect(screen.queryByText(ALL_MATCHED)).toBeNull();
+    expect(screen.queryByText(/^All matched/)).toBeNull();
+    expect(screen.getByText('Some orders could not be read; check them in Orders.')).toBeTruthy();
+  });
+
+  it('a stale list never shows an "Everything matched" hero either', async () => {
+    const f = client([{ data: [row('HC-1101', 'Bea Villanueva', 'GC-7781')], error: null }, FAIL]);
+    const rt = await owner(f.client);
+    act(() => (rt.renderVals() as { recTickAll: () => void }).recTickAll());
+    await act(async () => void (await rt.reloadOrders()));
+    page(rt);
+    expect(screen.queryByText(ALL_MATCHED)).toBeNull();
+  });
+
+  it('Tick all ticks the same way but toasts a neutral line on dropped rows or a stale list', async () => {
+    const toast = (rt: OpsRuntime) => (rt.state as { toast?: { msg: string } }).toast?.msg;
+    const dropped = await owner(
+      client([
+        {
+          data: [
+            row('HC-1101', 'Bea Villanueva', 'GC-7781'),
+            row('HC-1102', 'Miguel Santos', 'GC-7782', { items: [] })
+          ],
+          error: null
+        }
+      ]).client
+    );
+    act(() => (dropped.renderVals() as { recTickAll: () => void }).recTickAll());
+    expect(toast(dropped)).toBe(
+      'All shown references ticked. Some orders could not be read, so this list may be incomplete.'
+    );
+    expect(Object.keys((dropped.state as unknown as { matched: object }).matched)).toEqual([
+      'HC-1101'
+    ]);
+    cleanup();
+    ordersRead.reset();
+    const f = client([{ data: [row('HC-1101', 'Bea Villanueva', 'GC-7781')], error: null }, FAIL]);
+    const stale = await owner(f.client);
+    await act(async () => void (await stale.reloadOrders()));
+    act(() => (stale.renderVals() as { recTickAll: () => void }).recTickAll());
+    expect(toast(stale)).toBe(
+      'All shown references ticked. The list could not be refreshed, so it may be incomplete.'
+    );
+    expect(Object.keys((stale.state as unknown as { matched: object }).matched)).toEqual([
+      'HC-1101'
+    ]);
+  });
+
+  it('Tick all on a good, complete read keeps the engine toast', async () => {
+    const rt = await owner(
+      client([{ data: [row('HC-1101', 'Bea Villanueva', 'GC-7781')], error: null }]).client
+    );
+    act(() => (rt.renderVals() as { recTickAll: () => void }).recTickAll());
+    expect((rt.state as { toast?: { msg: string } }).toast?.msg).toBe(
+      'All references ticked. Your wallet and your books agree.'
+    );
+  });
+
   it('a good read with nothing to check says so, with no warning', async () => {
     const rt = await owner(client([{ data: [], error: null }]).client);
     page(rt);
