@@ -533,3 +533,69 @@ describe('HCB-004 a2: demo mode and the four views already fixed', () => {
     }
   });
 });
+
+/**
+ * HCB-004 g: her saved production can name a product the engine does not hold (one she added herself, with a slug id)
+ * while the catalogue read failed or has not answered. The locked render looks every variance product up in its
+ * lookup, so it threw in the root provider and the whole app fell to the error page.
+ */
+describe('HCB-004 g: production that names a product the engine does not hold', () => {
+  const NOT_STOPPED = /could not start|stopped working/i;
+
+  it.each([['failed', down] as const, ['pending', 'pending'] as const])(
+    'g1. a %s catalogue read: every owner screen still renders and nothing is left in the lookup',
+    async (_label, answer) => {
+      const runtime = await mount();
+      await readCatalogue(runtime, answer);
+      await bindReads(runtime, 'qa-own');
+      for (const key of ['bake', 'today', 'inventory', 'grocery', 'more'] as const) {
+        act(() => runtime.go(key));
+        await settle();
+        expect(text().length, key).toBeGreaterThan(0);
+        expect(text(), key).not.toMatch(NOT_STOPPED);
+        expect(leaks(), key).toEqual([]);
+        // The lent name is for the locked render only; the live views never draw it.
+        expect(text(), key).not.toContain('Product unavailable');
+      }
+      expect(() => runtime.renderVals()).not.toThrow();
+      expect(PRODUCTS.some((p) => p.id === 'qa-own')).toBe(false);
+    }
+  );
+
+  it('g2. production answers before the catalogue: the page renders, then her product shows', async () => {
+    const runtime = await mount();
+    const c = await readCatalogue(runtime, 'pending');
+    await bindReads(runtime, 'qa-own');
+    act(() => runtime.go('bake'));
+    await settle();
+    expect(text()).not.toMatch(NOT_STOPPED);
+    expect(leaks()).toEqual([]);
+    await act(async () => c.answer(ok([...GOOD, flavour('qa-own', 'QA Own', 19000, 3)])));
+    await settle();
+    expect(text()).not.toMatch(NOT_STOPPED);
+    expect(text()).toContain('QA Own');
+    expect(leaks()).toEqual([]);
+  });
+
+  it('g3. Try again that succeeds with her product in the answer renders and shows it', async () => {
+    const runtime = await mount();
+    const c = catalogue();
+    let read!: Promise<boolean>;
+    act(() => void (read = runtime.loadFlavours(c.client)));
+    await act(async () => {
+      c.answer(down);
+      await read;
+    });
+    await bindReads(runtime, 'qa-own');
+    act(() => runtime.go('bake'));
+    await settle();
+    expect(text()).not.toMatch(NOT_STOPPED);
+    expect(leaks()).toEqual([]);
+    await act(async () => void fireEvent.click(tryAgain()!));
+    await act(async () => c.answer(ok([...GOOD, flavour('qa-own', 'QA Own', 19000, 3)])));
+    await settle();
+    expect(text()).not.toMatch(NOT_STOPPED);
+    expect(text()).toContain('QA Own');
+    expect(leaks()).toEqual([]);
+  });
+});
