@@ -1,9 +1,14 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { PageTitle, Panel } from '@/components/ui/owner-kit';
+import { isLiveMode } from '@/lib/config/app-mode';
+import { ordersRead } from '@/lib/orders/orders-read-state';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { readAtText } from '@/lib/time/read-at-text';
 import { SellSettings, SellTabs } from './sell-shared';
 
 /**
@@ -11,14 +16,58 @@ import { SellSettings, SellTabs } from './sell-shared';
  * own check against the wallet; it never confirms an order or moves money.
  */
 export function PaymentsLive({ v }: { v: OpsVals }) {
-  return (
-    <div className="w-full">
+  // HCB-002d: the references come from the order read. Until it has answered, nothing is matched,
+  // totalled or called empty, and a list that could not be refreshed is never called complete.
+  // Mirrors the Orders page (orders-live.tsx); demo mode has no reader and is unchanged.
+  const read = useSyncExternalStore(ordersRead.subscribe, ordersRead.get, ordersRead.getServer);
+  const notRead =
+    read.phase === 'loading' || (read.phase === 'idle' && isLiveMode() && !!v.ownerView);
+  const failedFirst = read.phase === 'failed' && !read.everRead;
+  const stale = read.phase === 'failed' && read.everRead && read.readAt !== null;
+  const retry = read.retry ? { label: 'Try again', onPress: read.retry } : undefined;
+  const header = (
+    <>
       <PageTitle
         title="Payments"
         subtitle="Open your wallet activity, then tick each reference you can see landing."
         actions={<SellSettings v={v} />}
       />
       <SellTabs v={v} />
+    </>
+  );
+  if (notRead || failedFirst)
+    return (
+      <div className="w-full">
+        {header}
+        {failedFirst ? (
+          <Banner tone="warn" title={STAFF_COPY.ordersReadFailed} action={retry} />
+        ) : (
+          <Panel>
+            <p role="status" className="text-[15px] text-ink">
+              {STAFF_COPY.ordersNotRead}
+            </p>
+          </Panel>
+        )}
+      </div>
+    );
+  return (
+    <div className="w-full">
+      {header}
+      {stale ? (
+        <div className="mb-4">
+          <Banner
+            tone="warn"
+            title={STAFF_COPY.ordersStale(readAtText(read.readAt as number))}
+            action={retry}
+          />
+        </div>
+      ) : null}
+      {read.dropped > 0 ? (
+        // As on Orders: a good read that had to leave an unreadable order out says so (review note, HCB-002d).
+        <div className="mb-4">
+          <Banner tone="warn" title={STAFF_COPY.ordersDropped(read.dropped)} />
+        </div>
+      ) : null}
 
       <Panel tone="hero">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -100,7 +149,7 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
         </div>
       </Panel>
 
-      {v.recAllDone ? (
+      {v.recAllDone && !stale && !(read.dropped > 0) ? (
         <Banner
           tone="info"
           title="Every reference is accounted for"
