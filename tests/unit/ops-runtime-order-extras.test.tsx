@@ -249,7 +249,27 @@ describe('B4a: the boxes and add-ons form', () => {
     await act(async () => entry(runtime)!.go());
     await settle();
     expect(runtime.renderVals().liveOrderExtras ?? null).toBeNull();
-    expect(toasts(runtime)).toContain('Offline');
+    expect(toasts(runtime)).toContain('could not be read');
+    expect(toasts(runtime)).not.toContain('did not save');
+    expect(toasts(runtime)).not.toContain('Offline');
+  });
+
+  it('a read that fails after a save says it could not be refreshed, never that it did not save', async () => {
+    const f = fake();
+    const runtime = await mounted('owner', f);
+    const vals = await open(runtime);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_order_extras'
+        ? { data: null, error: { code: '57014' } }
+        : name === 'save_order_extras'
+          ? { data: [{ updated_at: STAMP }], error: null }
+          : { data: null, error: null }
+    );
+    act(() => vals.save({ ...vals.extras }));
+    await settle();
+    expect(toasts(runtime)).toContain('saved');
+    expect(toasts(runtime)).toContain('could not be refreshed');
+    expect(toasts(runtime)).not.toContain('did not save');
   });
 
   it('is the owner’s alone, even with the configuration already read and the sheet open', async () => {

@@ -4070,12 +4070,13 @@ export class OpsRuntime extends OpsProvider {
 
   // ------------------------------------------------------------------ B3: the order rules form
 
-  private async loadOrderRules(): Promise<boolean> {
+  /** `refresh` is the reload after a save: the save was acknowledged, so a failed read must not say otherwise. */
+  private async loadOrderRules(after: 'open' | 'refresh' = 'open'): Promise<boolean> {
     if (!this.shopClient) return false;
     try {
       this.rulesRow = await fetchOrderRules(this.shopClient);
     } catch {
-      this.toast(STAFF_COPY.offline, 'warn');
+      this.toast(RULES_COPY[after === 'open' ? 'readFailed' : 'savedNotRefreshed'], 'warn');
       return false;
     }
     this.forceUpdate();
@@ -4132,7 +4133,7 @@ export class OpsRuntime extends OpsProvider {
     if (outcome === 'saved') {
       this.toast(RULES_COPY.saved);
       this.closeSheet();
-      await this.loadOrderRules();
+      await this.loadOrderRules('refresh');
     } else if (outcome === 'conflict') {
       this.toast(RULES_COPY.conflict, 'warn');
       await this.openOrderRules();
@@ -4141,12 +4142,13 @@ export class OpsRuntime extends OpsProvider {
 
   // ------------------------------------------------------------------ B4: the boxes and add-ons form
 
-  private async loadOrderExtras(): Promise<boolean> {
+  /** `refresh` is the reload after a save: the save was acknowledged, so a failed read must not say otherwise. */
+  private async loadOrderExtras(after: 'open' | 'refresh' = 'open'): Promise<boolean> {
     if (!this.shopClient) return false;
     try {
       this.extrasRow = await fetchOrderExtras(this.shopClient);
     } catch {
-      this.toast(STAFF_COPY.offline, 'warn');
+      this.toast(EXTRAS_COPY[after === 'open' ? 'readFailed' : 'savedNotRefreshed'], 'warn');
       return false;
     }
     this.forceUpdate();
@@ -4254,7 +4256,7 @@ export class OpsRuntime extends OpsProvider {
     if (outcome === 'saved') {
       this.toast(EXTRAS_COPY.saved);
       this.closeSheet();
-      await this.loadOrderExtras();
+      await this.loadOrderExtras('refresh');
     } else if (outcome === 'conflict') {
       this.toast(EXTRAS_COPY.conflict, 'warn');
       await this.openOrderExtras();

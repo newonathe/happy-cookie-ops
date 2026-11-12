@@ -21,6 +21,7 @@ import { bindProductionOwner } from './production-runtime-helpers';
 import { PRODUCTS } from '@/store/engine/ops-engine';
 import type { LiveHome } from '@/view-models/vals';
 import { HomeLive } from '@/components/live/home/home-live';
+import { ordersRead, type OrdersReadSnapshot } from '@/lib/orders/orders-read-state';
 
 /** Live Home: every figure from the record that owns it; unknown is never shown as zero. */
 type Wire = Record<string, unknown>;
@@ -117,7 +118,10 @@ const home = (r: OpsRuntime) => r.renderVals().liveHome as LiveHome;
 
 describe('the live Home', () => {
   beforeEach(() => store.clear());
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    ordersRead.reset();
+  });
 
   it('counts open orders by their saved status', async () => {
     const r = await mounted(true);
@@ -205,6 +209,35 @@ describe('the live Home', () => {
     expect(view.getAllByText('—')).toHaveLength(3);
     expect(view.getByText('Orders are still loading.')).toBeTruthy();
     expect(view.getByText('Your books are still loading.')).toBeTruthy();
+  });
+  it('HCB-002i: a failed first orders read says so; a read still out says loading; a good read counts', async () => {
+    const r = await mounted(false);
+    const reader = {};
+    const snap = (over: Partial<OrdersReadSnapshot>): OrdersReadSnapshot => ({
+      phase: 'idle',
+      everRead: false,
+      readAt: null,
+      dropped: 0,
+      savedNotRefreshed: null,
+      retry: null,
+      ...over
+    });
+    ordersRead.claim(reader);
+    ordersRead.publish(reader, snap({ phase: 'loading' }));
+    const view = render(<HomeLive v={r.renderVals()} />);
+    expect(view.getByText('Orders are still loading.')).toBeTruthy();
+    expect(view.queryByText(/could not be read/)).toBeNull();
+    await act(async () => ordersRead.publish(reader, snap({ phase: 'failed' })));
+    expect(view.getByText('Your orders could not be read. Open Orders to retry.')).toBeTruthy();
+    expect(view.queryByText('Orders are still loading.')).toBeNull();
+    expect(view.getAllByText('—')).toHaveLength(3);
+    // Mutation: reading the failure from nowhere keeps saying "still loading" for a read that ended.
+    cleanup();
+    const good = await mounted(true);
+    const ui = render(<HomeLive v={good.renderVals()} />);
+    expect(ui.queryByText('Orders are still loading.')).toBeNull();
+    expect(ui.queryByText(/could not be read/)).toBeNull();
+    expect(ui.queryAllByText('—')).toHaveLength(0);
   });
   it('counts unknown stock once in the visible Home bar', async () => {
     const r = await mounted(true);

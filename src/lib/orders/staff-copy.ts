@@ -122,6 +122,8 @@ export const RULES_COPY = {
   conflict: 'Someone else changed the order rules just now. Showing their version.',
   refused: 'The order rules could not be saved. Check the numbers.',
   switchRefused: 'The shop switch could not be saved.',
+  readFailed: 'Your order rules could not be read. Check the signal and try again.',
+  savedNotRefreshed: 'Order rules saved, but they could not be refreshed. Check the signal.',
   intro:
     'These decide what a customer can pick and how long an unpaid order holds its slots. They apply to new orders only.',
   days: 'Pickup days',
@@ -142,6 +144,8 @@ export const EXTRAS_COPY = {
   saved: 'Boxes and add-ons saved.',
   conflict: 'Someone else changed the boxes and add-ons just now. Showing their version.',
   refused: 'The boxes and add-ons could not be saved. Check the numbers.',
+  readFailed: 'Your boxes and add-ons could not be read. Check the signal and try again.',
+  savedNotRefreshed: 'Boxes and add-ons saved, but they could not be refreshed. Check the signal.',
   intro:
     'Everything the September form offered besides flavours. Prices and limits apply to new orders only. Nothing is deleted: switch an item off instead.',
   sameDay: 'Same-day pickup',
