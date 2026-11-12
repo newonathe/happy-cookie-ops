@@ -3475,9 +3475,26 @@ export class OpsRuntime extends OpsProvider {
     return alerts;
   }
 
+  /** Product ids named by the server's production variances (engine-shaped state, read loosely). */
+  private varianceProductIds(): string[] {
+    const variances = (this.state as unknown as { variances?: unknown }).variances;
+    if (!Array.isArray(variances)) return [];
+    return variances.flatMap((v: unknown) => {
+      const pid = (v as { pid?: unknown } | null)?.pid;
+      return typeof pid === 'string' ? [pid] : [];
+    });
+  }
+
   renderVals(): OpsVals {
     const vals = isLiveMode()
-      ? renderWithSaleLabels(this.state.sales, RENDER_PRODUCTS, () => super.renderVals())
+      ? renderWithSaleLabels(
+          this.state.sales,
+          RENDER_PRODUCTS,
+          () => super.renderVals(),
+          // HCB-004 g: the locked "Yield against plan" looks up every variance product. One she added herself is
+          // not in the engine's lookup while the catalogue is unread; lend a name for this render only.
+          this.varianceProductIds()
+        )
       : super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
     const counting =
