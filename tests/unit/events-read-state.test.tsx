@@ -199,4 +199,68 @@ describe('HCB-002e: the events read fails', () => {
     ).toBeNull();
     expect(screen.queryByText('Could not refresh your events.')).toBeNull();
   });
+
+  it('(f) a read that never answers fails after the limit with Try again, and a late answer clears it', async () => {
+    const { runtime } = await mount('empty');
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    let answer!: () => void;
+    const hung = {
+      rpc: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            answer = () => resolve({ data: [booking], error: null });
+          })
+      )
+    };
+    let reading!: Promise<boolean>;
+    await act(async () => {
+      reading = runtime.loadScheduledEvents(hung as never);
+    });
+    expect(screen.queryByText('Could not refresh your events.')).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(14_000);
+    });
+    expect(screen.queryByText('Could not refresh your events.')).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_500);
+    });
+    expect(screen.getByText('Could not refresh your events.')).toBeTruthy();
+    expect(await reading).toBe(false);
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+    expect((runtime as unknown as { scheduledReading: boolean }).scheduledReading).toBe(false);
+    // The late answer is for the same read, so it still applies and clears the failure.
+    await act(async () => {
+      answer();
+      await vi.advanceTimersByTimeAsync(10);
+    });
+    expect(screen.queryByText('Could not refresh your events.')).toBeNull();
+    expect(screen.getByRole('button', { name: /Katipunan market/ })).toBeTruthy();
+  });
+
+  it('(f) a first read that never answers shows the failure, not "Reading your events…"', async () => {
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(
+      <OpsRuntime ref={(r) => void (ref.current = r)}>
+        <Frame />
+      </OpsRuntime>
+    );
+    const runtime = ref.current!;
+    act(() => runtime.setRole('owner'));
+    act(() => runtime.setState({ device: 'mobile' }));
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    const hung = { rpc: vi.fn(() => new Promise(() => undefined)) };
+    await act(async () => {
+      void runtime.loadScheduledEvents(hung as never);
+    });
+    act(() => runtime.go('bazaar'));
+    expect(screen.getByText('Reading your events…')).toBeTruthy();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(16_000);
+    });
+    expect(screen.queryByText('Reading your events…')).toBeNull();
+    expect(screen.getByText('Your events could not be read.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+  });
 });

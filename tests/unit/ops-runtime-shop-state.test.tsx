@@ -325,6 +325,27 @@ describe('B3: the order rules form', () => {
     expect(called(f.rpc, 'get_order_rules').length).toBeGreaterThanOrEqual(2);
   });
 
+  it('a conflict whose re-read fails closes the form, so no stale value stays editable', async () => {
+    const f = fake({ save: { error: { code: 'P0002' } } });
+    const runtime = await mounted('owner', f);
+    await act(async () => entry(runtime)!.go());
+    await settle();
+    const vals = runtime.renderVals().liveOrderRules!;
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_order_rules'
+        ? { data: null, error: { code: '57014' } }
+        : name === 'save_order_rules'
+          ? { error: { code: 'P0002' } }
+          : { data: null, error: null }
+    );
+    act(() => vals.save({ ...vals.rules, unpaidHoldHours: 72 }));
+    await settle();
+    // The read-failure toast is the one left showing.
+    expect(toasts(runtime)).toContain('could not be read');
+    expect(runtime.renderVals().liveOrderRules ?? null).toBeNull();
+    expect(runtime.state.sheet).toBeNull();
+  });
+
   it('a failed read says the rules could not be read, never "did not save", and opens no form', async () => {
     const f = fake({ rulesRead: { data: null, error: { code: '57014' } } });
     const runtime = await mounted('owner', f);

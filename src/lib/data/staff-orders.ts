@@ -441,6 +441,16 @@ export interface StaffOrderHooks {
 type Call = (stamp: string) => PromiseLike<RpcResult>;
 
 /**
+ * What an action changes beyond state, payment and the stamp, for the patch kept when the refresh fails (HCB-006):
+ * `items` for a swap or flag (the list still holds the old items, so the old total stays with them), `refundRef`
+ * for a refund (the reference the owner sent).
+ */
+interface Effect {
+  items?: boolean;
+  refundRef?: string;
+}
+
+/**
  * The owner's orders for the live app. The list is read again after every change (and when the
  * tab comes back), because customers place orders all day: whatever the database says wins.
  */
@@ -545,7 +555,7 @@ export class StaffOrderSync {
    * silent overwrite. Success and conflict both reload; the caller words the rest. A success whose
    * reload failed says `refreshed: false` (HCB-006).
    */
-  private async run(id: string, call: Call): Promise<StaffOutcome> {
+  private async run(id: string, call: Call, effect: Effect = {}): Promise<StaffOutcome> {
     if (!this.isCurrent()) return { kind: 'offline' };
     if (!this.hooks.online()) {
       this.hooks.toast(STAFF_COPY.offline, 'warn');
@@ -566,7 +576,13 @@ export class StaffOrderSync {
     if (answer.kind !== 'ok') return this.afterRefusal(answer);
     if (!this.isCurrent()) return { kind: 'ok', replayed: answer.replayed, refreshed: false };
     const refreshed = await this.load();
-    if (!refreshed && this.isCurrent()) this.keepSaved(id, answer.saved);
+    // A replayed answer wrote nothing new: the database kept the first reference, so none the owner just sent is shown.
+    if (!refreshed && this.isCurrent())
+      this.keepSaved(
+        id,
+        answer.saved,
+        answer.replayed ? { ...effect, refundRef: undefined } : effect
+      );
     return { kind: 'ok', replayed: answer.replayed, refreshed };
   }
 
@@ -575,7 +591,7 @@ export class StaffOrderSync {
    * order as it was before. Show the acknowledged state (never a guess: only a row that parsed for
    * this order is used) and record the order, so the page says the list could not be refreshed.
    */
-  private keepSaved(id: string, saved: StaffSavedRow | undefined): void {
+  private keepSaved(id: string, saved: StaffSavedRow | undefined, effect: Effect): void {
     this.savedNotRefreshed = id;
     this.savedFloor = this.started;
     if (saved && saved.orderId === id) {
@@ -586,7 +602,9 @@ export class StaffOrderSync {
               state: saved.state,
               payState: saved.payState,
               paidCents: saved.paidCents,
-              totalCents: saved.totalCents,
+              // A swap or flag changed the items, which this list does not have yet: keep the total they add up to.
+              totalCents: effect.items ? o.totalCents : saved.totalCents,
+              ...(effect.refundRef !== undefined ? { refundRef: effect.refundRef } : {}),
               updatedAt: saved.updatedAt
             }
           : o
@@ -648,29 +666,38 @@ export class StaffOrderSync {
     );
   }
   flag(id: string, productId: string, flagged: boolean): Promise<StaffOutcome> {
-    return this.run(id, (at) =>
-      this.client.rpc('staff_flag_item', {
-        p_order_id: id,
-        p_product_id: productId,
-        p_flagged: flagged,
-        p_expected_updated_at: at
-      })
+    return this.run(
+      id,
+      (at) =>
+        this.client.rpc('staff_flag_item', {
+          p_order_id: id,
+          p_product_id: productId,
+          p_flagged: flagged,
+          p_expected_updated_at: at
+        }),
+      { items: true }
     );
   }
   swap(id: string, from: string, to: string, clientId: string): Promise<StaffOutcome> {
-    return this.run(id, (at) =>
-      this.client.rpc('staff_swap_item', {
-        p_order_id: id,
-        p_from_product: from,
-        p_to_product: to,
-        p_client_id: clientId,
-        p_expected_updated_at: at
-      })
+    return this.run(
+      id,
+      (at) =>
+        this.client.rpc('staff_swap_item', {
+          p_order_id: id,
+          p_from_product: from,
+          p_to_product: to,
+          p_client_id: clientId,
+          p_expected_updated_at: at
+        }),
+      { items: true }
     );
   }
   refund(id: string, ref: string): Promise<StaffOutcome> {
-    return this.run(id, (at) =>
-      this.client.rpc('staff_refund', { p_order_id: id, p_ref: ref, p_expected_updated_at: at })
+    return this.run(
+      id,
+      (at) =>
+        this.client.rpc('staff_refund', { p_order_id: id, p_ref: ref, p_expected_updated_at: at }),
+      { refundRef: ref }
     );
   }
   settle(id: string): Promise<StaffOutcome> {
