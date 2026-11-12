@@ -65,7 +65,8 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   if (v.liveBooks) return <BooksForm liveBooks={v.liveBooks} />;
   if (v.liveStockItems) return <StockItemsForm liveStock={v.liveStockItems} />;
   if (v.liveStockSuppliers) return <StockSuppliersForm liveStock={v.liveStockSuppliers} />;
-  if (v.liveRecipeDrafts) return <RecipeDraftsForm liveDrafts={v.liveRecipeDrafts} />;
+  if (v.liveRecipeDrafts)
+    return <RecipeDraftsForm liveDrafts={v.liveRecipeDrafts} catalogueHeld={v.catalogueHeld} />;
   if (v.liveLookup) return <LiveLookup v={v} />;
   if (v.liveWaitlist) return <LiveWaitlistForm v={v} />;
   return null;

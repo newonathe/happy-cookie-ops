@@ -24,7 +24,13 @@ import {
 } from '@/store/engine/ops-engine';
 import * as engineModule from '@/store/engine/ops-engine';
 import { renderWithSaleLabels } from '@/lib/display/sale-product-labels';
-import type { EventSale, OpsEngineProps, OpsEngineState, Role } from '@/store/engine/ops-engine';
+import type {
+  EngineFlavour,
+  EventSale,
+  OpsEngineProps,
+  OpsEngineState,
+  Role
+} from '@/store/engine/ops-engine';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import { idb } from '@/lib/offline/idb';
@@ -804,6 +810,9 @@ type ToolItem = OpsVals['toolGroups'][number]['items'][number];
 const SALES_LOG_ICON =
   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
 
+/** HCB-004 a2: what an owner view is given for her products until they are read. */
+const NO_PRODUCTS: ReadonlyArray<EngineFlavour> = Object.freeze([]);
+
 // Capture the same engine module instance as this class's base. A hot update can replace
 // the namespace export while an existing base renderer still closes over the original lookup.
 const RENDER_PRODUCTS = (
@@ -1299,8 +1308,9 @@ export class OpsRuntime extends OpsProvider {
           : null
         : (this.scheduledClient ?? this.salesTarget())) as unknown as BazaarClient | null,
     online: () => Boolean(this.state.online),
+    // HCB-004 a2: her recipe book lists her own products; until they are read it lists none (and says so).
     flavours: () =>
-      PRODUCTS.map((p) => ({
+      this.heldProducts().map((p) => ({
         id: p.id,
         name: p.short,
         priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0),
@@ -2340,6 +2350,22 @@ export class OpsRuntime extends OpsProvider {
     return !isLiveMode() || this.catalogueRestored || flavoursRead.get().everRead;
   }
 
+  /**
+   * HCB-004 a2: the products an owner view may name. The engine's list stays as it is (the engine and the write guards
+   * read it), but until her own products are held it is the built-in six, which no owner view may show as hers.
+   */
+  private heldProducts(): ReadonlyArray<EngineFlavour> {
+    return this.catalogueUnread() ? NO_PRODUCTS : PRODUCTS;
+  }
+
+  /**
+   * HCB-004 a2: her catalogue is being read (or the read failed) and nothing of hers is held yet. A runtime no reader was
+   * ever started for (`idle`: the engine on its own, as many tests mount it) has no read to wait for, so it is not "unread".
+   */
+  private catalogueUnread(): boolean {
+    return !this.catalogueHeld() && flavoursRead.get().phase !== 'idle';
+  }
+
   /** A2: puts that copy back, on a page load the server could not be reached for. */
   restoreStallCopy(): void {
     if (!isLiveMode()) return;
@@ -2744,6 +2770,13 @@ export class OpsRuntime extends OpsProvider {
   private pricePreview(preview: OpsVals['priceModePreview']): OpsVals['priceModePreview'] {
     if (!preview) return preview;
     const e = this as unknown as PortedActions;
+    // HCB-004 a2: until her products are read the example has no menu to work on: unknown, not a total of the built-in six.
+    if (this.catalogueUnread())
+      return {
+        ...preview,
+        items: STAFF_COPY.homeProductsNotRead,
+        total: STAFF_COPY.homeProductsNotRead
+      };
     const sample = PRODUCTS.slice(0, 3) as Array<{ id: string; short: string }>;
     const sum = sample.reduce((t, p) => t + e.priceOf(p.id) * 2, 0);
     const mode = String((preview as { mode?: unknown }).mode ?? '');
@@ -2772,7 +2805,7 @@ export class OpsRuntime extends OpsProvider {
     const hour = manilaHour(Number(s.now));
     const owner = ownerOr('the owner');
     const flavours = { permanent: 0, rotating: 0 };
-    for (const p of PRODUCTS as Array<{ kind?: string }>)
+    for (const p of this.heldProducts() as ReadonlyArray<{ kind?: string }>)
       if (p.kind === 'Rotating') flavours.rotating += 1;
       else flavours.permanent += 1;
     const suppliers = this.stockCatalogue?.suppliers.filter((sup) => sup.active).length;
@@ -2796,20 +2829,26 @@ export class OpsRuntime extends OpsProvider {
       };
     };
     const month = starved.money ? this.monthTotals(s) : null;
+    // HCB-004 a2: unknown is not "none": until her products are read these say so, never a count or "No flavours yet".
+    const unread = this.catalogueUnread();
     const launcherSub = (label: unknown, sub: unknown): unknown =>
       label === 'Profit & loss'
         ? PNL_PERIOD
         : label === 'Products'
-          ? PRODUCTS.length
-            ? flavours.permanent + ' permanent, ' + flavours.rotating + ' rotating'
-            : 'No flavours yet'
+          ? unread
+            ? STAFF_COPY.homeProductsNotRead
+            : PRODUCTS.length
+              ? flavours.permanent + ' permanent, ' + flavours.rotating + ' rotating'
+              : 'No flavours yet'
           : label === 'Suppliers'
             ? suppliers === undefined
               ? ''
               : suppliers + ' saved'
-            : label === 'Recipes' && !PRODUCTS.length
-              ? 'No flavours yet'
-              : sub;
+            : label === 'Recipes' && unread
+              ? STAFF_COPY.homeProductsNotRead
+              : label === 'Recipes' && !PRODUCTS.length
+                ? 'No flavours yet'
+                : sub;
     const settingsRow = <T extends { label: unknown; value: unknown; go: unknown }>(row: T): T =>
       row.label === 'Payment methods and proof rule'
         ? {
@@ -2843,9 +2882,12 @@ export class OpsRuntime extends OpsProvider {
                         .join(', ') || 'None'
                     : ''
                 }
-              : row.label === 'Recipes and versions' && !PRODUCTS.length
-                ? { ...row, value: 'None yet' }
-                : row;
+              : (row.label === 'Recipes and versions' || row.label === 'Products and prices') &&
+                  unread
+                ? { ...row, value: STAFF_COPY.homeProductsNotRead }
+                : row.label === 'Recipes and versions' && !PRODUCTS.length
+                  ? { ...row, value: 'None yet' }
+                  : row;
     return {
       greeting:
         (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening') +
@@ -3567,14 +3609,15 @@ export class OpsRuntime extends OpsProvider {
           : starved.productRows,
       ...(this.state.screen === 'products'
         ? {
-            pageSub:
-              PRODUCTS.length +
-              ' flavours · ' +
-              PRODUCTS.filter(
-                (p) =>
-                  (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
-              ).length +
-              ' on menu'
+            pageSub: this.catalogueUnread()
+              ? STAFF_COPY.homeProductsNotRead
+              : PRODUCTS.length +
+                ' flavours · ' +
+                PRODUCTS.filter(
+                  (p) =>
+                    (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+                ).length +
+                ' on menu'
           }
         : {}),
       recipe: starved.recipe
@@ -3729,6 +3772,15 @@ export class OpsRuntime extends OpsProvider {
       // shop. A public visitor's engine role is 'owner' too, and never reads it: the shop keeps its own menu notice.
       ...(this.flavourSync || !this.onCustomerScreen()
         ? { catalogueHeld: this.catalogueHeld() }
+        : {}),
+      // HCB-004 a2: the engine works the bake plan out of the built-in six until her products are read. Unknown is not zero:
+      // no rows, no "cookies to bake" figure and no "everything is baked" (the Shopping and Production pages say why).
+      ...(this.catalogueUnread()
+        ? {
+            bakeRows: [],
+            bakeAllDone: false,
+            bakeTotals: { toBakeNum: STAFF_COPY.homeProductsNotRead, summary: '' }
+          }
         : {}),
       liveShopAvailability: this.onCustomerScreen() ? this.shopAvailability.view() : null,
       liveShopOverride:
@@ -4503,6 +4555,8 @@ export class OpsRuntime extends OpsProvider {
         ? (PRODUCTS.find((product) => product.id === this.recipeDraftEditing?.productId)?.name ??
           null)
         : null,
+      // HCB-004 a2: not gated here (recipe-drafts.test.tsx pins these rows with no catalogue read): the form draws no row
+      // and says her products are not read while they are unread.
       rows:
         rows === null
           ? []
@@ -6500,7 +6554,7 @@ export class OpsRuntime extends OpsProvider {
     if (!this.lastProduction || this.lastProductionDrop !== this.state.dropNo) return null;
     const rows = (counts: unknown, unit: string) => {
       const by = (counts ?? {}) as Record<string, number>;
-      return PRODUCTS.map((row) => ({
+      return this.heldProducts().map((row) => ({
         id: row.id,
         name: row.short,
         qtyText: formatQuantity(Number(by[row.id]) || 0, unit)
@@ -7126,10 +7180,15 @@ export class OpsRuntime extends OpsProvider {
       })),
       rows: valid
         ? (saved?.batches ?? []).map((row) => {
-            const product = PRODUCTS.find((p) => p.id === row.productId);
+            const product = this.heldProducts().find((p) => p.id === row.productId);
             return {
               ...row,
-              name: product?.short ?? 'Product no longer listed',
+              // HCB-004 a2: a batch of a product that is simply not read yet is not "no longer listed".
+              name:
+                product?.short ??
+                (this.catalogueUnread()
+                  ? STAFF_COPY.homeProductsNotRead
+                  : 'Product no longer listed'),
               photo: product?.img ?? ''
             };
           })
@@ -9187,9 +9246,13 @@ export class OpsRuntime extends OpsProvider {
         {
           icon: this.IC.cookie,
           label: 'Menu & flavours',
+          // HCB-004 a2: the editor lists what the read brought in, so until one has answered there is no count to
+          // give (unknown is not "0 flavours"); the kept offline copy is not that list.
           sub:
-            plural(this.flavourSync?.current().length ?? 0, 'flavour', 'flavours') +
-            MENU_TOOLS.flavours,
+            this.flavourSync && !flavoursRead.get().everRead
+              ? STAFF_COPY.homeProductsNotRead
+              : plural(this.flavourSync?.current().length ?? 0, 'flavour', 'flavours') +
+                MENU_TOOLS.flavours,
           badge: null,
           go: () => this.openFlavourList()
         },

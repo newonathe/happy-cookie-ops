@@ -25,8 +25,20 @@ export function useCatalogueHeld(heldByRuntime: boolean | undefined) {
   // The read state is reported after the engine's list is replaced, so a successful Try again clears the notice here, on its
   // own render, without waiting for the next engine render to refresh `bazaar.catalogue`.
   const held = heldByRuntime !== false || read.everRead;
-  return { held, failed: read.phase === 'failed', retry: read.retry };
+  // `started` is false only while no read has begun at all (a screen mounted with no reader): then there is nothing to wait for.
+  return {
+    held,
+    started: read.phase !== 'idle',
+    failed: read.phase === 'failed',
+    retry: read.retry
+  };
 }
+
+/** HCB-004 a2: the words for a page that lists products (the recipe book, production, the made-stock lists). */
+export const PRODUCTS_NOTICE_COPY = {
+  notRead: STAFF_COPY.productsNotRead,
+  failed: STAFF_COPY.productsReadFailed
+};
 
 /** The reason and the way to try again. It stands in the page's flow, above the days, never over a control. */
 export function CatalogueNotice({
