@@ -19,6 +19,8 @@ const CASES = [
   { id: '002f-suppliers', screen: 'suppliers', fail: ['get_stock_catalogue'] },
   { id: '002g-sales', screen: 'sales', fail: ['get_books'] },
   { id: '002g-recipes', screen: 'recipes', fail: ['get_recipes'] },
+  // One product's recipe page: the list above comes from the catalogue, this page from the recipe read itself.
+  { id: '002g-recipe-page', screen: 'recipes', target: 'dcf', fail: ['get_recipes'] },
   { id: '002h-order-rules', screen: 'settings', open: 'openOrderRules', fail: ['get_order_rules'] },
   { id: '002h-boxes', screen: 'settings', open: 'openOrderExtras', fail: ['get_order_extras'] },
   {
@@ -50,7 +52,13 @@ const EMPTY =
     await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'domcontentloaded', timeout: 90000 });
     await page.waitForFunction(() => typeof window.__hcOps?.go === 'function', null, { timeout: 90000 });
     await page.waitForTimeout(3000);
-    await page.evaluate((s) => window.__hcOps.go(s), c.screen);
+    await page.evaluate(
+      ({ screen, target }) =>
+        target
+          ? window.__hcOps.setState({ liveRecipeTarget: target }, () => window.__hcOps.go(screen))
+          : window.__hcOps.go(screen),
+      { screen: c.screen, target: c.target ?? null }
+    );
     await page.waitForTimeout(900);
     if (c.open) {
       await page.evaluate((m) => window.__hcOps[m]?.(), c.open);
