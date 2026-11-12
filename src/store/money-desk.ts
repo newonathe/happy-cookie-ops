@@ -75,6 +75,11 @@ export class MoneyDesk {
     }
   }
 
+  /** Just the books' read state, for pages that list books-backed rows but need none of the figures. */
+  booksRead(): Pick<LiveMoney, 'loaded' | 'read'> {
+    return { loaded: !!this.deps.books(), read: this.deps.read?.() };
+  }
+
   vals(): LiveMoney {
     const s = this.deps.state();
     const engine = this.deps.engine();
