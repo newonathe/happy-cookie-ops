@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -155,7 +155,8 @@ export function LiveGate({
     firstCheck: () => undefined as void,
     retry: () => undefined as void,
     signIn: () => undefined as void,
-    signOut: () => undefined as void
+    signOut: () => undefined as void,
+    staffScreen: () => undefined as void
   });
 
   useEffect(() => {
@@ -411,6 +412,78 @@ export function LiveGate({
       });
     }
 
+    // Only once the owner's settings are in: before that `cfg` holds the engine's defaults,
+    // and saving those would replace her discounts and float on the phone.
+    const keepStallCopy = () => {
+      if (!cancelled && settingsLoaded && engine instanceof OpsRuntime) engine.saveStallCopy();
+    };
+    // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
+    // customers see (the published menu), not flavours that are on the form but unpublished.
+    // Returns whether it started the staff reads now. Called by every verified check and, for
+    // HCB-004 a3, when she reaches a staff screen after a check verified elsewhere.
+    const startStaffReads = (
+      role: Role,
+      productionScope: typeof latestProductionScope
+    ): boolean => {
+      if (
+        flavoursStarted ||
+        !(engine instanceof OpsRuntime) ||
+        CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+      )
+        return false;
+      flavoursStarted = true;
+      // B3: the owner's orders, once the flavour list is in (the screens need every ordered flavour).
+      const owner = role === 'owner';
+      // D4: the owner's upcoming bazaars, for the Bazaar screen's list.
+      if (owner && !cancelled) void engine.loadScheduledEvents(supabase);
+      if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
+      // C2: the owner's batches, dough and baked counts.
+      if (owner && !cancelled) void engine.loadProduction(supabase);
+      // E1: the owner's books, for the P&L, Home profit and the expense list.
+      if (owner && !cancelled) void engine.loadBooks(supabase);
+      // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
+      // Orders and Recipes start once per page load, on the first catalogue read that succeeds.
+      let ownerReadsStarted = false;
+      const startOwnerReads = (scope: typeof productionScope) => {
+        if (ownerReadsStarted) return;
+        ownerReadsStarted = true;
+        stopCatalogueWatch();
+        void engine.loadOrders(supabase);
+        // A4: the owner's recipes, for the flavours the list just brought in.
+        void engine.loadRecipes(supabase, undefined, undefined, scope);
+      };
+      const userId = verifiedUserId;
+      flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
+      void flavoursRead.then((loaded) => {
+        keepStallCopy();
+        if (owner && !cancelled && loaded !== false) return startOwnerReads(productionScope);
+        // HCB-004: the first read failed. Products' Try again reads it again; the first answer
+        // from it starts the owner's reads, if this is still the same verified owner.
+        if (!owner || cancelled || ownerReadsStarted) return;
+        evaluateCatalogueWatch = () => {
+          // A different person, or teardown: the watch ends. A re-check in flight (supabase-js
+          // signs the same person in again whenever the tab comes back) only waits.
+          if (cancelled || userId !== verifiedUserId) return stopCatalogueWatch();
+          if (verifiedEpoch !== identityEpoch || accessRef.current !== 'verified') return;
+          // `setRole` is batched: the engine can still say owner right after a check verified
+          // a helper, so the newest verified role (`askedRole`) and its scope decide too.
+          if (
+            catalogueRead.get().phase === 'read' &&
+            engine.state.role === 'owner' &&
+            askedRole === 'owner' &&
+            latestProductionScope
+          )
+            startOwnerReads(latestProductionScope);
+        };
+        const unsubscribe = catalogueRead.subscribe(evaluateCatalogueWatch);
+        stopCatalogueWatch = () => {
+          unsubscribe();
+          evaluateCatalogueWatch = () => undefined as void;
+        };
+      });
+      return true;
+    };
+
     function apply(result: ProfileCheck, isFirstCheck: boolean) {
       if (cancelled) return;
       if (result.status === 'unknown') {
@@ -484,11 +557,6 @@ export function LiveGate({
       }
       if (reopened && engine instanceof OpsRuntime)
         void Promise.resolve(engine.flushSales()).catch(() => undefined);
-      // Only once the owner's settings are in: before that `cfg` holds the engine's defaults,
-      // and saving those would replace her discounts and float on the phone.
-      const keepStallCopy = () => {
-        if (!cancelled && settingsLoaded && engine instanceof OpsRuntime) engine.saveStallCopy();
-      };
       if (engine instanceof OpsRuntime && role !== 'helper') {
         const epoch = identityEpoch,
           userId = verifiedUserId;
@@ -539,64 +607,9 @@ export function LiveGate({
       const productionScopeChanged = nextProductionReadKey !== productionReadKey;
       productionReadKey = nextProductionReadKey;
       latestProductionScope = productionScope;
-      // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
-      // customers see (the published menu), not flavours that are on the form but unpublished.
+      const staffReadsStarted = startStaffReads(role, productionScope);
       if (
-        !flavoursStarted &&
-        engine instanceof OpsRuntime &&
-        !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
-      ) {
-        flavoursStarted = true;
-        // B3: the owner's orders, once the flavour list is in (the screens need every ordered flavour).
-        const owner = role === 'owner';
-        // D4: the owner's upcoming bazaars, for the Bazaar screen's list.
-        if (owner && !cancelled) void engine.loadScheduledEvents(supabase);
-        if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
-        // C2: the owner's batches, dough and baked counts.
-        if (owner && !cancelled) void engine.loadProduction(supabase);
-        // E1: the owner's books, for the P&L, Home profit and the expense list.
-        if (owner && !cancelled) void engine.loadBooks(supabase);
-        // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
-        // Orders and Recipes start once per page load, on the first catalogue read that succeeds.
-        let ownerReadsStarted = false;
-        const startOwnerReads = (scope: typeof productionScope) => {
-          if (ownerReadsStarted) return;
-          ownerReadsStarted = true;
-          stopCatalogueWatch();
-          void engine.loadOrders(supabase);
-          // A4: the owner's recipes, for the flavours the list just brought in.
-          void engine.loadRecipes(supabase, undefined, undefined, scope);
-        };
-        const userId = verifiedUserId;
-        flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
-        void flavoursRead.then((loaded) => {
-          keepStallCopy();
-          if (owner && !cancelled && loaded !== false) return startOwnerReads(productionScope);
-          // HCB-004: the first read failed. Products' Try again reads it again; the first answer
-          // from it starts the owner's reads, if this is still the same verified owner.
-          if (!owner || cancelled || ownerReadsStarted) return;
-          evaluateCatalogueWatch = () => {
-            // A different person, or teardown: the watch ends. A re-check in flight (supabase-js
-            // signs the same person in again whenever the tab comes back) only waits.
-            if (cancelled || userId !== verifiedUserId) return stopCatalogueWatch();
-            if (verifiedEpoch !== identityEpoch || accessRef.current !== 'verified') return;
-            // `setRole` is batched: the engine can still say owner right after a check verified
-            // a helper, so the newest verified role (`askedRole`) and its scope decide too.
-            if (
-              catalogueRead.get().phase === 'read' &&
-              engine.state.role === 'owner' &&
-              askedRole === 'owner' &&
-              latestProductionScope
-            )
-              startOwnerReads(latestProductionScope);
-          };
-          const unsubscribe = catalogueRead.subscribe(evaluateCatalogueWatch);
-          stopCatalogueWatch = () => {
-            unsubscribe();
-            evaluateCatalogueWatch = () => undefined as void;
-          };
-        });
-      } else if (
+        !staffReadsStarted &&
         productionScopeChanged &&
         productionScope &&
         engine instanceof OpsRuntime &&
@@ -658,6 +671,21 @@ export function LiveGate({
     actions.current.signIn = () => window.location.assign(signInPath());
     // A3: the deliberate sign-out (`SignOutControl`) is this same lock-out.
     actions.current.signOut = () => lockOut();
+    // HCB-004 a3: she reached a staff screen after a check verified while she was on a customer
+    // screen (or while the engine had not yet left one: `setRole` goes Home, batched). The reads
+    // that check skipped start now, for the newest verified role, and the watch looks again.
+    actions.current.staffScreen = () => {
+      if (
+        cancelled ||
+        accessRef.current !== 'verified' ||
+        verifiedEpoch !== identityEpoch ||
+        !askedRole ||
+        engine.state.role !== askedRole
+      )
+        return;
+      startStaffReads(askedRole, latestProductionScope);
+      evaluateCatalogueWatch();
+    };
 
     const {
       data: { subscription }
@@ -728,6 +756,13 @@ export function LiveGate({
   useEffect(() => {
     if (needsFirstCheck) actions.current.firstCheck();
   }, [needsFirstCheck]);
+
+  // HCB-004 a3: a layout effect, so the catalogue read is marked loading before paint and a staff
+  // view never draws the engine's built-in six for a frame. A no-op unless access is verified and
+  // the staff reads have not started.
+  useLayoutEffect(() => {
+    if (needsGate) actions.current.staffScreen();
+  }, [needsGate, screen]);
 
   const view = (hold: React.ReactNode) =>
     typeof children === 'function' ? children({ landing, hold }) : (hold ?? children);
