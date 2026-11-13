@@ -347,7 +347,8 @@ import {
 } from '@/lib/data/flavours';
 import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { ordersRead } from '@/lib/orders/orders-read-state';
-import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
+import { CUSTOMER_SCREENS, isScreenKey, type ScreenKey } from '@/lib/screens';
+import { parseRecipeRoute, recipeRouteFor, type RecipeRoute } from '@/lib/recipes/navigation';
 import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
 import { PLACES, TABS, placeOfRoute, placesOf, tabOf, type Place } from '@/lib/nav/function-map';
@@ -1487,6 +1488,10 @@ export class OpsRuntime extends OpsProvider {
   /** While set, the item names the engine's packaging cost asks for are written here (see `completeRecipeCost`). */
   private capturePackNames: string[] | null = null;
   private recipeDraftRows: RecipeDraft[] | null = null;
+  /** HCB-013: the recipe an address asked for, until her catalogue is held and the flavour can be opened (or found unknown). */
+  private recipePending: { id: string; edit: boolean } | null = null;
+  /** HCB-013: the flavour whose editor an address asked to reopen, until the editor reports that it is open. */
+  private recipeRestoreEdit: string | null = null;
   private recipeDraftLoading = false;
   private recipeDraftBusy = false;
   private recipeDraftError: string | null = null;
@@ -2682,7 +2687,10 @@ export class OpsRuntime extends OpsProvider {
       return;
     this.go('inventory');
     await new Promise<void>((resolve) =>
-      this.setState({ liveStockOpen: null, liveStockPriceOpen: false }, resolve)
+      this.setState(
+        { liveStockOpen: null, liveStockPriceOpen: false, liveStockReturn: null },
+        resolve
+      )
     );
     if (!this.stockCatalogue) await this.loadStockCatalogue(null);
     const current = this.state;
@@ -3352,6 +3360,15 @@ export class OpsRuntime extends OpsProvider {
       this.setState({});
     }
     if (this.productionRecordedAway) this.noticeProductionRecordedAway();
+    // HCB-013: an address that named a recipe opens it as soon as her catalogue is held.
+    if (this.recipePending) this.applyRecipeRoute();
+    if (this.state.screen !== 'recipes' && (this.recipeRestoreEdit || this.state.liveRecipeEdit)) {
+      this.recipeRestoreEdit = null;
+      this.setState({ liveRecipeEdit: null } as never);
+    }
+    // HCB-012: leaving Inventory by any way but Back forgets where Compare prices came from and closes its item page.
+    if (this.state.liveStockReturn && this.state.screen !== 'inventory')
+      this.setState({ liveStockReturn: null, liveStockOpen: null, liveStockPriceOpen: false });
     // The till took over (signal lost or access narrowed): when signal returns it stays, mid-sale, until Events is chosen.
     if (this.bazaarDirectory && !this.canLeaveTill()) {
       this.bazaarDirectory = false;
@@ -3573,7 +3590,7 @@ export class OpsRuntime extends OpsProvider {
                 : vals.toastStyle,
             goBack: () => {
               if (!this.state.liveCountPaused) this.setState({ liveCountPaused: true });
-              else if (this.state.liveStockOpen) this.setState({ liveStockOpen: null });
+              else if (this.state.liveStockOpen) this.closeStockItem();
               else this.go('today');
             }
           }
@@ -3809,7 +3826,14 @@ export class OpsRuntime extends OpsProvider {
       // Worked out only on the Recipes screen: nothing else reads it, and the till must not pay for it.
       liveRecipes:
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
-          ? this.liveRecipeBookView()
+          ? {
+              ...this.liveRecipeBookView(),
+              editor: { restore: this.recipeRestoreEdit, report: this.reportRecipeEditor }
+            }
+          : null,
+      liveRecipeNavigation:
+        isLiveMode() && this.state.role === 'owner'
+          ? { route: this.recipeRoute(), restore: this.restoreRecipeRoute }
           : null,
       liveProduction:
         this.state.role === 'owner' && this.state.screen === 'bake'
@@ -4958,7 +4982,13 @@ export class OpsRuntime extends OpsProvider {
     this.movementTokens.clear();
     this.movementReads.clear();
     fillLiveCatalogue(null);
-    this.setState({ inv: [], paid: {}, liveStockOpen: null, liveStockPriceOpen: false } as never);
+    this.setState({
+      inv: [],
+      paid: {},
+      liveStockOpen: null,
+      liveStockPriceOpen: false,
+      liveStockReturn: null
+    } as never);
   }
 
   /** Reads the owner's catalogue. Only the latest read from this verified actor and client may apply. */
@@ -6269,18 +6299,42 @@ export class OpsRuntime extends OpsProvider {
     if (typeof open !== 'string') return;
     if (!this.stockCatalogue?.items.some((i) => i.id === open)) {
       this.movementReads.delete(open);
-      this.setState({ liveStockOpen: null });
+      this.setState({ liveStockOpen: null, liveStockReturn: null });
       return;
     }
     void this.loadMovements(open);
   }
 
-  private openStockItemPage(id: string): void {
+  /**
+   * `prices` opens the item's price page; `returnTo` is the screen Compare prices came from, which Back goes back to.
+   * Opening an item from the Inventory list passes neither, so Back stays on the list (HCB-012).
+   */
+  private openStockItemPage(
+    id: string,
+    opened: { prices?: boolean; returnTo?: ScreenKey | null } = {}
+  ): void {
     const cached = this.movementReads.get(id);
     if (!cached || cached.state !== 'ready')
       this.movementReads.set(id, { state: 'loading', rows: [] });
-    this.setState({ liveStockOpen: id, liveStockPriceOpen: false });
+    this.setState({
+      liveStockOpen: id,
+      liveStockPriceOpen: opened.prices === true,
+      liveStockReturn: opened.returnTo ?? null
+    });
     if (!cached || cached.state !== 'ready') void this.loadMovements(id);
+  }
+
+  /** What Back is called on the prices page when Compare prices came from `screen`. */
+  private stockReturnLabel(screen: string): string {
+    return screen === 'grocery' ? 'Back to Shopping' : 'Back';
+  }
+
+  /** Closes the open item. When Compare prices brought her here from another screen, Back goes back to that screen. */
+  private closeStockItem(): void {
+    const origin = this.state.liveStockReturn;
+    this.setState({ liveStockOpen: null, liveStockPriceOpen: false, liveStockReturn: null });
+    if (typeof origin === 'string' && isScreenKey(origin) && origin !== 'inventory')
+      this.go(origin);
   }
 
   /** The cost per unit and where it came from: the database's for the owner, else the engine's own (a database before B3b). Unknown is null. */
@@ -6312,10 +6366,19 @@ export class OpsRuntime extends OpsProvider {
 
   /** Shopping's Compare prices: the item's own price page, on the Inventory screen. */
   private openItemPrices(id: string): void {
-    if (this.state.screen !== 'inventory') this.go('inventory');
+    const from = this.state.screen;
+    if (from !== 'inventory') this.go('inventory');
     this.setState({}, () => {
-      this.openStockItemPage(id);
-      this.setItemPricesOpen(id, true);
+      if (
+        !isLiveMode() ||
+        this.unmounted ||
+        this.state.role !== 'owner' ||
+        this.state.screen !== 'inventory' ||
+        !this.stockCatalogue?.items.some((item) => item.id === id)
+      )
+        return;
+      // The item and its price page open in one update, so Back has the origin the moment the page shows.
+      this.openStockItemPage(id, { prices: true, returnTo: from === 'inventory' ? null : from });
     });
   }
 
@@ -6354,10 +6417,13 @@ export class OpsRuntime extends OpsProvider {
       });
       return;
     }
-    this.setState({ invTab: category, liveStockOpen: null, liveCountPaused: false }, () => {
-      if (isLiveMode() && this.state.role === 'owner' && !this.unmounted)
-        (this as unknown as InvActions).startStocktake();
-    });
+    this.setState(
+      { invTab: category, liveStockOpen: null, liveStockReturn: null, liveCountPaused: false },
+      () => {
+        if (isLiveMode() && this.state.role === 'owner' && !this.unmounted)
+          (this as unknown as InvActions).startStocktake();
+      }
+    );
   }
 
   /** The existing count flow, for one item: on its tab, with only that item on the sheet. */
@@ -6390,13 +6456,19 @@ export class OpsRuntime extends OpsProvider {
       this.setState({
         invTab: target.category,
         liveStockOpen: target.id,
+        liveStockReturn: null,
         liveCountPaused: false,
         stocktake: { ...current, items, i: items.indexOf(target.name) }
       });
       return;
     }
     this.setState(
-      { invTab: target.category, liveStockOpen: target.id, liveCountPaused: false } as never,
+      {
+        invTab: target.category,
+        liveStockOpen: target.id,
+        liveStockReturn: null,
+        liveCountPaused: false
+      } as never,
       () => {
         (this as unknown as InvActions).startStocktake();
         this.setState((s) => ({
@@ -6630,7 +6702,15 @@ export class OpsRuntime extends OpsProvider {
             item: open,
             pricesOpen: this.state.liveStockPriceOpen === true,
             openPrices: () => this.setItemPricesOpen(open.id, true),
-            closePrices: () => this.setItemPricesOpen(open.id, false),
+            // Opened by Compare prices from another screen: Back goes straight back there (HCB-012).
+            closePrices: () =>
+              this.state.liveStockReturn && this.state.liveStockPriceOpen === true
+                ? this.closeStockItem()
+                : this.setItemPricesOpen(open.id, false),
+            closePricesLabel:
+              this.state.liveStockReturn && this.state.liveStockPriceOpen === true
+                ? this.stockReturnLabel(String(this.state.liveStockReturn))
+                : undefined,
             managePrices: open.active ? () => this.openItemPriceEditor(open.id) : undefined,
             chooseSupplier:
               open.active && this.preferredPriceSupplier(c.items.find((row) => row.id === open.id))
@@ -6664,10 +6744,14 @@ export class OpsRuntime extends OpsProvider {
                           : 'Saved price'
                 };
               }),
-            retry: () => this.openStockItemPage(open.id),
+            retry: () =>
+              this.openStockItemPage(open.id, {
+                prices: this.state.liveStockPriceOpen === true,
+                returnTo: this.state.liveStockReturn as ScreenKey | null
+              }),
             movementsState: reads?.state ?? 'loading',
             movements: (reads?.rows ?? []).map((m) => this.movementView(m, open.unit)),
-            close: () => this.setState({ liveStockOpen: null, liveStockPriceOpen: false })
+            close: () => this.closeStockItem()
           }
         : null,
       // After a cutover on the used basis a count that finds less stock is an expense; before it, or with the books unread, nothing is said.
@@ -10013,6 +10097,58 @@ export class OpsRuntime extends OpsProvider {
     }
     if (!this.unmounted) this.forceUpdate();
   }
+
+  /** HCB-013: the open recipe (and its editor) as the address names it. Only on the Recipes screen, only for a flavour she holds. */
+  private recipeRoute(): RecipeRoute | undefined {
+    if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'recipes')
+      return undefined;
+    const target = this.state.liveRecipeTarget;
+    if (typeof target === 'string' && this.heldProducts().some((row) => row.id === target))
+      return recipeRouteFor(target, this.state.liveRecipeEdit === target);
+    return this.recipePending
+      ? recipeRouteFor(this.recipePending.id, this.recipePending.edit)
+      : undefined;
+  }
+
+  /** An address names a recipe: it opens once the flavour is in the catalogue she holds, and an unknown one opens nothing. */
+  private restoreRecipeRoute = (route: RecipeRoute | null): RecipeRoute | undefined => {
+    const asked = route ? parseRecipeRoute(route) : null;
+    if (asked) this.recipePending = asked;
+    // The state of an opened recipe lands on the next render; the route it will have is known now.
+    const opened = this.applyRecipeRoute();
+    return opened ? recipeRouteFor(opened.id, opened.edit) : this.recipeRoute();
+  };
+
+  private applyRecipeRoute(): { id: string; edit: boolean } | null {
+    const asked = this.recipePending;
+    if (!asked) return null;
+    if (!isLiveMode() || this.unmounted || this.state.screen !== 'recipes') {
+      this.recipePending = null;
+      return null;
+    }
+    if (this.state.role !== 'owner' || this.catalogueUnread()) return null;
+    this.recipePending = null;
+    if (!this.heldProducts().some((row) => row.id === asked.id)) return null;
+    if (asked.edit) this.recipeRestoreEdit = asked.id;
+    this.setState({
+      liveRecipeTarget: asked.id,
+      liveProductReturnId: null,
+      liveProductEditReturnId: null,
+      ...(asked.edit
+        ? { recipeOpen: asked.id, liveRecipeEdit: asked.id }
+        : { liveRecipeEdit: null })
+    } as never);
+    return asked;
+  }
+
+  /** The recipe book says which flavour's editor it has open (null: none), so the address can name it. */
+  private reportRecipeEditor = (id: string | null): void => {
+    if (this.unmounted) return;
+    // Until an asked-for editor has opened, the book's first report (nothing open yet) must not forget the ask.
+    if (id === null && this.recipeRestoreEdit) return;
+    if (id) this.recipeRestoreEdit = null;
+    if ((this.state.liveRecipeEdit ?? null) !== id) this.setState({ liveRecipeEdit: id } as never);
+  };
 
   private bazaarRoute(): BazaarRoute {
     if (this.state.event && !this.bazaarDirectoryShowing()) return 'till';

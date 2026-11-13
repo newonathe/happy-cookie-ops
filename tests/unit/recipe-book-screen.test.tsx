@@ -149,6 +149,35 @@ describe('product recipe link', () => {
     expect(screen.getByText('No saved recipe quantities yet.')).toBeTruthy();
   });
 
+  it('HCB-013: reopens the editor an address asked for, reports it, and Back lands on the recipe', () => {
+    const report = vi.fn();
+    const page = { ...recipePage(), id: 'velvet' };
+    const vals = (restore: string | null) =>
+      ({
+        liveRecipes: book({ recipePage: page, editor: { restore, report } }),
+        recipe: {
+          name: page.name,
+          isNew: false,
+          dirty: false,
+          rows: [],
+          history: [],
+          yieldNum: 12,
+          costText: 'Cost pending',
+          addRow: vi.fn(),
+          yieldUp: vi.fn(),
+          yieldDown: vi.fn()
+        }
+      }) as unknown as OpsVals;
+    const ui = render(<RecipeBookLive v={vals('velvet')} />);
+    expect(screen.getByRole('button', { name: 'Back to recipe' })).toBeTruthy();
+    expect(report).toHaveBeenLastCalledWith('velvet');
+    fireEvent.click(screen.getByRole('button', { name: 'Back to recipe' }));
+    ui.rerender(<RecipeBookLive v={vals('velvet')} />);
+    // The ask is used once: leaving the editor does not reopen it.
+    expect(screen.queryByRole('button', { name: 'Back to recipe' })).toBeNull();
+    expect(screen.getByText(/Version 3/)).toBeTruthy();
+    expect(report).toHaveBeenLastCalledWith(null);
+  });
   it('opens a new product directly in recipe entry and returns to its recipe without a costs detour', () => {
     const createRecipe = vi.fn(() => true);
     const page = {

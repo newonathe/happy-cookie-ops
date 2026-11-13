@@ -17,6 +17,7 @@ import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
 import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
+import type { RecipeRoute } from '@/lib/recipes/navigation';
 import type { LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
 import type {
   LiveBatchCounts,
@@ -386,6 +387,13 @@ export interface OpsVals {
   liveBazaar?: LiveBazaarVals | null;
   /** Live owner only (U7): the recipe book's data (the flavours with price, cost, margin and cost receipt). Null for anyone else. */
   liveRecipes?: LiveRecipesVals | null;
+  /** Live owner only (HCB-013): where the open recipe sits in the address, and how an address opens it. */
+  liveRecipeNavigation?: {
+    /** `recipe=<id>` or `recipe=<id>&edit=1` while a recipe is open on the Recipes screen, else undefined. */
+    route: RecipeRoute | undefined;
+    /** Opens the recipe an address names (once the flavour is held) and returns the route to show meanwhile. */
+    restore: (route: RecipeRoute | null) => RecipeRoute | undefined;
+  } | null;
   liveProduction?: LiveProductionVals | null;
   liveBatchCounts?: LiveBatchCounts | null;
   liveDough?: LiveDoughPreparation | null;

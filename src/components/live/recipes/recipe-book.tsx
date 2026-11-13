@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import type { OpsVals } from '@/view-models/vals';
 import type { LiveRecipesVals, RecipeBookItem } from '@/lib/recipes/live-recipes-types';
@@ -75,6 +75,21 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
   const [named, setNamed] = useState<string | null>(null);
   const [fade, setFade] = useState(false);
   const refresh = book?.refresh;
+  // HCB-013: the editor tells the address which flavour it is open on, and reopens where an address asked for it.
+  const editor = book?.editor;
+  const report = editor?.report;
+  const editing = view.kind === 'editor' ? view.id : null;
+  useEffect(() => {
+    report?.(editing);
+  }, [report, editing]);
+  useEffect(() => () => report?.(null), [report]);
+  const restoreEditor = editor?.restore ?? null;
+  const reopened = useRef<string | null>(null);
+  useEffect(() => {
+    if (!restoreEditor || reopened.current === restoreEditor) return;
+    reopened.current = restoreEditor;
+    setView({ kind: 'editor', id: restoreEditor, origin: 'recipe' });
+  }, [restoreEditor]);
   const readingRecipe = !!book?.recipePage && view.kind === 'book';
   useEffect(() => {
     if (!readingRecipe) refresh?.();

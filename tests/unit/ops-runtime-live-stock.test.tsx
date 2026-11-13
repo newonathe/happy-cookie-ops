@@ -926,3 +926,90 @@ describe('B5-1: the grocery list', () => {
     expect(stock(over.runtime).grocery.budgetNoteText).toBe('₱730.00 over');
   });
 });
+
+describe('HCB-012: Back from Compare prices returns to where she came from', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    live = true;
+    store.clear();
+  });
+  afterEach(() => cleanup());
+  const compareFromShopping = async () => {
+    const m = await mounted(world());
+    act(() => m.runtime.go('grocery'));
+    const row = stock(m.runtime).grocery.rows.find((r) => r.name === 'Eggs')!;
+    act(() => row.compare?.());
+    await settle();
+    return m;
+  };
+
+  it('opens the item prices on Inventory, and the prices page Back returns straight to Shopping', async () => {
+    const { runtime } = await compareFromShopping();
+    expect(runtime.state.screen).toBe('inventory');
+    expect(stock(runtime).page?.item.id).toBe('eggs');
+    expect(stock(runtime).page?.pricesOpen).toBe(true);
+    expect(stock(runtime).page?.closePricesLabel).toBe('Back to Shopping');
+    act(() => stock(runtime).page?.closePrices?.());
+    expect(runtime.state.screen).toBe('grocery');
+    expect(stock(runtime).page ?? null).toBeNull();
+    expect(runtime.state.liveStockReturn ?? null).toBeNull();
+    expect(runtime.state.liveStockPriceOpen).toBe(false);
+    // A later Inventory visit shows the list, not a stale item page.
+    act(() => runtime.go('inventory'));
+    expect(stock(runtime).page ?? null).toBeNull();
+  });
+  it('the prices page opened from the item page itself stays "Back to item"', async () => {
+    const { runtime } = await mounted(world());
+    act(() => runtime.go('inventory'));
+    act(() => byName(runtime, 'Eggs').open());
+    act(() => stock(runtime).page?.openPrices?.());
+    expect(stock(runtime).page?.pricesOpen).toBe(true);
+    expect(stock(runtime).page?.closePricesLabel).toBeUndefined();
+    act(() => stock(runtime).page?.closePrices?.());
+    expect(runtime.state.screen).toBe('inventory');
+    expect(stock(runtime).page?.item.id).toBe('eggs');
+    expect(stock(runtime).page?.pricesOpen).toBe(false);
+  });
+  it('the item page Back also returns to Shopping when Compare prices set an origin', async () => {
+    const { runtime } = await compareFromShopping();
+    act(() => stock(runtime).page?.close());
+    expect(runtime.state.screen).toBe('grocery');
+    expect(runtime.state.liveStockPriceOpen).toBe(false);
+  });
+  it('Compare from Inventory itself, or an item opened from its list, keeps Back on the list', async () => {
+    const { runtime } = await mounted(world());
+    act(() => runtime.go('inventory'));
+    act(() =>
+      stock(runtime)
+        .grocery.rows.find((r) => r.name === 'Eggs')!
+        .compare?.()
+    );
+    await settle();
+    expect(runtime.state.liveStockReturn ?? null).toBeNull();
+    act(() => stock(runtime).page?.close());
+    expect(runtime.state.screen).toBe('inventory');
+    expect(stock(runtime).page ?? null).toBeNull();
+    // Opened from the Shopping Compare, then another item opened from the list: the origin is forgotten.
+    act(() => runtime.go('grocery'));
+    act(() =>
+      stock(runtime)
+        .grocery.rows.find((r) => r.name === 'Eggs')!
+        .compare?.()
+    );
+    await settle();
+    expect(runtime.state.liveStockReturn).toBe('grocery');
+    act(() => byName(runtime, 'Unsalted butter').open());
+    expect(runtime.state.liveStockReturn ?? null).toBeNull();
+    act(() => stock(runtime).page?.close());
+    expect(runtime.state.screen).toBe('inventory');
+  });
+  it('leaving Inventory any other way forgets the origin and closes the item', async () => {
+    const { runtime } = await compareFromShopping();
+    act(() => runtime.go('today'));
+    expect(runtime.state.liveStockReturn ?? null).toBeNull();
+    expect(runtime.state.liveStockOpen ?? null).toBeNull();
+    act(() => runtime.go('inventory'));
+    expect(stock(runtime).page ?? null).toBeNull();
+    expect(runtime.state.screen).toBe('inventory');
+  });
+});

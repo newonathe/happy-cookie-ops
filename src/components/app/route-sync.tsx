@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { pathForBazaar, readBazaarRoute } from '@/lib/bazaar/navigation';
+import { pathForRecipes, readRecipeRoute } from '@/lib/recipes/navigation';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { isScreenKey, pathForScreen, screenForPath, type ScreenKey } from '@/lib/screens';
@@ -82,6 +83,10 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
   const bazaarRoute = screen === 'bazaar' ? bazaar?.route : undefined;
   const restoreBazaar = bazaar?.restore;
   const bazaarRestored = useRef(initialScreen !== 'bazaar');
+  const recipes = isLiveMode() ? vals.liveRecipeNavigation : undefined;
+  const recipeRoute = screen === 'recipes' ? recipes?.route : undefined;
+  const restoreRecipe = recipes?.restore;
+  const recipeRestored = useRef(initialScreen !== 'recipes');
   const started = useRef(false);
   const initialRouteApplied = useRef(false);
   const stocktakeTick = useRef<number | null>(null);
@@ -134,6 +139,12 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
       bazaarRestored.current = true;
       currentBazaar = restoreBazaar(readBazaarRoute(window.location.search));
     }
+    // The open recipe is adopted the same way: once, after the landing screen, before paint.
+    let currentRecipe = recipeRoute;
+    if (!recipeRestored.current && screen === 'recipes' && restoreRecipe) {
+      recipeRestored.current = true;
+      currentRecipe = restoreRecipe(readRecipeRoute(window.location.search));
+    }
     const previous = previousNavigation.current;
     const fromPop = popNavigationTick.current === navTick;
     if (fromPop) popNavigationTick.current = null;
@@ -159,8 +170,16 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
       navTick === stocktakeTick.current
     )
       return;
-    const path = currentBazaar ? pathForBazaar(currentBazaar) : pathForScreen(screen);
-    const currentPath = window.location.pathname + (currentBazaar ? window.location.search : '');
+    const path = currentBazaar
+      ? pathForBazaar(currentBazaar)
+      : screen === 'recipes'
+        ? pathForRecipes(currentRecipe)
+        : pathForScreen(screen);
+    // A query is compared only where this screen owns one; a stale `recipe` query on Recipes is rewritten.
+    const ownsQuery =
+      !!currentBazaar ||
+      (screen === 'recipes' && (!!currentRecipe || /[?&]recipe=/.test(window.location.search)));
+    const currentPath = window.location.pathname + (ownsQuery ? window.location.search : '');
     if (currentPath === path) return;
     // Some protected engine actions switch screens without touching navTick
     // (for example, starting a bake batch). They still need a browser entry.
@@ -185,7 +204,7 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
         path
       );
     }
-  }, [engine, screen, navTick, viewScreen, bazaarRoute, restoreBazaar]);
+  }, [engine, screen, navTick, viewScreen, bazaarRoute, restoreBazaar, recipeRoute, restoreRecipe]);
 
   useEffect(() => {
     const onPop = () => {
@@ -204,6 +223,7 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
       stocktakeTick.current = path === '/stocktake' ? nextTick : null;
       const target = path === '/stocktake' ? 'inventory' : screenForPath(path);
       if (target === 'bazaar') restoreBazaar?.(readBazaarRoute(window.location.search));
+      if (target === 'recipes') restoreRecipe?.(readRecipeRoute(window.location.search));
       if (marker) {
         engine.setState({
           screen: target,
@@ -218,7 +238,7 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [engine, restoreBazaar]);
+  }, [engine, restoreBazaar, restoreRecipe]);
 
   return null;
 }
