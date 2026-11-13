@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { OpsVals } from '@/view-models/vals';
+import type { KeptRecipeEditView } from '@/lib/recipes/live-recipes-types';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +13,7 @@ import {
   SectionHeading
 } from '@/components/ui/owner-kit';
 import { FactRow, ReviewPanel } from '@/components/ui/owner-patterns';
+import { KeptEditBanner } from './kept-edit-banner';
 
 const selectClass =
   'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]';
@@ -24,11 +26,14 @@ const selectClass =
 export function RecipeEditor({
   v,
   backLabel,
-  onBack
+  onBack,
+  kept
 }: {
   v: OpsVals;
   backLabel: string;
   onBack: () => void;
+  /** HCB-038: an unsaved edit kept across a reload, offered back or explained. */
+  kept?: KeptRecipeEditView | null;
 }) {
   const recipe = v.recipe;
   const [reviewing, setReviewing] = useState(false);
@@ -92,6 +97,11 @@ export function RecipeEditor({
           </Button>
         }
       />
+      {kept ? (
+        <div className="mb-3">
+          <KeptEditBanner kept={kept} />
+        </div>
+      ) : null}
       {problem ? (
         <div className="mb-3">
           <Banner tone="warn" title={problem} />

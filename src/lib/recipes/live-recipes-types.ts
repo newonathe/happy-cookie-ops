@@ -37,7 +37,20 @@ export interface RecipeBookItem {
   editRecipe: () => void;
 }
 
+/**
+ * HCB-038: what is said about an unsaved edit that survived a reload. `offer`: it is held and not applied; `newer`: a newer
+ * version was saved since, so it was not kept (said once, then `dismiss`).
+ */
+export interface KeptRecipeEditView {
+  kind: 'offer' | 'newer';
+  restore: () => void;
+  discard: () => void;
+  dismiss: () => void;
+}
+
 export interface LiveRecipesVals {
+  /** The kept unsaved edit of one flavour, or null when there is none to say anything about. */
+  keptEdit?: (id: string) => KeptRecipeEditView | null;
   /** The editor's place in the address (HCB-013): the flavour an address asks to reopen in the editor, and the editor reporting its own state. */
   editor?: {
     restore: string | null;
