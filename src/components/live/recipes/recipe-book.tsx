@@ -113,6 +113,7 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
       <section aria-label="Recipes" data-screen-label="Recipes" className="pb-24">
         <RecipeEditor
           v={v}
+          kept={book.keptEdit?.(view.id)}
           backLabel={
             view.origin === 'recipe'
               ? 'Back to recipe'
@@ -161,6 +162,7 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
       <RecipeReader
         key={recipePage.id}
         page={recipePage}
+        kept={book.keptEdit?.(recipePage.id)}
         onCosts={() => go({ kind: 'flavour', id: recipePage.id }, recipePage.id)}
         onCreate={() => {
           if (recipePage.createRecipe?.())

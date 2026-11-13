@@ -7,6 +7,12 @@ import { ShopAvailabilityRead } from '@/store/shop-availability-read';
 import { ShopOverrideWrites, shopOverrideMode } from '@/store/shop-override-writes';
 import { openingTimesBanner } from '@/components/live/customer-opening-status';
 import { ScopedRecipeEdits } from '@/lib/recipes/scoped-edits';
+import {
+  keptRecipeFacts,
+  readKeptRecipeEdits,
+  writeKeptRecipeEdits,
+  type KeptRecipeEdit
+} from '@/lib/recipes/kept-edits';
 
 import { bazaarBooking, type BazaarRoute } from '@/lib/bazaar/navigation';
 
@@ -348,6 +354,7 @@ import {
 import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { ordersRead } from '@/lib/orders/orders-read-state';
 import { CUSTOMER_SCREENS, isScreenKey, type ScreenKey } from '@/lib/screens';
+import type { KeptRecipeEditView } from '@/lib/recipes/live-recipes-types';
 import { parseRecipeRoute, recipeRouteFor, type RecipeRoute } from '@/lib/recipes/navigation';
 import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
@@ -1471,6 +1478,14 @@ export class OpsRuntime extends OpsProvider {
     generation: number;
   } | null = null;
   private recipeScopeKey: string | null = null;
+  /** HCB-038: the verified identity the recipes are bound to, which names where an unsaved edit is kept. */
+  private recipeScope: ProductionRecoveryScope | null = null;
+  /** HCB-038: what the browser holds for that identity once it has been read (never before the recipes are). */
+  private keptRecipeEdits = new Map<string, KeptRecipeEdit>();
+  private keptRecipeLoadedFor: string | null = null;
+  /** HCB-038: kept edits waiting for her answer, and flavours whose kept edit was dropped because a newer version was saved. */
+  private keptRecipeOffers = new Map<string, KeptRecipeEdit>();
+  private keptRecipeNewer = new Set<string>();
   private recipeAppliedScopeKey: string | null = null;
   private recipeRestoredEdits = new Set<string>();
   private readonly recipeEditScopes = new ScopedRecipeEdits<{
@@ -3360,6 +3375,7 @@ export class OpsRuntime extends OpsProvider {
       this.setState({});
     }
     if (this.productionRecordedAway) this.noticeProductionRecordedAway();
+    this.syncKeptRecipeEdits();
     // HCB-013: an address that named a recipe opens it as soon as her catalogue is held.
     if (this.recipePending) this.applyRecipeRoute();
     if (this.state.screen !== 'recipes' && (this.recipeRestoreEdit || this.state.liveRecipeEdit)) {
@@ -3828,7 +3844,8 @@ export class OpsRuntime extends OpsProvider {
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
           ? {
               ...this.liveRecipeBookView(),
-              editor: { restore: this.recipeRestoreEdit, report: this.reportRecipeEditor }
+              editor: { restore: this.recipeRestoreEdit, report: this.reportRecipeEditor },
+              keptEdit: (id: string) => this.keptRecipeEditView(id)
             }
           : null,
       liveRecipeNavigation:
@@ -6956,6 +6973,119 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  /**
+   * HCB-038: keeps each unsaved recipe edit in this browser for the verified owner and business, offers a kept one back after
+   * a reload, and forgets it once saved, discarded or otherwise cleared. Nothing runs until the recipes have been read: the
+   * placeholders typed on before the first read are not edits, and a kept edit is judged against the saved stamp it read.
+   */
+  private syncKeptRecipeEdits(): void {
+    const key = this.recipeScopeKey,
+      scope = this.recipeScope;
+    if (
+      !isLiveMode() ||
+      !scope ||
+      key === null ||
+      this.recipeAppliedScopeKey !== key ||
+      this.state.role !== 'owner' ||
+      this.recipeRows === null ||
+      this.recipeReaderState !== 'read' ||
+      this.catalogueUnread()
+    )
+      return;
+    const state = this.state as unknown as RecipeState;
+    const held = new Set(this.heldProducts().map((row) => row.id));
+    const savedStamp = (id: string) =>
+      this.recipeRows?.find((row) => row.productId === id)?.updatedAt ?? null;
+    let saveKept = false,
+      changed = false;
+    if (this.keptRecipeLoadedFor !== key) {
+      this.keptRecipeLoadedFor = key;
+      this.keptRecipeEdits = new Map(
+        readKeptRecipeEdits(scope).edits.map((edit) => [edit.productId, edit])
+      );
+      for (const [id, edit] of [...this.keptRecipeEdits]) {
+        if (!held.has(id) || state.recipeDirty?.[id]) continue;
+        if (edit.stamp === savedStamp(id)) this.keptRecipeOffers.set(id, edit);
+        else {
+          this.keptRecipeNewer.add(id);
+          this.keptRecipeEdits.delete(id);
+          saveKept = true;
+        }
+        changed = true;
+      }
+    }
+    for (const id of held) {
+      const recipe = state.recipes?.[id];
+      const kept = this.keptRecipeEdits.get(id);
+      if (state.recipeDirty?.[id] && recipe) {
+        // What she is typing now replaces an offer she has not answered.
+        if (this.keptRecipeOffers.delete(id)) changed = true;
+        const next = { value: recipe, stamp: this.recipeBaseStamp[id] ?? null };
+        if (!kept || keptRecipeFacts(kept) !== keptRecipeFacts(next)) {
+          this.keptRecipeEdits.set(id, { productId: id, ...next, at: Date.now() });
+          saveKept = true;
+        }
+      } else if (kept && !this.keptRecipeOffers.has(id)) {
+        this.keptRecipeEdits.delete(id);
+        saveKept = true;
+      }
+    }
+    if (saveKept) writeKeptRecipeEdits(scope, [...this.keptRecipeEdits.values()]);
+    if (changed) this.setState({});
+  }
+
+  /** HCB-038: what is said, if anything, about a flavour's kept unsaved edit. */
+  private keptRecipeEditView(id: string): KeptRecipeEditView | null {
+    const key = this.recipeScopeKey,
+      scope = this.recipeScope;
+    const live = () => !this.unmounted && this.recipeScopeKey === key && !!scope;
+    const forget = () => {
+      this.keptRecipeOffers.delete(id);
+      if (this.keptRecipeEdits.delete(id) && scope)
+        writeKeptRecipeEdits(scope, [...this.keptRecipeEdits.values()]);
+      this.setState({});
+    };
+    const offer = this.keptRecipeOffers.get(id);
+    if (offer)
+      return {
+        kind: 'offer',
+        restore: () => {
+          if (!live() || this.keptRecipeOffers.get(id) !== offer) return;
+          const saved = this.recipeRows?.find((row) => row.productId === id)?.updatedAt ?? null;
+          if (saved !== offer.stamp) {
+            // A newer version was saved since the page loaded: the kept edit is not applied.
+            this.keptRecipeNewer.add(id);
+            return forget();
+          }
+          this.keptRecipeOffers.delete(id);
+          this.recipeBaseStamp[id] = offer.stamp;
+          this.setState((s) => {
+            const state = s as unknown as RecipeState;
+            return {
+              recipes: { ...state.recipes, [id]: structuredClone(offer.value) },
+              recipeDirty: { ...state.recipeDirty, [id]: true }
+            } as never;
+          });
+        },
+        discard: () => {
+          if (live() && this.keptRecipeOffers.get(id) === offer) forget();
+        },
+        dismiss: () => undefined
+      };
+    if (this.keptRecipeNewer.has(id))
+      return {
+        kind: 'newer',
+        restore: () => undefined,
+        discard: () => undefined,
+        dismiss: () => {
+          if (!live()) return;
+          this.keptRecipeNewer.delete(id);
+          this.setState({});
+        }
+      };
+    return null;
+  }
+
   private bindRecipeScope(scope: ProductionRecoveryScope | null): void {
     const key = scope ? JSON.stringify([scope.business, scope.userId]) : null;
     if (key === this.recipeScopeKey) return;
@@ -6974,6 +7104,11 @@ export class OpsRuntime extends OpsProvider {
     );
     const restored = this.recipeEditScopes.bind(key, current, new Set(current.keys()));
     this.recipeScopeKey = key;
+    this.recipeScope = scope;
+    this.keptRecipeEdits = new Map();
+    this.keptRecipeLoadedFor = null;
+    this.keptRecipeOffers = new Map();
+    this.keptRecipeNewer = new Set();
     this.recipeLoadSeq += 1;
     this.recipeClient = null;
     this.recipeRows = null;
