@@ -38,6 +38,27 @@ export function schemaQuery(inventorySql) {
     'inventory', (${inventory})) as hco_release_schema`;
 }
 
+/**
+ * Hosted Postgres 17 quotes `json_value` (a keyword since 17) in pg_get_function_result; the
+ * Postgres 15 the checkout is verified on does not. Quoting a plain lower-case identifier does
+ * not change the signature, so both sides are compared unquoted.
+ */
+const unquoted = (text) =>
+  typeof text === 'string' ? text.replace(/"([a-z_][a-z0-9_]*)"/g, '$1') : text;
+/**
+ * Supabase adds this event-trigger function to hosted projects. An event-trigger function
+ * cannot be called through the API, so it is excluded only in exactly this shape.
+ */
+const isPlatformRlsTrigger = (row) =>
+  row?.name === 'rls_auto_enable' &&
+  row.identity === '' &&
+  row.returns === 'event_trigger' &&
+  row.owner === 'postgres';
+const comparable = (rows) =>
+  rows
+    .filter((row) => !isPlatformRlsTrigger(row))
+    .map((row) => ({ ...row, returns: unquoted(row.returns) }));
+
 export function validateSchema(answer, expected) {
   if (!Array.isArray(answer) || answer.length !== 1 || !answer[0]?.hco_release_schema)
     throw Error('Trial schema check returned an invalid catalog response');
@@ -47,7 +68,12 @@ export function validateSchema(answer, expected) {
   if (!Array.isArray(inventory?.functions)) throw Error('Trial function inventory is unavailable');
   const key = (row) => `${row.name}|${row.identity}`;
   const ordered = (rows) => [...rows].sort((a, b) => key(a).localeCompare(key(b)));
-  if (!isDeepStrictEqual(ordered(inventory.functions), ordered(expected.functions)))
+  if (
+    !isDeepStrictEqual(
+      ordered(comparable(inventory.functions)),
+      ordered(comparable(expected.functions))
+    )
+  )
     throw Error('Trial function bodies, signatures or authority differ; deployment blocked');
   if (
     !Array.isArray(inventory.columns) ||
