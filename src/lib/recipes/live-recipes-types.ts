@@ -38,6 +38,11 @@ export interface RecipeBookItem {
 }
 
 export interface LiveRecipesVals {
+  /** The editor's place in the address (HCB-013): the flavour an address asks to reopen in the editor, and the editor reporting its own state. */
+  editor?: {
+    restore: string | null;
+    report: (id: string | null) => void;
+  };
   recipePage?: {
     id: string;
     name: string;

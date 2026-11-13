@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { OfflineBridge } from '@/components/app/offline-bridge';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { RouteSync } from '@/components/app/route-sync';
+import { screenForPath } from '@/lib/screens';
 import { LiveOrderRoute } from '@/components/app/live-order-route';
 import bazaarAnswer from '@/../tests/fixtures/bazaar-example.json';
 import { OwnerWorkspace } from '@/components/live/owner-workspace';
@@ -59,6 +60,9 @@ const production = {batches:[
 ],dough:[],baked:[{product_id:'dcf',qty:24},{product_id:'hc',qty:9},{product_id:'wcb',qty:4}],shortfalls:[]};
 // The /bazaar fixture adds the real browser-history adapter; the ordinary fixture is unchanged.
 const historyPreview = window.location.pathname === '/bazaar';
+// HCB-012/013: `window.qaRouteSync` (set by a check's init script, so it survives a reload) mounts RouteSync for the
+// current path, as the app does, and lands the load chain on that path's screen.
+const routeSyncPreview = !historyPreview && (window as unknown as {qaRouteSync?:boolean}).qaRouteSync === true;
 const historyAnswer = JSON.parse(JSON.stringify(bazaarAnswer));
 historyAnswer.summary.booking.name = 'Katipunan market';
 historyAnswer.summary.days = [historyAnswer.summary.days[0]];
@@ -132,7 +136,7 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
 
 function Frame({ navigationReady = false }: {navigationReady?: boolean}) {
   const v=useOpsVals(); const engine=useOpsEngine();
-  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}<LiveOrderRoute /><OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /></>;
+  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}{routeSyncPreview && navigationReady ? <RouteSync initialScreen={screenForPath(window.location.pathname)} /> : null}<LiveOrderRoute /><OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /></>;
 }
 function App() {
   const ref = useRef<OpsRuntime | null>(null);
@@ -147,7 +151,7 @@ function App() {
       // `window.qaProductionForeign` adds a batch of a product outside the built-in six, HCB-004 g; `window.qaFlavoursSkip` starts no
       // catalogue reader at all, as the gate did before HCB-004 a3 when a check verified on the shop; with `window.qaExpectCatalogue`
       // the store is told a reader is due, exactly as the live gate's staff-screen layout effect does).
-      .then(() => catalogueHeld ? runtime.loadRecipes(client as never,undefined,undefined,scope) : undefined).then(() => catalogueHeld ? runtime.loadOrders(client as never) : undefined).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
+      .then(() => catalogueHeld ? runtime.loadRecipes(client as never,undefined,undefined,scope) : undefined).then(() => catalogueHeld ? runtime.loadOrders(client as never) : undefined).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : routeSyncPreview ? screenForPath(window.location.pathname) : 'inventory');setNavigationReady(true);});
   }, []);
   return <OpsRuntime ref={ref}><Frame navigationReady={navigationReady} /><OfflineBridge /></OpsRuntime>;
 }
