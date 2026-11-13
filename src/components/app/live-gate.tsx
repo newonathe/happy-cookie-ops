@@ -263,7 +263,7 @@ export function LiveGate({
     }
     function startRecheck() {
       recheck ??= setInterval(() => {
-        if (!outstanding) void verify(false);
+        if (!outstanding) void verify();
       }, RECHECK_MS);
     }
 
@@ -484,13 +484,19 @@ export function LiveGate({
       return true;
     };
 
-    function apply(result: ProfileCheck, isFirstCheck: boolean) {
+    function apply(result: ProfileCheck) {
       if (cancelled) return;
       if (result.status === 'unknown') {
         // Not evidence of anything (see checkStaffProfile's doc comment). A session already
         // verified on this page load is left as it is. Bazaar-only access (an offline open, or
         // a session whose idle time ran out) ends when the offline hours do.
-        if (isFirstCheck && accessRef.current === 'closed') holdOffline();
+        // Any unanswered check while nothing is decided yet (supabase-js re-announcing the stored
+        // session on load moves the epoch and drops the first check's answer); never on a shop page.
+        if (
+          accessRef.current === 'closed' &&
+          !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+        )
+          holdOffline();
         else if (accessRef.current === 'bazaar' && !checkStillFresh()) setAccess('waiting');
         return;
       }
@@ -649,7 +655,7 @@ export function LiveGate({
       return answer;
     }
 
-    async function verify(isFirstCheck: boolean) {
+    async function verify() {
       if (cancelled) return;
       const epoch = identityEpoch;
       const pending = probe();
@@ -664,18 +670,18 @@ export function LiveGate({
         return;
       }
       if (answer) {
-        apply(answer, isFirstCheck);
+        apply(answer);
         return;
       }
-      apply({ status: 'unknown' }, isFirstCheck);
+      apply({ status: 'unknown' });
       // The answer, if it still comes, is applied as a re-check.
       void pending.then((late) => {
-        if (epoch === identityEpoch && late.status !== 'unknown') apply(late, false);
+        if (epoch === identityEpoch && late.status !== 'unknown') apply(late);
       });
     }
 
-    actions.current.firstCheck = () => void verify(true);
-    actions.current.retry = () => void verify(false);
+    actions.current.firstCheck = () => void verify();
+    actions.current.retry = () => void verify();
     actions.current.signIn = () => window.location.assign(signInPath());
     // A3: the deliberate sign-out (`SignOutControl`) is this same lock-out.
     actions.current.signOut = () => lockOut();
@@ -693,7 +699,7 @@ export function LiveGate({
       // nothing may start for an identity no check has verified. Ask for the check now, unless one is
       // out already; its answer applies on this staff screen and starts the reads.
       if (verifiedEpoch !== identityEpoch) {
-        if (!outstanding) void verify(false);
+        if (!outstanding) void verify();
         return;
       }
       if (!askedRole || engine.state.role !== askedRole) return;
@@ -721,9 +727,9 @@ export function LiveGate({
           clearRememberedCheck();
           setAccess('closed');
         }
-        if (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) void verify(false);
+        if (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) void verify();
         else verifiedUserId = null;
-      } else if (event === 'TOKEN_REFRESHED') void verify(false);
+      } else if (event === 'TOKEN_REFRESHED') void verify();
     });
 
     function onVisible() {
@@ -737,7 +743,7 @@ export function LiveGate({
           accessRef.current !== 'closed' ||
           !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
         )
-          void verify(false);
+          void verify();
         // Customers order all day: read the owner's orders again when the tab comes back.
         if (engine instanceof OpsRuntime) void engine.reloadOrders();
         if (engine instanceof OpsRuntime) void engine.reloadShopStatus();
@@ -750,7 +756,7 @@ export function LiveGate({
     // Back online: the full check runs at once, whatever this page load had decided.
     function onOnline() {
       if (accessRef.current === 'signin') window.location.replace(signInPath());
-      else if (accessRef.current !== 'closed') void verify(false);
+      else if (accessRef.current !== 'closed') void verify();
     }
     window.addEventListener('online', onOnline);
 
