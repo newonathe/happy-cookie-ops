@@ -222,6 +222,21 @@ export function authHistoryEnvironment(dryRun) {
     throw new Error('CLI migration-history connection could not be safely resolved.');
   return Object.fromEntries(values.map((match) => [match[1], match[2].replace(/\\"/g, '"')]));
 }
+/**
+ * The linked CLI now signs in as a temporary cli_login role and dumps with `--role "postgres"`;
+ * without the same role pg_dump cannot read auth.schema_migrations (backup of 14 November failed).
+ */
+export const AUTH_HISTORY_DUMP_FLAGS = Object.freeze([
+  '--role',
+  'postgres',
+  '--data-only',
+  '--table',
+  'auth.schema_migrations',
+  '--quote-all-identifiers',
+  '--no-owner',
+  '--no-privileges',
+  '--column-inserts'
+]);
 async function dumpAuthHistory(source) {
   // Credentials become environment values; the expanded script is never executed.
   const dryRun = (
@@ -252,13 +267,7 @@ async function dumpAuthHistory(source) {
       'pg_dump',
       ...flags,
       await dumpImage(),
-      '--data-only',
-      '--table',
-      'auth.schema_migrations',
-      '--quote-all-identifiers',
-      '--no-owner',
-      '--no-privileges',
-      '--column-inserts'
+      ...AUTH_HISTORY_DUMP_FLAGS
     ],
     env
   );

@@ -2,7 +2,20 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { authHistoryEnvironment, dumpImageFor } from '../../scripts/f1-backup.mjs';
+import {
+  AUTH_HISTORY_DUMP_FLAGS,
+  authHistoryEnvironment,
+  dumpImageFor
+} from '../../scripts/f1-backup.mjs';
+
+describe('F1 auth-history dump', () => {
+  it('assumes the postgres role, as the linked CLI dump does for its temporary login role', () => {
+    const at = AUTH_HISTORY_DUMP_FLAGS.indexOf('--role');
+    expect(AUTH_HISTORY_DUMP_FLAGS[at + 1]).toBe('postgres');
+    expect(AUTH_HISTORY_DUMP_FLAGS).toContain('auth.schema_migrations');
+    expect(AUTH_HISTORY_DUMP_FLAGS).toContain('--data-only');
+  });
+});
 
 const cliOutput = (exports: string[]) =>
   `--exclude-table "auth.schema_migrations"\n${exports.join('\n')}`;

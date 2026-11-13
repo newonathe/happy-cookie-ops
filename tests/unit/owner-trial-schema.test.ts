@@ -6,7 +6,8 @@ import {
   validateSchema
 } from '../../scripts/check-owner-trial-schema.mjs';
 
-const expected = {
+type FunctionRow = { name: string; identity: string } & Record<string, unknown>;
+const expected: { versions: string[]; functions: FunctionRow[] } = {
   versions: ['20260101007100', '20260101008200'],
   functions: [
     { name: 'record_bake', identity: 'p_rec jsonb', body_md5: 'reviewed', execute_anon: false }
@@ -100,6 +101,73 @@ describe('private trial deployment schema boundary', () => {
     if (mutation === 'foreign owner') inventory.table_security[0]!.owner = 'authenticated';
     if (mutation === 'raw API grant')
       inventory.table_grants.push({ table_name: 'bazaar_kitchen_moves', grantee: 'authenticated' });
+    expect(() => validateSchema(fixture, expected)).toThrow();
+  });
+
+  it('treats Postgres 17 identifier quoting in a return type as the same signature', () => {
+    const exp = structuredClone(expected);
+    const reviewed = { ...exp.functions[0]!, returns: 'TABLE(key text, json_value jsonb)' };
+    exp.functions = [reviewed];
+    const fixture = answer();
+    fixture[0]!.hco_release_schema.inventory.functions = [
+      { ...reviewed, returns: 'TABLE(key text, "json_value" jsonb)' }
+    ];
+    expect(validateSchema(fixture, exp)).toEqual({ migrations: 2, functions: 1 });
+  });
+
+  it('still blocks a real return-type change', () => {
+    const exp = structuredClone(expected);
+    const reviewed = { ...exp.functions[0]!, returns: 'TABLE(key text, json_value jsonb)' };
+    exp.functions = [reviewed];
+    const fixture = answer();
+    fixture[0]!.hco_release_schema.inventory.functions = [
+      { ...reviewed, returns: 'TABLE(key text, "json_value" text)' }
+    ];
+    expect(() => validateSchema(fixture, exp)).toThrow();
+  });
+
+  it('keeps a quoted mixed-case identifier distinct from its lower-case form', () => {
+    const exp = structuredClone(expected);
+    const reviewed = { ...exp.functions[0]!, returns: 'TABLE(key text)' };
+    exp.functions = [reviewed];
+    const fixture = answer();
+    fixture[0]!.hco_release_schema.inventory.functions = [
+      { ...reviewed, returns: 'TABLE("Key" text)' }
+    ];
+    expect(() => validateSchema(fixture, exp)).toThrow();
+  });
+
+  it('still blocks a changed security definer on an ordinary function', () => {
+    const fixture = answer();
+    fixture[0]!.hco_release_schema.inventory.functions = [
+      { ...expected.functions[0]!, security_definer: true } as (typeof expected.functions)[number]
+    ];
+    expect(() => validateSchema(fixture, expected)).toThrow();
+  });
+
+  const platformTrigger = {
+    name: 'rls_auto_enable',
+    identity: '',
+    returns: 'event_trigger',
+    owner: 'postgres',
+    body_md5: 'platform',
+    execute_anon: true
+  };
+
+  it('ignores only the Supabase rls_auto_enable event trigger in its exact shape', () => {
+    const fixture = answer();
+    fixture[0]!.hco_release_schema.inventory.functions.push({ ...platformTrigger });
+    expect(validateSchema(fixture, expected)).toEqual({ migrations: 2, functions: 2 });
+  });
+
+  it.each([
+    ['a callable return type', { returns: 'void' }],
+    ['arguments', { identity: 'p jsonb' }],
+    ['a foreign owner', { owner: 'authenticated' }],
+    ['another name', { name: 'rls_auto_enable_2' }]
+  ])('blocks a lookalike of the platform trigger with %s', (_label, change) => {
+    const fixture = answer();
+    fixture[0]!.hco_release_schema.inventory.functions.push({ ...platformTrigger, ...change });
     expect(() => validateSchema(fixture, expected)).toThrow();
   });
 
