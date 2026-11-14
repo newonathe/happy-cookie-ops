@@ -61,6 +61,35 @@ describe('resolveImagePath', () => {
     expect(resolveImagePath('qr/a.png', null)).toBe('');
   });
 
+  it('keeps its own bucket URL as it is, so a photo resolved once by the catalogue still draws when a page resolves it again', () => {
+    // 14 November 2026: the catalogue hands pages the resolved URL and several pages resolve it again;
+    // the second pass returned '' and every uploaded photo fell back to the drawn picture.
+    for (const path of ['flavours/8d2fc1c01096487cadf524ea93bba553.webp', 'qr/0a1b2c3d.png']) {
+      const once = resolveImagePath(path, ORIGIN);
+      expect(resolveImagePath(once, ORIGIN)).toBe(once);
+    }
+  });
+
+  it.each([
+    ['another origin', 'https://evil.example/storage/v1/object/public/shop-media/flavours/a.webp'],
+    ['another bucket', ORIGIN + '/storage/v1/object/public/private/flavours/a.webp'],
+    ['a query', BUCKET + 'flavours/a.webp?x=1'],
+    ['a parenthesis', BUCKET + 'flavours/a).webp'],
+    ['a traversal', BUCKET + 'flavours/../a.webp'],
+    ['a double slash', BUCKET + '/flavours/a.webp'],
+    ['a fragment', BUCKET + 'flavours/a.webp#x'],
+    [
+      'an origin prefix lookalike',
+      ORIGIN + '.evil.example/storage/v1/object/public/shop-media/a.webp'
+    ]
+  ])('draws nothing for a bucket URL with %s', (_name, url) => {
+    expect(resolveImagePath(url, ORIGIN)).toBe('');
+  });
+
+  it('draws nothing for its own bucket URL when no Supabase origin is configured', () => {
+    expect(resolveImagePath(BUCKET + 'flavours/a.webp', null)).toBe('');
+  });
+
   it('accepts only an https origin, or http on loopback, and never credentials', () => {
     expect(supabaseOrigin(ORIGIN + '/')).toBe(ORIGIN);
     expect(supabaseOrigin('http://127.0.0.1:54321')).toBe('http://127.0.0.1:54321');
