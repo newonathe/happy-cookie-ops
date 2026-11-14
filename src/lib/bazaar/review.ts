@@ -9,7 +9,7 @@ import type {
 import { COST_COPY } from '@/lib/orders/staff-copy';
 import { costPesosToCentavos, pesosToCentavos } from '@/lib/money';
 import { cookiesText } from '@/lib/bazaar/plan';
-import { peso, pesoUnit } from '@/lib/money/format';
+import { peso } from '@/lib/money/format';
 import { dayRange } from '@/lib/date/day-text';
 
 /**
@@ -27,11 +27,12 @@ export function moneyText(cents: number | null): string {
   return cents === null ? COST_COPY.pending : peso(cents);
 }
 
-/** "₱12.005", from centavos with up to four decimals; "Cost pending" when there is none. */
+/**
+ * "₱12.01", a cost per cookie to the centavo, from centavos with up to four decimals; "Cost pending" when there is none. Cine
+ * read "₱30.055354" as noise (14 November 2026): the exact figure stays in the "View cost" receipt (`pesoUnit`).
+ */
 export function unitCostText(unitCents: number | null): string {
-  return unitCents === null || !Number.isFinite(unitCents)
-    ? COST_COPY.pending
-    : pesoUnit(unitCents);
+  return unitCents === null || !Number.isFinite(unitCents) ? COST_COPY.pending : peso(unitCents);
 }
 
 const plural = (n: number, one: string, many: string) =>
@@ -219,8 +220,36 @@ export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
             }
           ]
         };
+  // Cine, 14 November 2026: "what i meant is the cogs of the cookies that was sold so far". The database already works out the
+  // cost of what sold (the cookie cost's "Sold" part); it leads the page, with what the takings kept over it.
+  const soldPart = cc.parts.find((p) => p.label === 'Sold') ?? null;
+  const soldCost = soldPart?.amountCents ?? null;
+  const soldQty = soldPart?.quantity ?? 0;
+  const sold: ReviewFigure[] =
+    soldPart === null
+      ? []
+      : [
+          {
+            key: 'sold-cost',
+            label: 'Cost of cookies sold',
+            valueText: moneyText(soldCost),
+            note: soldCost === null ? why : `${cookiesText(soldQty)} sold so far.`,
+            parts: []
+          },
+          {
+            key: 'sold-kept',
+            label: 'Kept on what sold',
+            valueText: moneyText(soldCost === null ? null : s.revenue.revenueCents - soldCost),
+            note:
+              soldCost === null
+                ? why
+                : 'Takings less the cost of the cookies sold. Fees and leftovers are counted in Profit.',
+            parts: []
+          }
+        ];
   return [
     revenueFigure('revenue', s.revenue),
+    ...sold,
     {
       key: 'fees',
       label: 'Fees',

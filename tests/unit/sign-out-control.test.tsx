@@ -18,7 +18,7 @@ vi.mock('@/lib/auth/sign-out-guard', () => ({
   queuedBeforeSignOut: (local?: unknown) => queuedBeforeSignOut(local)
 }));
 
-import { SignOutControl, SIGN_OUT_COPY } from '@/components/app/sign-out-control';
+import { SignOutControl, SIGN_OUT_COPY, SIGN_OUT_SLOT_ID } from '@/components/app/sign-out-control';
 
 describe('SignOutControl', () => {
   const flush = vi.fn(async () => undefined);
@@ -216,5 +216,30 @@ describe('SignOutControl', () => {
       finish();
     });
     expect(onSignOut).not.toHaveBeenCalled();
+  });
+
+  it('floats only on a wide screen, and sits in the Account page slot on a phone (14 November 2026)', async () => {
+    const floating = view();
+    const only = screen.getByRole('button', { name: SIGN_OUT_COPY.button });
+    expect(only.className).toContain('max-[650px]:hidden');
+    floating.unmount();
+    const slot = document.createElement('div');
+    slot.id = SIGN_OUT_SLOT_ID;
+    document.body.appendChild(slot);
+    try {
+      view();
+      // The slot is looked for after the screen is drawn (an animation frame later).
+      await waitFor(() =>
+        expect(screen.getAllByRole('button', { name: SIGN_OUT_COPY.button })).toHaveLength(2)
+      );
+      const buttons = screen.getAllByRole('button', { name: SIGN_OUT_COPY.button });
+      const inSlot = buttons.find((b) => slot.contains(b))!;
+      expect(inSlot.className).toContain('min-[651px]:hidden');
+      expect(inSlot.style.position).toBe('');
+      fireEvent.click(inSlot);
+      expect(await screen.findByRole('alertdialog')).toBeTruthy();
+    } finally {
+      slot.remove();
+    }
   });
 });
