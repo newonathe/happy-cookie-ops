@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 import { BazaarModeScreen } from '@/components/screens/bazaar-mode';
@@ -32,8 +33,26 @@ export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
  * the till unless the permitted owner selects Events: selling must work with no signal, for a helper, and on a phone
  * the owner's data was never read on. With no event it is the owner's event list, an event's page and a day's plan.
  */
+/** Every 15 s while on screen and online, and on coming back: sales from her other devices show up (14 November 2026). */
+const REFRESH_MS = 15_000;
+
 export function BazaarLive({ v }: { v: OpsVals }) {
   const bazaar = liveBazaarOf(v);
+  const refresh = bazaar?.refresh;
+  useEffect(() => {
+    if (!refresh) return;
+    const tick = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) refresh();
+    };
+    const timer = setInterval(tick, REFRESH_MS);
+    document.addEventListener('visibilitychange', tick);
+    window.addEventListener('focus', tick);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', tick);
+      window.removeEventListener('focus', tick);
+    };
+  }, [refresh]);
   const showingKitchen = Boolean(bazaar?.kitchen && !bazaar.navigation?.tillOnly);
   return (
     <>
