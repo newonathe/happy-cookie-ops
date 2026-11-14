@@ -183,8 +183,9 @@ export function shopCatalogue(
 }
 
 /** Every key `save_flavour` requires, and nothing else. */
-export function flavourPayload(row: FlavourRow): Json {
+export function flavourPayload(row: FlavourRow & { type_id?: string }): Json {
   return {
+    ...(typeof row.type_id === 'string' ? { type_id: row.type_id } : {}),
     name: row.name,
     short_name: row.short_name,
     price_cents: row.price_cents,
@@ -266,7 +267,13 @@ export const FLAVOUR_TOASTS = {
 } as const;
 
 /** Every key the flavour editor may set, exactly what `save_flavour` accepts. */
-export type FlavourFields = Omit<FlavourRow, 'id' | 'published' | 'updated_at'>;
+/**
+ * `type_id` (migration 84) is sent only when the editor chose her product type; a save without it keeps the product's type on
+ * the server (or the built-in type item_type names).
+ */
+export type FlavourFields = Omit<FlavourRow, 'id' | 'published' | 'updated_at'> & {
+  type_id?: string;
+};
 
 /**
  * The same bounds `save_flavour` enforces (migration 20260101003000), checked here so a
@@ -287,7 +294,9 @@ export function flavourFieldError(fields: FlavourFields): string | null {
   }
   if (fields.kind !== 'Permanent' && fields.kind !== 'Rotating')
     return 'Pick Permanent or Rotating.';
-  if (fields.item_type !== 'cookie' && fields.item_type !== 'set') return 'Pick cookie or set.';
+  if (fields.item_type !== 'cookie' && fields.item_type !== 'set' && fields.item_type !== 'item')
+    return 'Pick a product type.';
+  if (fields.item_type === 'item' && !fields.type_id) return 'Pick a product type.';
   if (
     !Number.isInteger(fields.capacity_weight) ||
     fields.capacity_weight < 1 ||

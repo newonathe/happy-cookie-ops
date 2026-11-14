@@ -78,6 +78,17 @@ describe('the event figures, as words', () => {
   const b = read(clone());
   const figures = eventFiguresOf(b);
 
+  it('counts her plain items apart from cookies in what sold (product types, migration 84)', () => {
+    const item = b.days
+      .find((d) => d.lines.some((l) => l.sold > 0))!
+      .lines.find((l) => l.sold > 0)!.productId;
+    const withItems = eventFiguresOf(b, (id) => id === item);
+    const sold = withItems.find((f) => f.key === 'sold-cost')!;
+    expect(sold.label).toBe('Cost of goods sold');
+    expect(sold.note).toMatch(/cookies? and \d+ other items? sold so far/);
+    expect(figure(figures, 'sold-cost').note).toMatch(/^\d+ cookies? sold so far\.$/);
+  });
+
   it('has the seven figures in order, the cost of what sold right after revenue', () => {
     expect(figures.map((f) => f.key)).toEqual([
       'revenue',

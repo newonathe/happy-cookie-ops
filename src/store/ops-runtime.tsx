@@ -1,6 +1,16 @@
 'use client';
 
 import { OrderRecovery } from '@/lib/orders/order-recovery';
+import {
+  fetchProductTypes,
+  saveProductType,
+  typeIdFor,
+  typeLabelError,
+  type Behaviour,
+  type ProductType,
+  type ProductTypes,
+  type ProductTypesClient
+} from '@/lib/data/product-types';
 import { CustomerOrderSources } from '@/store/customer-order-sources';
 import { ShopMenuRead } from '@/store/shop-menu-read';
 import { ShopAvailabilityRead } from '@/store/shop-availability-read';
@@ -985,6 +995,8 @@ export class OpsRuntime extends OpsProvider {
   }
 
   private bazaarDays = new BazaarDays({
+    isItem: (productId) =>
+      this.flavourSync?.current().find((row) => row.id === productId)?.item_type === 'item',
     // After a reload at the stall the bookings may not have been read yet: the review still reads its day.
     client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
     online: () => Boolean(this.state.online),
@@ -2345,8 +2357,113 @@ export class OpsRuntime extends OpsProvider {
    * exception, docs/state/protected-exception.md). Prices and the on-menu switch follow
    * the rows. An empty or failed read keeps the ported list.
    */
+  /** Her product types and each product's type (migration 84); null until read, or when the database has none yet. */
+  private productTypes: ProductTypes | null = null;
+  private productTypesClient: ProductTypesClient | null = null;
+
+  /** Reads her product types. A failed read keeps the built-in Cookie and Set in the editor, and saves send no type. */
+  async loadProductTypes(client: ProductTypesClient): Promise<void> {
+    this.productTypesClient = client;
+    try {
+      const read = await fetchProductTypes(client);
+      if (client !== this.productTypesClient) return;
+      this.productTypes = read;
+    } catch {
+      if (client !== this.productTypesClient) return;
+      this.productTypes = null;
+    }
+    this.setState((s) => ({
+      productTypesRead: ((s.productTypesRead as number | undefined) ?? 0) + 1
+    }));
+  }
+
+  /** What a behaviour means, in her words. */
+  private static readonly BEHAVIOUR_TEXT: Record<Behaviour, string> = {
+    cookie: 'Counts as a cookie',
+    set: 'A set of cookies',
+    item: 'Sold by the piece, not a cookie'
+  };
+
+  /** The product types panel: her types, renaming, switching off and adding. Null until the types are read. */
+  private productTypesView(): NonNullable<OpsVals['liveForm']>['types'] {
+    const read = this.productTypes;
+    if (!read) return null;
+    return {
+      rows: read.types.map((t) => ({
+        id: t.id,
+        label: t.label,
+        behaviourText: OpsRuntime.BEHAVIOUR_TEXT[t.behavesAs],
+        active: t.active,
+        builtIn: t.builtIn,
+        rename: (label: string) => this.saveType({ ...t, label }, t.updatedAt),
+        toggle: t.builtIn ? null : () => this.saveType({ ...t, active: !t.active }, t.updatedAt)
+      })),
+      add: (label: string, behavesAs: Behaviour) => {
+        const problem = typeLabelError(label, read.types);
+        if (problem) return Promise.resolve(problem);
+        const id = typeIdFor(label, new Set(read.types.map((t) => t.id)));
+        const sortOrder = Math.min(999, Math.max(1, ...read.types.map((t) => t.sortOrder)) + 1);
+        return this.saveType({ id, label, behavesAs, sortOrder, active: true }, null);
+      }
+    };
+  }
+
+  /** One product type save, then the types read again. */
+  private async saveType(
+    type: Pick<ProductType, 'id' | 'label' | 'behavesAs' | 'sortOrder' | 'active'>,
+    expectedUpdatedAt: string | null
+  ): Promise<string | null> {
+    const client = this.productTypesClient;
+    if (!client || !this.state.online) return 'Saving a product type needs signal.';
+    if (expectedUpdatedAt !== null) {
+      const others = (this.productTypes?.types ?? []).filter((t) => t.id !== type.id);
+      const problem = typeLabelError(type.label, others);
+      if (problem) return problem;
+    }
+    const outcome = await saveProductType(client, type, expectedUpdatedAt);
+    await this.loadProductTypes(client);
+    if (outcome === 'saved') {
+      this.toast('Product type saved.');
+      return null;
+    }
+    if (outcome === 'stale') return 'That type changed on another device. It has been read again.';
+    if (outcome === 'locked')
+      return 'Cookie and Set stay on, and a type in use keeps how it behaves.';
+    if (outcome === 'refused') return 'That type could not be saved. Check its name.';
+    return 'Saving a product type needs signal.';
+  }
+
+  /** The editor's type field: the product's type and the types she can choose (switched-on ones, plus its own). */
+  private productTypeChoice(
+    productId: string | null,
+    itemType: string
+  ): {
+    typeId?: string;
+    typeOptions: Array<{ id: string; label: string; behavesAs: Behaviour }>;
+  } {
+    const builtIn = [
+      { id: 'cookie', label: 'Cookie', behavesAs: 'cookie' as const },
+      { id: 'set', label: 'Set', behavesAs: 'set' as const }
+    ];
+    if (!this.productTypes)
+      return { typeOptions: builtIn, typeId: itemType === 'set' ? 'set' : 'cookie' };
+    const own = productId ? this.productTypes.products[productId] : undefined;
+    // An item never falls back to Cookie: without its own type read yet, the first item type is offered.
+    const firstItem = this.productTypes.types.find((t) => t.behavesAs === 'item' && t.active)?.id;
+    const typeId =
+      own ??
+      (itemType === 'item' ? (firstItem ?? 'cookie') : itemType === 'set' ? 'set' : 'cookie');
+    return {
+      typeId,
+      typeOptions: this.productTypes.types
+        .filter((t) => t.active || t.id === typeId)
+        .map((t) => ({ id: t.id, label: t.label, behavesAs: t.behavesAs }))
+    };
+  }
+
   loadFlavours(client: FlavoursClient): Promise<boolean> {
     if (!isLiveMode()) return Promise.resolve(false);
+    void this.loadProductTypes(client);
     this.flavourSync = new FlavourSync(client, {
       apply: (rows) => {
         const { list, allergens } = engineCatalogue(rows);
@@ -3157,6 +3274,7 @@ export class OpsRuntime extends OpsProvider {
       price_cents: priceInCents,
       kind: fields.kind,
       item_type: fields.itemType,
+      ...(fields.typeId && this.productTypes ? { type_id: fields.typeId } : {}),
       capacity_weight: fields.capacityWeight,
       tag: fields.badge,
       description: fields.description,
@@ -3174,6 +3292,8 @@ export class OpsRuntime extends OpsProvider {
     const flavourId = id ?? slugifyFlavourId(fields.name, existing);
     const status = await this.flavourSync.saveWhole(flavourId, dbFields, expectedUpdatedAt);
     if (status === 'saved') {
+      // Its type may be new or changed: read the types again so the next edit starts from it (review, 14 November 2026).
+      if (this.productTypesClient) void this.loadProductTypes(this.productTypesClient);
       this.toast('Flavour saved.');
       this.openFlavourList();
     }
@@ -10600,7 +10720,10 @@ export class OpsRuntime extends OpsProvider {
             badge: target?.tag ?? '',
             kind: (target?.kind === 'Rotating' ? 'Rotating' : 'Permanent') as
               'Permanent' | 'Rotating',
-            itemType: (target?.item_type === 'set' ? 'set' : 'cookie') as 'cookie' | 'set',
+            itemType: (target?.item_type === 'set' || target?.item_type === 'item'
+              ? target.item_type
+              : 'cookie') as 'cookie' | 'set' | 'item',
+            ...this.productTypeChoice(target?.id ?? null, target?.item_type ?? 'cookie'),
             capacityWeight: target?.capacity_weight ?? 1,
             sortOrder:
               target?.sort_order ??
@@ -10631,6 +10754,7 @@ export class OpsRuntime extends OpsProvider {
       addNew: () => this.openNewFlavour(),
       publish: () => void this.publishMenu(),
       close: () => this.closeSheet(),
+      types: this.productTypesView(),
       editing
     };
   }
