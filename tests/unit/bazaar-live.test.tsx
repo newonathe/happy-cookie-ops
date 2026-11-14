@@ -407,7 +407,9 @@ describe('S2: with no event on the phone', () => {
     expect(screen.getByText('Close the day that is still open first')).toBeTruthy();
     // An open day is sold on the phone that started it: no button here takes it over.
     expect(
-      screen.getByText('Selling has started. Sell on the phone that started it.')
+      screen.getByText(
+        'Selling on another of your devices. Tap Sell on this device to sell and close it here.'
+      )
     ).toBeTruthy();
     expect(screen.getAllByRole('button', { name: 'Start this day' })).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /Sell on this phone/ })).toBeNull();
@@ -508,7 +510,9 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
       await click(/Katipunan market/);
       expect(screen.getByText('Selling on this device')).toBeTruthy();
       expect(
-        screen.queryByText('Selling has started. Sell on the phone that started it.')
+        screen.queryByText(
+          'Selling on another of your devices. Tap Sell on this device to sell and close it here.'
+        )
       ).toBeNull();
       await click('Resume selling');
       expect(label('Bazaar Mode')).toHaveLength(1);
