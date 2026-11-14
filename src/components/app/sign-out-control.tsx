@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { queuedBeforeSignOut, type LocalSale } from '@/lib/auth/sign-out-guard';
 
@@ -25,6 +26,12 @@ export const SIGN_OUT_COPY = {
   cancel: 'Keep selling'
 } as const;
 
+/**
+ * Where the Account page keeps Sign out on a phone (14 November 2026: the floating button covered rows, cards and amounts on
+ * every phone screen). On a wider screen it stays where it was, over the sidebar.
+ */
+export const SIGN_OUT_SLOT_ID = 'hc-sign-out-slot';
+
 type Stage = 'idle' | 'checking' | 'confirm' | 'warning' | 'sending' | 'leaving';
 
 /**
@@ -46,19 +53,28 @@ export function SignOutControl({
   onSignOut,
   local,
   offline,
-  eventOpen
+  eventOpen,
+  slotKey
 }: {
   flush: () => Promise<unknown>;
   onSignOut: () => void;
   local: () => readonly LocalSale[];
   offline: boolean;
   eventOpen: () => boolean;
+  /** The screen shown: the Account page's slot is looked for again whenever it changes. */
+  slotKey?: string;
 }) {
   const [stage, setStage] = useState<Stage>('idle');
   const [count, setCount] = useState<number | null>(null);
   const [tried, setTried] = useState(false);
   const [stall, setStall] = useState(false);
   const epoch = useRef(0);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  // Looked for after the screen has been drawn (the Account page draws the slot in the same commit).
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setSlot(document.getElementById(SIGN_OUT_SLOT_ID)));
+    return () => cancelAnimationFrame(frame);
+  }, [slotKey]);
   // A count or a send that is still out when this unmounts must not sign anyone out afterwards.
   useEffect(
     () => () => {
@@ -129,10 +145,35 @@ export function SignOutControl({
 
   return (
     <>
+      {slot
+        ? createPortal(
+            <button
+              type="button"
+              onClick={() => void begin()}
+              disabled={stage !== 'idle'}
+              className="min-[651px]:hidden"
+              style={{
+                minHeight: '44px',
+                padding: '0 16px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 600,
+                border: '1px solid var(--color-line-strong)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-ink)',
+                cursor: 'pointer'
+              }}
+            >
+              {SIGN_OUT_COPY.button}
+            </button>,
+            slot
+          )
+        : null}
       <button
         type="button"
         onClick={() => void begin()}
         disabled={stage !== 'idle'}
+        className="max-[650px]:hidden"
         style={{
           position: 'fixed',
           left: '12px',
