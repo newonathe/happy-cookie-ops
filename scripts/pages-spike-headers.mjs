@@ -156,7 +156,9 @@ export async function generatePagesHeaders(publicOutput, templatePath, { supabas
     );
 
   const connectSrc = supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'";
-  const csp = `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; connect-src ${connectSrc}; img-src ${connectSrc}; script-src 'self' ${[...hashes].sort().join(' ')}; style-src 'self' 'unsafe-inline'`;
+  // data: lets the drawn cookie pictures (src/lib/media/cookie-art.ts) load; images only (14 Nov 2026).
+  const imgSrc = supabaseOrigin ? `'self' data: ${supabaseOrigin}` : "'self' data:";
+  const csp = `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; connect-src ${connectSrc}; img-src ${imgSrc}; script-src 'self' ${[...hashes].sort().join(' ')}; style-src 'self' 'unsafe-inline'`;
   const template = (await readFile(templatePath, 'utf8')).trimEnd();
   const headerLines = ['Content-Security-Policy: ' + csp];
   for (const line of headerLines) {
