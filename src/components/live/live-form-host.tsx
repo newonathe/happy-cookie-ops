@@ -19,6 +19,7 @@ import {
 } from '@/components/live/form-styles';
 import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
 import { resolveImagePath } from '@/lib/media/resolve-image';
+import { CostForm } from '@/components/live/recipes/flavour-page';
 import { ProductionDough } from '@/components/live/production/production-dough';
 
 /**
@@ -190,166 +191,184 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
     });
   };
   return (
-    <form
-      key={editing.id ?? 'new'}
-      onSubmit={onSubmit}
-      style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-    >
-      <label style={labelStyle}>
-        <span style={smallLabel}>Name</span>
-        <input name="name" defaultValue={editing.name} maxLength={60} required style={inputStyle} />
-      </label>
-      <label style={labelStyle}>
-        <span style={smallLabel}>Short name</span>
-        <input
-          name="shortName"
-          defaultValue={editing.shortName}
-          maxLength={40}
-          required
-          style={inputStyle}
-        />
-      </label>
-      <label style={labelStyle}>
-        <span style={smallLabel}>Description</span>
-        <textarea
-          name="description"
-          defaultValue={editing.description}
-          maxLength={300}
-          rows={3}
-          style={{
-            ...inputStyle,
-            height: 'auto',
-            padding: '10px 13px',
-            resize: 'vertical' as const
-          }}
-        />
-      </label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {photo ? (
-          <span
-            role="img"
-            aria-label="Product photo"
+    <>
+      {/* Cine, 14 November 2026: the cost of goods sold is set where the product is edited; every bazaar uses it. */}
+      {editing.costItem ? (
+        <section aria-label="Cost per cookie" style={{ marginBottom: '16px' }}>
+          <CostForm item={editing.costItem} />
+        </section>
+      ) : editing.id ? (
+        <p style={{ ...smallLabel, marginBottom: '12px' }}>
+          The cost per cookie appears here once the product is on the menu.
+        </p>
+      ) : null}
+      <form
+        key={editing.id ?? 'new'}
+        onSubmit={onSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+      >
+        <label style={labelStyle}>
+          <span style={smallLabel}>Name</span>
+          <input
+            name="name"
+            defaultValue={editing.name}
+            maxLength={60}
+            required
+            style={inputStyle}
+          />
+        </label>
+        <label style={labelStyle}>
+          <span style={smallLabel}>Short name</span>
+          <input
+            name="shortName"
+            defaultValue={editing.shortName}
+            maxLength={40}
+            required
+            style={inputStyle}
+          />
+        </label>
+        <label style={labelStyle}>
+          <span style={smallLabel}>Description</span>
+          <textarea
+            name="description"
+            defaultValue={editing.description}
+            maxLength={300}
+            rows={3}
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: 12,
-              flexShrink: 0,
-              background: `var(--color-chip) url(${photo}) center / cover`
+              ...inputStyle,
+              height: 'auto',
+              padding: '10px 13px',
+              resize: 'vertical' as const
             }}
           />
-        ) : (
-          <span style={smallLabel}>No photo</span>
-        )}
-        <span style={smallLabel}>Photo</span>
-      </div>
-      <input ref={photoRef} type="hidden" name="imagePath" value={photoPath} readOnly />
-      <UploadField upload={uploadPhoto} label="Change photo" hint="" />
-      {photoPath ? (
-        <button type="button" onClick={removePhoto} style={secondaryButton}>
-          Remove photo
+        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {photo ? (
+            <span
+              role="img"
+              aria-label="Product photo"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 12,
+                flexShrink: 0,
+                background: `var(--color-chip) url(${photo}) center / cover`
+              }}
+            />
+          ) : (
+            <span style={smallLabel}>No photo</span>
+          )}
+          <span style={smallLabel}>Photo</span>
+        </div>
+        <input ref={photoRef} type="hidden" name="imagePath" value={photoPath} readOnly />
+        <UploadField upload={uploadPhoto} label="Change photo" hint="" />
+        {photoPath ? (
+          <button type="button" onClick={removePhoto} style={secondaryButton}>
+            Remove photo
+          </button>
+        ) : null}
+        <label style={labelStyle}>
+          <span style={smallLabel}>Contains</span>
+          <input
+            name="allergens"
+            defaultValue={editing.allergens}
+            maxLength={200}
+            required
+            style={inputStyle}
+          />
+        </label>
+        <label style={labelStyle}>
+          <span style={smallLabel}>Shop label (optional)</span>
+          <input
+            name="badge"
+            defaultValue={editing.badge}
+            maxLength={30}
+            style={inputStyle}
+            aria-describedby={badgeHintId}
+            placeholder="Popular or Seasonal"
+          />
+        </label>
+        <p
+          id={badgeHintId}
+          style={{
+            margin: '-4px 0 0',
+            fontSize: '12px',
+            color: 'var(--color-ink-mute)',
+            lineHeight: 1.5
+          }}
+        >
+          Shown beside the cookie name.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <label style={labelStyle}>
+            <span style={smallLabel}>Permanent or rotating</span>
+            <select name="kind" defaultValue={editing.kind} style={inputStyle}>
+              <option value="Permanent">Permanent</option>
+              <option value="Rotating">Rotating</option>
+            </select>
+          </label>
+          <label style={labelStyle}>
+            <span style={smallLabel}>Cookie or set</span>
+            <select name="itemType" defaultValue={editing.itemType} style={inputStyle}>
+              <option value="cookie">Cookie</option>
+              <option value="set">Set</option>
+            </select>
+          </label>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <label style={labelStyle}>
+            <span style={smallLabel}>Cookies counted toward the order limit</span>
+            <input
+              name="capacityWeight"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={48}
+              step={1}
+              required
+              defaultValue={editing.capacityWeight}
+              style={inputStyle}
+            />
+          </label>
+          <label style={labelStyle}>
+            <span style={smallLabel}>Display order</span>
+            <input
+              name="sortOrder"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={999}
+              step={1}
+              required
+              defaultValue={editing.sortOrder}
+              style={inputStyle}
+            />
+          </label>
+        </div>
+        <label style={labelStyle}>
+          <span style={smallLabel}>Price (₱)</span>
+          <input
+            name="price"
+            type="number"
+            inputMode="decimal"
+            min={0.01}
+            step="0.01"
+            required
+            defaultValue={editing.price}
+            style={{ ...inputStyle, fontVariantNumeric: 'tabular-nums' as const }}
+          />
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input name="active" type="checkbox" defaultChecked={editing.active} />
+          <span style={smallLabel}>On the order form</span>
+        </label>
+        <button type="submit" style={primaryButton}>
+          Save product
         </button>
-      ) : null}
-      <label style={labelStyle}>
-        <span style={smallLabel}>Contains</span>
-        <input
-          name="allergens"
-          defaultValue={editing.allergens}
-          maxLength={200}
-          required
-          style={inputStyle}
-        />
-      </label>
-      <label style={labelStyle}>
-        <span style={smallLabel}>Shop label (optional)</span>
-        <input
-          name="badge"
-          defaultValue={editing.badge}
-          maxLength={30}
-          style={inputStyle}
-          aria-describedby={badgeHintId}
-          placeholder="Popular or Seasonal"
-        />
-      </label>
-      <p
-        id={badgeHintId}
-        style={{
-          margin: '-4px 0 0',
-          fontSize: '12px',
-          color: 'var(--color-ink-mute)',
-          lineHeight: 1.5
-        }}
-      >
-        Shown beside the cookie name.
-      </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        <label style={labelStyle}>
-          <span style={smallLabel}>Permanent or rotating</span>
-          <select name="kind" defaultValue={editing.kind} style={inputStyle}>
-            <option value="Permanent">Permanent</option>
-            <option value="Rotating">Rotating</option>
-          </select>
-        </label>
-        <label style={labelStyle}>
-          <span style={smallLabel}>Cookie or set</span>
-          <select name="itemType" defaultValue={editing.itemType} style={inputStyle}>
-            <option value="cookie">Cookie</option>
-            <option value="set">Set</option>
-          </select>
-        </label>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        <label style={labelStyle}>
-          <span style={smallLabel}>Cookies counted toward the order limit</span>
-          <input
-            name="capacityWeight"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={48}
-            step={1}
-            required
-            defaultValue={editing.capacityWeight}
-            style={inputStyle}
-          />
-        </label>
-        <label style={labelStyle}>
-          <span style={smallLabel}>Display order</span>
-          <input
-            name="sortOrder"
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={999}
-            step={1}
-            required
-            defaultValue={editing.sortOrder}
-            style={inputStyle}
-          />
-        </label>
-      </div>
-      <label style={labelStyle}>
-        <span style={smallLabel}>Price (₱)</span>
-        <input
-          name="price"
-          type="number"
-          inputMode="decimal"
-          min={0.01}
-          step="0.01"
-          required
-          defaultValue={editing.price}
-          style={{ ...inputStyle, fontVariantNumeric: 'tabular-nums' as const }}
-        />
-      </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <input name="active" type="checkbox" defaultChecked={editing.active} />
-        <span style={smallLabel}>On the order form</span>
-      </label>
-      <button type="submit" style={primaryButton}>
-        Save product
-      </button>
-      <button type="button" onClick={editing.cancel} style={secondaryButton}>
-        Cancel
-      </button>
-    </form>
+        <button type="button" onClick={editing.cancel} style={secondaryButton}>
+          Cancel
+        </button>
+      </form>
+    </>
   );
 }

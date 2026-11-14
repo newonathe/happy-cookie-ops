@@ -328,6 +328,23 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     expect(toastText(runtime)).toContain('Offline');
   });
 
+  it("Edit product carries the flavour's cost per cookie, the recipe book's own field (Cine, 14 November 2026)", async () => {
+    const { runtime } = await mounted('owner');
+    const i = PRODUCTS.findIndex((p) => p.id === 'wcb');
+    act(() => runtime.renderVals().productRows[i]!.edit());
+    const editing = runtime.renderVals().liveForm!.editing!;
+    expect(editing.costItem?.id).toBe('wcb');
+    const view = render(<AppFrame v={runtime.renderVals()} />);
+    expect(
+      view.getByRole('form', { name: 'Cost per cookie for ' + editing.costItem!.name })
+    ).toBeTruthy();
+    expect(view.getByRole('button', { name: 'Save product' })).toBeTruthy();
+    view.unmount();
+    // A new product has no cost of its own yet.
+    act(() => runtime.renderVals().liveForm!.addNew());
+    expect(runtime.renderVals().liveForm!.editing!.costItem ?? null).toBeNull();
+  });
+
   it('renders the list and the edit form with no undefined, NaN or console error', async () => {
     const { runtime } = await mounted('owner');
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

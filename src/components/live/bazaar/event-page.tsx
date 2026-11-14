@@ -446,7 +446,11 @@ function CostCard({
             Save the cost
           </Button>
         </form>
-      ) : null}
+      ) : (
+        <p className="m-0 text-caption text-ink-mute">
+          Change it in Make: open the product, then Edit product. Every bazaar uses that cost.
+        </p>
+      )}
     </li>
   );
 }

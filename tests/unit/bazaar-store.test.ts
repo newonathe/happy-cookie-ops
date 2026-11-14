@@ -409,6 +409,8 @@ describe("the event's page", () => {
     expect(event.feesTotalText).toBe('₱800.00');
     expect(event.fees.map((f) => f.amountText)).toEqual(['₱500.00', '₱250.00', '₱50.00']);
     expect(event.targetText).toBe('₱500.00');
+    // Cine, 14 November 2026: one cost per flavour, set in Make; the event no longer takes its own.
+    expect(event.costs.every((c) => c.save === null)).toBe(true);
     expect(event.costs.map((c) => c.text)).toEqual([
       '₱12.01 per cookie · from the recipe',
       '₱28.75 per cookie · typed by you',
