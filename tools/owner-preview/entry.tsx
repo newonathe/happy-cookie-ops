@@ -76,6 +76,19 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
   if(((window as unknown as {qaFailRpcs?:string[]}).qaFailRpcs ?? []).includes(name)) return {data:null,error:{code:'08006'}};
   // `window.qaHoldRpcs` lists reads that never answer (a stalled connection), for the read time limits.
   if(((window as unknown as {qaHoldRpcs?:string[]}).qaHoldRpcs ?? []).includes(name)) return new Promise<never>(() => undefined);
+  // D3: a price changed on the open day (synthetic): the line takes the new price, and the day's prices are answered back.
+  if(name==='set_bazaar_day_price'||name==='get_event_prices'){
+    const d=historyAnswer.summary.days[0] as {lines:Array<{product_id:string;price_cents:number}>};
+    const list=()=>Object.fromEntries(d.lines.map((x)=>[x.product_id,x.price_cents]));
+    const w=window as unknown as {qaPriceVersion?:number};
+    if(name==='get_event_prices') return {data:{version:w.qaPriceVersion??0,prices:list()},error:null};
+    const c=(args as {p_change:{productId:string;priceCents:number}}).p_change;
+    const l=d.lines.find((x)=>x.product_id===c.productId);
+    if(!l) return {data:null,error:{code:'22023',message:"flavour is not on this day's price list"}};
+    if(l.price_cents===c.priceCents) return {data:null,error:{code:'22023',message:'that is already the price'}};
+    l.price_cents=c.priceCents; w.qaPriceVersion=(w.qaPriceVersion??0)+1;
+    return {data:{version:w.qaPriceVersion,latest:w.qaPriceVersion,prices:list(),duplicate:false},error:null};
+  }
   if(name==='get_scheduled_events') return {data:[{...historyAnswer.summary.booking,started:true,updated_at:'2026-10-20T02:00:00Z'}],error:null};
   if(name==='get_bazaar') return {data:historyAnswer,error:null};
   if(name==='get_shop_status') return {data:{open_dow:1,open_h:9,open_m:0,close_dow:4,close_h:21,close_m:0,extend_h:0,override:null},error:null};

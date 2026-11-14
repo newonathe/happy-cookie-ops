@@ -678,3 +678,79 @@ describe('the close-out (live)', () => {
     expect(store.size).toBe(0);
   });
 });
+
+describe('D3: the till charges a changed price', () => {
+  interface Prices {
+    applyDayPrices: (
+      eventId: string,
+      next: { version: number; prices: Record<string, number> },
+      fromRead: boolean
+    ) => void;
+    refreshHeldPrices: () => Promise<void>;
+  }
+  const prices = (runtime: OpsRuntime) => runtime as unknown as Prices;
+  const started = async () => {
+    const runtime = mounted();
+    const { client, rpc } = rpcThatStarts(startReply);
+    bazaar(runtime).saleClient = client;
+    act(() => runtime.setState({ role: 'owner' } as never));
+    await act(async () => void (await begin(runtime)));
+    return { runtime, rpc, id: await dayEventId(DAY) };
+  };
+  const charged = (runtime: OpsRuntime) => runtime.state.eventPrices as Record<string, number>;
+
+  it('a confirmed change is charged at once; past sales keep the list they were rung at', async () => {
+    const { runtime, id } = await started();
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 1, prices: { dcf: 13000, wcb: 9000 } }, false)
+    );
+    expect(charged(runtime)).toMatchObject({ dcf: 130, wcb: 90 });
+    expect(runtime.state.event).toMatchObject({
+      priceVersion: 1,
+      priceLists: [{ dcf: 125, wcb: 90 }]
+    });
+    // The cart is priced by the engine from eventPrices: one dcf in the cart now comes to the new price.
+    act(() => runtime.setState({ cart: { dcf: 1 } } as never));
+    expect(runtime.renderVals().liveTill?.cartTotalText).toBe('₱130.00');
+  });
+
+  it('an older or repeated list changes nothing, and another event is never touched', async () => {
+    const { runtime, id } = await started();
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 2, prices: { dcf: 14000, wcb: 9000 } }, false)
+    );
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 1, prices: { dcf: 13000, wcb: 9000 } }, true)
+    );
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 2, prices: { dcf: 99900, wcb: 9000 } }, true)
+    );
+    expect(charged(runtime).dcf).toBe(140);
+    act(() =>
+      prices(runtime).applyDayPrices(EVENT, { version: 5, prices: { dcf: 1, wcb: 1 } }, true)
+    );
+    expect(charged(runtime).dcf).toBe(140);
+    // Mutation: applying any read would let a late answer put the old price back on the till.
+  });
+
+  it('re-reads the held day from the server and says when another device changed a price', async () => {
+    const { runtime, rpc, id } = await started();
+    rpc.mockImplementation(async (name: string) =>
+      name === 'get_event_prices'
+        ? { data: { version: 1, prices: { dcf: 13500, wcb: 9000 } }, error: null }
+        : { data: null, error: null }
+    );
+    await act(async () => void (await prices(runtime).refreshHeldPrices()));
+    await settle();
+    expect(rpc).toHaveBeenCalledWith('get_event_prices', { p_event: id });
+    expect(charged(runtime).dcf).toBe(135);
+    expect(toastText(runtime)).toContain('changed on another device');
+  });
+
+  it('a read that fails leaves the till as it is', async () => {
+    const { runtime, rpc } = await started();
+    rpc.mockImplementation(async () => ({ data: null, error: { code: '08006' } }));
+    await act(async () => void (await prices(runtime).refreshHeldPrices()));
+    expect(charged(runtime).dcf).toBe(125);
+  });
+});

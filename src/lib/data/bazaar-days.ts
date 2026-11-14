@@ -1388,3 +1388,104 @@ export async function deleteBazaarBooking(
     return 'offline';
   }
 }
+
+// ------------------------------------------------------------------ D3: a price changed on a started day
+
+/** A selling day's prices now (centavos by flavour) and how many changes made them: 0 is the list the day started with. */
+export interface DayPrices {
+  version: number;
+  prices: Record<string, number>;
+}
+
+/** What the phone sends: `requestId` is minted once and kept until the change is answered, so a retry is the same change. */
+export interface PriceChange {
+  requestId: string;
+  eventId: string;
+  productId: string;
+  priceCents: number;
+}
+
+/**
+ * `saved` carries the day's prices after the change (and `duplicate` when it had landed before). `same`: that is already
+ * the price. `closed`: the day closed. `conflict`: the request id was used for another change. `refused`: anything else the
+ * server said no to. `offline`: no answer, or one that could not be read: the change may have landed, so it is kept.
+ */
+export type PriceChangeOutcome =
+  | { result: 'saved'; prices: DayPrices; duplicate: boolean }
+  | { result: 'same' | 'closed' | 'conflict' | 'refused' | 'offline' };
+
+const MAX_PRICE_CENTS = 100_000_000;
+
+function parsePriceList(v: unknown): Record<string, number> | null {
+  if (!isObj(v)) return null;
+  const prices: Record<string, number> = {};
+  for (const [id, cents] of Object.entries(v)) {
+    if (!PRODUCT.test(id) || !whole(cents, 0, MAX_PRICE_CENTS)) return null;
+    prices[id] = cents;
+  }
+  return prices;
+}
+
+/** What `get_event_prices` returns, `{ version, prices }`; null for anything else. */
+export function parseDayPrices(data: Json | null | undefined): DayPrices | null {
+  if (!isObj(data) || !whole(data.version, 0, 100)) return null;
+  const prices = parsePriceList(data.prices);
+  return prices ? { version: data.version, prices } : null;
+}
+
+/** The change's own checks, before anything is sent; null when it can be sent. */
+export function priceChangeError(c: PriceChange): string | null {
+  if (!UUID.test(c.requestId) || !UUID.test(c.eventId)) return 'This day cannot be changed here.';
+  if (!PRODUCT.test(c.productId)) return 'Choose the flavour.';
+  if (!whole(c.priceCents, 1, MAX_PRICE_CENTS)) return 'A price is from ₱0.01 to ₱1,000,000.';
+  return null;
+}
+
+/** Owner only, with signal: sets one flavour's price for the rest of the open day (`set_bazaar_day_price`, migration 85). */
+export async function setBazaarDayPrice(
+  client: BazaarClient,
+  change: PriceChange
+): Promise<PriceChangeOutcome> {
+  if (priceChangeError(change)) return { result: 'refused' };
+  try {
+    const { data, error } = await client.rpc('set_bazaar_day_price', {
+      p_change: {
+        requestId: change.requestId,
+        eventId: change.eventId,
+        productId: change.productId,
+        priceCents: change.priceCents
+      }
+    });
+    if (error) {
+      const words = error.message ?? '';
+      if (error.code === '22023' && /already the price/.test(words)) return { result: 'same' };
+      if (error.code === '55000' && /closed/.test(words)) return { result: 'closed' };
+      if (error.code === '23505') return { result: 'conflict' };
+      if (['22023', '42501', '54000', '55000', 'P0002'].includes(error.code ?? ''))
+        return { result: 'refused' };
+      return { result: 'offline' };
+    }
+    if (!isObj(data) || typeof data.duplicate !== 'boolean') return { result: 'offline' };
+    const prices = parseDayPrices({
+      version: data.latest ?? null,
+      prices: data.prices ?? null
+    } as Json);
+    return prices ? { result: 'saved', prices, duplicate: data.duplicate } : { result: 'offline' };
+  } catch {
+    return { result: 'offline' };
+  }
+}
+
+/** A selling day's prices as the server has them now; null when they could not be read. Owner only. */
+export async function fetchEventPrices(
+  client: BazaarClient,
+  eventId: string
+): Promise<DayPrices | null> {
+  if (!UUID.test(eventId)) return null;
+  try {
+    const { data, error } = await client.rpc('get_event_prices', { p_event: eventId });
+    return error ? null : parseDayPrices(data);
+  } catch {
+    return null;
+  }
+}

@@ -11,11 +11,13 @@ import {
   saveBazaarLoss,
   saveBazaarTarget,
   saveFlavourCost,
+  setBazaarDayPrice,
   voidBazaarEntry,
   type Bazaar,
   type BazaarClient,
   type BazaarDay,
   type BazaarSummary,
+  type DayPrices,
   type TillFigures
 } from '@/lib/data/bazaar-days';
 import { type ScheduledClient, type ScheduledEvent } from '@/lib/data/scheduled-events';
@@ -35,6 +37,7 @@ import type {
   BazaarEventView,
   CloseInput,
   DayPlanEditor,
+  DayPricesView,
   DayReviewView,
   DayWord,
   LiveBazaarVals,
@@ -51,7 +54,7 @@ import {
   validateFinalise
 } from '@/lib/bazaar/event-rules';
 import { feeCentsOf } from '@/lib/bazaar/forms';
-import { cookiesText, eventWhen, pesoInput, planFromForm } from '@/lib/bazaar/plan';
+import { cookiesText, eventWhen, pesoInput, planFromForm, priceCentsOf } from '@/lib/bazaar/plan';
 import type { RecipeCost } from '@/lib/data/costs';
 import { pesoUnit } from '@/lib/money/format';
 import { peso } from '@/lib/money/format';
@@ -151,6 +154,8 @@ export interface BazaarDaysDeps {
   lossVoided: (dayId: string, productId: string, qty: number) => void;
   /** Stock was added: the till has `qty` more, and the day now holds `loaded` of the flavour. */
   stockAdded: (dayId: string, productId: string, qty: number, loaded: number) => void;
+  /** D3: a price of a selling day changed on the server: a till selling that event charges these prices from now. */
+  pricesChanged?: (eventId: string, prices: DayPrices) => void;
   /** The drop that cookies sent to the shop are written to as a batch. */
   dropNo: () => number;
   /** The event was closed: the books and production are read again. */
@@ -172,24 +177,35 @@ const WORD: Record<BazaarDay['state'], DayWord> = {
 };
 
 const PENDING_KEY = 'hc-bazaar-pending';
-type PendingBody = { productId: string; qty: number; kind: 'made' | 'carried' } | null;
+type StockBody = { productId: string; qty: number; kind: 'made' | 'carried' };
+/** D3: a price change keeps the price it was first sent with, under its own id, until it is answered. */
+type PriceBody = { productId: string; priceCents: number };
+type PendingBody = StockBody | PriceBody | null;
 interface PendingChange {
   clientId: string;
   at: number;
   body: PendingBody;
 }
-const isStockBody = (b: unknown): b is NonNullable<PendingBody> =>
+const isStockBody = (b: unknown): b is StockBody =>
   !!b &&
   typeof b === 'object' &&
   typeof (b as { productId?: unknown }).productId === 'string' &&
   Number.isInteger((b as { qty?: unknown }).qty) &&
   ((b as { kind?: unknown }).kind === 'made' || (b as { kind?: unknown }).kind === 'carried');
+const isPriceBody = (b: unknown): b is PriceBody =>
+  !!b &&
+  typeof b === 'object' &&
+  !('kind' in b) &&
+  typeof (b as { productId?: unknown }).productId === 'string' &&
+  Number.isInteger((b as { priceCents?: unknown }).priceCents);
 const isPendingChange = (v: unknown): v is PendingChange =>
   !!v &&
   typeof v === 'object' &&
   typeof (v as { clientId?: unknown }).clientId === 'string' &&
   Number.isInteger((v as { at?: unknown }).at) &&
-  ((v as { body?: unknown }).body === null || isStockBody((v as { body?: unknown }).body));
+  ((v as { body?: unknown }).body === null ||
+    isStockBody((v as { body?: unknown }).body) ||
+    isPriceBody((v as { body?: unknown }).body));
 
 const COPY = {
   saved: 'Plan saved.',
@@ -245,6 +261,14 @@ const COPY = {
   targetSaved: 'Target saved.',
   valueRefused: 'That could not be saved. The event may already be closed.',
   moneyOffline: 'That needs signal. Try again when you are back online.',
+  priceOffline:
+    'Changing a price needs signal. Nothing was changed on this phone: the till still charges the price it shows.',
+  priceSaved: (name: string, price: string) => `${name} is ${price} from now.`,
+  priceSame: 'That is already the price.',
+  priceClosed: 'This day is closed. Its prices cannot change.',
+  priceRefused: 'That price could not be saved. Check the amount and try again.',
+  earlierPriceSent: (name: string, price: string) =>
+    `An earlier change to ${name} whose answer was lost was sent first: it is ${price} now. Check it, then change it again if you need to.`,
   finaliseNeedsSignal: 'Closing the event needs signal.',
   finaliseOpenDay: 'Close the day that is still selling first.',
   finaliseStale:
@@ -332,7 +356,7 @@ export class BazaarDays {
    * U2: the form open over the till. It reads the held booking the way an event page does (`bookingId`, `data`), and closing
    * it lets the booking go again, so the list is what is drawn once the day has gone.
    */
-  private tillPanel: 'fees' | 'cookies' | null = null;
+  private tillPanel: 'fees' | 'cookies' | 'prices' | null = null;
   /** U3: what the last read of each booking that is not over said, and which reads are out or failed. Screen state only. */
   private hubFacts = new Map<string, HubFacts>();
   private hubState = new Map<string, 'reading' | 'failed'>();
@@ -633,7 +657,7 @@ export class BazaarDays {
   }
 
   /** U2: opens the fee form or the add-cookies form over the till. Needs signal, and a day this phone is selling. */
-  openTillPanel(kind: 'fees' | 'cookies'): void {
+  openTillPanel(kind: 'fees' | 'cookies' | 'prices'): void {
     const held = this.deps.held();
     if (!held || !this.deps.online()) return;
     this.selectionVersion += 1;
@@ -674,12 +698,15 @@ export class BazaarDays {
             addStock: (input) => this.addHeldStock(input)
           }
         : null;
-    const ready = kind === 'fees' ? event !== null : stock !== null;
+    const prices = day && data ? this.pricesView(data, day) : null;
+    const ready =
+      kind === 'fees' ? event !== null : kind === 'prices' ? prices !== null : stock !== null;
     return {
       kind,
       status: ready ? 'loaded' : data || this.reading === 'failed' ? 'failed' : 'loading',
       event: kind === 'fees' ? event : null,
       stock: kind === 'cookies' ? stock : null,
+      prices: kind === 'prices' ? prices : null,
       retry: () => void this.reload(),
       close: () => this.closeTillPanel()
     };
@@ -1018,6 +1045,7 @@ export class BazaarDays {
         ),
       edit: day.state === 'planned' ? () => this.edit(day) : null,
       kitchenTransfer: this.deps.kitchenTransfer?.(booking.id, day.id) ?? null,
+      prices: this.data ? this.pricesView(this.data, day) : null,
       action,
       actionNote: note,
       hint,
@@ -1495,7 +1523,7 @@ export class BazaarDays {
     const key = 'stock:' + day.id;
     // The call adds and the server keeps no body for it, so a change whose answer was lost is sent again exactly as it was.
     const p = this.pendingFor(key, { productId: input.productId, qty, kind });
-    const sent: NonNullable<PendingBody> = isStockBody(p.body)
+    const sent: StockBody = isStockBody(p.body)
       ? p.body
       : { productId: input.productId, qty, kind };
     const earlier = sent.productId !== input.productId || sent.qty !== qty || sent.kind !== kind;
@@ -1518,6 +1546,80 @@ export class BazaarDays {
       this.deps.toast(duplicate ? COPY.repeat : COPY.stockSaved);
       await this.reload();
       return earlier ? COPY.earlierStockSent : null;
+    } finally {
+      this.busy = false;
+    }
+  }
+
+  /**
+   * D3: the open day's prices and "Change a price" (Ethan, 14 November 2026: the owner raises or lowers a flavour's price for
+   * the rest of the day). Null for a day that is not selling, or once the event is closed.
+   */
+  private pricesView(data: Bazaar, day: BazaarDay): DayPricesView | null {
+    if (day.state !== 'open' || data.finalised || !day.eventId) return null;
+    const names = this.names();
+    return {
+      flavours: day.lines.map((l) => ({
+        id: l.productId,
+        name: names.get(l.productId) ?? l.name,
+        priceText: peso(l.priceCents),
+        pricePesos: pesoInput(l.priceCents)
+      })),
+      blocked: this.deps.online() ? null : COPY.priceOffline,
+      change: (input) => this.changePrice(day, input)
+    };
+  }
+
+  /**
+   * Sends one price change with signal; the till changes only once the server has said yes. A change whose answer was lost
+   * keeps its id and price (`price:` key), so trying again is the same change: when she has typed a different price since,
+   * the earlier one is settled first and she is told what it is now.
+   */
+  private async changePrice(
+    day: BazaarDay,
+    input: { productId: string; price: string }
+  ): Promise<string | null> {
+    if (this.busy) return COPY.busy;
+    const client = this.deps.client();
+    if (!client || !this.deps.online()) return COPY.priceOffline;
+    const eventId = day.eventId;
+    const line = day.lines.find((l) => l.productId === input.productId);
+    if (!eventId || !line) return 'Choose the flavour.';
+    const priceCents = priceCentsOf(input.price);
+    if (typeof priceCents === 'string') return priceCents;
+    const name = this.names().get(line.productId) ?? line.name;
+    const key = 'price:' + day.id + ':' + line.productId;
+    // A change whose answer was lost is sent again first, whatever is typed now; only with none waiting is the same price refused
+    // here (review, 15 November 2026).
+    const waiting = this.pending.get(key);
+    if (priceCents === line.priceCents && !(waiting && isPriceBody(waiting.body)))
+      return COPY.priceSame;
+    this.busy = true;
+    try {
+      const p = this.pendingFor(key, { productId: line.productId, priceCents });
+      const earlier = isPriceBody(p.body) && p.body.priceCents !== priceCents ? p.body : null;
+      const sent = earlier ?? { productId: line.productId, priceCents };
+      const outcome = await setBazaarDayPrice(client, {
+        requestId: p.clientId,
+        eventId,
+        productId: sent.productId,
+        priceCents: sent.priceCents
+      });
+      if (outcome.result === 'offline') return COPY.priceOffline;
+      this.settle(key);
+      if (outcome.result !== 'saved') {
+        await this.reload();
+        return outcome.result === 'same'
+          ? COPY.priceSame
+          : outcome.result === 'closed'
+            ? COPY.priceClosed
+            : COPY.priceRefused;
+      }
+      this.deps.pricesChanged?.(eventId, outcome.prices);
+      await this.reload();
+      if (earlier) return COPY.earlierPriceSent(name, peso(earlier.priceCents));
+      this.deps.toast(outcome.duplicate ? COPY.repeat : COPY.priceSaved(name, peso(priceCents)));
+      return null;
     } finally {
       this.busy = false;
     }
