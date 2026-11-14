@@ -994,6 +994,8 @@ export class OpsRuntime extends OpsProvider {
   }
 
   private bazaarDays = new BazaarDays({
+    isItem: (productId) =>
+      this.flavourSync?.current().find((row) => row.id === productId)?.item_type === 'item',
     // After a reload at the stall the bookings may not have been read yet: the review still reads its day.
     client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
     online: () => Boolean(this.state.online),

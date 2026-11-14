@@ -603,6 +603,7 @@ const eventView = (over: Partial<BazaarEventView> = {}): BazaarEventView => ({
   rentCents: 250000,
   status: 'selling',
   soldCount: 13,
+  itemsSold: 0,
   profitCents: 30000,
   targetCents: 50000,
   days: [

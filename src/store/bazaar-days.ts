@@ -102,6 +102,8 @@ export interface BazaarDaysDeps {
    * a day is neither saved nor started. Absent: held.
    */
   catalogueHeld?: () => boolean;
+  /** Her plain items (product types, migration 84): counted apart from cookies. Absent: none. */
+  isItem?: (productId: string) => boolean;
   /** True while this phone holds an event (a started day, or one from before): a second cannot start. */
   holdsEvent: () => boolean;
   resumeTill?: () => void;
@@ -338,6 +340,9 @@ export class BazaarDays {
   }
 
   constructor(private readonly deps: BazaarDaysDeps) {}
+
+  /** Whether a product is one of her plain items (not a cookie); false when not known. */
+  private isItem = (productId: string): boolean => this.deps.isItem?.(productId) ?? false;
 
   /** The owner's way out of every view: back to the list, nothing kept. */
   reset(): void {
@@ -757,7 +762,15 @@ export class BazaarDays {
       status:
         hubPlace(booking, this.deps.today(), hubFactsOf(data, this.deps.today()))?.status ??
         'planned',
-      soldCount: shown.days.reduce((n, d) => n + d.lines.reduce((m, l) => m + l.sold, 0), 0),
+      // Her plain items (product types, migration 84) are not cookies: counted apart.
+      soldCount: shown.days.reduce(
+        (n, d) => n + d.lines.reduce((m, l) => m + (this.isItem(l.productId) ? 0 : l.sold), 0),
+        0
+      ),
+      itemsSold: shown.days.reduce(
+        (n, d) => n + d.lines.reduce((m, l) => m + (this.isItem(l.productId) ? l.sold : 0), 0),
+        0
+      ),
       profitCents: shown.profit.cents,
       targetCents: data.targetCents,
       days: [...data.days]
@@ -791,7 +804,7 @@ export class BazaarDays {
       targetPesos: data.targetCents === null ? '' : pesoInput(data.targetCents),
       saveTarget: data.finalised ? null : (pesos) => this.saveTarget(data, pesos),
       costs: this.costRows(data, shown, names),
-      figures: started ? eventFiguresOf(shown) : [],
+      figures: started ? eventFiguresOf(shown, this.isItem) : [],
       figuresNote: started && !shown.counted ? COPY.notCounted : null,
       finalise:
         data.finalised || !started
@@ -1130,7 +1143,7 @@ export class BazaarDays {
         })),
       dayFigures: dayFiguresOf(data, day),
       report: day.state === 'closed' ? dayReportOf(data, day) : null,
-      eventFigures: eventFiguresOf(data),
+      eventFigures: eventFiguresOf(data, this.isItem),
       eventNote: data.counted ? null : COPY.notCounted,
       flavours: day.lines.map((l) => ({
         id: l.productId,
