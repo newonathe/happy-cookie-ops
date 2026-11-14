@@ -669,6 +669,7 @@ const eventView = (over: Partial<BazaarEventView> = {}): BazaarEventView => ({
   unplanned: [],
   planDay: noop,
   back: noop,
+  deleteEvent: null,
   ...over
 });
 
@@ -1609,5 +1610,79 @@ describe('drafts while reviewing a kitchen transfer', () => {
     expect(
       within(screen.getByRole('form', { name: 'Close the day' })).getByLabelText('Cash counted (₱)')
     ).toHaveValue('301');
+  });
+});
+
+describe('End event: delete an event that never sold', () => {
+  const unsold = (
+    run = vi.fn(async (): Promise<string | null> => null),
+    blocked: string | null = null
+  ) =>
+    eventView({
+      days: [],
+      figures: [],
+      figuresNote: null,
+      finalise: null,
+      deleteEvent: { blocked, run }
+    });
+
+  it('offers no delete once the event has a sale or is closed', () => {
+    render(<EventPage event={eventView()} />);
+    expect(screen.queryByRole('button', { name: 'Delete this event' })).toBeNull();
+  });
+
+  it('says what deleting does, and deletes only after the exact name is typed', async () => {
+    const run = vi.fn(async (): Promise<string | null> => null);
+    render(<EventPage event={unsold(run)} />);
+    expect(
+      screen.getByText(
+        'This event has no sales. Deleting it removes its day plans and costs; Money and Stock do not change.'
+      )
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this event' }));
+    const sheet = await screen.findByRole('region', { name: 'Delete this event' });
+    const confirm = within(sheet).getByRole('button', { name: 'Delete event' });
+    expect((confirm as HTMLButtonElement).disabled).toBe(true);
+    const box = within(sheet).getByLabelText('Type the event name to confirm');
+    fireEvent.change(box, { target: { value: 'katipunan market' } });
+    expect((confirm as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(box, { target: { value: 'Katipunan market' } });
+    expect((confirm as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(confirm);
+    await waitFor(() => expect(run).toHaveBeenCalledWith('Katipunan market'));
+  });
+
+  it('shows what the server refused and keeps the sheet open', async () => {
+    const run = vi.fn(
+      async (): Promise<string | null> => 'This event has sales, so it cannot be deleted.'
+    );
+    render(<EventPage event={unsold(run)} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Delete this event' }));
+    const sheet = await screen.findByRole('region', { name: 'Delete this event' });
+    fireEvent.change(within(sheet).getByLabelText('Type the event name to confirm'), {
+      target: { value: 'Katipunan market' }
+    });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Delete event' }));
+    expect(
+      await within(sheet).findByText('This event has sales, so it cannot be deleted.')
+    ).toBeTruthy();
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Keep the event' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Delete this event' })).toBeNull()
+    );
+  });
+
+  it('cannot be started while this phone holds unsent sales for it', () => {
+    render(
+      <EventPage
+        event={unsold(
+          undefined,
+          'This phone still has 2 sales for this event that the server has not taken. They must send first.'
+        )}
+      />
+    );
+    const button = screen.getByRole('button', { name: 'Delete this event' }) as HTMLButtonElement;
+    expect(button.disabled || button.getAttribute('aria-disabled') === 'true').toBe(true);
+    expect(screen.getByText(/still has 2 sales for this event/)).toBeTruthy();
   });
 });

@@ -1326,3 +1326,43 @@ export async function reverseBazaarTest(
     return 'offline';
   }
 }
+
+/**
+ * End event, first part: what deleting an event that never sold came to. `has-sales`: it has sales (voided ones count), so it
+ * is ended with its records kept instead. `in-books`: something of it is already in Money or Stock (finalised, a fee, an
+ * expense, a drawer difference, recorded kitchen cookies, a link to an older till event). `refused`: no such booking, or not
+ * the owner. `open-day`: a selling day of it is still open; it is closed first, so the selling phone hands over its sales.
+ */
+export type DeleteOutcome =
+  'deleted' | 'wrong-name' | 'open-day' | 'has-sales' | 'in-books' | 'refused' | 'offline';
+
+/**
+ * Deletes an event that never sold anything: its day plans, typed costs, fees, losses, added stock and the selling days it
+ * opened, and the booking (migration 20260101008300). `name` must be the booking's name exactly. A repeat after a lost
+ * answer is answered with what the first call did. Only an answer that says when it was deleted counts as deleted.
+ */
+export async function deleteBazaarBooking(
+  client: BazaarClient,
+  bookingId: string,
+  name: string
+): Promise<DeleteOutcome> {
+  if (!UUID.test(bookingId) || name.length < 1 || name.length > 80) return 'wrong-name';
+  try {
+    const { data, error } = await client.rpc('delete_bazaar_booking', {
+      p_booking: bookingId,
+      p_confirm_name: name
+    });
+    if (error) {
+      if (error.code === '22023') return 'wrong-name';
+      if (error.code === '55000') {
+        const words = error.message ?? '';
+        if (/still selling/.test(words)) return 'open-day';
+        return /has sales/.test(words) ? 'has-sales' : 'in-books';
+      }
+      return ['42501', 'P0002'].includes(error.code ?? '') ? 'refused' : 'offline';
+    }
+    return isObj(data) && typeof data.deleted_at === 'number' ? 'deleted' : 'offline';
+  } catch {
+    return 'offline';
+  }
+}

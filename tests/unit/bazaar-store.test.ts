@@ -997,3 +997,79 @@ describe('explicit kitchen transfer entry points', () => {
     expect(h.calls('add_bazaar_day_stock')).toHaveLength(0);
   });
 });
+
+describe('End event: delete an event that never sold', () => {
+  /** The example with every day closed and no sale. */
+  const unsold = (): Wire => {
+    const w = clone();
+    (w.summary.revenue as Record<string, unknown>).sales = 0;
+    return w;
+  };
+
+  it('is offered only while the event has no sale, and never once it has one', async () => {
+    const sold = harness(clone());
+    sold.store.open(BOOKING);
+    await settle();
+    expect(sold.store.vals().event!.deleteEvent).toBeNull();
+    const h = harness(unsold());
+    h.store.open(BOOKING);
+    await settle();
+    expect(h.store.vals().event!.deleteEvent).not.toBeNull();
+    expect(h.store.vals().event!.deleteEvent!.blocked).toBeNull();
+  });
+
+  it('refuses while a selling day is still open, sending nothing', async () => {
+    const w = day2Open();
+    (w.summary.revenue as Record<string, unknown>).sales = 0;
+    const h = harness(w);
+    h.store.open(BOOKING);
+    await settle();
+    const remove = h.store.vals().event!.deleteEvent!;
+    expect(remove.blocked).toMatch(/still selling/);
+    expect(await remove.run('Fixture fair')).toMatch(/still selling/);
+    expect(h.calls('delete_bazaar_booking')).toHaveLength(0);
+  });
+
+  it('refuses while this phone holds a sale for the event that the server has not taken, sending nothing', async () => {
+    const h = harness(unsold());
+    h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 1, refused: 1, stock: {} };
+    h.store.open(BOOKING);
+    await settle();
+    const remove = h.store.vals().event!.deleteEvent!;
+    expect(remove.blocked).toMatch(/still has 2 sales for this event/);
+    expect(await remove.run('Fixture fair')).toMatch(/still has 2 sales/);
+    expect(h.calls('delete_bazaar_booking')).toHaveLength(0);
+  });
+
+  it('sends the exact name, lets go of the held day, reads the list again and leaves the event', async () => {
+    const h = harness(unsold());
+    h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 0, refused: 0, stock: {} };
+    h.store.open(BOOKING);
+    await settle();
+    expect(await h.store.vals().event!.deleteEvent!.run('fixture fair')).toMatch(/exactly/);
+    expect(h.calls('delete_bazaar_booking')).toHaveLength(0);
+    h.reply('delete_bazaar_booking', { data: { deleted_at: 1_792_900_000_000 } });
+    expect(await h.store.vals().event!.deleteEvent!.run('Fixture fair')).toBeNull();
+    expect(h.calls('delete_bazaar_booking')).toEqual([
+      { p_booking: BOOKING, p_confirm_name: 'Fixture fair' }
+    ]);
+    expect(h.deps.dayClosed).toHaveBeenCalledWith(DAY2);
+    expect(h.deps.refreshBookings).toHaveBeenCalled();
+    expect(h.store.vals().event).toBeFalsy();
+  });
+
+  it('says why the server refused, and does not leave the event', async () => {
+    const h = harness(unsold());
+    h.store.open(BOOKING);
+    await settle();
+    h.reply('delete_bazaar_booking', {
+      error: {
+        code: '55000',
+        message: 'that event has sales: end it and keep or scratch them instead'
+      }
+    } as Reply);
+    expect(await h.store.vals().event!.deleteEvent!.run('Fixture fair')).toMatch(/has sales/);
+    expect(h.deps.dayClosed).not.toHaveBeenCalled();
+    expect(h.store.vals().event).toBeTruthy();
+  });
+});
