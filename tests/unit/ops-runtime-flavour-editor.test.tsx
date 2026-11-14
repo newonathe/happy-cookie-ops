@@ -42,6 +42,8 @@ function fakeClient(rows: FlavourRow[], save?: (args: Record<string, unknown>) =
   const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_flavours') return { data: rows, error: null };
     if (name === 'publish_flavours') return { data: [], error: null };
+    // Product types (migration 84) are read beside the flavours; a database without them answers that it has none.
+    if (name === 'get_product_types') return { data: null, error: { code: 'PGRST202' } };
     return save
       ? save(args ?? {})
       : { data: [{ id: args?.p_id, updated_at: '2026-09-28T02:00:00.000Z' }], error: null };
@@ -326,6 +328,94 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
       await publishMenu(runtime);
     });
     expect(toastText(runtime)).toContain('Offline');
+  });
+
+  it('offers her product types in Edit product, saves the chosen one, and adds a type (migration 84)', async () => {
+    const types = {
+      types: [
+        {
+          id: 'cookie',
+          label: 'Cookie',
+          behaves_as: 'cookie',
+          sort_order: 0,
+          active: true,
+          built_in: true,
+          updated_at: 't0'
+        },
+        {
+          id: 'set',
+          label: 'Set',
+          behaves_as: 'set',
+          sort_order: 1,
+          active: true,
+          built_in: true,
+          updated_at: 't0'
+        },
+        {
+          id: 'ice-cream',
+          label: 'Ice cream',
+          behaves_as: 'item',
+          sort_order: 2,
+          active: true,
+          built_in: false,
+          updated_at: 't1'
+        },
+        {
+          id: 'old-merch',
+          label: 'Old merch',
+          behaves_as: 'item',
+          sort_order: 3,
+          active: false,
+          built_in: false,
+          updated_at: 't1'
+        }
+      ],
+      products: { wcb: 'cookie' }
+    };
+    const calls: Array<[string, Record<string, unknown>]> = [];
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
+    const runtime = ref.current!;
+    act(() => runtime.setRole('owner'));
+    const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
+      calls.push([name, args ?? {}]);
+      if (name === 'get_flavours') return { data: rowsFor((id) => id !== 'nch'), error: null };
+      if (name === 'get_product_types') return { data: types, error: null };
+      if (name === 'save_product_type')
+        return { data: [{ id: 'drinks', updated_at: 't2' }], error: null };
+      return { data: [{ id: args?.p_id, updated_at: '2026-09-28T02:00:00.000Z' }], error: null };
+    });
+    await act(async () => {
+      await runtime.loadFlavours({ rpc } as unknown as FlavoursClient);
+      await Promise.resolve();
+    });
+    const i = PRODUCTS.findIndex((p) => p.id === 'wcb');
+    act(() => runtime.renderVals().productRows[i]!.edit());
+    const editing = runtime.renderVals().liveForm!.editing!;
+    expect(editing.typeId).toBe('cookie');
+    // Switched-off types are not offered for a product that does not have them.
+    expect(editing.typeOptions?.map((o) => o.id)).toEqual(['cookie', 'set', 'ice-cream']);
+    await act(async () => {
+      editing.save({ ...editing, itemType: 'item', typeId: 'ice-cream' });
+      await Promise.resolve();
+    });
+    const save = calls.find(([name]) => name === 'save_flavour')![1];
+    // Its type is read again after the save, so the next edit starts from it.
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(calls.filter(([name]) => name === 'get_product_types').length).toBeGreaterThanOrEqual(2);
+    expect(save.p_flavour).toMatchObject({ item_type: 'item', type_id: 'ice-cream' });
+    // The panel adds a type with a slug from her name and the next order.
+    const view = runtime.renderVals().liveForm!;
+    await act(async () => {
+      expect(await view.types!.add('Drinks', 'item')).toBeNull();
+    });
+    expect(calls.find(([name]) => name === 'save_product_type')![1]).toMatchObject({
+      p_type: { id: 'drinks', label: 'Drinks', behaves_as: 'item', sort_order: 4, active: true },
+      p_expected_updated_at: null
+    });
+    expect(view.types!.rows.find((r) => r.id === 'cookie')!.toggle).toBeNull();
   });
 
   it("Edit product carries the flavour's cost per cookie, the recipe book's own field (Cine, 14 November 2026)", async () => {
