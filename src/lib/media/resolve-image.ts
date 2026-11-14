@@ -36,6 +36,14 @@ export function supabaseOrigin(
 
 export function resolveImagePath(path: string, origin: string | null = supabaseOrigin()): string {
   if (path === '') return '';
+  // Its own output comes back unchanged: the catalogue resolves a flavour's photo once and several
+  // pages resolve what they are handed again (14 November 2026, every uploaded photo drew nothing).
+  // Only the configured origin's public shop-media prefix followed by a valid bucket path qualifies.
+  const own = origin ? origin + '/storage/v1/object/public/' + SHOP_MEDIA_BUCKET + '/' : null;
+  if (own && path.startsWith(own)) {
+    const rest = path.slice(own.length);
+    return BUCKET_PATH.test(rest) && !rest.includes('..') ? path : '';
+  }
   if (BUNDLED.test(path) && !path.includes('..')) return path.replace(/^\//, '');
   if (!BUCKET_PATH.test(path) || path.includes('..')) return '';
   if (!origin) return '';
