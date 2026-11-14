@@ -58,8 +58,20 @@ export interface StartPrompt {
   body: string;
 }
 
+/** D3: an open day's prices and "Change a price". Every text is already words. */
+export interface DayPricesView {
+  /** Each flavour of the day with what it costs now: "₱130", and "130" for the input. */
+  flavours: Array<{ id: string; name: string; priceText: string; pricePesos: string }>;
+  /** Why a price cannot change now (no signal), in words; null when it can. */
+  blocked: string | null;
+  /** Sets one flavour's price for the rest of the day. Null when saved; otherwise the words for what is wrong. */
+  change: (input: { productId: string; price: string }) => Promise<string | null>;
+}
+
 export interface BazaarDayRow {
   kitchenTransfer?: (() => void) | null;
+  /** D3: the day's prices and "Change a price", while the day is selling. Absent or null otherwise. */
+  prices?: DayPricesView | null;
   id: string;
   /** "Sat, Oct 24" */
   dateText: string;
@@ -393,7 +405,7 @@ export interface DayPlanEditor {
  * `cookies` adds stock to the day this phone is selling. Both are read from the database when they open.
  */
 export interface TillPanelView {
-  kind: 'fees' | 'cookies';
+  kind: 'fees' | 'cookies' | 'prices';
   /** `loading` while the day is read; `failed` when it could not be; `loaded` when the form can be drawn. */
   status: 'loading' | 'failed' | 'loaded';
   /** The event, for the fee form; null until read. */
@@ -405,6 +417,8 @@ export interface TillPanelView {
     canAddCarried: boolean;
     addStock: NonNullable<DayReviewView['addStock']>;
   } | null;
+  /** D3: the held day's prices, for "Change a price"; null until read, and for the other forms. Absent in older fixtures. */
+  prices?: DayPricesView | null;
   retry: () => void;
   close: () => void;
 }

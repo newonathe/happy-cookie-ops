@@ -2716,6 +2716,7 @@ export type Database = {
         Returns: { product_id: string; source_drop: number }[]
       }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
+      get_event_prices: { Args: { p_event: string }; Returns: Json }
       get_flavour_costs: { Args: never; Returns: Json }
       get_flavours: {
         Args: never
@@ -3185,6 +3186,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      set_bazaar_day_price: { Args: { p_change: Json }; Returns: Json }
       set_cost_basis: { Args: { p_basis: string }; Returns: string }
       set_event_device: {
         Args: { p_device: string; p_event: string }
