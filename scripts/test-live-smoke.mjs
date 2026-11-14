@@ -530,7 +530,11 @@ try {
   };
   /** The consolidated till (19 October): leaving, adding cookies, fees and the close sit behind its ⋯ menu. */
   const tillMenu = async (item) => {
-    await page.getByRole('button', { name: 'Till menu', exact: true }).click();
+    await page
+      // Scoped to the till: other screens' Settings buttons may share the page (HCB-014 review note).
+      .getByRole('region', { name: 'Till', exact: true })
+      .getByRole('button', { name: 'Settings', exact: true })
+      .click();
     await page
       .getByRole('dialog')
       .getByRole('button', { name: new RegExp(item) })
@@ -989,7 +993,11 @@ try {
           page.screenshot({ path: `${process.env.SMOKE_SHOTS}/${name}-375.png` });
         await page.setViewportSize({ width: 375, height: 812 });
         await shot('till-viewport');
-        await page.getByRole('button', { name: 'Till menu', exact: true }).click();
+        await page
+          // Scoped to the till: other screens' Settings buttons may share the page (HCB-014 review note).
+          .getByRole('region', { name: 'Till', exact: true })
+          .getByRole('button', { name: 'Settings', exact: true })
+          .click();
         await page.getByRole('dialog').waitFor();
         await page.waitForTimeout(500);
         await shot('till-menu');

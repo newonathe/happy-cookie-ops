@@ -6145,7 +6145,7 @@
       "check": "current_and_master_local_document_links",
       "passed": true,
       "detail": {
-        "checked": 1034,
+        "checked": 1049,
         "broken": []
       }
     },
@@ -6182,6 +6182,7 @@
     "NEXT.md",
     "package.json",
     "playwright.config.ts",
+    "postcss.config.mjs",
     "prettier.config.mjs",
     "README.md",
     "sentry.edge.config.ts",
@@ -6216,6 +6217,7 @@
     "docs/TECH-DEBT.md",
     "docs/TESTING.md",
     "docs/WORKFLOW.md",
+    "public/manifest.webmanifest",
     "public/sw.js",
     "scripts/check-engine-contract.mjs",
     "scripts/check-port-integrity.mjs",
@@ -6224,6 +6226,7 @@
     "src/middleware.ts",
     "supabase/config.toml",
     "supabase/seed.sql",
+    "tests/setup.ts",
     "tests/e2e/bazaar-offline.spec.ts",
     "tests/e2e/capacity-parity.spec.ts",
     "tests/e2e/screens.spec.ts",
@@ -6279,8 +6282,11 @@
     "src/components/shell/app-frame.tsx",
     "src/components/ui/pressable.stories.tsx",
     "src/components/ui/pressable.tsx",
+    "src/app/sign-in/page.tsx",
     "src/app/sign-in/sign-in-form.tsx",
     "src/app/api/sync/route.ts",
+    "public/assets/logo-full.png",
+    "public/assets/mark-solid.png",
     "docs/prompts/00-session-protocol.md",
     "docs/prompts/01-foundation.md",
     "docs/prompts/02-identity.md",
@@ -6310,6 +6316,6 @@
     ".agents/skills/source-command-review/SKILL.md",
     ".agents/skills/source-command-verify/SKILL.md"
   ],
-  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-idyid86e",
+  "generator_scratch": "/tmp/happy-cookie-catalog-7ne2tsma",
   "failures": []
 }

@@ -8,10 +8,20 @@ import { ORDER_COPY } from '@/lib/orders/copy';
 import { Button } from '@/components/ui/button';
 import { Banner } from '@/components/ui/banner';
 import { LiveShopFooter } from '@/components/live/live-shop-footer';
+import { CatalogueNotice, useCatalogueHeld } from '@/components/live/bazaar/catalogue-notice';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
+
+const SHOP_MENU_COPY = {
+  notRead: STAFF_COPY.shopMenuCatalogueNotRead,
+  failed: STAFF_COPY.shopMenuCatalogueFailed
+};
 
 /** Fluid public menu; the existing scoped actions remain the authority for every cart change. */
 export function CustomerShopLive({ v }: { v: OpsVals }) {
   const prefix = useId();
+  // HCB-004: the owner's preview shows no cookie until her own products are in hand. The public shop is given no
+  // `catalogueHeld`, so it is unchanged and keeps its own menu notice.
+  const catalogue = useCatalogueHeld(v.catalogueHeld);
   const checkout = (className: string) => (
     <Button
       className={className}
@@ -44,6 +54,9 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
         <Button onClick={v.openLookup}>Find my order</Button>
       </header>
       <Banner tone="info" title={v.dropBannerTitle} body={v.dropBannerSub} />
+      {catalogue.held ? null : (
+        <CatalogueNotice failed={catalogue.failed} retry={catalogue.retry} copy={SHOP_MENU_COPY} />
+      )}
       <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
         <div
           aria-label="Cookies"

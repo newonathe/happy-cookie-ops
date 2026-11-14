@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { LiveMoney, MoneyPeriod, OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
-import { Banner } from '@/components/ui/banner';
+import { BooksNotLoaded, BooksRefreshNotice } from './books-read-notice';
 import { MoneyEntryLive, TransactionLive } from './money-pages';
 import { SubTabs } from '@/components/ui/sub-tabs';
 import { cx } from '@/components/ui/cx';
@@ -286,53 +286,10 @@ export function MoneyLive({ v }: { v: OpsVals }) {
       </div>
 
       {!money.loaded ? (
-        <Panel tone="hero" title="Books not loaded yet">
-          <p className="text-caption text-ink-mute">
-            Your books could not be read on this device yet. Figures appear once they load; nothing
-            here is counted as zero.
-          </p>
-          {money.read && !money.read.online ? (
-            <p className="mt-2 text-caption text-ink-mute">
-              Connect to read your books. Nothing here is counted as zero.
-            </p>
-          ) : null}
-          {money.read ? (
-            <Button
-              onClick={money.read.retry}
-              disabled={
-                !money.read.online ||
-                money.read.canRetry === false ||
-                money.read.state === 'loading'
-              }
-              reason={
-                money.read.canRetry === false
-                  ? 'Connect to the shop to read your books.'
-                  : undefined
-              }
-              busy={money.read.state === 'loading'}
-              busyLabel="Reading books…"
-            >
-              Retry reading books
-            </Button>
-          ) : null}
-        </Panel>
+        <BooksNotLoaded read={money.read} />
       ) : (
         <>
-          {money.read?.state === 'failed' ? (
-            <Banner
-              tone="warn"
-              title="Books could not be refreshed"
-              body={`Showing the last successful read. These figures may have changed since then.${money.read.online ? '' : ' Connect to read updated books.'}`}
-              action={
-                money.read.online
-                  ? { label: 'Retry reading books', onPress: money.read.retry }
-                  : undefined
-              }
-            />
-          ) : null}
-          {money.read?.state === 'loading' ? (
-            <p role="status">Reading books. Showing the last successful read until it finishes.</p>
-          ) : null}
+          <BooksRefreshNotice read={money.read} />
           <Panel tone="hero">
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-1">

@@ -6,6 +6,7 @@ import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-typ
 import { primaryActionOf, type PrimaryAction } from '@/lib/bazaar/event-rules';
 import { formIds, validateCostForm, validateFeeForm, validateTargetForm } from '@/lib/bazaar/forms';
 import { peso } from '@/lib/money/format';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import { PageTitle, Panel } from '@/components/ui/owner-kit';
 import { OpenRow } from '@/components/ui/owner-patterns';
 import { Banner } from '@/components/ui/banner';
@@ -92,14 +93,19 @@ function Stats({ event }: { event: BazaarEventView }) {
 function DayRow({
   day,
   primary,
-  onStart
+  onStart,
+  noCatalogue
 }: {
   day: BazaarDayRow;
   primary: boolean;
   onStart: (day: BazaarDayRow) => void;
+  /** HCB-004: her products and prices are not read, so a day is not started or replanned. */
+  noCatalogue: boolean;
 }) {
   const noteId = 'day-note-' + day.id;
-  const blocked = day.actionNote !== null;
+  const noted = day.actionNote !== null;
+  const catalogueOnly = noCatalogue && !noted;
+  const blocked = noted || (noCatalogue && day.action === 'start');
   const o = day.outcome;
   return (
     <li className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
@@ -146,7 +152,10 @@ function DayRow({
             size="sm"
             onClick={day.action === 'start' ? () => onStart(day) : day.run}
             disabled={blocked}
-            aria-describedby={blocked ? noteId : undefined}
+            reason={
+              catalogueOnly && day.action === 'start' ? STAFF_COPY.bazaarCatalogueReason : undefined
+            }
+            aria-describedby={noted && !primary ? noteId : undefined}
           >
             {day.action === 'start'
               ? 'Start this day'
@@ -158,7 +167,13 @@ function DayRow({
           </Button>
         ) : null}
         {day.edit ? (
-          <Button variant="ghost" size="sm" onClick={day.edit}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={day.edit}
+            disabled={noCatalogue}
+            reason={noCatalogue ? STAFF_COPY.bazaarCatalogueReason : undefined}
+          >
             Change the plan
           </Button>
         ) : null}
@@ -440,12 +455,14 @@ function PrimaryButton({
   event,
   action,
   onStart,
-  onClose
+  onClose,
+  noCatalogue
 }: {
   event: BazaarEventView;
   action: PrimaryAction;
   onStart: (day: BazaarDayRow) => void;
   onClose: () => void;
+  noCatalogue: boolean;
 }) {
   const day = (id: string) => event.days.find((d) => d.id === id);
   if (action.kind === 'close') {
@@ -469,6 +486,8 @@ function PrimaryButton({
         variant="primary"
         size="lg"
         onClick={() => event.planDay(action.ymd)}
+        disabled={noCatalogue}
+        reason={noCatalogue ? STAFF_COPY.bazaarCatalogueReason : undefined}
         className="self-start"
       >
         {`Plan ${when} →`}
@@ -477,7 +496,7 @@ function PrimaryButton({
   }
   const d = day(action.dayId);
   if (!d) return null;
-  const blocked = d.actionNote !== null;
+  const blocked = d.actionNote !== null || (noCatalogue && action.kind === 'start');
   if (action.kind === 'start') {
     return (
       <Button
@@ -489,7 +508,7 @@ function PrimaryButton({
           blocked
             ? d.actionNote === 'Needs signal'
               ? NEEDS_SIGNAL
-              : (d.actionNote ?? undefined)
+              : (d.actionNote ?? STAFF_COPY.bazaarCatalogueReason)
             : undefined
         }
         className="self-start"
@@ -617,17 +636,22 @@ function CostsCard({ event }: { event: BazaarEventView }) {
 /** One booking: its hero and figures, then its days, fees, target and costs. A day is planned and started here. */
 export function EventPage({
   event,
-  onEditEvents
+  onEditEvents,
+  planning
 }: {
   event: BazaarEventView;
   /** Opens the form where an event is changed or switched off. */
   onEditEvents?: () => void;
+  /** HCB-004: why a day cannot be planned or started (her products and prices are not read), with Try again. */
+  planning?: React.ReactNode;
 }) {
+  const noCatalogue = planning != null;
   const [starting, setStarting] = useState<BazaarDayRow | null>(null);
   const [closing, setClosing] = useState(false);
   const [settings, setSettings] = useState(false);
   const primary = primaryActionOf(event);
   const startDay = (day: BazaarDayRow) => {
+    if (noCatalogue) return;
     if (day.startPrompt) setStarting(day);
     else day.start(false);
   };
@@ -678,6 +702,7 @@ export function EventPage({
           <span className="text-caption text-ink-mute">{event.rentText}</span>
         </div>
         <Notices notices={event.notices} />
+        {planning}
         <Stats event={event} />
         {primary ? (
           <div className="flex flex-col gap-1">
@@ -686,6 +711,7 @@ export function EventPage({
               action={primary}
               onStart={startDay}
               onClose={() => setClosing(true)}
+              noCatalogue={noCatalogue}
             />
           </div>
         ) : null}
@@ -700,7 +726,13 @@ export function EventPage({
         ) : (
           <ol aria-label="Days" className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
             {event.days.map((day) => (
-              <DayRow key={day.id} day={day} primary={day.id === primaryDayId} onStart={startDay} />
+              <DayRow
+                key={day.id}
+                day={day}
+                primary={day.id === primaryDayId}
+                onStart={startDay}
+                noCatalogue={noCatalogue}
+              />
             ))}
           </ol>
         )}
@@ -716,6 +748,8 @@ export function EventPage({
                   variant="secondary"
                   size="sm"
                   onClick={() => event.planDay(u.ymd)}
+                  disabled={noCatalogue}
+                  reason={noCatalogue ? STAFF_COPY.bazaarCatalogueReason : undefined}
                 >
                   {u.text}
                 </Button>

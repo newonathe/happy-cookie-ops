@@ -41,6 +41,15 @@ export const Till: Story = {
     action: { label: 'Back to the till', onPress: () => undefined }
   }
 };
+export const TwoChoices: Story = {
+  args: {
+    tone: 'info',
+    title: 'You have unsaved changes to this recipe from before the page reloaded.',
+    body: undefined,
+    action: { label: 'Restore changes', onPress: () => undefined },
+    secondaryAction: { label: 'Discard', onPress: () => undefined }
+  }
+};
 export const Dismissible: Story = {
   render: function Render() {
     const [open, setOpen] = useState(true);

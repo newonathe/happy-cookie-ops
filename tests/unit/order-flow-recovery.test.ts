@@ -1,7 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { OrderRecovery } from '@/lib/orders/order-recovery';
 import type { OrderClient, OrderFields } from '@/lib/data/orders';
+
+// The fixture's pickup (Thursday 12 November 2026) must stay at least `lead_min_days` ahead of the
+// shop's day. Without a pinned clock these tests began failing once that day arrived in Manila.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-11-10T04:00:00Z'));
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 const id = '123e4567-e89b-42d3-a456-426614174000';
 const backend = 'https://shop.example';

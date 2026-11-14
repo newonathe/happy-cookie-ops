@@ -22,6 +22,19 @@ export const STAFF_COPY = {
     `${first}’s order is marked paid. ${balance} is still to collect.`,
   rejected: 'Payment rejected. The order is cancelled and its slots are free again.',
   reopened: 'Back in your review queue.',
+  /**
+   * HCB-007, the OD-03 default form (a dialog; PLACEHOLDER wording under OD-03/OD-12): the question
+   * asked before a payment is rejected. It says only what `staff_reject_payment` does (the order is
+   * cancelled and its slots freed) and nothing about telling the customer, which nothing here does.
+   */
+  rejectConfirm: {
+    title: 'Reject this payment?',
+    body: (name: string, id: string): string =>
+      `${name}’s order ${id} will be cancelled and its pickup slots will be free again.`,
+    note: 'Nothing is sent to the customer. If they send a valid payment later, you can reopen the order for review.',
+    keep: 'Keep order',
+    confirm: 'Reject and cancel order'
+  },
   packed: (first: string): string => `${first}’s order is packed and ready.`,
   collected: (first: string): string => `${first}’s order is picked up.`,
   noShow: (first: string): string => `${first} did not pick up. The order stays paid.`,
@@ -52,7 +65,46 @@ export const STAFF_COPY = {
    */
   ordersNotRead: 'Your orders have not been read yet.',
   ordersReadFailed: 'Your orders could not be read. Nothing is shown or counted until they load.',
+  /** HCB-006 (PLACEHOLDER wording): a change the database saved, whose list refresh then failed. */
+  savedNotRefreshed: 'Saved. Could not refresh the list.',
   ordersStale: (time: string): string => `Could not refresh. Showing orders as of ${time}.`,
+  /**
+   * HCB-003: the Products page before the catalogue read has answered, when it failed, when a
+   * refresh failed, and when the menu is genuinely empty. Never built-in prices as hers.
+   */
+  productsNotRead: 'Your products and prices have not been read yet.',
+  productsReadFailed:
+    'Your products and prices could not be read. Nothing is shown until they load.',
+  productsStale: (time: string): string =>
+    `Could not refresh. Showing products and prices as of ${time}.`,
+  productsEmpty: 'No products yet. Choose Add product to make the first one.',
+  /**
+   * HCB-004 (Bazaar slice), PLACEHOLDER under OD-12: planning or starting a day needs her real products and
+   * prices. A day already selling on this phone is not touched by either line.
+   */
+  bazaarCatalogueNotRead:
+    'Your products and prices have not been read yet, so a day cannot be planned or started yet.',
+  /** The reason under a disabled Plan or Start button; the notice above says the rest. */
+  bazaarCatalogueReason: 'Needs your products and prices.',
+  bazaarCatalogueFailed:
+    'Your products and prices could not be read, so a day cannot be planned or started yet.',
+  /** HCB-004 (owner screens), PLACEHOLDER under OD-12: what each says while her products have not been read. */
+  bakePlanCatalogueNotRead:
+    'Your products have not been read yet, so a bake cannot be planned yet.',
+  bakePlanCatalogueFailed: 'Your products could not be read, so a bake cannot be planned yet.',
+  shopMenuCatalogueNotRead:
+    'Your products and prices have not been read yet, so no cookies are shown here yet.',
+  shopMenuCatalogueFailed:
+    'Your products and prices could not be read, so no cookies are shown here.',
+  homeProductsNotRead: 'Not read yet',
+  /** Payments: said in place of the "Everything matched" hero when the list is incomplete (copy placeholder, OD-12). */
+  paymentsDropped: 'Some orders could not be read; check them in Orders.',
+  paymentsStale: 'The list could not be refreshed; check Orders.',
+  /** Payments: Tick all ticks what is shown but must not say the books agree (copy placeholder, OD-12). */
+  tickAllDropped:
+    'All shown references ticked. Some orders could not be read, so this list may be incomplete.',
+  tickAllStale:
+    'All shown references ticked. The list could not be refreshed, so it may be incomplete.',
   /** HCB-004 (Orders slice): rows the server sent that the screens cannot use. */
   ordersDropped: (n: number): string =>
     n === 1
@@ -78,6 +130,8 @@ export const RULES_COPY = {
   conflict: 'Someone else changed the order rules just now. Showing their version.',
   refused: 'The order rules could not be saved. Check the numbers.',
   switchRefused: 'The shop switch could not be saved.',
+  readFailed: 'Your order rules could not be read. Check the signal and try again.',
+  savedNotRefreshed: 'Order rules saved, but they could not be refreshed. Check the signal.',
   intro:
     'These decide what a customer can pick and how long an unpaid order holds its slots. They apply to new orders only.',
   days: 'Pickup days',
@@ -98,6 +152,8 @@ export const EXTRAS_COPY = {
   saved: 'Boxes and add-ons saved.',
   conflict: 'Someone else changed the boxes and add-ons just now. Showing their version.',
   refused: 'The boxes and add-ons could not be saved. Check the numbers.',
+  readFailed: 'Your boxes and add-ons could not be read. Check the signal and try again.',
+  savedNotRefreshed: 'Boxes and add-ons saved, but they could not be refreshed. Check the signal.',
   intro:
     'Everything the September form offered besides flavours. Prices and limits apply to new orders only. Nothing is deleted: switch an item off instead.',
   sameDay: 'Same-day pickup',

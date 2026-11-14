@@ -67,7 +67,7 @@ import {
   wholeCount
 } from '@/lib/bazaar/review';
 import { costCentavosToPesos } from '@/lib/money';
-import { COST_COPY } from '@/lib/orders/staff-copy';
+import { COST_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
 import { formatManila } from '@/lib/time/business-clock';
 
 /**
@@ -85,6 +85,10 @@ export interface BazaarDaysDeps {
   bookings: () => readonly ScheduledEvent[];
   /** False until the owner's bookings have been read. */
   bookingsRead: () => boolean;
+  /** True when the newest settled read of the bookings failed (HCB-002e). Absent: never. */
+  bookingsFailed?: () => boolean;
+  /** True while a read of the bookings is out. Absent: never. */
+  bookingsRefreshing?: () => boolean;
   /** The flavours a day can be planned with: the engine's, with their menu price in centavos. */
   flavours: () => ReadonlyArray<{
     id: string;
@@ -94,6 +98,11 @@ export interface BazaarDaysDeps {
     photo?: string;
     onMenu?: boolean;
   }>;
+  /**
+   * HCB-004: whether `flavours` are hers (read, or the copy kept for an offline open) and not the built-in six. When it says no,
+   * a day is neither saved nor started. Absent: held.
+   */
+  catalogueHeld?: () => boolean;
   /** True while this phone holds an event (a started day, or one from before): a second cannot start. */
   holdsEvent: () => boolean;
   resumeTill?: () => void;
@@ -420,6 +429,9 @@ export class BazaarDays {
     return {
       online: this.deps.online(),
       eventsRead: this.deps.bookingsRead(),
+      eventsFailed: this.deps.bookingsFailed?.() ?? false,
+      eventsRefreshing: this.deps.bookingsRefreshing?.() ?? false,
+      refreshEvents: () => void this.deps.refreshBookings().catch(() => false),
       state:
         this.bookingId && !booking
           ? this.deps.bookingsRead()
@@ -1215,6 +1227,7 @@ export class BazaarDays {
   ): Promise<string | null> {
     const editing = this.editing;
     if (!editing || this.busy) return null;
+    if (this.deps.catalogueHeld?.() === false) return STAFF_COPY.bazaarCatalogueNotRead;
     const result = planFromForm(input);
     if (!result.ok) return result.error;
     const client = this.deps.client();
@@ -1258,6 +1271,10 @@ export class BazaarDays {
     asks: boolean
   ): Promise<void> {
     if (this.busy) return;
+    if (this.deps.catalogueHeld?.() === false) {
+      this.deps.toast(STAFF_COPY.bazaarCatalogueNotRead, 'warn');
+      return;
+    }
     // Worked out again here: a page drawn before midnight and tapped after it must still ask.
     if ((asks || day.day !== this.deps.today()) && !confirmed) return;
     this.busy = true;

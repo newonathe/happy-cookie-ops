@@ -3,6 +3,7 @@
 import type { OpsVals } from '@/view-models/vals';
 import { saleLines, saleName } from '@/lib/bazaar/sale-lines';
 import { HeadedPanel } from '@/components/ui/owner-kit';
+import { BooksNotLoaded, BooksRefreshNotice } from './books-read-notice';
 
 /** One recorded sale: its cookies as tags, never a comma list, and a readable name when it has no cookies to list. */
 function SaleLog({ row }: { row: OpsVals['salesLog']['rows'][number] }) {
@@ -35,8 +36,32 @@ function SaleLog({ row }: { row: OpsVals['salesLog']['rows'][number] }) {
 /** Money's sales: every recorded sale, newest first, the engine's figures unchanged. */
 export function SalesLive({ v }: { v: OpsVals }) {
   const log = v.salesLog;
+  const books = v.liveBooksRead;
+  const phone = v.phoneSales ?? [];
+  // Live: the log is the books plus this phone's event sales. Until the books are read, any count
+  // or "none yet" would read as the whole log, so say so and list only what this phone recorded, labelled as such.
+  if (books && !books.loaded)
+    return (
+      <div className="w-full">
+        <BooksNotLoaded read={books.read} />
+        {phone.length ? (
+          <HeadedPanel title="Recorded on this phone">
+            <p className="px-4 py-3 text-caption text-ink-mute">
+              Only the sales this phone recorded at the open event are shown; the full log appears
+              once your books load.
+            </p>
+            <ul>
+              {phone.map((row, i) => (
+                <SaleLog key={i} row={row} />
+              ))}
+            </ul>
+          </HeadedPanel>
+        ) : null}
+      </div>
+    );
   return (
     <div className="w-full">
+      {books ? <BooksRefreshNotice read={books.read} /> : null}
       <HeadedPanel title={`${(log.rows ?? []).length} ${String(log.unit)}`}>
         {log.empty ? (
           <p className="px-4 py-3 text-caption text-ink-mute">No sales recorded yet.</p>

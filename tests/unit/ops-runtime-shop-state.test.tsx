@@ -42,12 +42,21 @@ const rulesRow = (over: Record<string, unknown> = {}) => ({
   ...over
 });
 
-function fake(over: { status?: unknown; set?: unknown; save?: unknown; rules?: unknown } = {}) {
+function fake(
+  over: {
+    status?: unknown;
+    set?: unknown;
+    save?: unknown;
+    rules?: unknown;
+    rulesRead?: unknown;
+  } = {}
+) {
   const rpc = vi.fn(async (name: string) => {
     if (name === 'get_shop_status') return { data: over.status ?? status(), error: null };
     if (name === 'set_shop_override')
       return over.set ?? { data: [{ override: null }], error: null };
-    if (name === 'get_order_rules') return { data: over.rules ?? [rulesRow()], error: null };
+    if (name === 'get_order_rules')
+      return over.rulesRead ?? { data: over.rules ?? [rulesRow()], error: null };
     if (name === 'save_order_rules')
       return over.save ?? { data: [{ updated_at: STAMP }], error: null };
     return { data: null, error: null };
@@ -314,6 +323,59 @@ describe('B3: the order rules form', () => {
     expect(toasts(runtime)).toContain('Someone else');
     expect(runtime.renderVals().liveOrderRules).not.toBeNull();
     expect(called(f.rpc, 'get_order_rules').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('a conflict whose re-read fails closes the form, so no stale value stays editable', async () => {
+    const f = fake({ save: { error: { code: 'P0002' } } });
+    const runtime = await mounted('owner', f);
+    await act(async () => entry(runtime)!.go());
+    await settle();
+    const vals = runtime.renderVals().liveOrderRules!;
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_order_rules'
+        ? { data: null, error: { code: '57014' } }
+        : name === 'save_order_rules'
+          ? { error: { code: 'P0002' } }
+          : { data: null, error: null }
+    );
+    act(() => vals.save({ ...vals.rules, unpaidHoldHours: 72 }));
+    await settle();
+    // The read-failure toast is the one left showing.
+    expect(toasts(runtime)).toContain('could not be read');
+    expect(runtime.renderVals().liveOrderRules ?? null).toBeNull();
+    expect(runtime.state.sheet).toBeNull();
+  });
+
+  it('a failed read says the rules could not be read, never "did not save", and opens no form', async () => {
+    const f = fake({ rulesRead: { data: null, error: { code: '57014' } } });
+    const runtime = await mounted('owner', f);
+    await act(async () => entry(runtime)!.go());
+    await settle();
+    expect(runtime.renderVals().liveOrderRules ?? null).toBeNull();
+    expect(runtime.state.sheet).toBeNull();
+    expect(toasts(runtime)).toContain('could not be read');
+    expect(toasts(runtime)).not.toContain('did not save');
+    expect(toasts(runtime)).not.toContain('Offline');
+  });
+
+  it('a read that fails after a save says it could not be refreshed, never that it did not save', async () => {
+    const f = fake();
+    const runtime = await mounted('owner', f);
+    await act(async () => entry(runtime)!.go());
+    await settle();
+    const vals = runtime.renderVals().liveOrderRules!;
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_order_rules'
+        ? { data: null, error: { code: '57014' } }
+        : name === 'save_order_rules'
+          ? { data: [{ updated_at: STAMP }], error: null }
+          : { data: null, error: null }
+    );
+    act(() => vals.save({ ...vals.rules }));
+    await settle();
+    expect(toasts(runtime)).toContain('saved');
+    expect(toasts(runtime)).toContain('could not be refreshed');
+    expect(toasts(runtime)).not.toContain('did not save');
   });
 
   it('is the owner’s alone, even with the rules already read and the sheet open', async () => {

@@ -11,7 +11,7 @@ export interface HomeDeskDeps {
   month: () => { revenue: number; totalExp: number; profit: number } | null;
   /** Unconfirmed production work on this device. */
   production: () => LiveHome['production'];
-  flavourCount: () => number;
+  flavourCount: () => number | null;
   greeting: () => string;
   dateText: () => string;
   openStockItem: (id: string) => void;

@@ -17,6 +17,7 @@ import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
 import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
+import type { RecipeRoute } from '@/lib/recipes/navigation';
 import type { LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
 import type {
   LiveBatchCounts,
@@ -386,6 +387,13 @@ export interface OpsVals {
   liveBazaar?: LiveBazaarVals | null;
   /** Live owner only (U7): the recipe book's data (the flavours with price, cost, margin and cost receipt). Null for anyone else. */
   liveRecipes?: LiveRecipesVals | null;
+  /** Live owner only (HCB-013): where the open recipe sits in the address, and how an address opens it. */
+  liveRecipeNavigation?: {
+    /** `recipe=<id>` or `recipe=<id>&edit=1` while a recipe is open on the Recipes screen, else undefined. */
+    route: RecipeRoute | undefined;
+    /** Opens the recipe an address names (once the flavour is held) and returns the route to show meanwhile. */
+    restore: (route: RecipeRoute | null) => RecipeRoute | undefined;
+  } | null;
   liveProduction?: LiveProductionVals | null;
   liveBatchCounts?: LiveBatchCounts | null;
   liveDough?: LiveDoughPreparation | null;
@@ -435,6 +443,13 @@ export interface OpsVals {
    * here that the books do not already sum. `loaded` is false until the books are read.
    */
   liveMoney?: LiveMoney | null;
+  /** Live owner on Money > Sales only: whether the books behind the sales log have been read. */
+  liveBooksRead?: Pick<LiveMoney, 'loaded' | 'read'> | null;
+  /**
+   * Live owner on Money > Sales only: sales recorded on this phone at an open event, already formatted like the
+   * engine's sales log. They are in the books only once sent; [] when none or not on that screen.
+   */
+  phoneSales?: Array<{ what: string; when: string; amount: string }>;
   /** Live owner only: customers, from their orders. */
   liveCustomers?: LiveCustomers | null;
   /** Live owner only: what the Make pages need beyond the engine's rows. */
@@ -497,6 +512,8 @@ export interface OpsVals {
     retry: () => void;
   } | null;
   liveShopMenuRead?: ShopMenuReadView | null;
+  /** HCB-004: whether the engine's products are hers (owner, live mode only); false shows the built-in six, which no owner screen may. */
+  catalogueHeld?: boolean;
   liveShopAvailability?: ShopAvailabilityView | null;
   liveShopOverride?: ShopOverrideView | null;
   livePaymentRead?: {
@@ -1972,7 +1989,8 @@ export interface LiveHome {
   production: Array<{ id: string; name: string; detail: string; open: () => void }>;
   /** This month's books; null until they are read. */
   month: { revenue: number; expenses: number; profit: number } | null;
-  flavours: number;
+  /** How many are on the menu, or null while her products have not been read: the built-in six are not hers. */
+  flavours: number | null;
   go: Record<
     | 'orders'
     | 'payments'

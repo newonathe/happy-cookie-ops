@@ -12,6 +12,8 @@ export interface BannerProps {
   title: ReactNode;
   body?: ReactNode;
   action?: { label: string; onPress: () => void };
+  /** A second, quieter choice beside `action`. */
+  secondaryAction?: { label: string; onPress: () => void };
   onDismiss?: () => void;
   /** False plays the exit, then removes the banner. */
   open?: boolean;
@@ -25,7 +27,15 @@ const TONE: Record<BannerTone, string> = {
 };
 
 /** A message above the work. Slides down in 250 ms and leaves in 150 ms; both stop under reduced motion. */
-export function Banner({ tone, title, body, action, onDismiss, open = true }: BannerProps) {
+export function Banner({
+  tone,
+  title,
+  body,
+  action,
+  secondaryAction,
+  onDismiss,
+  open = true
+}: BannerProps) {
   const { mounted, leaving } = usePresence(open);
   if (!mounted) return null;
   return (
@@ -42,6 +52,11 @@ export function Banner({ tone, title, body, action, onDismiss, open = true }: Ba
       {action ? (
         <Button size="sm" variant={tone === 'till' ? 'secondary' : 'dark'} onClick={action.onPress}>
           {action.label}
+        </Button>
+      ) : null}
+      {secondaryAction ? (
+        <Button size="sm" variant="ghost" onClick={secondaryAction.onPress}>
+          {secondaryAction.label}
         </Button>
       ) : null}
       {onDismiss ? (

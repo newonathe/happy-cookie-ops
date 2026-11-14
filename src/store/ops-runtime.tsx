@@ -7,6 +7,12 @@ import { ShopAvailabilityRead } from '@/store/shop-availability-read';
 import { ShopOverrideWrites, shopOverrideMode } from '@/store/shop-override-writes';
 import { openingTimesBanner } from '@/components/live/customer-opening-status';
 import { ScopedRecipeEdits } from '@/lib/recipes/scoped-edits';
+import {
+  keptRecipeFacts,
+  readKeptRecipeEdits,
+  writeKeptRecipeEdits,
+  type KeptRecipeEdit
+} from '@/lib/recipes/kept-edits';
 
 import { bazaarBooking, type BazaarRoute } from '@/lib/bazaar/navigation';
 
@@ -19,12 +25,19 @@ import {
   PESO2,
   PRODUCTS,
   ROLES,
+  relWhen,
   replaceFlavours,
   replacePayAccounts
 } from '@/store/engine/ops-engine';
 import * as engineModule from '@/store/engine/ops-engine';
 import { renderWithSaleLabels } from '@/lib/display/sale-product-labels';
-import type { EventSale, OpsEngineProps, OpsEngineState, Role } from '@/store/engine/ops-engine';
+import type {
+  EngineFlavour,
+  EventSale,
+  OpsEngineProps,
+  OpsEngineState,
+  Role
+} from '@/store/engine/ops-engine';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import { idb } from '@/lib/offline/idb';
@@ -338,7 +351,11 @@ import {
   type FlavoursClient,
   type ShopClient
 } from '@/lib/data/flavours';
-import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
+import { ordersRead } from '@/lib/orders/orders-read-state';
+import { CUSTOMER_SCREENS, isScreenKey, type ScreenKey } from '@/lib/screens';
+import type { KeptRecipeEditView } from '@/lib/recipes/live-recipes-types';
+import { parseRecipeRoute, recipeRouteFor, type RecipeRoute } from '@/lib/recipes/navigation';
 import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
 import { PLACES, TABS, placeOfRoute, placesOf, tabOf, type Place } from '@/lib/nav/function-map';
@@ -514,6 +531,8 @@ const STAFF_ACCESS: Record<Role, { can: string; extra: string }> = {
 };
 
 /** The engine's ledger window (`periodFrom`): what the P&L screen itself says it covers. */
+/** The owner's events read is given this long before it counts as failed (Try again shows). */
+const SCHEDULED_READ_LIMIT_MS = 15_000;
 const PNL_PERIOD = 'Last 30 days';
 /** ISO weekday (Monday = 1) to the word Settings shows for a pickup day. */
 const PICKUP_DAY = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -803,6 +822,9 @@ type ToolItem = OpsVals['toolGroups'][number]['items'][number];
 const SALES_LOG_ICON =
   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
 
+/** HCB-004 a2: what an owner view is given for her products until they are read. */
+const NO_PRODUCTS: ReadonlyArray<EngineFlavour> = Object.freeze([]);
+
 // Capture the same engine module instance as this class's base. A hot update can replace
 // the namespace export while an existing base renderer still closes over the original lookup.
 const RENDER_PRODUCTS = (
@@ -860,6 +882,9 @@ export class OpsRuntime extends OpsProvider {
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
   private scheduledReadSeq = 0;
+  /** HCB-002e: the actor whose newest settled events read failed (null after a good read), and whether the newest read is still out. */
+  private scheduledReadFailedActor: number | null = null;
+  private scheduledReading = false;
   private kitchenDesk: KitchenTransferDesk | null = null;
   private kitchenSelectionEpoch = 0;
   private closeKitchenTransfer(): void {
@@ -964,6 +989,8 @@ export class OpsRuntime extends OpsProvider {
     online: () => Boolean(this.state.online),
     bookings: () => this.scheduledRows ?? [],
     bookingsRead: () => this.scheduledRows !== null,
+    bookingsFailed: () => this.scheduledReadFailedActor === this.productionActorEpoch,
+    bookingsRefreshing: () => this.scheduledReading,
     flavours: () =>
       PRODUCTS.map((p) => ({
         id: p.id,
@@ -972,6 +999,7 @@ export class OpsRuntime extends OpsProvider {
         photo: p.img,
         onMenu: (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
       })),
+    catalogueHeld: () => this.catalogueHeld(),
     holdsEvent: () => !!this.state.event,
     resumeTill: () => this.resumeBazaarTill(),
     hasRecipe: (productId) =>
@@ -1064,9 +1092,11 @@ export class OpsRuntime extends OpsProvider {
         }
       })),
     flavourCount: () =>
-      PRODUCTS.filter(
-        (p) => (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
-      ).length,
+      this.catalogueHeld()
+        ? PRODUCTS.filter(
+            (p) => (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+          ).length
+        : null,
     greeting: () => this.homeGreeting.greeting,
     dateText: () => this.homeGreeting.date,
     openStockItem: (id) => {
@@ -1090,7 +1120,10 @@ export class OpsRuntime extends OpsProvider {
   private bakePlan = new BakePlan({
     production: (rows) => this.shoppingProductionAction(rows),
     scope: () => (this.state.role === 'owner' ? this.productionRecovery.scope : null),
-    products: () => PRODUCTS.map((row) => ({ id: row.id, name: row.short })),
+    // HCB-004: no product to plan with until her own are read; the built-in six are not hers.
+    ready: () => this.catalogueHeld(),
+    products: () =>
+      this.catalogueHeld() ? PRODUCTS.map((row) => ({ id: row.id, name: row.short })) : [],
     recipe: (productId) => {
       const recipe = this.recipeRows?.find((row) => row.productId === productId);
       return recipe ? { savedYield: recipe.yield, lines: recipe.lines } : null;
@@ -1292,8 +1325,9 @@ export class OpsRuntime extends OpsProvider {
           : null
         : (this.scheduledClient ?? this.salesTarget())) as unknown as BazaarClient | null,
     online: () => Boolean(this.state.online),
+    // HCB-004 a2: her recipe book lists her own products; until they are read it lists none (and says so).
     flavours: () =>
-      PRODUCTS.map((p) => ({
+      this.heldProducts().map((p) => ({
         id: p.id,
         name: p.short,
         priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0),
@@ -1444,6 +1478,14 @@ export class OpsRuntime extends OpsProvider {
     generation: number;
   } | null = null;
   private recipeScopeKey: string | null = null;
+  /** HCB-038: the verified identity the recipes are bound to, which names where an unsaved edit is kept. */
+  private recipeScope: ProductionRecoveryScope | null = null;
+  /** HCB-038: what the browser holds for that identity once it has been read (never before the recipes are). */
+  private keptRecipeEdits = new Map<string, KeptRecipeEdit>();
+  private keptRecipeLoadedFor: string | null = null;
+  /** HCB-038: kept edits waiting for her answer, and flavours whose kept edit was dropped because a newer version was saved. */
+  private keptRecipeOffers = new Map<string, KeptRecipeEdit>();
+  private keptRecipeNewer = new Set<string>();
   private recipeAppliedScopeKey: string | null = null;
   private recipeRestoredEdits = new Set<string>();
   private readonly recipeEditScopes = new ScopedRecipeEdits<{
@@ -1461,6 +1503,10 @@ export class OpsRuntime extends OpsProvider {
   /** While set, the item names the engine's packaging cost asks for are written here (see `completeRecipeCost`). */
   private capturePackNames: string[] | null = null;
   private recipeDraftRows: RecipeDraft[] | null = null;
+  /** HCB-013: the recipe an address asked for, until her catalogue is held and the flavour can be opened (or found unknown). */
+  private recipePending: { id: string; edit: boolean } | null = null;
+  /** HCB-013: the flavour whose editor an address asked to reopen, until the editor reports that it is open. */
+  private recipeRestoreEdit: string | null = null;
   private recipeDraftLoading = false;
   private recipeDraftBusy = false;
   private recipeDraftError: string | null = null;
@@ -2289,14 +2335,16 @@ export class OpsRuntime extends OpsProvider {
       edit: (id) => this.flavourEdit(id),
       restore: (id, edit) => this.restoreFlavour(id, edit),
       online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
-      toast: (message, tone) => this.toast(message, tone)
+      toast: (message, tone) => this.toast(message, tone),
+      retried: (loaded) => void settle(loaded)
     });
     // B2: a shop whose menu is empty shows no flavour, not the engine's six ported ones. Only
     // on an answered, empty read: then no record can name a flavour. While the read is out, or
     // after it fails, the list in hand stays, because batches, baked stock and a running event
     // name flavours and the engine cannot draw a name it does not hold (system-audit.md, R11).
     const sync = this.flavourSync;
-    return sync.load().then((loaded) => {
+    // HCB-003: the page's Try again settles through the same rule as the first read.
+    const settle = (loaded: boolean): boolean => {
       if (loaded) return true;
       if (!sync.readEmpty) return false;
       // Never under a running event: a stall keeps the list it is selling from, whatever a
@@ -2306,7 +2354,8 @@ export class OpsRuntime extends OpsProvider {
       replaceFlavours([], {});
       this.setState((s) => catalogueStatePatch([], {}, s));
       return true;
-    });
+    };
+    return sync.load().then(settle);
   }
 
   /**
@@ -2319,12 +2368,59 @@ export class OpsRuntime extends OpsProvider {
     saveStallCopy(this.state.cfg, this.flavourSync?.current() ?? []);
   }
 
+  /** HCB-004: the engine's list is the copy this phone kept (a flavour list read on an earlier page load). */
+  private catalogueRestored = false;
+
+  /**
+   * Payments' Tick all ticks exactly as the locked engine does, but its toast ("your wallet and your books agree") is
+   * only true of a complete list. On a read that dropped an order, or a refresh that failed after a good read, it
+   * says the list may be incomplete instead.
+   */
+  private liveTickAll(tickAll: OpsVals['recTickAll']): OpsVals['recTickAll'] {
+    return (event) => {
+      tickAll(event);
+      const read = ordersRead.get();
+      const copy =
+        read.dropped > 0
+          ? STAFF_COPY.tickAllDropped
+          : read.phase === 'failed' && read.everRead
+            ? STAFF_COPY.tickAllStale
+            : null;
+      if (copy) this.toast(copy);
+    };
+  }
+
+  /**
+   * HCB-004: whether the engine's flavours are hers: a read has answered, or the copy kept for an offline open was put
+   * back. Otherwise they are the six built-in ones, which a day must not be planned or started from.
+   */
+  private catalogueHeld(): boolean {
+    return !isLiveMode() || this.catalogueRestored || flavoursRead.get().everRead;
+  }
+
+  /**
+   * HCB-004 a2: the products an owner view may name. The engine's list stays as it is (the engine and the write guards
+   * read it), but until her own products are held it is the built-in six, which no owner view may show as hers.
+   */
+  private heldProducts(): ReadonlyArray<EngineFlavour> {
+    return this.catalogueUnread() ? NO_PRODUCTS : PRODUCTS;
+  }
+
+  /**
+   * HCB-004 a2: her catalogue is being read (or the read failed) and nothing of hers is held yet. A runtime no reader was
+   * ever started for (`idle`: the engine on its own, as many tests mount it) has no read to wait for, so it is not "unread".
+   */
+  private catalogueUnread(): boolean {
+    return !this.catalogueHeld() && flavoursRead.get().phase !== 'idle';
+  }
+
   /** A2: puts that copy back, on a page load the server could not be reached for. */
   restoreStallCopy(): void {
     if (!isLiveMode()) return;
     const copy = readStallCopy();
     if (!copy) return;
     if (copy.flavours.length && !this.flavourSync) {
+      this.catalogueRestored = true;
       const { list, allergens } = engineCatalogue(copy.flavours);
       const onMenu = Object.fromEntries(copy.flavours.map((f) => [f.id, f.active]));
       replaceFlavours(list, allergens);
@@ -2606,7 +2702,10 @@ export class OpsRuntime extends OpsProvider {
       return;
     this.go('inventory');
     await new Promise<void>((resolve) =>
-      this.setState({ liveStockOpen: null, liveStockPriceOpen: false }, resolve)
+      this.setState(
+        { liveStockOpen: null, liveStockPriceOpen: false, liveStockReturn: null },
+        resolve
+      )
     );
     if (!this.stockCatalogue) await this.loadStockCatalogue(null);
     const current = this.state;
@@ -2722,6 +2821,13 @@ export class OpsRuntime extends OpsProvider {
   private pricePreview(preview: OpsVals['priceModePreview']): OpsVals['priceModePreview'] {
     if (!preview) return preview;
     const e = this as unknown as PortedActions;
+    // HCB-004 a2: until her products are read the example has no menu to work on: unknown, not a total of the built-in six.
+    if (this.catalogueUnread())
+      return {
+        ...preview,
+        items: STAFF_COPY.homeProductsNotRead,
+        total: STAFF_COPY.homeProductsNotRead
+      };
     const sample = PRODUCTS.slice(0, 3) as Array<{ id: string; short: string }>;
     const sum = sample.reduce((t, p) => t + e.priceOf(p.id) * 2, 0);
     const mode = String((preview as { mode?: unknown }).mode ?? '');
@@ -2750,7 +2856,7 @@ export class OpsRuntime extends OpsProvider {
     const hour = manilaHour(Number(s.now));
     const owner = ownerOr('the owner');
     const flavours = { permanent: 0, rotating: 0 };
-    for (const p of PRODUCTS as Array<{ kind?: string }>)
+    for (const p of this.heldProducts() as ReadonlyArray<{ kind?: string }>)
       if (p.kind === 'Rotating') flavours.rotating += 1;
       else flavours.permanent += 1;
     const suppliers = this.stockCatalogue?.suppliers.filter((sup) => sup.active).length;
@@ -2774,20 +2880,26 @@ export class OpsRuntime extends OpsProvider {
       };
     };
     const month = starved.money ? this.monthTotals(s) : null;
+    // HCB-004 a2: unknown is not "none": until her products are read these say so, never a count or "No flavours yet".
+    const unread = this.catalogueUnread();
     const launcherSub = (label: unknown, sub: unknown): unknown =>
       label === 'Profit & loss'
         ? PNL_PERIOD
         : label === 'Products'
-          ? PRODUCTS.length
-            ? flavours.permanent + ' permanent, ' + flavours.rotating + ' rotating'
-            : 'No flavours yet'
+          ? unread
+            ? STAFF_COPY.homeProductsNotRead
+            : PRODUCTS.length
+              ? flavours.permanent + ' permanent, ' + flavours.rotating + ' rotating'
+              : 'No flavours yet'
           : label === 'Suppliers'
             ? suppliers === undefined
               ? ''
               : suppliers + ' saved'
-            : label === 'Recipes' && !PRODUCTS.length
-              ? 'No flavours yet'
-              : sub;
+            : label === 'Recipes' && unread
+              ? STAFF_COPY.homeProductsNotRead
+              : label === 'Recipes' && !PRODUCTS.length
+                ? 'No flavours yet'
+                : sub;
     const settingsRow = <T extends { label: unknown; value: unknown; go: unknown }>(row: T): T =>
       row.label === 'Payment methods and proof rule'
         ? {
@@ -2821,9 +2933,12 @@ export class OpsRuntime extends OpsProvider {
                         .join(', ') || 'None'
                     : ''
                 }
-              : row.label === 'Recipes and versions' && !PRODUCTS.length
-                ? { ...row, value: 'None yet' }
-                : row;
+              : (row.label === 'Recipes and versions' || row.label === 'Products and prices') &&
+                  unread
+                ? { ...row, value: STAFF_COPY.homeProductsNotRead }
+                : row.label === 'Recipes and versions' && !PRODUCTS.length
+                  ? { ...row, value: 'None yet' }
+                  : row;
     return {
       greeting:
         (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening') +
@@ -3092,6 +3207,7 @@ export class OpsRuntime extends OpsProvider {
 
   componentWillUnmount(): void {
     this.clearOrderRead(false);
+    this.flavourSync?.retire();
     this.retireOperationsHealth();
     this.closeKitchenTransfer();
     this.eventEntry.dispose();
@@ -3259,6 +3375,16 @@ export class OpsRuntime extends OpsProvider {
       this.setState({});
     }
     if (this.productionRecordedAway) this.noticeProductionRecordedAway();
+    this.syncKeptRecipeEdits();
+    // HCB-013: an address that named a recipe opens it as soon as her catalogue is held.
+    if (this.recipePending) this.applyRecipeRoute();
+    if (this.state.screen !== 'recipes' && (this.recipeRestoreEdit || this.state.liveRecipeEdit)) {
+      this.recipeRestoreEdit = null;
+      this.setState({ liveRecipeEdit: null } as never);
+    }
+    // HCB-012: leaving Inventory by any way but Back forgets where Compare prices came from and closes its item page.
+    if (this.state.liveStockReturn && this.state.screen !== 'inventory')
+      this.setState({ liveStockReturn: null, liveStockOpen: null, liveStockPriceOpen: false });
     // The till took over (signal lost or access narrowed): when signal returns it stays, mid-sale, until Events is chosen.
     if (this.bazaarDirectory && !this.canLeaveTill()) {
       this.bazaarDirectory = false;
@@ -3410,9 +3536,47 @@ export class OpsRuntime extends OpsProvider {
     return alerts;
   }
 
+  /** Product ids named by the server's production variances (engine-shaped state, read loosely). */
+  private varianceProductIds(): string[] {
+    const variances = (this.state as unknown as { variances?: unknown }).variances;
+    if (!Array.isArray(variances)) return [];
+    return variances.flatMap((v: unknown) => {
+      const pid = (v as { pid?: unknown } | null)?.pid;
+      return typeof pid === 'string' ? [pid] : [];
+    });
+  }
+
+  /**
+   * This phone's own event sales, formatted as the engine's sales log formats a live sale. They reach the books only
+   * once sent, so Money > Sales lists them while the books are unread. Read only; an unknown product id reads
+   * "Product unavailable" rather than throwing.
+   */
+  private phoneSalesRows(): OpsVals['phoneSales'] {
+    const st = this.state;
+    const now = Number(st.now);
+    return ((st.sales as EventSale[] | undefined) ?? []).map((x) => ({
+      what:
+        Object.keys(x.items)
+          .map((k) => `${x.items[k]} ${RENDER_PRODUCTS[k]?.short ?? 'Product unavailable'}`)
+          .join(', ') || 'Sale',
+      when:
+        (st.event?.name ? `${st.event.name} · ` : '') +
+        relWhen(x.at, now) +
+        (x.clerk ? ` · ${x.clerk}` : ''),
+      amount: x.total === 0 ? 'Free' : PESO(x.total)
+    }));
+  }
+
   renderVals(): OpsVals {
     const vals = isLiveMode()
-      ? renderWithSaleLabels(this.state.sales, RENDER_PRODUCTS, () => super.renderVals())
+      ? renderWithSaleLabels(
+          this.state.sales,
+          RENDER_PRODUCTS,
+          () => super.renderVals(),
+          // HCB-004 g: the locked "Yield against plan" looks up every variance product. One she added herself is
+          // not in the engine's lookup while the catalogue is unread; lend a name for this render only.
+          this.varianceProductIds()
+        )
       : super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
     const counting =
@@ -3442,7 +3606,7 @@ export class OpsRuntime extends OpsProvider {
                 : vals.toastStyle,
             goBack: () => {
               if (!this.state.liveCountPaused) this.setState({ liveCountPaused: true });
-              else if (this.state.liveStockOpen) this.setState({ liveStockOpen: null });
+              else if (this.state.liveStockOpen) this.closeStockItem();
               else this.go('today');
             }
           }
@@ -3503,6 +3667,7 @@ export class OpsRuntime extends OpsProvider {
       liveScreenFor(this.state.screen as ScreenKey)
         ? { pageMax: 'none', pagePad: '0' }
         : {}),
+      recTickAll: this.liveTickAll(starved.recTickAll),
       bareFrame: true,
       showFlowStrip: false,
       flow: null,
@@ -3544,14 +3709,15 @@ export class OpsRuntime extends OpsProvider {
           : starved.productRows,
       ...(this.state.screen === 'products'
         ? {
-            pageSub:
-              PRODUCTS.length +
-              ' flavours · ' +
-              PRODUCTS.filter(
-                (p) =>
-                  (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
-              ).length +
-              ' on menu'
+            pageSub: this.catalogueUnread()
+              ? STAFF_COPY.homeProductsNotRead
+              : PRODUCTS.length +
+                ' flavours · ' +
+                PRODUCTS.filter(
+                  (p) =>
+                    (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+                ).length +
+                ' on menu'
           }
         : {}),
       recipe: starved.recipe
@@ -3602,6 +3768,14 @@ export class OpsRuntime extends OpsProvider {
               }))
             }
           : null,
+      liveBooksRead:
+        isLiveMode() && this.state.role === 'owner' && this.state.screen === 'sales'
+          ? this.moneyDesk.booksRead()
+          : null,
+      phoneSales:
+        isLiveMode() && this.state.role === 'owner' && this.state.screen === 'sales'
+          ? this.phoneSalesRows()
+          : [],
       liveMake: this.state.role === 'owner' && isLiveMode() ? this.makeDesk.vals() : null,
       liveCustomers: this.state.role === 'owner' && isLiveMode() ? this.customerDesk.vals() : null,
       liveHome: this.liveHomeVals(starved),
@@ -3651,6 +3825,7 @@ export class OpsRuntime extends OpsProvider {
         isLiveMode() && this.state.role === 'owner'
           ? {
               ...this.bazaarDays.vals(),
+              catalogue: { held: this.catalogueHeld() },
               kitchen: this.kitchenDesk?.vals() ?? null,
               entry: this.eventEntry.vals(),
               navigation: {
@@ -3667,7 +3842,15 @@ export class OpsRuntime extends OpsProvider {
       // Worked out only on the Recipes screen: nothing else reads it, and the till must not pay for it.
       liveRecipes:
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
-          ? this.liveRecipeBookView()
+          ? {
+              ...this.liveRecipeBookView(),
+              editor: { restore: this.recipeRestoreEdit, report: this.reportRecipeEditor },
+              keptEdit: (id: string) => this.keptRecipeEditView(id)
+            }
+          : null,
+      liveRecipeNavigation:
+        isLiveMode() && this.state.role === 'owner'
+          ? { route: this.recipeRoute(), restore: this.restoreRecipeRoute }
           : null,
       liveProduction:
         this.state.role === 'owner' && this.state.screen === 'bake'
@@ -3701,6 +3884,20 @@ export class OpsRuntime extends OpsProvider {
       liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
       liveShopMenuRead: this.onCustomerScreen() && !this.flavourSync ? this.shopMenu.view() : null,
+      // HCB-004: told only to a signed-in phone that reads her catalogue: a staff screen, or the owner's preview of the
+      // shop. A public visitor's engine role is 'owner' too, and never reads it: the shop keeps its own menu notice.
+      ...(this.flavourSync || !this.onCustomerScreen()
+        ? { catalogueHeld: this.catalogueHeld() }
+        : {}),
+      // HCB-004 a2: the engine works the bake plan out of the built-in six until her products are read. Unknown is not zero:
+      // no rows, no "cookies to bake" figure and no "everything is baked" (the Shopping and Production pages say why).
+      ...(this.catalogueUnread()
+        ? {
+            bakeRows: [],
+            bakeAllDone: false,
+            bakeTotals: { toBakeNum: STAFF_COPY.homeProductsNotRead, summary: '' }
+          }
+        : {}),
       liveShopAvailability: this.onCustomerScreen() ? this.shopAvailability.view() : null,
       liveShopOverride:
         this.state.role === 'owner' && !this.gateNarrow ? this.shopOverrideWrites.view() : null,
@@ -3721,10 +3918,10 @@ export class OpsRuntime extends OpsProvider {
           : flavour
       ),
       // MP-09 c1b: until the published menu is read, a customer page shows no flavours
-      // (the engine still holds the ported list, which is not the owner's menu).
+      // (the engine still holds the ported list, which is not the owner's menu). HCB-004: for the owner's
+      // preview the same holds until her own products are in hand.
       ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
-      !this.flavourSync &&
-      !this.shopMenu.loaded
+      (this.flavourSync ? !this.catalogueHeld() : !this.shopMenu.loaded)
         ? { shopFlavours: [] }
         : {}),
       // MP-09 b4: helpers (and any other non-owner) never see cost, expenses or profit, and
@@ -3963,12 +4160,13 @@ export class OpsRuntime extends OpsProvider {
 
   // ------------------------------------------------------------------ B3: the order rules form
 
-  private async loadOrderRules(): Promise<boolean> {
+  /** `refresh` is the reload after a save: the save was acknowledged, so a failed read must not say otherwise. */
+  private async loadOrderRules(after: 'open' | 'refresh' = 'open'): Promise<boolean> {
     if (!this.shopClient) return false;
     try {
       this.rulesRow = await fetchOrderRules(this.shopClient);
     } catch {
-      this.toast(STAFF_COPY.offline, 'warn');
+      this.toast(RULES_COPY[after === 'open' ? 'readFailed' : 'savedNotRefreshed'], 'warn');
       return false;
     }
     this.forceUpdate();
@@ -3976,9 +4174,10 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** Read fresh first, so the stamp the form saves against is the current one. */
-  private openOrderRules = async (): Promise<void> => {
-    if (!(await this.loadOrderRules()) || !this.rulesRow) return;
+  private openOrderRules = async (): Promise<boolean> => {
+    if (!(await this.loadOrderRules()) || !this.rulesRow) return false;
     this.sheet('orderrules', { updatedAt: this.rulesRow.updated_at });
+    return true;
   };
 
   private liveOrderRulesVals(): OpsVals['liveOrderRules'] {
@@ -4025,21 +4224,28 @@ export class OpsRuntime extends OpsProvider {
     if (outcome === 'saved') {
       this.toast(RULES_COPY.saved);
       this.closeSheet();
-      await this.loadOrderRules();
+      await this.loadOrderRules('refresh');
     } else if (outcome === 'conflict') {
       this.toast(RULES_COPY.conflict, 'warn');
-      await this.openOrderRules();
+      // Their version is shown by reading it again. If that read fails, the form still holds the stale values:
+      // close it rather than leave them editable (the read-failure toast stays).
+      if (
+        !(await this.openOrderRules()) &&
+        (this.state.sheet as FlavourSheetState | null)?.kind === 'orderrules'
+      )
+        this.closeSheet();
     } else this.toast(outcome === 'refused' ? RULES_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
   // ------------------------------------------------------------------ B4: the boxes and add-ons form
 
-  private async loadOrderExtras(): Promise<boolean> {
+  /** `refresh` is the reload after a save: the save was acknowledged, so a failed read must not say otherwise. */
+  private async loadOrderExtras(after: 'open' | 'refresh' = 'open'): Promise<boolean> {
     if (!this.shopClient) return false;
     try {
       this.extrasRow = await fetchOrderExtras(this.shopClient);
     } catch {
-      this.toast(STAFF_COPY.offline, 'warn');
+      this.toast(EXTRAS_COPY[after === 'open' ? 'readFailed' : 'savedNotRefreshed'], 'warn');
       return false;
     }
     this.forceUpdate();
@@ -4047,9 +4253,10 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** Read fresh first, so the stamp the form saves against is the current one. */
-  private openOrderExtras = async (): Promise<void> => {
-    if (!(await this.loadOrderExtras()) || !this.extrasRow) return;
+  private openOrderExtras = async (): Promise<boolean> => {
+    if (!(await this.loadOrderExtras()) || !this.extrasRow) return false;
     this.sheet('orderextras', { updatedAt: this.extrasRow.updated_at });
+    return true;
   };
 
   private liveOrderExtrasVals(): OpsVals['liveOrderExtras'] {
@@ -4147,10 +4354,16 @@ export class OpsRuntime extends OpsProvider {
     if (outcome === 'saved') {
       this.toast(EXTRAS_COPY.saved);
       this.closeSheet();
-      await this.loadOrderExtras();
+      await this.loadOrderExtras('refresh');
     } else if (outcome === 'conflict') {
       this.toast(EXTRAS_COPY.conflict, 'warn');
-      await this.openOrderExtras();
+      // Their version is shown by reading it again. If that read fails, the form still holds the stale values:
+      // close it rather than leave them editable (the read-failure toast stays).
+      if (
+        !(await this.openOrderExtras()) &&
+        (this.state.sheet as FlavourSheetState | null)?.kind === 'orderextras'
+      )
+        this.closeSheet();
     } else this.toast(outcome === 'refused' ? EXTRAS_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
@@ -4170,19 +4383,56 @@ export class OpsRuntime extends OpsProvider {
       this.state.role === 'owner' &&
       actor === this.productionActorEpoch &&
       use === this.scheduledClient;
+    // A retry out replaces the failure notice with the reading line; a first read has no notice to replace.
+    const retrying = this.scheduledReadFailedActor === actor;
+    this.scheduledReading = true;
+    if (retrying) this.forceUpdate();
+    // A read that never answers must not leave "Reading your events…" for good: past the limit it counts as failed
+    // (Try again shows). It is still the same read, so a late answer may still apply and clears the failure.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const read = fetchScheduledEvents(use);
     try {
-      const rows = await fetchScheduledEvents(use);
+      const limit = new Promise<'slow'>((resolve) => {
+        timer = setTimeout(() => resolve('slow'), SCHEDULED_READ_LIMIT_MS);
+      });
+      const rows = await Promise.race([read, limit]);
+      if (seq === this.scheduledReadSeq) this.scheduledReading = false;
       if (!ownerCurrent() || seq !== this.scheduledReadSeq) return false;
+      if (rows === 'slow') {
+        this.scheduledReadFailedActor = actor;
+        this.forceUpdate();
+        void read.then(
+          (late) => {
+            if (!ownerCurrent() || seq !== this.scheduledReadSeq) return;
+            this.scheduledRows = late;
+            this.scheduledReadFailedActor = null;
+            this.afterScheduledRead(use, ownerCurrent);
+          },
+          () => undefined
+        );
+        return false;
+      }
       this.scheduledRows = rows;
+      this.scheduledReadFailedActor = null;
     } catch {
+      if (seq === this.scheduledReadSeq) this.scheduledReading = false;
+      if (!ownerCurrent() || seq !== this.scheduledReadSeq) return false;
+      this.scheduledReadFailedActor = actor;
+      this.forceUpdate();
       return false;
+    } finally {
+      clearTimeout(timer);
     }
+    this.afterScheduledRead(use, ownerCurrent);
+    return true;
+  }
+
+  private afterScheduledRead(use: ScheduledClient, ownerCurrent: () => boolean): void {
     this.forceUpdate();
     void this.retryPendingLink(use, ownerCurrent);
     void this.confirmHeldDay(ownerCurrent);
     // Home's next-event card must not offer a closed event: only a read of each event can say so (U4).
     if (this.state.role === 'owner') void this.bazaarDays.readHub();
-    return true;
   }
 
   /**
@@ -4474,6 +4724,8 @@ export class OpsRuntime extends OpsProvider {
         ? (PRODUCTS.find((product) => product.id === this.recipeDraftEditing?.productId)?.name ??
           null)
         : null,
+      // HCB-004 a2: not gated here (recipe-drafts.test.tsx pins these rows with no catalogue read): the form draws no row
+      // and says her products are not read while they are unread.
       rows:
         rows === null
           ? []
@@ -4747,7 +4999,13 @@ export class OpsRuntime extends OpsProvider {
     this.movementTokens.clear();
     this.movementReads.clear();
     fillLiveCatalogue(null);
-    this.setState({ inv: [], paid: {}, liveStockOpen: null, liveStockPriceOpen: false } as never);
+    this.setState({
+      inv: [],
+      paid: {},
+      liveStockOpen: null,
+      liveStockPriceOpen: false,
+      liveStockReturn: null
+    } as never);
   }
 
   /** Reads the owner's catalogue. Only the latest read from this verified actor and client may apply. */
@@ -6058,18 +6316,42 @@ export class OpsRuntime extends OpsProvider {
     if (typeof open !== 'string') return;
     if (!this.stockCatalogue?.items.some((i) => i.id === open)) {
       this.movementReads.delete(open);
-      this.setState({ liveStockOpen: null });
+      this.setState({ liveStockOpen: null, liveStockReturn: null });
       return;
     }
     void this.loadMovements(open);
   }
 
-  private openStockItemPage(id: string): void {
+  /**
+   * `prices` opens the item's price page; `returnTo` is the screen Compare prices came from, which Back goes back to.
+   * Opening an item from the Inventory list passes neither, so Back stays on the list (HCB-012).
+   */
+  private openStockItemPage(
+    id: string,
+    opened: { prices?: boolean; returnTo?: ScreenKey | null } = {}
+  ): void {
     const cached = this.movementReads.get(id);
     if (!cached || cached.state !== 'ready')
       this.movementReads.set(id, { state: 'loading', rows: [] });
-    this.setState({ liveStockOpen: id, liveStockPriceOpen: false });
+    this.setState({
+      liveStockOpen: id,
+      liveStockPriceOpen: opened.prices === true,
+      liveStockReturn: opened.returnTo ?? null
+    });
     if (!cached || cached.state !== 'ready') void this.loadMovements(id);
+  }
+
+  /** What Back is called on the prices page when Compare prices came from `screen`. */
+  private stockReturnLabel(screen: string): string {
+    return screen === 'grocery' ? 'Back to Shopping' : 'Back';
+  }
+
+  /** Closes the open item. When Compare prices brought her here from another screen, Back goes back to that screen. */
+  private closeStockItem(): void {
+    const origin = this.state.liveStockReturn;
+    this.setState({ liveStockOpen: null, liveStockPriceOpen: false, liveStockReturn: null });
+    if (typeof origin === 'string' && isScreenKey(origin) && origin !== 'inventory')
+      this.go(origin);
   }
 
   /** The cost per unit and where it came from: the database's for the owner, else the engine's own (a database before B3b). Unknown is null. */
@@ -6101,10 +6383,19 @@ export class OpsRuntime extends OpsProvider {
 
   /** Shopping's Compare prices: the item's own price page, on the Inventory screen. */
   private openItemPrices(id: string): void {
-    if (this.state.screen !== 'inventory') this.go('inventory');
+    const from = this.state.screen;
+    if (from !== 'inventory') this.go('inventory');
     this.setState({}, () => {
-      this.openStockItemPage(id);
-      this.setItemPricesOpen(id, true);
+      if (
+        !isLiveMode() ||
+        this.unmounted ||
+        this.state.role !== 'owner' ||
+        this.state.screen !== 'inventory' ||
+        !this.stockCatalogue?.items.some((item) => item.id === id)
+      )
+        return;
+      // The item and its price page open in one update, so Back has the origin the moment the page shows.
+      this.openStockItemPage(id, { prices: true, returnTo: from === 'inventory' ? null : from });
     });
   }
 
@@ -6143,10 +6434,13 @@ export class OpsRuntime extends OpsProvider {
       });
       return;
     }
-    this.setState({ invTab: category, liveStockOpen: null, liveCountPaused: false }, () => {
-      if (isLiveMode() && this.state.role === 'owner' && !this.unmounted)
-        (this as unknown as InvActions).startStocktake();
-    });
+    this.setState(
+      { invTab: category, liveStockOpen: null, liveStockReturn: null, liveCountPaused: false },
+      () => {
+        if (isLiveMode() && this.state.role === 'owner' && !this.unmounted)
+          (this as unknown as InvActions).startStocktake();
+      }
+    );
   }
 
   /** The existing count flow, for one item: on its tab, with only that item on the sheet. */
@@ -6179,13 +6473,19 @@ export class OpsRuntime extends OpsProvider {
       this.setState({
         invTab: target.category,
         liveStockOpen: target.id,
+        liveStockReturn: null,
         liveCountPaused: false,
         stocktake: { ...current, items, i: items.indexOf(target.name) }
       });
       return;
     }
     this.setState(
-      { invTab: target.category, liveStockOpen: target.id, liveCountPaused: false } as never,
+      {
+        invTab: target.category,
+        liveStockOpen: target.id,
+        liveStockReturn: null,
+        liveCountPaused: false
+      } as never,
       () => {
         (this as unknown as InvActions).startStocktake();
         this.setState((s) => ({
@@ -6419,7 +6719,15 @@ export class OpsRuntime extends OpsProvider {
             item: open,
             pricesOpen: this.state.liveStockPriceOpen === true,
             openPrices: () => this.setItemPricesOpen(open.id, true),
-            closePrices: () => this.setItemPricesOpen(open.id, false),
+            // Opened by Compare prices from another screen: Back goes straight back there (HCB-012).
+            closePrices: () =>
+              this.state.liveStockReturn && this.state.liveStockPriceOpen === true
+                ? this.closeStockItem()
+                : this.setItemPricesOpen(open.id, false),
+            closePricesLabel:
+              this.state.liveStockReturn && this.state.liveStockPriceOpen === true
+                ? this.stockReturnLabel(String(this.state.liveStockReturn))
+                : undefined,
             managePrices: open.active ? () => this.openItemPriceEditor(open.id) : undefined,
             chooseSupplier:
               open.active && this.preferredPriceSupplier(c.items.find((row) => row.id === open.id))
@@ -6453,10 +6761,14 @@ export class OpsRuntime extends OpsProvider {
                           : 'Saved price'
                 };
               }),
-            retry: () => this.openStockItemPage(open.id),
+            retry: () =>
+              this.openStockItemPage(open.id, {
+                prices: this.state.liveStockPriceOpen === true,
+                returnTo: this.state.liveStockReturn as ScreenKey | null
+              }),
             movementsState: reads?.state ?? 'loading',
             movements: (reads?.rows ?? []).map((m) => this.movementView(m, open.unit)),
-            close: () => this.setState({ liveStockOpen: null, liveStockPriceOpen: false })
+            close: () => this.closeStockItem()
           }
         : null,
       // After a cutover on the used basis a count that finds less stock is an expense; before it, or with the books unread, nothing is said.
@@ -6471,7 +6783,7 @@ export class OpsRuntime extends OpsProvider {
     if (!this.lastProduction || this.lastProductionDrop !== this.state.dropNo) return null;
     const rows = (counts: unknown, unit: string) => {
       const by = (counts ?? {}) as Record<string, number>;
-      return PRODUCTS.map((row) => ({
+      return this.heldProducts().map((row) => ({
         id: row.id,
         name: row.short,
         qtyText: formatQuantity(Number(by[row.id]) || 0, unit)
@@ -6661,6 +6973,119 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  /**
+   * HCB-038: keeps each unsaved recipe edit in this browser for the verified owner and business, offers a kept one back after
+   * a reload, and forgets it once saved, discarded or otherwise cleared. Nothing runs until the recipes have been read: the
+   * placeholders typed on before the first read are not edits, and a kept edit is judged against the saved stamp it read.
+   */
+  private syncKeptRecipeEdits(): void {
+    const key = this.recipeScopeKey,
+      scope = this.recipeScope;
+    if (
+      !isLiveMode() ||
+      !scope ||
+      key === null ||
+      this.recipeAppliedScopeKey !== key ||
+      this.state.role !== 'owner' ||
+      this.recipeRows === null ||
+      this.recipeReaderState !== 'read' ||
+      this.catalogueUnread()
+    )
+      return;
+    const state = this.state as unknown as RecipeState;
+    const held = new Set(this.heldProducts().map((row) => row.id));
+    const savedStamp = (id: string) =>
+      this.recipeRows?.find((row) => row.productId === id)?.updatedAt ?? null;
+    let saveKept = false,
+      changed = false;
+    if (this.keptRecipeLoadedFor !== key) {
+      this.keptRecipeLoadedFor = key;
+      this.keptRecipeEdits = new Map(
+        readKeptRecipeEdits(scope).edits.map((edit) => [edit.productId, edit])
+      );
+      for (const [id, edit] of [...this.keptRecipeEdits]) {
+        if (!held.has(id) || state.recipeDirty?.[id]) continue;
+        if (edit.stamp === savedStamp(id)) this.keptRecipeOffers.set(id, edit);
+        else {
+          this.keptRecipeNewer.add(id);
+          this.keptRecipeEdits.delete(id);
+          saveKept = true;
+        }
+        changed = true;
+      }
+    }
+    for (const id of held) {
+      const recipe = state.recipes?.[id];
+      const kept = this.keptRecipeEdits.get(id);
+      if (state.recipeDirty?.[id] && recipe) {
+        // What she is typing now replaces an offer she has not answered.
+        if (this.keptRecipeOffers.delete(id)) changed = true;
+        const next = { value: recipe, stamp: this.recipeBaseStamp[id] ?? null };
+        if (!kept || keptRecipeFacts(kept) !== keptRecipeFacts(next)) {
+          this.keptRecipeEdits.set(id, { productId: id, ...next, at: Date.now() });
+          saveKept = true;
+        }
+      } else if (kept && !this.keptRecipeOffers.has(id)) {
+        this.keptRecipeEdits.delete(id);
+        saveKept = true;
+      }
+    }
+    if (saveKept) writeKeptRecipeEdits(scope, [...this.keptRecipeEdits.values()]);
+    if (changed) this.setState({});
+  }
+
+  /** HCB-038: what is said, if anything, about a flavour's kept unsaved edit. */
+  private keptRecipeEditView(id: string): KeptRecipeEditView | null {
+    const key = this.recipeScopeKey,
+      scope = this.recipeScope;
+    const live = () => !this.unmounted && this.recipeScopeKey === key && !!scope;
+    const forget = () => {
+      this.keptRecipeOffers.delete(id);
+      if (this.keptRecipeEdits.delete(id) && scope)
+        writeKeptRecipeEdits(scope, [...this.keptRecipeEdits.values()]);
+      this.setState({});
+    };
+    const offer = this.keptRecipeOffers.get(id);
+    if (offer)
+      return {
+        kind: 'offer',
+        restore: () => {
+          if (!live() || this.keptRecipeOffers.get(id) !== offer) return;
+          const saved = this.recipeRows?.find((row) => row.productId === id)?.updatedAt ?? null;
+          if (saved !== offer.stamp) {
+            // A newer version was saved since the page loaded: the kept edit is not applied.
+            this.keptRecipeNewer.add(id);
+            return forget();
+          }
+          this.keptRecipeOffers.delete(id);
+          this.recipeBaseStamp[id] = offer.stamp;
+          this.setState((s) => {
+            const state = s as unknown as RecipeState;
+            return {
+              recipes: { ...state.recipes, [id]: structuredClone(offer.value) },
+              recipeDirty: { ...state.recipeDirty, [id]: true }
+            } as never;
+          });
+        },
+        discard: () => {
+          if (live() && this.keptRecipeOffers.get(id) === offer) forget();
+        },
+        dismiss: () => undefined
+      };
+    if (this.keptRecipeNewer.has(id))
+      return {
+        kind: 'newer',
+        restore: () => undefined,
+        discard: () => undefined,
+        dismiss: () => {
+          if (!live()) return;
+          this.keptRecipeNewer.delete(id);
+          this.setState({});
+        }
+      };
+    return null;
+  }
+
   private bindRecipeScope(scope: ProductionRecoveryScope | null): void {
     const key = scope ? JSON.stringify([scope.business, scope.userId]) : null;
     if (key === this.recipeScopeKey) return;
@@ -6679,6 +7104,11 @@ export class OpsRuntime extends OpsProvider {
     );
     const restored = this.recipeEditScopes.bind(key, current, new Set(current.keys()));
     this.recipeScopeKey = key;
+    this.recipeScope = scope;
+    this.keptRecipeEdits = new Map();
+    this.keptRecipeLoadedFor = null;
+    this.keptRecipeOffers = new Map();
+    this.keptRecipeNewer = new Set();
     this.recipeLoadSeq += 1;
     this.recipeClient = null;
     this.recipeRows = null;
@@ -7097,10 +7527,15 @@ export class OpsRuntime extends OpsProvider {
       })),
       rows: valid
         ? (saved?.batches ?? []).map((row) => {
-            const product = PRODUCTS.find((p) => p.id === row.productId);
+            const product = this.heldProducts().find((p) => p.id === row.productId);
             return {
               ...row,
-              name: product?.short ?? 'Product no longer listed',
+              // HCB-004 a2: a batch of a product that is simply not read yet is not "no longer listed".
+              name:
+                product?.short ??
+                (this.catalogueUnread()
+                  ? STAFF_COPY.homeProductsNotRead
+                  : 'Product no longer listed'),
               photo: product?.img ?? ''
             };
           })
@@ -8934,7 +9369,9 @@ export class OpsRuntime extends OpsProvider {
     if (sync !== this.orderSync || !sync.isCurrent()) return outcome;
     if (outcome.kind === 'ok') {
       this.closeSheet();
-      this.toast(done, 'ok', undo);
+      // HCB-006: saved, but the list could not be refreshed: say that, not the plain success.
+      if (outcome.refreshed) this.toast(done, 'ok', undo);
+      else this.toast(STAFF_COPY.savedNotRefreshed, 'warn');
       if (this.state.role === 'owner') void this.loadBooks(null);
     }
     return outcome;
@@ -9030,11 +9467,15 @@ export class OpsRuntime extends OpsProvider {
       const sync = this.orderSync;
       const flagged = (sync?.find(id)?.items ?? []).filter((i) => i.unavailable);
       void (async () => {
+        let refreshed = true;
         for (const item of flagged) {
           const outcome = await sync?.flag(id, item.productId, false);
           if (sync !== this.orderSync || !sync?.isCurrent() || outcome?.kind !== 'ok') return;
+          refreshed = refreshed && outcome.refreshed;
         }
-        if (sync === this.orderSync && sync?.isCurrent()) this.toast(STAFF_COPY.cleared);
+        if (sync !== this.orderSync || !sync?.isCurrent()) return;
+        if (refreshed) this.toast(STAFF_COPY.cleared);
+        else this.toast(STAFF_COPY.savedNotRefreshed, 'warn');
       })();
     };
     eng.replaceLine = (id, from, to) => {
@@ -9158,9 +9599,13 @@ export class OpsRuntime extends OpsProvider {
         {
           icon: this.IC.cookie,
           label: 'Menu & flavours',
+          // HCB-004 a2: the editor lists what the read brought in, so until one has answered there is no count to
+          // give (unknown is not "0 flavours"); the kept offline copy is not that list.
           sub:
-            plural(this.flavourSync?.current().length ?? 0, 'flavour', 'flavours') +
-            MENU_TOOLS.flavours,
+            this.flavourSync && !flavoursRead.get().everRead
+              ? STAFF_COPY.homeProductsNotRead
+              : plural(this.flavourSync?.current().length ?? 0, 'flavour', 'flavours') +
+                MENU_TOOLS.flavours,
           badge: null,
           go: () => this.openFlavourList()
         },
@@ -9788,6 +10233,58 @@ export class OpsRuntime extends OpsProvider {
     if (!this.unmounted) this.forceUpdate();
   }
 
+  /** HCB-013: the open recipe (and its editor) as the address names it. Only on the Recipes screen, only for a flavour she holds. */
+  private recipeRoute(): RecipeRoute | undefined {
+    if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'recipes')
+      return undefined;
+    const target = this.state.liveRecipeTarget;
+    if (typeof target === 'string' && this.heldProducts().some((row) => row.id === target))
+      return recipeRouteFor(target, this.state.liveRecipeEdit === target);
+    return this.recipePending
+      ? recipeRouteFor(this.recipePending.id, this.recipePending.edit)
+      : undefined;
+  }
+
+  /** An address names a recipe: it opens once the flavour is in the catalogue she holds, and an unknown one opens nothing. */
+  private restoreRecipeRoute = (route: RecipeRoute | null): RecipeRoute | undefined => {
+    const asked = route ? parseRecipeRoute(route) : null;
+    if (asked) this.recipePending = asked;
+    // The state of an opened recipe lands on the next render; the route it will have is known now.
+    const opened = this.applyRecipeRoute();
+    return opened ? recipeRouteFor(opened.id, opened.edit) : this.recipeRoute();
+  };
+
+  private applyRecipeRoute(): { id: string; edit: boolean } | null {
+    const asked = this.recipePending;
+    if (!asked) return null;
+    if (!isLiveMode() || this.unmounted || this.state.screen !== 'recipes') {
+      this.recipePending = null;
+      return null;
+    }
+    if (this.state.role !== 'owner' || this.catalogueUnread()) return null;
+    this.recipePending = null;
+    if (!this.heldProducts().some((row) => row.id === asked.id)) return null;
+    if (asked.edit) this.recipeRestoreEdit = asked.id;
+    this.setState({
+      liveRecipeTarget: asked.id,
+      liveProductReturnId: null,
+      liveProductEditReturnId: null,
+      ...(asked.edit
+        ? { recipeOpen: asked.id, liveRecipeEdit: asked.id }
+        : { liveRecipeEdit: null })
+    } as never);
+    return asked;
+  }
+
+  /** The recipe book says which flavour's editor it has open (null: none), so the address can name it. */
+  private reportRecipeEditor = (id: string | null): void => {
+    if (this.unmounted) return;
+    // Until an asked-for editor has opened, the book's first report (nothing open yet) must not forget the ask.
+    if (id === null && this.recipeRestoreEdit) return;
+    if (id) this.recipeRestoreEdit = null;
+    if ((this.state.liveRecipeEdit ?? null) !== id) this.setState({ liveRecipeEdit: id } as never);
+  };
+
   private bazaarRoute(): BazaarRoute {
     if (this.state.event && !this.bazaarDirectoryShowing()) return 'till';
     const id = this.bazaarDays.selectedBookingId();
@@ -9872,15 +10369,33 @@ export class OpsRuntime extends OpsProvider {
   /**
    * U4: on a phone the ported toast sits 96 px from the bottom, over the day plan's sticky footer. While that footer is on
    * screen the toast is lifted above it (spec rule 8). Only the value is changed; the locked frame draws it as before.
+   *
+   * HCB-005: on a phone or tablet the toast never covers what the sale is waiting on. Under the consolidated till it stands
+   * above the sale bar (`--till-sale-bar`, measured by the till; the 76 px fallback keeps the ported 96 px where the bar is
+   * not drawn, as at 1024 px). While the payment sheet is open it moves to the top, clear of the wallet buttons.
    */
   private liveToastVals(starved: OpsVals): { toastStyle?: string } {
-    if (!isLiveMode() || this.state.screen !== 'bazaar' || this.state.device !== 'mobile')
+    const device = this.state.device;
+    if (
+      !isLiveMode() ||
+      this.state.screen !== 'bazaar' ||
+      (device !== 'mobile' && device !== 'tablet')
+    )
       return {};
+    const style = String(starved.toastStyle);
+    if ((this.state.sheet as { kind?: string } | null)?.kind === 'pay')
+      return { toastStyle: style.replace(/bottom: \d+px/, 'top: 14px; bottom: auto') };
     // The consolidated till stands on a sticky sale bar: its toast goes above the bar, for every role (spec rule 8).
     if (this.consolidatedTillShowing())
-      return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 104px') };
-    if (this.state.role !== 'owner' || !this.bazaarDays.hasStickyFooter()) return {};
-    return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 196px') };
+      return {
+        toastStyle: style.replace(
+          /bottom: \d+px/,
+          'bottom: calc(var(--workspace-dock, 0px) + 12px + var(--till-sale-bar, 76px) + 8px)'
+        )
+      };
+    if (device !== 'mobile' || this.state.role !== 'owner' || !this.bazaarDays.hasStickyFooter())
+      return {};
+    return { toastStyle: style.replace(/bottom: \d+px/, 'bottom: 196px') };
   }
 
   /** An event is selling on this phone, under the consolidated till (not the classic one, not a review). */

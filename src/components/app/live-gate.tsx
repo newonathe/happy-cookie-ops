@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -26,6 +26,7 @@ import {
 } from '@/lib/auth/offline-trust';
 import type { LocalSale } from '@/lib/auth/sign-out-guard';
 import { OpsRuntime } from '@/store/ops-runtime';
+import { flavoursRead as catalogueRead } from '@/lib/data/flavours-read-state';
 import type { Role } from '@/store/engine/ops-engine';
 import { registerAllLiveScreens } from '@/components/live/register-all';
 import { OfflineHold } from './offline-hold';
@@ -154,7 +155,8 @@ export function LiveGate({
     firstCheck: () => undefined as void,
     retry: () => undefined as void,
     signIn: () => undefined as void,
-    signOut: () => undefined as void
+    signOut: () => undefined as void,
+    staffScreen: () => undefined as void
   });
 
   useEffect(() => {
@@ -181,6 +183,13 @@ export function LiveGate({
     let settingsLoaded = false;
     let flavoursStarted = false;
     let flavoursRead: Promise<boolean> | null = null;
+    // HCB-004: the production scope of the newest verified check, and the catalogue-read watch
+    // that starts Orders and Recipes when a Try again succeeds after a failed first read.
+    let latestProductionScope: { userId: string; business: string } | null = null;
+    let stopCatalogueWatch = () => undefined as void;
+    // Looks at the catalogue read again while the watch is armed: on every store change, and when
+    // a check verifies (an answer that came in during a re-check is caught there).
+    let evaluateCatalogueWatch = () => undefined as void;
     let productionReadKey: string | null = null;
     let idleRunning = false;
     // The role idle time is measured for: the verified one, or the remembered one offline.
@@ -192,11 +201,21 @@ export function LiveGate({
     let recheck: ReturnType<typeof setInterval> | undefined;
     let outstanding = 0;
     let identityEpoch = 0;
+    // The identity epoch of the newest check that verified: a re-check in flight (the epoch moved
+    // on, the answer not yet applied) must not start reads, and must not drop the catalogue watch.
+    let verifiedEpoch = -1;
     let verifiedUserId: string | null = null;
+    // The role this gate last asked the engine to hold. `setRole` is batched, so two checks that
+    // land before React commits would both read the old `engine.state.role`: the second must
+    // compare with what the first asked for, or the engine ends on the wrong one of the two.
+    let askedRole: Role | null = null;
     let lastActivity = Date.now();
     const supabase = createClient();
     const setAccess = (next: Access) => {
-      if (next !== 'verified') productionReadKey = null;
+      if (next !== 'verified') {
+        productionReadKey = null;
+        askedRole = null;
+      }
       accessRef.current = next;
       setAccessState(next);
       // U2: Home on the till is offered only while the whole app is open, never in Bazaar-only mode.
@@ -244,7 +263,7 @@ export function LiveGate({
     }
     function startRecheck() {
       recheck ??= setInterval(() => {
-        if (!outstanding) void verify(false);
+        if (!outstanding) void verify();
       }, RECHECK_MS);
     }
 
@@ -393,13 +412,91 @@ export function LiveGate({
       });
     }
 
-    function apply(result: ProfileCheck, isFirstCheck: boolean) {
+    // Only once the owner's settings are in: before that `cfg` holds the engine's defaults,
+    // and saving those would replace her discounts and float on the phone.
+    const keepStallCopy = () => {
+      if (!cancelled && settingsLoaded && engine instanceof OpsRuntime) engine.saveStallCopy();
+    };
+    // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
+    // customers see (the published menu), not flavours that are on the form but unpublished.
+    // Returns whether it started the staff reads now. Called by every verified check and, for
+    // HCB-004 a3, when she reaches a staff screen after a check verified elsewhere.
+    const startStaffReads = (
+      role: Role,
+      productionScope: typeof latestProductionScope
+    ): boolean => {
+      if (
+        flavoursStarted ||
+        !(engine instanceof OpsRuntime) ||
+        CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+      )
+        return false;
+      flavoursStarted = true;
+      // B3: the owner's orders, once the flavour list is in (the screens need every ordered flavour).
+      const owner = role === 'owner';
+      // D4: the owner's upcoming bazaars, for the Bazaar screen's list.
+      if (owner && !cancelled) void engine.loadScheduledEvents(supabase);
+      if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
+      // C2: the owner's batches, dough and baked counts.
+      if (owner && !cancelled) void engine.loadProduction(supabase);
+      // E1: the owner's books, for the P&L, Home profit and the expense list.
+      if (owner && !cancelled) void engine.loadBooks(supabase);
+      // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
+      // Orders and Recipes start once per page load, on the first catalogue read that succeeds.
+      let ownerReadsStarted = false;
+      const startOwnerReads = (scope: typeof productionScope) => {
+        if (ownerReadsStarted) return;
+        ownerReadsStarted = true;
+        stopCatalogueWatch();
+        void engine.loadOrders(supabase);
+        // A4: the owner's recipes, for the flavours the list just brought in.
+        void engine.loadRecipes(supabase, undefined, undefined, scope);
+      };
+      const userId = verifiedUserId;
+      flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
+      void flavoursRead.then((loaded) => {
+        keepStallCopy();
+        if (owner && !cancelled && loaded !== false) return startOwnerReads(productionScope);
+        // HCB-004: the first read failed. Products' Try again reads it again; the first answer
+        // from it starts the owner's reads, if this is still the same verified owner.
+        if (!owner || cancelled || ownerReadsStarted) return;
+        evaluateCatalogueWatch = () => {
+          // A different person, or teardown: the watch ends. A re-check in flight (supabase-js
+          // signs the same person in again whenever the tab comes back) only waits.
+          if (cancelled || userId !== verifiedUserId) return stopCatalogueWatch();
+          if (verifiedEpoch !== identityEpoch || accessRef.current !== 'verified') return;
+          // `setRole` is batched: the engine can still say owner right after a check verified
+          // a helper, so the newest verified role (`askedRole`) and its scope decide too.
+          if (
+            catalogueRead.get().phase === 'read' &&
+            engine.state.role === 'owner' &&
+            askedRole === 'owner' &&
+            latestProductionScope
+          )
+            startOwnerReads(latestProductionScope);
+        };
+        const unsubscribe = catalogueRead.subscribe(evaluateCatalogueWatch);
+        stopCatalogueWatch = () => {
+          unsubscribe();
+          evaluateCatalogueWatch = () => undefined as void;
+        };
+      });
+      return true;
+    };
+
+    function apply(result: ProfileCheck) {
       if (cancelled) return;
       if (result.status === 'unknown') {
         // Not evidence of anything (see checkStaffProfile's doc comment). A session already
         // verified on this page load is left as it is. Bazaar-only access (an offline open, or
         // a session whose idle time ran out) ends when the offline hours do.
-        if (isFirstCheck && accessRef.current === 'closed') holdOffline();
+        // Any unanswered check while nothing is decided yet (supabase-js re-announcing the stored
+        // session on load moves the epoch and drops the first check's answer); never on a shop page.
+        if (
+          accessRef.current === 'closed' &&
+          !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+        )
+          holdOffline();
         else if (accessRef.current === 'bazaar' && !checkStillFresh()) setAccess('waiting');
         return;
       }
@@ -433,8 +530,12 @@ export function LiveGate({
       offlineRole = null;
       // The protected engine clears an in-progress stocktake on setRole. A same-role
       // token refresh or visibility check must not reset the owner's count.
-      if (!sellingOn && (accessRef.current !== 'verified' || engine.state.role !== role))
+      if (
+        !sellingOn &&
+        (accessRef.current !== 'verified' || (askedRole ?? engine.state.role) !== role)
+      )
         engine.setRole(role);
+      askedRole = role;
       rememberCheck(role);
       stopRecheck();
       // Reopening after a spell with no server: send what the phone is holding now. On a dead
@@ -442,6 +543,7 @@ export function LiveGate({
       // next sale.
       const reopened = accessRef.current === 'bazaar' || accessRef.current === 'waiting';
       setAccess('verified');
+      verifiedEpoch = identityEpoch;
       let productionScope: { userId: string; business: string } | null = null;
       if (engine instanceof OpsRuntime) {
         let business = '';
@@ -461,11 +563,6 @@ export function LiveGate({
       }
       if (reopened && engine instanceof OpsRuntime)
         void Promise.resolve(engine.flushSales()).catch(() => undefined);
-      // Only once the owner's settings are in: before that `cfg` holds the engine's defaults,
-      // and saving those would replace her discounts and float on the phone.
-      const keepStallCopy = () => {
-        if (!cancelled && settingsLoaded && engine instanceof OpsRuntime) engine.saveStallCopy();
-      };
       if (engine instanceof OpsRuntime && role !== 'helper') {
         const epoch = identityEpoch,
           userId = verifiedUserId;
@@ -483,8 +580,22 @@ export function LiveGate({
       // Slice B2: the signed-in person's own name (the greeting, and who rang a sale up). Asked
       // again at each later check until one read has answered: a stall on weak signal must not
       // spend the day selling as "Helper" because the first try was lost.
-      if (engine instanceof OpsRuntime && engine.staffNameRole !== role)
-        void engine.loadStaffName(supabase, role);
+      // setRole is batched: `loadStaffName` refuses a role the engine has not committed yet, so
+      // ask only once the update has landed, and only if the role is still the verified one.
+      if (engine instanceof OpsRuntime && engine.staffNameRole !== role) {
+        const epoch = identityEpoch,
+          userId = verifiedUserId;
+        engine.setState({}, () => {
+          if (
+            !cancelled &&
+            epoch === identityEpoch &&
+            userId === verifiedUserId &&
+            engine.state.role === role &&
+            engine.staffNameRole !== role
+          )
+            void engine.loadStaffName(supabase, role);
+        });
+      }
       if (!settingsStarted) {
         settingsStarted = true;
         // First verified check only: re-checks (token refresh, tab visible again) must not
@@ -501,33 +612,10 @@ export function LiveGate({
       const nextProductionReadKey = productionScope ? JSON.stringify(productionScope) : null;
       const productionScopeChanged = nextProductionReadKey !== productionReadKey;
       productionReadKey = nextProductionReadKey;
-      // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
-      // customers see (the published menu), not flavours that are on the form but unpublished.
+      latestProductionScope = productionScope;
+      const staffReadsStarted = startStaffReads(role, productionScope);
       if (
-        !flavoursStarted &&
-        engine instanceof OpsRuntime &&
-        !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
-      ) {
-        flavoursStarted = true;
-        // B3: the owner's orders, once the flavour list is in (the screens need every ordered flavour).
-        const owner = role === 'owner';
-        // D4: the owner's upcoming bazaars, for the Bazaar screen's list.
-        if (owner && !cancelled) void engine.loadScheduledEvents(supabase);
-        if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
-        // C2: the owner's batches, dough and baked counts.
-        if (owner && !cancelled) void engine.loadProduction(supabase);
-        // E1: the owner's books, for the P&L, Home profit and the expense list.
-        if (owner && !cancelled) void engine.loadBooks(supabase);
-        // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
-        flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
-        void flavoursRead.then((loaded) => {
-          keepStallCopy();
-          if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
-          // A4: the owner's recipes, for the flavours the list just brought in.
-          if (owner && !cancelled && loaded !== false)
-            void engine.loadRecipes(supabase, undefined, undefined, productionScope);
-        });
-      } else if (
+        !staffReadsStarted &&
         productionScopeChanged &&
         productionScope &&
         engine instanceof OpsRuntime &&
@@ -541,6 +629,7 @@ export function LiveGate({
             void engine.loadRecipes(supabase, undefined, undefined, productionScope);
         });
       }
+      evaluateCatalogueWatch();
     }
 
     /** Counted, so the once-a-minute re-check never stacks behind a request that is still out. */
@@ -566,28 +655,57 @@ export function LiveGate({
       return answer;
     }
 
-    async function verify(isFirstCheck: boolean) {
+    async function verify() {
       if (cancelled) return;
       const epoch = identityEpoch;
       const pending = probe();
       const answer = await limited(pending);
-      if (cancelled || epoch !== identityEpoch) return;
-      if (answer) {
-        apply(answer, isFirstCheck);
+      if (cancelled) return;
+      if (epoch !== identityEpoch) {
+        // HCB-004 a3: the identity moved while this check was out, so its answer is not applied. If she
+        // is on a staff screen waiting for the reads, ask again once this check is no longer out
+        // (the move itself skipped asking while it was), instead of waiting for the next event.
+        if (answer) actions.current.staffScreen();
+        else void pending.then(() => actions.current.staffScreen());
         return;
       }
-      apply({ status: 'unknown' }, isFirstCheck);
+      if (answer) {
+        apply(answer);
+        return;
+      }
+      apply({ status: 'unknown' });
       // The answer, if it still comes, is applied as a re-check.
       void pending.then((late) => {
-        if (epoch === identityEpoch && late.status !== 'unknown') apply(late, false);
+        if (epoch === identityEpoch && late.status !== 'unknown') apply(late);
       });
     }
 
-    actions.current.firstCheck = () => void verify(true);
-    actions.current.retry = () => void verify(false);
+    actions.current.firstCheck = () => void verify();
+    actions.current.retry = () => void verify();
     actions.current.signIn = () => window.location.assign(signInPath());
     // A3: the deliberate sign-out (`SignOutControl`) is this same lock-out.
     actions.current.signOut = () => lockOut();
+    // HCB-004 a3: she reached a staff screen after a check verified while she was on a customer
+    // screen (or while the engine had not yet left one: `setRole` goes Home, batched). The reads
+    // that check skipped start now, for the newest verified role, and the watch looks again.
+    actions.current.staffScreen = () => {
+      if (
+        cancelled ||
+        accessRef.current !== 'verified' ||
+        CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+      )
+        return;
+      // The identity moved without a check (supabase-js signs the same person in again on the shop):
+      // nothing may start for an identity no check has verified. Ask for the check now, unless one is
+      // out already; its answer applies on this staff screen and starts the reads.
+      if (verifiedEpoch !== identityEpoch) {
+        if (!outstanding) void verify();
+        return;
+      }
+      if (!askedRole || engine.state.role !== askedRole) return;
+      startStaffReads(askedRole, latestProductionScope);
+      evaluateCatalogueWatch();
+    };
 
     const {
       data: { subscription }
@@ -609,9 +727,9 @@ export function LiveGate({
           clearRememberedCheck();
           setAccess('closed');
         }
-        if (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) void verify(false);
+        if (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) void verify();
         else verifiedUserId = null;
-      } else if (event === 'TOKEN_REFRESHED') void verify(false);
+      } else if (event === 'TOKEN_REFRESHED') void verify();
     });
 
     function onVisible() {
@@ -625,7 +743,7 @@ export function LiveGate({
           accessRef.current !== 'closed' ||
           !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
         )
-          void verify(false);
+          void verify();
         // Customers order all day: read the owner's orders again when the tab comes back.
         if (engine instanceof OpsRuntime) void engine.reloadOrders();
         if (engine instanceof OpsRuntime) void engine.reloadShopStatus();
@@ -638,12 +756,15 @@ export function LiveGate({
     // Back online: the full check runs at once, whatever this page load had decided.
     function onOnline() {
       if (accessRef.current === 'signin') window.location.replace(signInPath());
-      else if (accessRef.current !== 'closed') void verify(false);
+      else if (accessRef.current !== 'closed') void verify();
     }
     window.addEventListener('online', onOnline);
 
     return () => {
       cancelled = true;
+      stopCatalogueWatch();
+      // Only clears a wait no reader answered (a started reader's state is its own).
+      catalogueRead.unexpect();
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('online', onOnline);
@@ -657,6 +778,20 @@ export function LiveGate({
   useEffect(() => {
     if (needsFirstCheck) actions.current.firstCheck();
   }, [needsFirstCheck]);
+
+  // HCB-004 a3: a layout effect, so the catalogue read is marked loading before paint and a staff
+  // view never draws the engine's built-in six for a frame. A no-op unless access is verified and
+  // the staff reads have not started.
+  useLayoutEffect(() => {
+    if (!needsGate) return;
+    // A verified person on a staff screen is owed a catalogue reader: until one binds, the views say
+    // "not read" rather than draw the engine's built-in six. Not before a check verified (the gate
+    // draws no staff view then), and never on a customer screen or in demo mode (`needsGate`).
+    if (configured && accessRef.current === 'verified' && engine instanceof OpsRuntime)
+      catalogueRead.expect();
+    actions.current.staffScreen();
+    // `access` too: a check that verifies on this screen is looked at again (each step is idempotent).
+  }, [needsGate, screen, configured, engine, access]);
 
   const view = (hold: React.ReactNode) =>
     typeof children === 'function' ? children({ landing, hold }) : (hold ?? children);

@@ -14,7 +14,7 @@ export function ItemPrices({ page }: { page: StockItemPage }) {
   return (
     <div className={`${styles.screen} ${styles.childPage}`}>
       <Button className="self-start" onClick={page.closePrices}>
-        Back to item
+        {page.closePricesLabel ?? 'Back to item'}
       </Button>
       <header className={styles.title}>
         <div>

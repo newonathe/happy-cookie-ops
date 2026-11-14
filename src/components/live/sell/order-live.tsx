@@ -1,12 +1,18 @@
 'use client';
 
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { orderStepWords } from '@/lib/orders/owner-words';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { ordersRead } from '@/lib/orders/orders-read-state';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
+import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
+import { Sheet } from '@/components/ui/sheet';
 import { PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
 import { RecordUnavailable } from '@/components/ui/owner-patterns';
+import theme from '../owner-theme.module.css';
 import { OrderPill } from './sell-shared';
 
 type Order = NonNullable<OpsVals['od']>;
@@ -17,6 +23,58 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
       <span className="text-caption text-ink-mute">{label}</span>
       <span className="text-right text-[14px] font-semibold text-ink tabular-nums">{children}</span>
     </div>
+  );
+}
+
+/**
+ * Reject cancels the order and frees its slots, so it asks first (HCB-007, the OD-03 default form:
+ * a dialog). Keep, Close and Escape send nothing; Confirm sends once. Keyed by order in the caller,
+ * so the question never carries over to another order.
+ */
+function RejectButton({ od }: { od: Order }) {
+  const [asking, setAsking] = useState(false);
+  const sent = useRef(false);
+  const copy = STAFF_COPY.rejectConfirm;
+  const confirm = () => {
+    if (sent.current) return;
+    sent.current = true;
+    setAsking(false);
+    od.reject();
+  };
+  return (
+    <>
+      <Button
+        variant="danger"
+        onClick={() => {
+          sent.current = false;
+          setAsking(true);
+        }}
+      >
+        Reject
+      </Button>
+      {asking ? (
+        <Sheet
+          className={theme.theme}
+          side="bottom"
+          title={copy.title}
+          onClose={() => setAsking(false)}
+          footer={
+            <>
+              {/* Keep first: the safe choice is the first button and the first thing a hurried tap meets. */}
+              <Button variant="secondary" onClick={() => setAsking(false)}>
+                {copy.keep}
+              </Button>
+              <Button variant="danger" onClick={confirm}>
+                {copy.confirm}
+              </Button>
+            </>
+          }
+        >
+          <p className="m-0 text-body text-ink">{copy.body(String(od.name), String(od.id))}</p>
+          <p className="mt-2 text-caption text-ink-mute">{copy.note}</p>
+        </Sheet>
+      ) : null}
+    </>
   );
 }
 
@@ -59,13 +117,11 @@ function PaymentReview({ od }: { od: Order }) {
         <Button variant="secondary" onClick={od.askClearer}>
           Ask for clearer proof
         </Button>
-        <Button variant="danger" onClick={od.reject}>
-          Reject
-        </Button>
+        <RejectButton key={String(od.id)} od={od} />
       </div>
       <p className="mt-3 text-caption text-ink-mute">
-        Nothing is reserved until you confirm. Confirming books capacity and adds this order to the
-        bake plan and grocery list.
+        Its pickup slots are held while it waits here, unless it is unpaid and past your hold time.
+        Confirming adds it to the bake plan and grocery list.
       </p>
     </Panel>
   );
@@ -160,6 +216,8 @@ function Progress({ od }: { od: Order }) {
  */
 export function OrderLive({ v }: { v: OpsVals }) {
   const od = v.od;
+  // HCB-006: this order's change was saved but the list could not be refreshed.
+  const read = useSyncExternalStore(ordersRead.subscribe, ordersRead.get, ordersRead.getServer);
   if (!od) return <RecordUnavailable backLabel="Back to orders" onBack={() => v.goBack()} />;
   return (
     <div className="w-full max-w-[860px]">
@@ -181,6 +239,16 @@ export function OrderLive({ v }: { v: OpsVals }) {
             </span>
           ))}
         </p>
+      ) : null}
+
+      {read.savedNotRefreshed !== null && read.savedNotRefreshed === String(od.id) ? (
+        <div className="mb-4">
+          <Banner
+            tone="warn"
+            title={STAFF_COPY.savedNotRefreshed}
+            action={read.retry ? { label: 'Try again', onPress: read.retry } : undefined}
+          />
+        </div>
       ) : null}
 
       {od.needsReview ? <PaymentReview od={od} /> : null}

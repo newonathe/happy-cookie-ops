@@ -9,6 +9,8 @@ import { OpenRow } from '@/components/ui/owner-patterns';
 import { SellTabs } from './sell-shared';
 import { ShopOverrideNotice } from '@/components/live/shop-override-notice';
 import { CustomerStatusExample } from '@/components/live/customer/status-example';
+import { CatalogueNotice, useCatalogueHeld } from '@/components/live/bazaar/catalogue-notice';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
 
 type Entry = NonNullable<NonNullable<OpsVals['liveScreen']>['tabs']>['entries'][number];
 
@@ -47,6 +49,8 @@ function entryRow(entry: Entry | undefined) {
 /** This drop: orders against capacity, the cookie limit, what is sold out, and past drops. */
 function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
   const { drop, drop2 } = v;
+  // HCB-004: the menu is her products; until they are read the built-in six are not listed as hers.
+  const catalogue = useCatalogueHeld(v.catalogueHeld);
   const week = (v.settingsGroups ?? [])
     .flatMap((group) => group.rows ?? [])
     .find((row) => row.label === 'Drop schedule');
@@ -120,27 +124,40 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
       ) : null}
 
       <SectionHeading>This drop&apos;s menu</SectionHeading>
-      <Panel>
-        <ul className="flex flex-col">
-          {(v.dropProducts ?? []).map((product, i) => (
-            <li
-              key={i}
-              className="flex min-h-14 flex-wrap items-center gap-3 border-b border-line py-2 last:border-b-0"
-            >
-              <span className="flex min-w-0 flex-1 basis-40 flex-col">
-                <span className="text-[14px] font-semibold text-ink">{product.name}</span>
-                <span className="text-caption text-ink-mute tabular-nums">{product.priceText}</span>
-              </span>
-              {product.soldOut ? (
-                <span className="text-caption font-semibold text-danger">Sold out</span>
-              ) : null}
-              <Button variant="secondary" size="sm" onClick={product.toggleSold}>
-                {product.soldLabel}
-              </Button>
-            </li>
-          ))}
-        </ul>
-      </Panel>
+      {catalogue.held ? (
+        <Panel>
+          <ul className="flex flex-col">
+            {(v.dropProducts ?? []).map((product, i) => (
+              <li
+                key={i}
+                className="flex min-h-14 flex-wrap items-center gap-3 border-b border-line py-2 last:border-b-0"
+              >
+                <span className="flex min-w-0 flex-1 basis-40 flex-col">
+                  <span className="text-[14px] font-semibold text-ink">{product.name}</span>
+                  <span className="text-caption text-ink-mute tabular-nums">
+                    {product.priceText}
+                  </span>
+                </span>
+                {product.soldOut ? (
+                  <span className="text-caption font-semibold text-danger">Sold out</span>
+                ) : null}
+                <Button variant="secondary" size="sm" onClick={product.toggleSold}>
+                  {product.soldLabel}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      ) : (
+        <CatalogueNotice
+          failed={catalogue.failed}
+          retry={catalogue.retry}
+          copy={{
+            notRead: STAFF_COPY.shopMenuCatalogueNotRead,
+            failed: STAFF_COPY.shopMenuCatalogueFailed
+          }}
+        />
+      )}
 
       {(v.pastDrops ?? []).length ? (
         <>

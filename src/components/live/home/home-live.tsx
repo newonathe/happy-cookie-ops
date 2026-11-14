@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import { ordersRead } from '@/lib/orders/orders-read-state';
 import { StockReadNotice } from '@/components/live/stock/stock-read-notice';
-import { STOCK_COPY } from '@/lib/orders/staff-copy';
+import { STAFF_COPY, STOCK_COPY } from '@/lib/orders/staff-copy';
 import type { LiveHome, OpsVals } from '@/view-models/vals';
 import { NextEventCard, SellingCard } from '@/components/live/bazaar/home-card';
 import { Button } from '@/components/ui/button';
@@ -99,6 +100,8 @@ function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']>
 export function HomeLive({ v }: { v: OpsVals }) {
   const [allWork, setAllWork] = useState(false);
   const home = v.liveHome;
+  // HCB-002i: a first read that failed is not "still loading".
+  const read = useSyncExternalStore(ordersRead.subscribe, ordersRead.get, ordersRead.getServer);
   if (!home) return null;
   const { orders, go } = home;
   const till = v.liveScreen?.till;
@@ -132,7 +135,9 @@ export function HomeLive({ v }: { v: OpsVals }) {
     { title: 'Count stock', detail: 'Enter a physical count', onOpen: go.count },
     {
       title: 'Products & recipes',
-      detail: `${home.flavours} on the menu`,
+      // HCB-004: a count of the built-in six is not hers; until her products are read it says so.
+      detail:
+        home.flavours === null ? STAFF_COPY.homeProductsNotRead : `${home.flavours} on the menu`,
       onOpen: go.products
     },
     {
@@ -194,7 +199,9 @@ export function HomeLive({ v }: { v: OpsVals }) {
           </div>
           {!orders ? (
             <p className="border-t border-divide px-4 py-2 text-caption text-ink-mute">
-              Orders are still loading.
+              {read.phase === 'failed' && !read.everRead
+                ? 'Your orders could not be read. Open Orders to retry.'
+                : 'Orders are still loading.'}
             </p>
           ) : null}
         </HeadedPanel>

@@ -545,6 +545,42 @@ describe('the bazaar phone with no signal (A2)', () => {
     expect(till().state.role).toBe('helper');
   });
 
+  it('a reload with no signal while supabase-js signs the stored session in again still opens Bazaar Mode', async () => {
+    // supabase-js emits SIGNED_IN for the stored session while the first check is still out: that
+    // check's answer is dropped (the identity epoch moved), and the re-check it starts is the one
+    // that finds no signal. It must open Bazaar Mode all the same, not leave the page blank.
+    vi.useFakeTimers();
+    seedEvent();
+    seedCheck(Date.now() - HOUR);
+    net.hang = true; // the server is unreachable: no check ever answers
+    render(<OpsApp initialScreen="today" />);
+    await tick(10);
+    expect(net.checks).toBe(1); // the first check is out
+    act(() => net.authEvent?.('SIGNED_IN', { user: { id: 'u1' } }));
+    await tick(10);
+    expect(net.checks).toBe(2); // and so is the re-check
+    await tick(20_000); // both give up
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    expect(till().state.role).toBe('owner');
+    expect(replace).not.toHaveBeenCalled();
+    expect(net.signOuts).toBe(0);
+  });
+
+  it('the same sequence with no session stored on the phone shows the sign-in notice, never Bazaar Mode', async () => {
+    vi.useFakeTimers();
+    seedEvent();
+    seedCheck(Date.now() - HOUR);
+    storedSession(false);
+    net.hang = true;
+    render(<OpsApp initialScreen="today" />);
+    await tick(10);
+    act(() => net.authEvent?.('SIGNED_IN', { user: { id: 'u1' } }));
+    await tick(20_000);
+    expect(screen.queryByTestId('frame')).toBeNull();
+    expect(screen.getByText('No signal')).toBeInTheDocument(); // the "waiting" notice
+    expect(replace).not.toHaveBeenCalled();
+  });
+
   it('signed out with no network: the notice in place, never a redirect loop', async () => {
     net.user = false; // no session on the phone: a definite denial, with no request made
     onLine = false;
