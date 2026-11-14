@@ -34,8 +34,8 @@ export interface CapacityDecision {
  *
  * Deliberately total: negatives are clamped rather than thrown on, because the caller is
  * sometimes a checkout form and sometimes a stale cached count, and a crash there is
- * worse than a refusal. A request of zero is not ok — it is a bug upstream, and silently
- * accepting it creates an empty order.
+ * worse than a refusal. A request of zero slots fits (migration 86): an order of only plain items asks for no cookie
+ * slots. An empty order cannot reach here: an order carries 1 to 50 lines of quantity 1 or more.
  */
 export function decideCapacity({
   capacity,
@@ -47,7 +47,9 @@ export function decideCapacity({
   const safeRequested = Math.floor(requested);
   const remaining = Math.max(0, safeCapacity - safeCommitted);
   return {
-    ok: safeRequested > 0 && safeRequested <= remaining,
+    // A request of zero slots fits (migration 86, 15 November 2026): an order of only plain items asks for no cookies. An empty
+    // order is refused elsewhere (1 to 50 lines of quantity 1 or more), so zero here is never an empty order.
+    ok: safeRequested >= 0 && safeRequested <= remaining,
     remaining,
     available: remaining
   };
