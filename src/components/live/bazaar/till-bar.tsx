@@ -34,6 +34,18 @@ import { Sheet } from '@/components/ui/sheet';
 import { mutedStyle, textStyle } from '@/components/live/stock/stock-shared';
 import { FeesSection } from './event-page';
 import { StockForm } from './day-review';
+import { PriceForm } from './price-form';
+
+const PANEL_TITLE: Record<TillPanelView['kind'], string> = {
+  fees: 'Event fees',
+  cookies: 'Add cookies',
+  prices: 'Change a price'
+};
+const PANEL_SUBTITLE: Record<TillPanelView['kind'], string> = {
+  fees: 'Stall rent, ice, parking.',
+  cookies: 'Transfer recorded kitchen cookies, or record cookies made separately for this event.',
+  prices: 'For the rest of this day. Needs signal.'
+};
 
 type Till = NonNullable<OpsVals['liveTill']>;
 
@@ -52,7 +64,7 @@ export function TillBar({
   panel: TillPanelView | null | undefined;
 }) {
   if (!till) return events ? <TillBack onBack={events} /> : null;
-  const hasControls = events || till.home || till.addCookies || till.classic;
+  const hasControls = events || till.home || till.addCookies || till.changePrice || till.classic;
   return (
     <>
       {hasControls ? (
@@ -63,8 +75,18 @@ export function TillBar({
               ← Home
             </Button>
           ) : null}
+          {till.changePrice ? (
+            <Button size="sm" variant="secondary" onClick={till.changePrice} className="ml-auto">
+              Change a price
+            </Button>
+          ) : null}
           {till.addCookies ? (
-            <Button size="sm" variant="secondary" onClick={till.addCookies} className="ml-auto">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={till.addCookies}
+              className={till.changePrice ? undefined : 'ml-auto'}
+            >
               Add cookies
             </Button>
           ) : null}
@@ -110,6 +132,7 @@ function TillPanelBody({ panel }: { panel: TillPanelView }) {
       </div>
     );
   if (panel.kind === 'fees' && panel.event) return <FeesSection event={panel.event} />;
+  if (panel.kind === 'prices') return panel.prices ? <PriceForm prices={panel.prices} /> : null;
   if (panel.stock)
     return (
       <StockForm
@@ -126,7 +149,7 @@ function TillPanelBody({ panel }: { panel: TillPanelView }) {
 export function TillPanel({ panel }: { panel: TillPanelView }) {
   return (
     <Sheet
-      title={panel.kind === 'fees' ? 'Event fees' : 'Add cookies'}
+      title={PANEL_TITLE[panel.kind]}
       onClose={panel.close}
       footer={
         <Button variant="secondary" onClick={panel.close}>
@@ -141,17 +164,9 @@ export function TillPanel({ panel }: { panel: TillPanelView }) {
 
 /** The same forms as a page of the new till. */
 export function TillPanelPage({ panel }: { panel: TillPanelView }) {
-  const fees = panel.kind === 'fees';
   return (
-    <section aria-label={fees ? 'Event fees' : 'Add cookies'} className="flex flex-col gap-3">
-      <PageTitle
-        title={fees ? 'Event fees' : 'Add cookies'}
-        subtitle={
-          fees
-            ? 'Stall rent, ice, parking.'
-            : 'Transfer recorded kitchen cookies, or record cookies made separately for this event.'
-        }
-      />
+    <section aria-label={PANEL_TITLE[panel.kind]} className="flex flex-col gap-3">
+      <PageTitle title={PANEL_TITLE[panel.kind]} subtitle={PANEL_SUBTITLE[panel.kind]} />
       <TillPanelBody panel={panel} />
       <div>
         <Button variant="secondary" onClick={panel.close}>

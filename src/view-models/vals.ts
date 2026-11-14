@@ -259,6 +259,8 @@ export interface LiveTillVals {
   home: (() => void) | null;
   /** Opens the add-cookies form over the till. Owner, with signal, not narrowed to Bazaar Mode. */
   addCookies: (() => void) | null;
+  /** D3: opens "Change a price" over the till for the day it sells. Owner, not narrowed to Bazaar Mode. Absent: none. */
+  changePrice?: (() => void) | null;
 }
 
 export interface OpsVals {

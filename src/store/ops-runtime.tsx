@@ -111,7 +111,9 @@ import {
   setEventDevice,
   engineStateForDay,
   fetchBazaar,
+  fetchEventPrices,
   startBazaarDay,
+  type DayPrices,
   type Bazaar,
   type BazaarClient
 } from '@/lib/data/bazaar-days';
@@ -745,6 +747,10 @@ interface LiveEvent {
   scheduledId?: string;
   /** S3: the day's drawer float. The saved copy of the bazaar keeps the event and not the drawer. */
   floatCents?: number;
+  /** D3: how many price changes the till's prices include (0 or absent: the list the day started with). */
+  priceVersion?: number;
+  /** D3: the lists this till charged before, newest first (pesos), so a past sale still shows the price it was rung at. */
+  priceLists?: Array<Record<string, number>>;
 }
 
 /** Whole, positive counts of the flavours the server knows for this event. */
@@ -1066,6 +1072,7 @@ export class OpsRuntime extends OpsProvider {
     lossSaved: (dayId, pid, qty) => this.moveDayStock(dayId, pid, -qty, null),
     lossVoided: (dayId, pid, qty) => this.moveDayStock(dayId, pid, qty, null),
     stockAdded: (dayId, pid, qty, loaded) => this.moveDayStock(dayId, pid, qty, loaded),
+    pricesChanged: (eventId, prices) => this.applyDayPrices(eventId, prices, false),
     dropNo: () => (this.state as unknown as { dropNo: number }).dropNo,
     finalised: () => {
       void this.loadBooks(null);
@@ -2232,6 +2239,50 @@ export class OpsRuntime extends OpsProvider {
         drawer: { float: centavosToPesos(day.floatCents), counted }
       } as never;
     });
+    void this.refreshHeldPrices();
+  }
+
+  /**
+   * D3: the server's prices for the day this till sells, once a change it has not heard of is newer than what it holds
+   * (another of her devices changed a price, or this phone's answer was lost). Read when the till opens, after a sync and
+   * when the day is confirmed. A read older than what the till holds changes nothing.
+   */
+  private pricesRead = 0;
+  private async refreshHeldPrices(): Promise<void> {
+    const event = this.state.event as LiveEvent | null;
+    const client = (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null;
+    if (!isLiveMode() || !event?.id || !event.dayId || !client || this.state.role !== 'owner') return;
+    if (!this.state.online) return;
+    const seq = (this.pricesRead += 1);
+    const read = await fetchEventPrices(client, event.id);
+    if (!read || this.unmounted || seq !== this.pricesRead) return;
+    this.applyDayPrices(event.id, read, true);
+  }
+
+  /**
+   * D3: the till charges these prices from now, on the event they belong to only, and only when they are newer than the
+   * ones it holds. Sales already rung keep their totals; the list they were rung at is kept for their lines.
+   */
+  private applyDayPrices(eventId: string, next: DayPrices, fromRead: boolean): void {
+    let changed = false;
+    this.setState((s) => {
+      const event = s.event as LiveEvent | null;
+      if (!event?.id || event.id !== eventId || next.version <= (event.priceVersion ?? 0)) return null;
+      const current = (s.eventPrices ?? {}) as Record<string, number>;
+      const prices: Record<string, number> = { ...current };
+      for (const [id, cents] of Object.entries(next.prices))
+        if (event.snapshot?.includes(id) ?? id in current) prices[id] = centavosToPesos(cents);
+      changed = Object.keys(prices).some((id) => prices[id] !== current[id]);
+      const lists = changed ? [current, ...(event.priceLists ?? [])].slice(0, 20) : event.priceLists;
+      return {
+        eventPrices: prices,
+        event: { ...event, priceVersion: next.version, ...(lists ? { priceLists: lists } : {}) }
+      } as never;
+    });
+    if (fromRead)
+      this.afterUpdate(() => {
+        if (changed) this.toast('A price of this day was changed on another device. The till charges it from now.');
+      });
   }
 
   /**
@@ -3545,7 +3596,16 @@ export class OpsRuntime extends OpsProvider {
       ? 'failed'
       : 'ok';
     if (s.backup !== backup) this.setState({ backup });
+    // D3: the till opening (or a day starting under it) reads the day's prices again.
+    const tillShowing =
+      s.role === 'owner' &&
+      s.screen === 'bazaar' &&
+      !!(s.event as LiveEvent | null)?.dayId &&
+      !this.bazaarDirectoryShowing();
+    if (tillShowing && !this.tillPricesShowing) void this.refreshHeldPrices();
+    this.tillPricesShowing = tillShowing;
   }
+  private tillPricesShowing = false;
 
   /**
    * The engine works out the open recipe on every render and needs a flavour to do it. With no
@@ -10586,6 +10646,7 @@ export class OpsRuntime extends OpsProvider {
       loaded,
       left: (this.state.eventStock ?? {}) as Record<string, number>,
       prices,
+      earlierPrices: (this.state.event as LiveEvent | null)?.priceLists ?? [],
       names: Object.fromEntries(PRODUCTS.map((p) => [p.id, String(p.short ?? p.id)])),
       // Cine's rule (decision register, 28 September): a helper sees totals only when the owner allows it.
       seesTotals: this.state.role === 'owner' || cfg.helperSeesSales === 1,
@@ -10624,6 +10685,13 @@ export class OpsRuntime extends OpsProvider {
         owner && event.dayId
           ? () => {
               this.bazaarDays.openTillPanel('cookies');
+              this.forceUpdate();
+            }
+          : null,
+      changePrice:
+        owner && event.dayId
+          ? () => {
+              this.bazaarDays.openTillPanel('prices');
               this.forceUpdate();
             }
           : null
@@ -11505,6 +11573,8 @@ export class OpsRuntime extends OpsProvider {
     if (result.sent.length > 0 && this.state.role === 'owner' && !this.unmounted) {
       void this.loadStockCatalogue(null);
       void this.loadBooks(null);
+      // D3: after a sync, a price changed on another of her devices reaches this till.
+      void this.refreshHeldPrices();
     }
     return result;
   };
