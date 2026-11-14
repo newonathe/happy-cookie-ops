@@ -205,7 +205,8 @@ try {
     (supabaseOrigin === null || /^https?:\/\/[^/\s;*]+$/.test(supabaseOrigin)) &&
       directives.get('form-action') === "'self'" &&
       directives.get('connect-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'") &&
-      directives.get('img-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'"),
+      directives.get('img-src') ===
+        (supabaseOrigin ? `'self' data: ${supabaseOrigin}` : "'self' data:"),
     'csp_connect_or_form_action_invalid'
   );
   let checkedRoutes = 0;

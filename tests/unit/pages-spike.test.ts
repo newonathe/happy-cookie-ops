@@ -187,7 +187,7 @@ describe('Static CSP for direct Supabase (architecture A)', () => {
       const policy = directives(result.csp);
       expect(policy.get('form-action')).toBe("'self'");
       expect(policy.get('connect-src')).toBe("'self'");
-      expect(policy.get('img-src')).toBe("'self'");
+      expect(policy.get('img-src')).toBe("'self' data:");
       expect(result.supabaseOrigin).toBeNull();
       expect(result.content.split(/\r?\n/).every((line) => line.length <= 2000)).toBe(true);
     });
@@ -201,7 +201,9 @@ describe('Static CSP for direct Supabase (architecture A)', () => {
       const policy = directives(result.csp);
       expect(policy.get('form-action')).toBe("'self'");
       expect(policy.get('connect-src')).toBe("'self' https://abcdefghijklmnop.supabase.co");
-      expect(policy.get('img-src')).toBe("'self' https://abcdefghijklmnop.supabase.co");
+      // data: is for the drawn cookie pictures (cookie-art.ts, a data:image/svg+xml URL); without it every
+      // product with no photo drew a broken image on the live trial (14 November 2026). Images only.
+      expect(policy.get('img-src')).toBe("'self' data: https://abcdefghijklmnop.supabase.co");
       expect(policy.get('default-src')).toBe("'self'");
       expect(result.csp).not.toMatch(/wss?:|\*/);
       expect(result.supabaseOrigin).toBe('https://abcdefghijklmnop.supabase.co');
