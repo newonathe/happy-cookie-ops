@@ -24,7 +24,7 @@ import { useSave } from '@/components/live/bazaar/use-save';
 export const PHOTO_TRANSITION = 'flavour-photo';
 
 /** The cost per cookie as a field: starts with her cost or the recipe's, and saves only when it has been changed. */
-function CostForm({ item }: { item: RecipeBookItem }) {
+export function CostForm({ item }: { item: RecipeBookItem }) {
   const [pesos, setPesos] = useState(item.startingCost);
   const { error, saving, run } = useSave();
   const field = formIds.cost(item.id);

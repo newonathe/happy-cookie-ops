@@ -6,7 +6,6 @@ import {
   fetchBazaar,
   finaliseBazaar,
   lossError,
-  saveBazaarCost,
   saveBazaarDay,
   saveBazaarFee,
   saveBazaarLoss,
@@ -51,7 +50,7 @@ import {
   strandedRowsOf,
   validateFinalise
 } from '@/lib/bazaar/event-rules';
-import { feeCentsOf, pesosText } from '@/lib/bazaar/forms';
+import { feeCentsOf } from '@/lib/bazaar/forms';
 import { cookiesText, eventWhen, pesoInput, planFromForm } from '@/lib/bazaar/plan';
 import type { RecipeCost } from '@/lib/data/costs';
 import { pesoUnit } from '@/lib/money/format';
@@ -63,7 +62,6 @@ import {
   dayReportOf,
   eventFiguresOf,
   stockRowsOf,
-  typedCostCents,
   unitCostText,
   wholeCount
 } from '@/lib/bazaar/review';
@@ -242,7 +240,6 @@ const COPY = {
   feeSaved: 'Fee added.',
   feeRefused: 'That fee could not be added. Check the name, the amount and the day.',
   targetSaved: 'Target saved.',
-  costSaved: 'Cost saved.',
   valueRefused: 'That could not be saved. The event may already be closed.',
   moneyOffline: 'That needs signal. Try again when you are back online.',
   finaliseNeedsSignal: 'Closing the event needs signal.',
@@ -906,7 +903,8 @@ export class BazaarDays {
         name: names.get(productId) ?? planned.get(productId) ?? productId,
         text,
         typedPesos: typedPesos === null ? '' : String(typedPesos),
-        save: data.finalised ? null : (pesos) => this.saveCost(data, productId, pesos),
+        // Cine, 14 November 2026: one cost per flavour, set in Make (Edit product); an event no longer takes its own.
+        save: null,
         unitText: unit === null ? COST_COPY.pending : unitCostText(unit),
         sourceText,
         breakdown,
@@ -1533,33 +1531,6 @@ export class BazaarDays {
     }
   }
 
-  private async saveCost(data: Bazaar, productId: string, pesos: string): Promise<string | null> {
-    if (this.busy) return COPY.busy;
-    const client = this.deps.client();
-    if (!client || !this.deps.online()) return COPY.moneyOffline;
-    const cents = pesos.trim() === '' ? null : typedCostCents(pesosText(pesos));
-    if (pesos.trim() !== '' && cents === null)
-      return 'A cost per cookie must be like 12 or 12.50, with at most four decimals.';
-    this.busy = true;
-    try {
-      const outcome = await saveBazaarCost(client, data.booking.id, productId, cents);
-      if (outcome === 'offline') return COPY.moneyOffline;
-      if (outcome !== 'saved') return COPY.valueRefused;
-      this.deps.toast(COPY.costSaved);
-      await this.reload();
-      return null;
-    } finally {
-      this.busy = false;
-    }
-  }
-
-  /**
-   * Closes the event she is looking at, once. `data` is the read the page was drawn from. What she decided is checked first
-   * against what was asked (`validateFinalise`: the stranded cookies, A1, and the flavours with no cost, A5). A typed cost is
-   * saved for the flavour, then the event is read again, because a cost changes the summary and with it the hash that closing
-   * is given back as `expected`; the close is then made against that fresh read. A changed event (40001) is read again and she
-   * closes it again herself.
-   */
   /** Sales this phone still holds for a day of this booking (unsent or refused), in words; null when it holds none. */
   private unsentFor(bookingId: string): string | null {
     const held = this.deps.held();
@@ -1610,6 +1581,13 @@ export class BazaarDays {
     }
   }
 
+  /**
+   * Closes the event she is looking at, once. `data` is the read the page was drawn from. What she decided is checked first
+   * against what was asked (`validateFinalise`: the stranded cookies, A1, and the flavours with no cost, A5). A typed cost is
+   * saved for the flavour, then the event is read again, because a cost changes the summary and with it the hash that closing
+   * is given back as `expected`; the close is then made against that fresh read. A changed event (40001) is read again and she
+   * closes it again herself.
+   */
   private async finalise(data: Bazaar, input: FinaliseInput): Promise<string | null> {
     if (this.busy) return COPY.busy;
     const client = this.deps.client();
