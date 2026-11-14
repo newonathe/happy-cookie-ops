@@ -410,13 +410,15 @@ describe("the event's page", () => {
     expect(event.fees.map((f) => f.amountText)).toEqual(['₱500.00', '₱250.00', '₱50.00']);
     expect(event.targetText).toBe('₱500.00');
     expect(event.costs.map((c) => c.text)).toEqual([
-      '₱12.005 per cookie · from the recipe',
-      '₱28.7525 per cookie · typed by you',
+      '₱12.01 per cookie · from the recipe',
+      '₱28.75 per cookie · typed by you',
       '₱10.00 per cookie · typed by you',
       'Cost pending'
     ]);
     expect(event.figures.map((f) => f.key)).toEqual([
       'revenue',
+      'sold-cost',
+      'sold-kept',
       'fees',
       'cookie-cost',
       'profit',

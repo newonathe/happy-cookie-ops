@@ -812,6 +812,7 @@ export function LiveGate({
         local={() => (engine.state.sales as LocalSale[] | undefined) ?? []}
         offline={access !== 'verified' || navigator.onLine === false}
         eventOpen={holdsOpenEvent}
+        slotKey={screen}
       />
     ) : null;
 

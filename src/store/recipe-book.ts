@@ -1,7 +1,7 @@
 import type { BazaarClient, FlavourCost } from '@/lib/data/bazaar-days';
 import { fetchFlavourCosts, saveFlavourCost } from '@/lib/data/bazaar-days';
 import type { RecipeCost } from '@/lib/data/costs';
-import { peso, pesoUnit } from '@/lib/money/format';
+import { peso } from '@/lib/money/format';
 import { formatManila } from '@/lib/time/business-clock';
 import {
   bookRows,
@@ -210,11 +210,12 @@ export class RecipeBook {
         photo: f.photo,
         onMenu: f.onMenu,
         priceText: peso(f.priceCents),
-        costText: row.costCents === null ? 'Cost pending' : pesoUnit(row.costCents),
+        // To the centavo where she reads it; the receipt keeps the exact figure (14 November 2026).
+        costText: row.costCents === null ? 'Cost pending' : peso(row.costCents),
         costSource: row.costSource,
         sourceText: costSourceText(row.costSource, f.typedAt === null ? null : stamp(f.typedAt)),
         marginText: marginText(row.margin),
-        keptText: row.margin === null ? null : pesoUnit(row.margin.cents),
+        keptText: row.margin === null ? null : peso(row.margin.cents),
         tone: row.tone,
         receipt,
         receiptNote: receipt && row.costSource === 'typed' ? BOOK_COPY.comparison : null,

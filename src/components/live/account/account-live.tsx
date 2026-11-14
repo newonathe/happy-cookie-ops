@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SIGN_OUT_SLOT_ID } from '@/components/app/sign-out-control';
 import type { OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
@@ -62,6 +63,8 @@ export function AccountLive({ v }: { v: OpsVals }) {
           />
         ) : null}
       </Panel>
+      {/* On a phone, Sign out is here instead of floating over every screen (SignOutControl fills it). */}
+      <div id={SIGN_OUT_SLOT_ID} className="mt-4 min-[651px]:hidden" />
     </div>
   );
 }

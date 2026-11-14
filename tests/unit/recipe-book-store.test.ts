@@ -285,7 +285,7 @@ describe('saving the cost', () => {
     });
     expect(h.toast).toHaveBeenCalledWith(BOOK_COPY.saved);
     // The read after the save is what the page shows.
-    expect(h.item('classic')).toMatchObject({ costSource: 'typed', costText: '₱34.505' });
+    expect(h.item('classic')).toMatchObject({ costSource: 'typed', costText: '₱34.51' });
   });
 
   it('shows what was saved even when the read after it fails', async () => {

@@ -78,9 +78,11 @@ describe('the event figures, as words', () => {
   const b = read(clone());
   const figures = eventFiguresOf(b);
 
-  it('has the five figures in order', () => {
+  it('has the seven figures in order, the cost of what sold right after revenue', () => {
     expect(figures.map((f) => f.key)).toEqual([
       'revenue',
+      'sold-cost',
+      'sold-kept',
       'fees',
       'cookie-cost',
       'profit',
@@ -91,6 +93,9 @@ describe('the event figures, as words', () => {
   it('reads the headline of each figure to the centavo', () => {
     expect(figures.map((f) => [f.key, f.valueText])).toEqual([
       ['revenue', '₱1,750.00'],
+      // Cine, 14 November 2026: the cost of the 14 cookies sold so far, and what the takings kept over it.
+      ['sold-cost', '₱214.31'],
+      ['sold-kept', '₱1,535.69'],
       ['fees', '₱800.00'],
       ['cookie-cost', '₱555.62'],
       ['profit', '₱389.38'],
@@ -125,14 +130,14 @@ describe('the event figures, as words', () => {
   it('shows the recipe cost per cookie on a flavour line, with its source', () => {
     const line = figure(figures, 'cookie-cost').parts.find((p) => p.label === 'Fixture A');
     expect(line?.valueText).toBe('₱228.09');
-    expect(line?.detail).toContain('₱12.005');
+    expect(line?.detail).toContain('₱12.01');
     expect(line?.detail).toContain('from the recipe');
   });
 
   it('shows a cost she typed as hers', () => {
     const line = figure(figures, 'cookie-cost').parts.find((p) => p.label === 'Fixture B');
     expect(line?.valueText).toBe('₱287.53');
-    expect(line?.detail).toContain('₱28.7525');
+    expect(line?.detail).toContain('₱28.75');
     expect(line?.detail).toContain('typed by you');
   });
 
@@ -299,9 +304,9 @@ describe('the small formatters', () => {
     expect(moneyText(null)).toBe('Cost pending');
   });
 
-  it('unitCostText: up to four decimals of a centavo, at least two', () => {
-    expect(unitCostText(1200.5)).toBe('₱12.005');
-    expect(unitCostText(2875.25)).toBe('₱28.7525');
+  it('unitCostText: to the centavo where she reads it (the receipt keeps four decimals)', () => {
+    expect(unitCostText(1200.5)).toBe('₱12.01');
+    expect(unitCostText(2875.25)).toBe('₱28.75');
     expect(unitCostText(1000)).toBe('₱10.00');
     expect(unitCostText(null)).toBe('Cost pending');
   });
