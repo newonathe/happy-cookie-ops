@@ -35,8 +35,28 @@ export function schemaQuery(inventorySql) {
   return `select jsonb_build_object(
     'migrations', (select coalesce(jsonb_agg(version order by version), '[]'::jsonb)
       from supabase_migrations.schema_migrations),
-    'inventory', (${inventory})) as hco_release_schema`;
+    'inventory', (${inventory}) || ${CATALOG_TABLE_FACTS}) as hco_release_schema`;
 }
+
+/**
+ * The hosted read-only query role sees only its own rows in information_schema.table_privileges
+ * (and, depending on its grants, information_schema.columns), so those came back empty and the
+ * deploy stopped at "Trial table inventory is unavailable" (14 November 2026). The same facts are
+ * read from pg_catalog, which every role can read in full, and replace the information_schema ones.
+ */
+const CATALOG_TABLE_FACTS = `jsonb_build_object(
+    'columns', (select coalesce(jsonb_agg(jsonb_build_object('table_name', c.relname,
+        'column_name', a.attname, 'data_type', format_type(a.atttypid, null))
+        order by c.relname, a.attnum), '[]'::jsonb)
+      from pg_attribute a join pg_class c on c.oid = a.attrelid
+      where c.relnamespace = 'public'::regnamespace and c.relkind in ('r', 'p', 'v')
+        and a.attnum > 0 and not a.attisdropped),
+    'table_grants', (select coalesce(jsonb_agg(jsonb_build_object('table_name', c.relname,
+        'grantee', case when g.grantee = 0 then 'PUBLIC' else pg_get_userbyid(g.grantee) end,
+        'privilege_type', g.privilege_type)
+        order by c.relname, g.grantee, g.privilege_type), '[]'::jsonb)
+      from pg_class c, aclexplode(c.relacl) g
+      where c.relnamespace = 'public'::regnamespace and c.relkind in ('r', 'p', 'v')))`;
 
 /**
  * Hosted Postgres 17 quotes `json_value` (a keyword since 17) in pg_get_function_result; the

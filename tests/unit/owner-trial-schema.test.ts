@@ -190,6 +190,15 @@ describe('private trial deployment schema boundary', () => {
     expect(query).not.toMatch(/\b(?:insert|update|delete|alter|create|drop)\s/i);
   });
 
+  it('reads table grants and columns from pg_catalog, which the hosted read-only role sees in full', () => {
+    const query = schemaQuery(readFileSync('tests/integration/db/schema-inventory.sql', 'utf8'));
+    // information_schema.table_privileges shows a read-only role only its own grants, so the
+    // hosted check saw none and stopped (14 November 2026); the catalog facts replace it.
+    expect(query).toContain('aclexplode(c.relacl)');
+    expect(query).toContain('from pg_attribute a');
+    expect(query).toMatch(/'inventory', \([\s\S]*\) \|\| jsonb_build_object\(\s*'columns'/);
+  });
+
   it('uses only the fixed trial endpoint, a read-only body, no redirects and a deadline', async () => {
     const request = vi.fn(async () => new Response(JSON.stringify(answer())));
     await expect(
