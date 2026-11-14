@@ -3072,6 +3072,8 @@ export class OpsRuntime extends OpsProvider {
   private openFlavourEditor(pid: string, fromProduct = false): void {
     const updatedAt = this.flavourSync?.current().find((r) => r.id === pid)?.updated_at ?? null;
     if (fromProduct) this.setState({ liveProductReturnId: null, liveProductEditReturnId: null });
+    // The cost per cookie is set here too (Cine, 14 November 2026): read her typed costs so the field starts right.
+    void this.recipeBook.read();
     this.sheet('flavours', { pid, updatedAt, fromProduct });
   }
 
@@ -10587,7 +10589,10 @@ export class OpsRuntime extends OpsProvider {
             save: (fields: LiveFlavourFormFields) =>
               void this.saveFlavourForm(target?.id ?? null, fields, expectedUpdatedAt),
             cancel: () => this.cancelFlavourEditor(sh),
-            upload: this.uploadImage('flavours')
+            upload: this.uploadImage('flavours'),
+            costItem: target
+              ? (this.recipeBook.vals().items.find((item) => item.id === target.id) ?? null)
+              : null
           }
         : null;
     return {

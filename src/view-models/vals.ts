@@ -1,3 +1,4 @@
+import type { RecipeBookItem } from '@/lib/recipes/live-recipes-types';
 /**
  * The contract between the ops engine and the UI.
  * Derived from the prototype template: every field is a value the ported engine's
@@ -308,6 +309,11 @@ export interface OpsVals {
           cancel: (event?: unknown) => void;
           /** Uploads a photo to the shop-media bucket; resolves to its stored path, or null. */
           upload: (file: File) => Promise<string | null>;
+          /**
+           * Cine, 14 November 2026: the cost per cookie is set where the products are. The recipe book's own entry for this
+           * product (one cost, used by every bazaar); null for a new product, or one the book does not list.
+           */
+          costItem?: RecipeBookItem | null;
         })
       | null;
   } | null;
