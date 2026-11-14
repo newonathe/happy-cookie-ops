@@ -72,11 +72,18 @@ function timeOf(at: number): string {
  * list (the current one, then each earlier one) whose prices make the sale's gross. None does (a sale from before the lists
  * were kept): the current list, as before.
  */
-function listOf(sale: EventSale, lists: ReadonlyArray<Record<string, number>>): Record<string, number> {
+function listOf(
+  sale: EventSale,
+  lists: ReadonlyArray<Record<string, number>>
+): Record<string, number> {
   const gross = cents(sale.gross);
-  const fits = lists.find((list) =>
-    Object.entries(sale.items).every(([pid]) => typeof list[pid] === 'number') &&
-    Object.entries(sale.items).reduce((sum, [pid, qty]) => sum + cents(list[pid]) * (Number(qty) || 0), 0) === gross
+  const fits = lists.find(
+    (list) =>
+      Object.entries(sale.items).every(([pid]) => typeof list[pid] === 'number') &&
+      Object.entries(sale.items).reduce(
+        (sum, [pid, qty]) => sum + cents(list[pid]) * (Number(qty) || 0),
+        0
+      ) === gross
   );
   return fits ?? lists[0] ?? {};
 }

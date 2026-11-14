@@ -56,8 +56,14 @@ describe('setBazaarDayPrice (D3: change a price on a started day)', () => {
   });
 
   it('keeps the change when the answer cannot be read: it may have landed', async () => {
-    for (const data of [null, { version: 1, prices: { 'dp-a': 1 } }, { latest: 1, prices: [], duplicate: false }])
-      expect(await setBazaarDayPrice(client({ data }).client, CHANGE)).toEqual({ result: 'offline' });
+    for (const data of [
+      null,
+      { version: 1, prices: { 'dp-a': 1 } },
+      { latest: 1, prices: [], duplicate: false }
+    ])
+      expect(await setBazaarDayPrice(client({ data }).client, CHANGE)).toEqual({
+        result: 'offline'
+      });
     const thrown = vi.fn(async () => {
       throw new Error('network');
     });
@@ -87,7 +93,10 @@ describe('setBazaarDayPrice (D3: change a price on a started day)', () => {
     [{ code: '22023', message: 'that is already the price' }, 'same'],
     [{ code: '55000', message: 'that day is closed: its prices cannot change' }, 'closed'],
     [{ code: '55000', message: "only a bazaar day's prices can be changed here" }, 'refused'],
-    [{ code: '23505', message: 'request id was already used for a different price change' }, 'conflict'],
+    [
+      { code: '23505', message: 'request id was already used for a different price change' },
+      'conflict'
+    ],
     [{ code: '22023', message: "flavour dp-z is not on this day's price list" }, 'refused'],
     [{ code: '42501', message: 'only the owner may change a price' }, 'refused'],
     [{ code: 'P0002', message: 'event not found' }, 'refused'],
@@ -126,7 +135,15 @@ describe('priceCentsOf', () => {
 
 describe('the till ledger after a price change', () => {
   const sale = (id: number, items: Record<string, number>, gross: number): EventSale =>
-    ({ id, at: 1_794_640_000_000 + id, items, gross, discount: 0, total: gross, pay: 'GCash' }) as unknown as EventSale;
+    ({
+      id,
+      at: 1_794_640_000_000 + id,
+      items,
+      gross,
+      discount: 0,
+      total: gross,
+      pay: 'GCash'
+    }) as unknown as EventSale;
 
   it('shows each sale at the list it was rung at, and new sales at the new price', () => {
     const ledger = buildTillLedger({

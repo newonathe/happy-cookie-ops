@@ -1711,9 +1711,9 @@ describe('D3: Change a price on the selling day', () => {
     render(<EventPage event={eventView({ days: [dayRow({ prices: pricing(change) })] })} />);
     fireEvent.click(screen.getByRole('button', { name: 'Change a price' }));
     const form = await screen.findByRole('form', { name: 'Change a price' });
-    expect(within(form).getByText('Now ₱120.00')).toBeTruthy();
+    expect(within(form).getByText('Now ₱120.00').textContent).toBe('Now ₱120.00');
     fireEvent.change(within(form).getByLabelText('Flavour'), { target: { value: 'nc' } });
-    expect(within(form).getByText('Now ₱200.00')).toBeTruthy();
+    expect(within(form).getByText('Now ₱200.00').textContent).toBe('Now ₱200.00');
     const box = within(form).getByLabelText('New price');
     fireEvent.change(box, { target: { value: '220' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Change the price' }));
@@ -1722,14 +1722,18 @@ describe('D3: Change a price on the selling day', () => {
   });
 
   it('shows what was refused and keeps what she typed', async () => {
-    const change = vi.fn(async (): Promise<string | null> => 'This day is closed. Its prices cannot change.');
+    const change = vi.fn(
+      async (): Promise<string | null> => 'This day is closed. Its prices cannot change.'
+    );
     render(<EventPage event={eventView({ days: [dayRow({ prices: pricing(change) })] })} />);
     fireEvent.click(screen.getByRole('button', { name: 'Change a price' }));
     const form = await screen.findByRole('form', { name: 'Change a price' });
     const box = within(form).getByLabelText('New price');
     fireEvent.change(box, { target: { value: '130' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Change the price' }));
-    expect(await within(form).findByText('This day is closed. Its prices cannot change.')).toBeTruthy();
+    expect(
+      await within(form).findByText('This day is closed. Its prices cannot change.')
+    ).toBeTruthy();
     expect(box).toHaveValue('130');
   });
 
@@ -1744,9 +1748,13 @@ describe('D3: Change a price on the selling day', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Change a price' }));
     const form = await screen.findByRole('form', { name: 'Change a price' });
-    const send = within(form).getByRole('button', { name: 'Change the price' }) as HTMLButtonElement;
+    const send = within(form).getByRole('button', {
+      name: 'Change the price'
+    }) as HTMLButtonElement;
     expect(send.disabled).toBe(true);
-    expect(within(form).getByText('Changing a price needs signal.')).toBeTruthy();
+    expect(within(form).getByText('Changing a price needs signal.').textContent).toBe(
+      'Changing a price needs signal.'
+    );
     fireEvent.submit(form);
     expect(change).not.toHaveBeenCalled();
   });
