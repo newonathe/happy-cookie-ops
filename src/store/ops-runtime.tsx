@@ -2251,7 +2251,8 @@ export class OpsRuntime extends OpsProvider {
   private async refreshHeldPrices(): Promise<void> {
     const event = this.state.event as LiveEvent | null;
     const client = (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null;
-    if (!isLiveMode() || !event?.id || !event.dayId || !client || this.state.role !== 'owner') return;
+    if (!isLiveMode() || !event?.id || !event.dayId || !client || this.state.role !== 'owner')
+      return;
     if (!this.state.online) return;
     const seq = (this.pricesRead += 1);
     const read = await fetchEventPrices(client, event.id);
@@ -2267,13 +2268,16 @@ export class OpsRuntime extends OpsProvider {
     let changed = false;
     this.setState((s) => {
       const event = s.event as LiveEvent | null;
-      if (!event?.id || event.id !== eventId || next.version <= (event.priceVersion ?? 0)) return null;
+      if (!event?.id || event.id !== eventId || next.version <= (event.priceVersion ?? 0))
+        return null;
       const current = (s.eventPrices ?? {}) as Record<string, number>;
       const prices: Record<string, number> = { ...current };
       for (const [id, cents] of Object.entries(next.prices))
         if (event.snapshot?.includes(id) ?? id in current) prices[id] = centavosToPesos(cents);
       changed = Object.keys(prices).some((id) => prices[id] !== current[id]);
-      const lists = changed ? [current, ...(event.priceLists ?? [])].slice(0, 20) : event.priceLists;
+      const lists = changed
+        ? [current, ...(event.priceLists ?? [])].slice(0, 20)
+        : event.priceLists;
       return {
         eventPrices: prices,
         event: { ...event, priceVersion: next.version, ...(lists ? { priceLists: lists } : {}) }
@@ -2281,7 +2285,10 @@ export class OpsRuntime extends OpsProvider {
     });
     if (fromRead)
       this.afterUpdate(() => {
-        if (changed) this.toast('A price of this day was changed on another device. The till charges it from now.');
+        if (changed)
+          this.toast(
+            'A price of this day was changed on another device. The till charges it from now.'
+          );
       });
   }
 

@@ -681,7 +681,11 @@ describe('the close-out (live)', () => {
 
 describe('D3: the till charges a changed price', () => {
   interface Prices {
-    applyDayPrices: (eventId: string, next: { version: number; prices: Record<string, number> }, fromRead: boolean) => void;
+    applyDayPrices: (
+      eventId: string,
+      next: { version: number; prices: Record<string, number> },
+      fromRead: boolean
+    ) => void;
     refreshHeldPrices: () => Promise<void>;
   }
   const prices = (runtime: OpsRuntime) => runtime as unknown as Prices;
@@ -697,9 +701,14 @@ describe('D3: the till charges a changed price', () => {
 
   it('a confirmed change is charged at once; past sales keep the list they were rung at', async () => {
     const { runtime, id } = await started();
-    act(() => prices(runtime).applyDayPrices(id, { version: 1, prices: { dcf: 13000, wcb: 9000 } }, false));
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 1, prices: { dcf: 13000, wcb: 9000 } }, false)
+    );
     expect(charged(runtime)).toMatchObject({ dcf: 130, wcb: 90 });
-    expect(runtime.state.event).toMatchObject({ priceVersion: 1, priceLists: [{ dcf: 125, wcb: 90 }] });
+    expect(runtime.state.event).toMatchObject({
+      priceVersion: 1,
+      priceLists: [{ dcf: 125, wcb: 90 }]
+    });
     // The cart is priced by the engine from eventPrices: one dcf in the cart now comes to the new price.
     act(() => runtime.setState({ cart: { dcf: 1 } } as never));
     expect(runtime.renderVals().liveTill?.cartTotalText).toBe('₱130.00');
@@ -707,9 +716,15 @@ describe('D3: the till charges a changed price', () => {
 
   it('an older or repeated list changes nothing, and another event is never touched', async () => {
     const { runtime, id } = await started();
-    act(() => prices(runtime).applyDayPrices(id, { version: 2, prices: { dcf: 14000, wcb: 9000 } }, false));
-    act(() => prices(runtime).applyDayPrices(id, { version: 1, prices: { dcf: 13000, wcb: 9000 } }, true));
-    act(() => prices(runtime).applyDayPrices(id, { version: 2, prices: { dcf: 99900, wcb: 9000 } }, true));
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 2, prices: { dcf: 14000, wcb: 9000 } }, false)
+    );
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 1, prices: { dcf: 13000, wcb: 9000 } }, true)
+    );
+    act(() =>
+      prices(runtime).applyDayPrices(id, { version: 2, prices: { dcf: 99900, wcb: 9000 } }, true)
+    );
     expect(charged(runtime).dcf).toBe(140);
     act(() =>
       prices(runtime).applyDayPrices(EVENT, { version: 5, prices: { dcf: 1, wcb: 1 } }, true)

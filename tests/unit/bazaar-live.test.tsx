@@ -525,7 +525,10 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
       expect(
         rpc.mock.calls
           .slice(before)
-          .every(([name]) => ['get_bazaar', 'get_scheduled_events'].includes(name))
+          // D3: resuming the till re-reads the day's prices (a read, like the other two).
+          .every(([name]) =>
+            ['get_bazaar', 'get_scheduled_events', 'get_event_prices'].includes(name)
+          )
       ).toBe(true);
     });
   }

@@ -200,8 +200,15 @@ begin
   perform pg_temp.expect('flavour off list', format('select public.record_event_sale(%L)', pg_temp.sale('S7:1', ev, '{"dp-zz": 1}', 0, 100, 1)),
     '22023', 'not in the event price snapshot');
 
-  -- Two lists that make the same total: the one in effect at the sale's time prices it.
+  -- Two lists that make the same total: the one in effect at the sale's time prices it. B is a kitchen-transferred flavour
+  -- whose line no longer matches its transfers (40 made, none transferred): the guard of migration 76 refuses its line, and
+  -- the change still lands.
+  insert into public.bazaar_kitchen_sources(scheduled_id, product_id, source_drop) values (b, 'dp-b', 0);
   out1 := public.set_bazaar_day_price(pg_temp.change(r2::text, ev, 'dp-b', 9000));  -- A 130, B 90: A+B is 220, as at the start
+  if (select price_cents from public.bazaar_day_lines where day_id = md5(b::text || ':d')::uuid and product_id = 'dp-b') <> 10000
+     or (select price_snapshot ->> 'dp-b' from public.events where id = ev) <> '9000' then
+    raise exception 'PRICE_KITCHEN: the guarded line or the new list is wrong';
+  end if;
   if out1 ->> 'version' <> '2' then
     raise exception 'PRICE_ANSWER second change wrong: %', out1;
   end if;

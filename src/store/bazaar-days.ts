@@ -699,7 +699,8 @@ export class BazaarDays {
           }
         : null;
     const prices = day && data ? this.pricesView(data, day) : null;
-    const ready = kind === 'fees' ? event !== null : kind === 'prices' ? prices !== null : stock !== null;
+    const ready =
+      kind === 'fees' ? event !== null : kind === 'prices' ? prices !== null : stock !== null;
     return {
       kind,
       status: ready ? 'loaded' : data || this.reading === 'failed' ? 'failed' : 'loading',
@@ -1586,9 +1587,13 @@ export class BazaarDays {
     if (!eventId || !line) return 'Choose the flavour.';
     const priceCents = priceCentsOf(input.price);
     if (typeof priceCents === 'string') return priceCents;
-    if (priceCents === line.priceCents) return COPY.priceSame;
     const name = this.names().get(line.productId) ?? line.name;
     const key = 'price:' + day.id + ':' + line.productId;
+    // A change whose answer was lost is sent again first, whatever is typed now; only with none waiting is the same price refused
+    // here (review, 15 November 2026).
+    const waiting = this.pending.get(key);
+    if (priceCents === line.priceCents && !(waiting && isPriceBody(waiting.body)))
+      return COPY.priceSame;
     this.busy = true;
     try {
       const p = this.pendingFor(key, { productId: line.productId, priceCents });

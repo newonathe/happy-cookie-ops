@@ -1243,6 +1243,21 @@ describe('D3: a price changed on a started day', () => {
     // Mutation: a fresh id per call would make the retry a second change at a price she no longer wants.
   });
 
+  it('a lost answer is sent again even when she types the price the day still shows (review, 15 November 2026)', async () => {
+    const { h, row } = await opened(day2Open());
+    const shown = row
+      .prices!.flavours.find((f) => f.id === 'mp0s-a')!
+      .priceText.replace(/[^0-9.]/g, '');
+    h.reply('set_bazaar_day_price', 'throw');
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '130' })).toMatch(/needs signal/);
+    const first = h.calls('set_bazaar_day_price')[0]!;
+    h.reply('set_bazaar_day_price', { data: { ...saved.data, duplicate: true } });
+    // Retyping the old price must not stop at "already the price": the waiting change is settled first.
+    const words = await row.prices!.change({ productId: 'mp0s-a', price: shown });
+    expect(words).not.toMatch(/already the price/);
+    expect(h.calls('set_bazaar_day_price')[1]).toEqual(first);
+  });
+
   it.each([
     [{ code: '55000', message: 'that day is closed: its prices cannot change' }, /day is closed/],
     [{ code: '22023', message: 'that is already the price' }, /already the price/],

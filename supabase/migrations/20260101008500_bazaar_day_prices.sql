@@ -6,7 +6,8 @@
 -- list the day started with, and then the new list; `events.price_snapshot` is always the latest list, so everything that reads it
 -- (the start replay, the stock and close checks, which only ask whether a flavour is on the menu) sees today's prices. A change
 -- sets one flavour already on the day's list, so the list's flavours never change. The day's plan line takes the new price too,
--- so the event page and the day's review show what the stall charges now.
+-- so the event page and the day's review show what the stall charges now (except a kitchen-transferred line the guard of
+-- migration 76 refuses to touch: it keeps its plan price, and the sale check never reads it).
 --
 -- record_event_sale is redefined whole from 20260101004700 with one change, the price check: a sale sends quantities and totals,
 -- never prices, so the server tries the list in effect at the sale's time first, then every other list of that day (newest first),
@@ -139,7 +140,13 @@ begin
   insert into public.event_price_versions (event_id, version, prices, effective_at, created_by, request_id, payload_hash)
   values (v_event, v_next, v_prices, v_now, auth.uid(), v_req, v_hash);
   update public.events e set price_snapshot = v_prices where e.id = v_event; -- rule:price-snapshot
-  update public.bazaar_day_lines l set price_cents = v_cents where l.day_id = v_day.id and l.product_id = v_pid; -- rule:price-line
+  -- A flavour whose stock came from kitchen transfers is guarded (guard_bazaar_kitchen_line, migration 76): when its line no
+  -- longer matches its transfers the guard refuses any update. The price change still lands; that line keeps its plan price.
+  begin
+    update public.bazaar_day_lines l set price_cents = v_cents where l.day_id = v_day.id and l.product_id = v_pid; -- rule:price-line
+  exception when sqlstate 'ZB002' then -- rule:price-line-kitchen
+    null;
+  end;
 
   insert into public.audit_log (actor, action, entity, entity_id, detail)
   values (auth.uid(), 'bazaar_day.price_changed', 'events', v_event::text,
