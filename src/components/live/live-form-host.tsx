@@ -20,6 +20,7 @@ import {
 import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { CostForm } from '@/components/live/recipes/flavour-page';
+import { ProductTypesPanel } from '@/components/live/product-types-panel';
 import { ProductionDough } from '@/components/live/production/production-dough';
 
 /**
@@ -90,6 +91,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
       <button onClick={liveForm.addNew} style={secondaryButton}>
         Add a flavour
       </button>
+      {liveForm.types ? <ProductTypesPanel types={liveForm.types} /> : null}
       {liveForm.rows.length ? (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {liveForm.rows.map((row) => (
@@ -172,6 +174,16 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
     if (picker && !picker.disabled) picker.focus();
     else (form?.elements.namedItem('allergens') as HTMLInputElement | null)?.focus();
   };
+  const typeOptions = editing.typeOptions ?? [
+    { id: 'cookie', label: 'Cookie', behavesAs: 'cookie' as const },
+    { id: 'set', label: 'Set', behavesAs: 'set' as const }
+  ];
+  const typeFields = (typeId: string): Pick<Editing, 'itemType' | 'typeId'> => {
+    const chosen = typeOptions.find((option) => option.id === typeId) ?? typeOptions[0]!;
+    return editing.typeOptions
+      ? { itemType: chosen.behavesAs, typeId: chosen.id }
+      : { itemType: chosen.behavesAs === 'set' ? 'set' : 'cookie' };
+  };
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -183,7 +195,8 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
       allergens: fieldValue(form, 'allergens'),
       badge: fieldValue(form, 'badge'),
       kind: fieldValue(form, 'kind') === 'Rotating' ? 'Rotating' : 'Permanent',
-      itemType: fieldValue(form, 'itemType') === 'set' ? 'set' : 'cookie',
+      // Her product type decides the behaviour (migration 84); without her types, Cookie or Set as before.
+      ...typeFields(fieldValue(form, 'typeId')),
       capacityWeight: fieldNumber(form, 'capacityWeight'),
       sortOrder: fieldNumber(form, 'sortOrder'),
       price: fieldNumber(form, 'price'),
@@ -308,10 +321,17 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
             </select>
           </label>
           <label style={labelStyle}>
-            <span style={smallLabel}>Cookie or set</span>
-            <select name="itemType" defaultValue={editing.itemType} style={inputStyle}>
-              <option value="cookie">Cookie</option>
-              <option value="set">Set</option>
+            <span style={smallLabel}>Type</span>
+            <select
+              name="typeId"
+              defaultValue={editing.typeId ?? (editing.itemType === 'set' ? 'set' : 'cookie')}
+              style={inputStyle}
+            >
+              {typeOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
         </div>
