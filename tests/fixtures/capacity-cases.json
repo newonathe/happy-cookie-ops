@@ -50,12 +50,20 @@
       "remaining": 200
     },
     {
-      "name": "a zero-box request is a bug, not an order",
+      "name": "a request of zero slots fits: an order of only plain items asks for no cookies",
       "capacity": 200,
       "committed": 0,
       "requested": 0,
-      "ok": false,
+      "ok": true,
       "remaining": 200
+    },
+    {
+      "name": "a sold-out drop still takes an order of only plain items (zero slots)",
+      "capacity": 200,
+      "committed": 200,
+      "requested": 0,
+      "ok": true,
+      "remaining": 0
     },
     {
       "name": "a negative request is refused",

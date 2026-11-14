@@ -125,4 +125,32 @@ describe('product types (migration 84, Cine 14 November 2026)', () => {
       item_type: 'item'
     });
   });
+
+  it('takes an item at 0 slots as the database stores it, but never a cookie at 0', () => {
+    const item: FlavourFields = {
+      name: 'Sticker',
+      short_name: 'Sticker',
+      price_cents: 5000,
+      kind: 'Permanent',
+      item_type: 'item',
+      type_id: 'stickers',
+      capacity_weight: 0,
+      tag: '',
+      description: '',
+      image_path: '',
+      allergens: 'None',
+      active: true,
+      sort_order: 40
+    };
+    expect(flavourFieldError(item)).toBeNull();
+    expect(flavourFieldError({ ...item, item_type: 'cookie', type_id: 'cookie' })).toMatch(
+      /1 to 48/
+    );
+    // save_flavour takes 1 to 48, so an item goes as 1; the trigger sets it back to 0.
+    const row = { id: 's', published: false, updated_at: '', ...item };
+    expect(flavourPayload(row)).toMatchObject({ capacity_weight: 1 });
+    expect(flavourPayload({ ...row, item_type: 'cookie', capacity_weight: 3 })).toMatchObject({
+      capacity_weight: 3
+    });
+  });
 });

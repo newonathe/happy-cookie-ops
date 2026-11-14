@@ -191,7 +191,9 @@ export function flavourPayload(row: FlavourRow & { type_id?: string }): Json {
     price_cents: row.price_cents,
     kind: row.kind,
     item_type: row.item_type,
-    capacity_weight: row.capacity_weight,
+    // An item weighs 0 slots in the database (migration 86); save_flavour takes 1 to 48, and the trigger sets an item to 0 again.
+    capacity_weight:
+      row.item_type === 'item' ? Math.max(1, row.capacity_weight) : row.capacity_weight,
     tag: row.tag,
     description: row.description,
     image_path: row.image_path,
@@ -297,10 +299,13 @@ export function flavourFieldError(fields: FlavourFields): string | null {
   if (fields.item_type !== 'cookie' && fields.item_type !== 'set' && fields.item_type !== 'item')
     return 'Pick a product type.';
   if (fields.item_type === 'item' && !fields.type_id) return 'Pick a product type.';
+  // An item weighs 0 cookie slots (migration 86); it is sent as 1 and the database sets it back to 0.
+  const itemAtZero = fields.item_type === 'item' && fields.capacity_weight === 0;
   if (
-    !Number.isInteger(fields.capacity_weight) ||
-    fields.capacity_weight < 1 ||
-    fields.capacity_weight > 48
+    !itemAtZero &&
+    (!Number.isInteger(fields.capacity_weight) ||
+      fields.capacity_weight < 1 ||
+      fields.capacity_weight > 48)
   ) {
     return 'Capacity weight must be a whole number from 1 to 48.';
   }
