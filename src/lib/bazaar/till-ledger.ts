@@ -67,12 +67,34 @@ function timeOf(at: number): string {
   return new Date(at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
 }
 
+/**
+ * D3: the price list a sale was rung at. A price changed during the day leaves earlier sales at their own list: the first
+ * list (the current one, then each earlier one) whose prices make the sale's gross. None does (a sale from before the lists
+ * were kept): the current list, as before.
+ */
+function listOf(
+  sale: EventSale,
+  lists: ReadonlyArray<Record<string, number>>
+): Record<string, number> {
+  const gross = cents(sale.gross);
+  const fits = lists.find(
+    (list) =>
+      Object.entries(sale.items).every(([pid]) => typeof list[pid] === 'number') &&
+      Object.entries(sale.items).reduce(
+        (sum, [pid, qty]) => sum + cents(list[pid]) * (Number(qty) || 0),
+        0
+      ) === gross
+  );
+  return fits ?? lists[0] ?? {};
+}
+
 function rowOf(
   sale: EventSale,
   names: Record<string, string>,
-  prices: Record<string, number>,
+  lists: ReadonlyArray<Record<string, number>>,
   problem: string | null
 ): TillLedgerRow {
+  const prices = listOf(sale, lists);
   const isCash = sale.pay === 'Cash';
   const given = Number(sale.tendered) || 0;
   const discount = cents(sale.discount);
@@ -105,11 +127,14 @@ export function buildTillLedger(input: {
   loaded: Record<string, number>;
   left: Record<string, number>;
   prices: Record<string, number>;
+  /** D3: the lists the till charged before a price change, newest first (pesos). Absent: none. */
+  earlierPrices?: ReadonlyArray<Record<string, number>>;
   names: Record<string, string>;
   seesTotals: boolean;
   problemOf?: (sale: EventSale) => string | null;
 }): TillLedger {
   const { sales, floatPesos, loaded, left, prices, names, seesTotals, problemOf } = input;
+  const lists = [prices, ...(input.earlierPrices ?? [])];
   const totalCents = sales.reduce((sum, sale) => sum + cents(sale.total), 0);
   const paying = sales.filter((sale) => sale.pay !== 'Freebie');
   const cash = sales.filter((sale) => sale.pay === 'Cash');
@@ -173,6 +198,6 @@ export function buildTillLedger(input: {
         .filter((sale) => sale.pay === 'Freebie')
         .reduce((sum, sale) => sum + count(sale.items), 0)
     },
-    rows: sales.map((sale) => rowOf(sale, names, prices, problemOf?.(sale) ?? null))
+    rows: sales.map((sale) => rowOf(sale, names, lists, problemOf?.(sale) ?? null))
   };
 }

@@ -301,6 +301,18 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(v.event!.reset).not.toHaveBeenCalled();
   });
 
+  it('D3: the settings offer "Change a price" when the till can, and open it through its handler', () => {
+    const changePrice = vi.fn();
+    const first = render(<ConsolidatedTill v={vals()} till={till({ changePrice })} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    fireEvent.click(screen.getByRole('button', { name: /Change a price/ }));
+    expect(changePrice).toHaveBeenCalledOnce();
+    first.unmount();
+    render(<ConsolidatedTill v={vals()} till={till({ changePrice: null })} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.queryByRole('button', { name: /Change a price/ })).toBeNull();
+  });
+
   it('offers "Leave this event" only for an old event, and only once its sales have sent', () => {
     const leave = vi.fn();
     const first = render(

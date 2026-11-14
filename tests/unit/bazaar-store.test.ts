@@ -1145,3 +1145,145 @@ describe('Sell on this device guards (review, 14 November 2026)', () => {
     expect(h.store.vals().event!.days.find((d) => d.id === DAY2)!.takeOver ?? null).toBeNull();
   });
 });
+
+describe('D3: a price changed on a started day', () => {
+  const EVENT2 = 'b0d0e000-0000-4000-8000-000000000012';
+  const heldDay2 = () => ({ dayId: DAY2, scheduledId: BOOKING, unsent: 0, refused: 0, stock: {} });
+  const opened = async (w: Wire) => {
+    const h = harness(w);
+    const pricesChanged = vi.fn();
+    Object.assign(h.deps, { pricesChanged });
+    h.store.open(BOOKING);
+    await settle();
+    const row = h.store.vals().event!.days.find((d) => d.id === DAY2)!;
+    return { h, row, pricesChanged };
+  };
+  const saved = {
+    data: { version: 1, latest: 1, prices: { 'mp0s-a': 13000, 'mp0s-b': 15000 }, duplicate: false }
+  };
+
+  it('the selling day offers it with each flavour at its price; a planned or closed day does not', async () => {
+    const { row } = await opened(day2Open());
+    expect(row.prices?.flavours[0]).toEqual({
+      id: 'mp0s-a',
+      name: 'A',
+      priceText: '₱120.00',
+      pricePesos: '120'
+    });
+    expect(row.prices?.blocked).toBeNull();
+    const closed = await opened(clone());
+    expect(closed.row.prices).toBeNull();
+  });
+
+  it('sends the day, the flavour and whole centavos; the till changes only once the server says yes', async () => {
+    const { h, row, pricesChanged } = await opened(day2Open());
+    h.reply('set_bazaar_day_price', saved);
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '130' })).toBeNull();
+    const [sent] = h.calls('set_bazaar_day_price');
+    expect(sent).toEqual({
+      p_change: {
+        requestId: expect.stringMatching(/^0{8}-0{4}-4000-8000-\d{12}$/),
+        eventId: EVENT2,
+        productId: 'mp0s-a',
+        priceCents: 13000
+      }
+    });
+    expect(pricesChanged).toHaveBeenCalledWith(EVENT2, {
+      version: 1,
+      prices: { 'mp0s-a': 13000, 'mp0s-b': 15000 }
+    });
+    expect(h.deps.toast).toHaveBeenCalledWith('A is ₱130.00 from now.');
+    expect(localStorage.getItem('hc-bazaar-pending')).toBeNull();
+  });
+
+  it('needs signal, and says so without sending or changing the till', async () => {
+    const { h, row, pricesChanged } = await opened(day2Open());
+    h.state.online = false;
+    const offline = h.store.vals().event!.days.find((d) => d.id === DAY2)!;
+    expect(offline.prices?.blocked).toMatch(/needs signal/);
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '130' })).toMatch(/needs signal/);
+    expect(h.calls('set_bazaar_day_price')).toHaveLength(0);
+    expect(pricesChanged).not.toHaveBeenCalled();
+  });
+
+  it('refuses a bad price, the same price and a flavour not on the day before sending', async () => {
+    const { h, row } = await opened(day2Open());
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '0' })).toMatch(/more than ₱0/);
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '12.345' })).toMatch(/like 125/);
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '120' })).toBe(
+      'That is already the price.'
+    );
+    expect(await row.prices!.change({ productId: 'mp0s-zzz', price: '130' })).toBe(
+      'Choose the flavour.'
+    );
+    expect(h.calls('set_bazaar_day_price')).toHaveLength(0);
+  });
+
+  it('a lost answer keeps the id and price: trying again is the same change, even after a reload', async () => {
+    const { h, row, pricesChanged } = await opened(day2Open());
+    h.reply('set_bazaar_day_price', 'throw');
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '130' })).toMatch(/needs signal/);
+    const first = h.calls('set_bazaar_day_price')[0]!;
+    expect(pricesChanged).not.toHaveBeenCalled();
+    expect(localStorage.getItem('hc-bazaar-pending')).toContain('price:' + DAY2 + ':mp0s-a');
+
+    // Reloaded, and she types another price: the earlier change is settled first, as it was, and she is told.
+    const again = new BazaarDays(h.deps);
+    again.open(BOOKING);
+    await settle();
+    h.reply('set_bazaar_day_price', { data: { ...saved.data, duplicate: true } });
+    const words = await again
+      .vals()
+      .event!.days.find((d) => d.id === DAY2)!
+      .prices!.change({ productId: 'mp0s-a', price: '140' });
+    expect(words).toMatch(/earlier change to A .* is ₱130\.00 now/);
+    expect(h.calls('set_bazaar_day_price')[1]).toEqual(first);
+    expect(pricesChanged).toHaveBeenCalledWith(EVENT2, expect.objectContaining({ version: 1 }));
+    expect(localStorage.getItem('hc-bazaar-pending')).toBeNull();
+    // Mutation: a fresh id per call would make the retry a second change at a price she no longer wants.
+  });
+
+  it('a lost answer is sent again even when she types the price the day still shows (review, 15 November 2026)', async () => {
+    const { h, row } = await opened(day2Open());
+    const shown = row
+      .prices!.flavours.find((f) => f.id === 'mp0s-a')!
+      .priceText.replace(/[^0-9.]/g, '');
+    h.reply('set_bazaar_day_price', 'throw');
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '130' })).toMatch(/needs signal/);
+    const first = h.calls('set_bazaar_day_price')[0]!;
+    h.reply('set_bazaar_day_price', { data: { ...saved.data, duplicate: true } });
+    // Retyping the old price must not stop at "already the price": the waiting change is settled first.
+    const words = await row.prices!.change({ productId: 'mp0s-a', price: shown });
+    expect(words).not.toMatch(/already the price/);
+    expect(h.calls('set_bazaar_day_price')[1]).toEqual(first);
+  });
+
+  it.each([
+    [{ code: '55000', message: 'that day is closed: its prices cannot change' }, /day is closed/],
+    [{ code: '22023', message: 'that is already the price' }, /already the price/],
+    [{ code: '23505', message: 'request id was already used' }, /could not be saved/],
+    [{ code: '42501', message: 'only the owner may change a price' }, /could not be saved/]
+  ])('a refusal (%o) changes nothing on the till and lets the id go', async (error, words) => {
+    const { h, row, pricesChanged } = await opened(day2Open());
+    h.reply('set_bazaar_day_price', { error });
+    expect(await row.prices!.change({ productId: 'mp0s-a', price: '130' })).toMatch(words);
+    expect(pricesChanged).not.toHaveBeenCalled();
+    expect(localStorage.getItem('hc-bazaar-pending')).toBeNull();
+  });
+
+  it('the till panel reads the held day and offers the same change', async () => {
+    const h = harness(day2Open());
+    const pricesChanged = vi.fn();
+    Object.assign(h.deps, { pricesChanged });
+    h.state.held = heldDay2();
+    h.store.openTillPanel('prices');
+    expect(h.store.vals().tillPanel).toMatchObject({ kind: 'prices', status: 'loading' });
+    await settle();
+    const panel = h.store.vals().tillPanel!;
+    expect(panel.status).toBe('loaded');
+    expect(panel.prices?.flavours.map((f) => f.id)).toContain('mp0s-a');
+    h.reply('set_bazaar_day_price', saved);
+    expect(await panel.prices!.change({ productId: 'mp0s-a', price: '130' })).toBeNull();
+    expect(pricesChanged).toHaveBeenCalledWith(EVENT2, expect.objectContaining({ version: 1 }));
+  });
+});

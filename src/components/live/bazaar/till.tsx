@@ -79,6 +79,15 @@ export function ConsolidatedTill({
       hint: 'Count the drawer, settle the leftovers',
       run: v.askClose
     },
+    ...(till.changePrice
+      ? [
+          {
+            label: 'Change a price',
+            hint: 'For the rest of this day. Needs signal',
+            run: till.changePrice
+          }
+        ]
+      : []),
     ...(till.home
       ? [{ label: 'Back to Home', hint: 'The day keeps selling', run: till.home }]
       : []),
