@@ -158,7 +158,11 @@ function whyText(s: BazaarSummary): string | null {
 }
 
 /** The event's figures: revenue, fees, cookie cost, profit, against the target. Each opens into the database's own parts. */
-export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
+export function eventFiguresOf(
+  s: BazaarSummary,
+  /** Her plain items (product types, migration 84): sold by the piece, so never counted as cookies. */
+  isItem: (productId: string) => boolean = () => false
+): ReviewFigure[] {
   const dayText = new Map(s.days.map((d) => [d.id, dayRange(d.day, d.day)]));
   const why = whyText(s);
   const cc = s.cookieCost;
@@ -225,15 +229,24 @@ export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
   const soldPart = cc.parts.find((p) => p.label === 'Sold') ?? null;
   const soldCost = soldPart?.amountCents ?? null;
   const soldQty = soldPart?.quantity ?? 0;
+  const itemsSold = s.days.reduce(
+    (n, d) => n + d.lines.reduce((m, l) => m + (isItem(l.productId) ? l.sold : 0), 0),
+    0
+  );
+  const soldNote =
+    itemsSold > 0
+      ? `${cookiesText(Math.max(0, soldQty - itemsSold))} and ${itemsSold.toLocaleString('en-PH')} other ${itemsSold === 1 ? 'item' : 'items'} sold so far.`
+      : `${cookiesText(soldQty)} sold so far.`;
   const sold: ReviewFigure[] =
     soldPart === null
       ? []
       : [
           {
             key: 'sold-cost',
-            label: 'Cost of cookies sold',
+            // Her own words for it ("cost of goods sold"): it covers cookies and her other items alike.
+            label: 'Cost of goods sold',
             valueText: moneyText(soldCost),
-            note: soldCost === null ? why : `${cookiesText(soldQty)} sold so far.`,
+            note: soldCost === null ? why : soldNote,
             parts: []
           },
           {
@@ -243,7 +256,7 @@ export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
             note:
               soldCost === null
                 ? why
-                : 'Takings less the cost of the cookies sold. Fees and leftovers are counted in Profit.',
+                : 'Takings less the cost of what sold. Fees and leftovers are counted in Profit.',
             parts: []
           }
         ];

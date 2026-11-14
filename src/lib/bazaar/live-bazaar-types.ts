@@ -234,6 +234,8 @@ export interface BazaarEventView {
   status: HubStatus;
   /** U4: cookies sold across the event so far. */
   soldCount: number;
+  /** Her plain items sold across the event (product types): counted apart from cookies. */
+  itemsSold: number;
   /** U4: the event's profit and target in centavos; null while not known or not set. */
   profitCents: number | null;
   targetCents: number | null;

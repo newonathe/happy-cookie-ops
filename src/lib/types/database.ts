@@ -2787,6 +2787,7 @@ export type Database = {
         }[]
       }
       get_production: { Args: { p_drop: number }; Returns: Json }
+      get_product_types: { Args: never; Returns: Json }
       get_recipe_costs: { Args: never; Returns: Json }
       get_recipe_drafts: { Args: never; Returns: Json }
       get_recipes: { Args: never; Returns: Json }
@@ -3106,6 +3107,13 @@ export type Database = {
       save_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
       save_payment_method: {
         Args: { p_expected_updated_at: string; p_id: string; p_method: Json }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      save_product_type: {
+        Args: { p_expected_updated_at: string; p_type: Json }
         Returns: {
           id: string
           updated_at: string

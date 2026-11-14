@@ -601,6 +601,30 @@ function makeWorld(spec: WorldSpec, viewer: StaffRole | null) {
     get_item_costs: [],
     get_recipe_costs: [],
     get_recipe_drafts: [],
+    // Her product types (migration 84): only the built-in two, and no product has another.
+    get_product_types: {
+      types: [
+        {
+          id: 'cookie',
+          label: 'Cookie',
+          behaves_as: 'cookie',
+          sort_order: 0,
+          active: true,
+          built_in: true,
+          updated_at: '2026-11-14T00:00:00Z'
+        },
+        {
+          id: 'set',
+          label: 'Set',
+          behaves_as: 'set',
+          sort_order: 1,
+          active: true,
+          built_in: true,
+          updated_at: '2026-11-14T00:00:00Z'
+        }
+      ],
+      products: {}
+    },
     get_production: { batches: [], dough: [], baked: [], shortfalls: [] },
     get_books: { basis: 'bought', lines: [], receipts: [] },
     get_scheduled_events: [],

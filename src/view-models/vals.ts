@@ -35,7 +35,10 @@ export interface LiveFlavourFormFields {
   allergens: string;
   badge: string;
   kind: 'Permanent' | 'Rotating';
-  itemType: 'cookie' | 'set';
+  /** The behaviour of her product type (migration 84): a cookie, a set of cookies, or an item sold by the unit. */
+  itemType: 'cookie' | 'set' | 'item';
+  /** Her product type; absent when the types could not be read (the built-in Cookie or Set is then used). */
+  typeId?: string;
   capacityWeight: number;
   sortOrder: number;
   price: number;
@@ -302,6 +305,22 @@ export interface OpsVals {
     addNew: (event?: unknown) => void;
     publish: (event?: unknown) => void;
     close: (event?: unknown) => void;
+    /** Her product types (migration 84); null until they are read, or when the database has none yet. */
+    types?: {
+      rows: Array<{
+        id: string;
+        label: string;
+        behaviourText: string;
+        active: boolean;
+        builtIn: boolean;
+        /** Renames it; null when saved, else the words for what is wrong. */
+        rename: (label: string) => Promise<string | null>;
+        /** Switches it off for new products, or back on; null for a built-in type, which stays on. */
+        toggle: (() => Promise<string | null>) | null;
+      }>;
+      /** Adds a type with her name and a behaviour; null when saved, else the words for what is wrong. */
+      add: (label: string, behavesAs: 'cookie' | 'set' | 'item') => Promise<string | null>;
+    } | null;
     editing:
       | (LiveFlavourFormFields & {
           id: string | null;
@@ -314,6 +333,8 @@ export interface OpsVals {
            * product (one cost, used by every bazaar); null for a new product, or one the book does not list.
            */
           costItem?: RecipeBookItem | null;
+          /** Her product types to choose from: switched-on ones, plus the product's own. */
+          typeOptions?: Array<{ id: string; label: string; behavesAs: 'cookie' | 'set' | 'item' }>;
         })
       | null;
   } | null;

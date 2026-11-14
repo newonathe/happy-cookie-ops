@@ -127,6 +127,8 @@ type Rpc = ReturnType<typeof vi.fn>;
 function fakeClient(save: (args: Record<string, unknown>) => unknown) {
   const rpc: Rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_flavours') return { data: liveRows(), error: null };
+    // Product types (migration 84) are read beside the flavours; a database without them answers that it has none.
+    if (name === 'get_product_types') return { data: null, error: { code: 'PGRST202' } };
     return save(args ?? {});
   });
   return { client: { rpc } as unknown as FlavoursClient, rpc };
@@ -296,7 +298,10 @@ describe('MP-09 c1: flavours from the database', () => {
     });
     expect(onMenu(runtime).wcb).toBe(true);
     expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.offline);
-    expect(rpc).toHaveBeenCalledTimes(1);
+    // The product types read (migration 84) is not a flavour call.
+    expect(rpc.mock.calls.filter((c) => (c as unknown[])[0] !== 'get_product_types')).toHaveLength(
+      1
+    );
   });
 
   it('shows an empty menu as empty, never as the ported six; a failed read changes nothing (B2)', async () => {
@@ -498,7 +503,10 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
     await setPrice(runtime, 'wcb', '170');
     expect(runtime.priceOf('wcb')).toBe(ported);
     expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.offline);
-    expect(rpc).toHaveBeenCalledTimes(1);
+    // The product types read (migration 84) is not a flavour call.
+    expect(rpc.mock.calls.filter((c) => (c as unknown[])[0] !== 'get_product_types')).toHaveLength(
+      1
+    );
   });
 
   it('sends a price changed while the switch was saving after it, switch and price together', async () => {
