@@ -206,7 +206,8 @@ const COPY = {
   noStock: 'Plan some cookies first',
   anotherOpen: 'Close the day that is still open first',
   holding: 'This phone is already selling an event',
-  openElsewhere: 'Selling has started. Sell on the phone that started it.',
+  openElsewhere:
+    'Selling on another of your devices. Tap Sell on this device to sell and close it here.',
   busy: 'Still saving the last change. Try again in a moment.',
   otherPhone:
     'This day is being sold on another phone. Sales still on that phone are not in these figures: send them from that phone first. Anything it sends after the close will show here as changed after the close.',
@@ -316,6 +317,8 @@ export class BazaarDays {
   private reading: 'read' | 'loading' | 'failed' = 'read';
   private seq = 0;
   private editing: { dayId: string; ymd: string; stamp: string | null } | null = null;
+  /** The same function every render, so the page's refresh timer is not restarted by each draw. */
+  private readonly quietRefresh = (): void => void this.reload(true);
   /** The day whose review is open, where it was opened from, and words from the last close that was not taken. */
   private reviewing: { dayId: string; from: 'till' | 'event'; notice: string | null } | null = null;
   /**
@@ -386,18 +389,26 @@ export class BazaarDays {
     void this.reload();
   }
 
-  async reload(): Promise<boolean> {
+  async reload(quiet = false): Promise<boolean> {
     const client = this.deps.client();
     const id = this.bookingId;
     if (!id) return false;
+    // A quiet refresh never interrupts: not while a save is out, a plan is being edited, or without a client.
+    if (
+      quiet &&
+      (this.busy || this.editing || !client || !this.deps.online() || this.reading === 'loading')
+    )
+      return false;
     if (!client) {
       this.reading = 'failed';
       this.deps.rerender();
       return false;
     }
     const seq = (this.seq += 1);
-    this.reading = 'loading';
-    this.deps.rerender();
+    if (!quiet) {
+      this.reading = 'loading';
+      this.deps.rerender();
+    }
     try {
       const data = await fetchBazaar(client, id);
       if (data.booking.id !== id) throw new Error('bazaar answer does not match the event');
@@ -476,6 +487,7 @@ export class BazaarDays {
       readHub: () => void this.readHub(),
       justAdded: this.justAdded,
       retry: () => (this.bookingId ? void this.reload() : this.deps.rerender()),
+      refresh: this.quietRefresh,
       back: this.back
     };
   }
@@ -965,6 +977,7 @@ export class BazaarDays {
     let action: BazaarDayRow['action'] = null;
     let note: string | null = null;
     let hint: string | null = null;
+    let takeOver: (() => void) | null = null;
     if (day.state === 'planned') {
       action = 'start';
       if (total === 0) note = COPY.noStock;
@@ -978,6 +991,9 @@ export class BazaarDays {
       const own = this.deps.held()?.dayId === day.id && !!this.deps.resumeTill;
       action = own ? 'resume' : 'review';
       hint = own ? 'Selling on this device' : COPY.openElsewhere;
+      // Not while this phone sells another event: taking over would replace it.
+      if (!own && this.deps.online() && !this.deps.holdsEvent())
+        takeOver = () => void this.takeOver(booking, day);
       if (!this.deps.online()) note = COPY.needSignal;
     } else {
       action = 'see';
@@ -1006,6 +1022,7 @@ export class BazaarDays {
       actionNote: note,
       hint,
       outcome: dayOutcomeOf(day),
+      takeOver,
       startPrompt,
       start: (confirmed) => {
         if (day.state === 'planned') void this.start(booking, day, confirmed, startPrompt !== null);
@@ -1017,6 +1034,27 @@ export class BazaarDays {
             ? this.deps.resumeTill?.()
             : this.openReview(booking.id, day.id, 'event')
     };
+  }
+
+  /**
+   * Moves an open day's selling to this device (the runtime's begin answers a started day and, when another device holds it,
+   * makes this one the seller), then opens the till here.
+   */
+  private async takeOver(booking: ScheduledEvent, day: BazaarDay): Promise<void> {
+    if (this.busy) return;
+    this.busy = true;
+    try {
+      const outcome = await this.deps.begin(
+        { id: booking.id, name: booking.name },
+        { id: day.id, day: day.day }
+      );
+      if (outcome === 'started') {
+        await this.reload();
+        this.deps.resumeTill?.();
+      }
+    } finally {
+      this.busy = false;
+    }
   }
 
   private plan(ymd: string): void {
@@ -1345,7 +1383,10 @@ export class BazaarDays {
       const figures = await this.deps.tillFigures();
       if (figures === null) return COPY.queueUnread;
       if (figures.unsent > 0) return this.unsentText(figures.unsent);
-      till = { salesCount: figures.salesCount, cashCents: figures.cashCents };
+      // Nothing of this phone is waiting, so the server already holds every sale it rang. Its own figures are not sent:
+      // with the day sold on more than one of her devices (14 November 2026) they can never equal the day's whole count,
+      // and the close would be refused for good. The server closes it on its own figures.
+      till = null;
     }
     const result = closeFromForm(day, input, lastDay, this.names());
     if (!result.ok) return result.error;
@@ -1619,7 +1660,11 @@ export class BazaarDays {
       if (held && data.days.some((d) => d.id === held.dayId)) {
         const figures = await this.deps.tillFigures();
         if (figures === null) return COPY.queueUnread;
-        till = { dayId: held.dayId, salesCount: figures.salesCount, cashCents: figures.cashCents };
+        // As at the close: only a phone with something still waiting is checked against its own figures.
+        till =
+          figures.unsent > 0
+            ? { dayId: held.dayId, salesCount: figures.salesCount, cashCents: figures.cashCents }
+            : null;
       }
       let fresh = data;
       if (checked.costs.length > 0) {

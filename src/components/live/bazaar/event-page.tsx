@@ -175,6 +175,11 @@ function DayRow({
                   : 'See the review'}
           </Button>
         ) : null}
+        {day.takeOver ? (
+          <Button variant="primary" size="sm" onClick={day.takeOver}>
+            Sell on this device
+          </Button>
+        ) : null}
         {day.edit ? (
           <Button
             variant="ghost"
