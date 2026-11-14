@@ -210,6 +210,13 @@ describe('the live Home', () => {
     expect(view.getByText('Orders are still loading.')).toBeTruthy();
     expect(view.getByText('Your books are still loading.')).toBeTruthy();
   });
+
+  it('marks the live Home as the Home screen, as every other live screen is marked', async () => {
+    // The signed-in smoke (scripts/test-live-smoke.mjs) waits for [data-screen-label="Home"] after sign-in.
+    const r = await mounted(false);
+    const view = render(<HomeLive v={r.renderVals()} />);
+    expect(view.container.querySelectorAll('[data-screen-label="Home"]')).toHaveLength(1);
+  });
   it('HCB-002i: a failed first orders read says so; a read still out says loading; a good read counts', async () => {
     const r = await mounted(false);
     const reader = {};
