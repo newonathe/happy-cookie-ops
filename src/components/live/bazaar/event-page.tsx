@@ -24,6 +24,7 @@ import { Notices } from './field';
 import { Figures } from './figure';
 import { CloseEventSheet } from './close-event-sheet';
 import { DeleteEventSheet } from './delete-event-sheet';
+import { PriceForm } from './price-form';
 import { StartDaySheet } from './start-day-sheet';
 import { useIssues } from './use-issues';
 import { useSave } from './use-save';
@@ -116,6 +117,7 @@ function DayRow({
   const catalogueOnly = noCatalogue && !noted;
   const blocked = noted || (noCatalogue && day.action === 'start');
   const o = day.outcome;
+  const [pricing, setPricing] = useState(false);
   return (
     <li className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -150,6 +152,11 @@ function DayRow({
       )}
       {day.hint ? <p className="m-0 text-caption text-ink-mute">{day.hint}</p> : null}
       <span className="flex flex-wrap gap-2">
+        {day.prices ? (
+          <Button variant="secondary" size="sm" onClick={() => setPricing(true)}>
+            Change a price
+          </Button>
+        ) : null}
         {day.kitchenTransfer ? (
           <Button variant="secondary" size="sm" onClick={day.kitchenTransfer}>
             {day.word === 'Closed' ? 'Review transfers' : 'Transfer from kitchen'}
@@ -196,6 +203,19 @@ function DayRow({
         <p id={noteId} className="m-0 text-caption text-ink-mute">
           {day.actionNote}
         </p>
+      ) : null}
+      {pricing && day.prices ? (
+        <Sheet
+          title="Change a price"
+          onClose={() => setPricing(false)}
+          footer={
+            <Button variant="secondary" onClick={() => setPricing(false)}>
+              Done
+            </Button>
+          }
+        >
+          <PriceForm prices={day.prices} />
+        </Sheet>
       ) : null}
     </li>
   );
