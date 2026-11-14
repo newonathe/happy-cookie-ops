@@ -206,9 +206,29 @@ describe('beginBazaarDay (live)', () => {
     // Mutation: adopting the reply's event would sell into an event this day never asked for.
   });
 
-  it('a day another phone is selling is not taken over: nothing changes and the owner is told', async () => {
+  it('a day another of her devices is selling moves to this device, then opens here (14 November 2026)', async () => {
+    const runtime = mounted();
+    const { client, rpc } = rpcThatStarts((args) => {
+      if ('p_device' in args && 'p_event' in args) return { data: args.p_device, error: null };
+      const reply = startReply(args);
+      return { ...reply, data: [{ ...reply.data[0]!, selling_device: 'other-phone' }] };
+    });
+    bazaar(runtime).saleClient = client;
+    let outcome: string | undefined;
+    await act(async () => {
+      outcome = await begin(runtime);
+    });
+    expect(outcome).toBe('started');
+    const moved = rpc.mock.calls.find((c) => c[0] === 'set_event_device');
+    expect(moved?.[1]).toEqual({ p_event: rpc.mock.calls[0]![1].p_event_id, p_device: 'dev1' });
+    expect(runtime.state.eventStock).toMatchObject({ dcf: 20, wcb: 5 });
+    expect(toastText(runtime)).toContain('Selling now on this device');
+  });
+
+  it('a day that cannot be moved here is not adopted, and the owner is told', async () => {
     const runtime = mounted();
     bazaar(runtime).saleClient = rpcThatStarts((args) => {
+      if ('p_device' in args && 'p_event' in args) return { data: null, error: { code: '55000' } };
       const reply = startReply(args);
       return { ...reply, data: [{ ...reply.data[0]!, selling_device: 'other-phone' }] };
     }).client;
@@ -219,8 +239,7 @@ describe('beginBazaarDay (live)', () => {
     expect(outcome).toBe('refused');
     expect(runtime.state.event).toBeNull();
     expect(runtime.state.eventStock).toEqual({});
-    expect(toastText(runtime)).toContain('another phone');
-    // Mutation: adopting the day here would show the full planned stock and no sales, and every sale rung up would be refused.
+    expect(toastText(runtime)).toContain('could not be moved');
   });
 
   it('a second start of the same day is the same event, so a lost reply or a second tap never opens another', async () => {

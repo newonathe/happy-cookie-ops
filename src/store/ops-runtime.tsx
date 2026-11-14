@@ -108,6 +108,7 @@ import { ReceiveDelivery, StockChange, type StockEntryItem } from '@/store/stock
 import { RecipeBook } from '@/store/recipe-book';
 import {
   dayEventId,
+  setEventDevice,
   engineStateForDay,
   fetchBazaar,
   startBazaarDay,
@@ -1045,8 +1046,13 @@ export class OpsRuntime extends OpsProvider {
         const sales = (this.state.sales as EventSale[]).filter(
           (sale) => !out.has(clientIdFor({ saleId: sale.id, at: sale.at }))
         );
+        // A sale the till holds that has not been acknowledged counts as waiting even before it reaches the queue (the copy
+        // into IndexedDB is asynchronous): the close must not go ahead without it.
+        const unacknowledged = sales.filter(
+          (sale) => !(sale as { synced?: boolean }).synced
+        ).length;
         return {
-          unsent: blocking.length,
+          unsent: Math.max(blocking.length, unacknowledged),
           salesCount: sales.length,
           cashCents: sales
             .filter((sale) => sale.pay === 'Cash')
@@ -2028,14 +2034,29 @@ export class OpsRuntime extends OpsProvider {
       );
       return outcome.error === 'refused' ? 'refused' : 'offline';
     }
-    // A repeat of a start is answered with the day as it first started, selling device included. A day that another phone
-    // is selling is not taken over here: every sale rung up on this phone would be refused by the server.
+    // A repeat of a start is answered with the day as it first started, selling device included. Ethan, 14 November 2026:
+    // the day belongs to her account, not to one browser. Signed in as the owner on another device (Safari, the Home Screen
+    // app, Messenger's browser, another phone), opening the day moves the selling here; the device before stays a former
+    // device, so whatever it still holds is accepted when it sends, and nothing is lost or counted twice.
     if (outcome.started.sellingDevice !== deviceId()) {
-      this.toast(
-        'This day is being sold on another phone. Sales rung up here would be refused.',
-        'warn'
+      const moved = await setEventDevice(
+        target as unknown as BazaarClient,
+        outcome.started.eventId,
+        deviceId()
       );
-      return 'refused';
+      if (moved !== 'moved') {
+        this.toast(
+          moved === 'offline'
+            ? 'This day was started on another device. Connect, then open it again to sell here.'
+            : 'This day could not be moved to this device. It may already be closed.',
+          'warn'
+        );
+        return moved === 'offline' ? 'offline' : 'refused';
+      }
+      this.toast(
+        'Selling now on this device. Sales from the other device still send. The till here starts from the planned stock: check the table before selling.'
+      );
+      outcome.started = { ...outcome.started, sellingDevice: deviceId() };
     }
     // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
     void requestPersistentStorage();
