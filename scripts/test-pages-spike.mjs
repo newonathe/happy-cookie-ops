@@ -247,7 +247,8 @@ try {
     (supabaseOrigin === null || /^https?:\/\/[^/\s;*]+$/.test(supabaseOrigin)) &&
       directives.get('form-action') === "'self'" &&
       directives.get('connect-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'") &&
-      directives.get('img-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'"),
+      directives.get('img-src') ===
+        (supabaseOrigin ? `'self' data: ${supabaseOrigin}` : "'self' data:"),
     'Served CSP form-action/connect-src/img-src is not exactly self plus the configured Supabase origin.'
   );
   const servedHashes = new Set([...csp.matchAll(/'sha256-([^']+)'/g)].map((match) => match[1]));
