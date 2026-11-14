@@ -147,7 +147,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
     }
   ];
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div data-screen-label="Home" className="flex w-full flex-col gap-4">
       <PageTitle
         title={home.greeting}
         subtitle={home.dateText}

@@ -306,6 +306,16 @@ export interface BazaarEventView {
   unplanned: Array<{ ymd: string; text: string }>;
   planDay: (ymd: string) => void;
   back: () => void;
+  /**
+   * End event, first part: "Delete this event", offered while the event has no sales and is not closed. The server refuses
+   * anything that touched Money or Stock. Null once it has a sale or is closed.
+   */
+  deleteEvent: {
+    /** Why it cannot be deleted now (no signal, or sales this phone has not sent), in words; null when it can. */
+    blocked: string | null;
+    /** Deletes it when `name` is the event's name exactly. Null when deleted; otherwise the words for what is wrong. */
+    run: (name: string) => Promise<string | null>;
+  } | null;
 }
 
 /** A1: one flavour's stranded cookies, with where they are suggested to go. */
