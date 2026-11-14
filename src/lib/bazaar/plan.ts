@@ -18,6 +18,15 @@ export function pesoInput(cents: number): string {
   return String(centavosToPesos(cents));
 }
 
+/** D3: a new price typed for a selling day, as whole centavos, or the words for what is wrong (the plan form's own rule). */
+export function priceCentsOf(text: string): number | string {
+  const price = text.trim();
+  if (!MONEY.test(price)) return 'Set a price like 125 or 125.50.';
+  if (Number(price) > MAX_PESOS) return 'The price is too high.';
+  if (Number(price) <= 0) return 'The price must be more than ₱0.';
+  return pesosToCentavos(Number(price));
+}
+
 export function cookiesText(n: number): string {
   return n === 1 ? '1 cookie' : n.toLocaleString('en-PH') + ' cookies';
 }
