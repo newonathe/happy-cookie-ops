@@ -6,7 +6,6 @@ from pathlib import Path
 import runpy
 import tempfile
 import threading
-import time
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("bootstrap", ROOT / "scripts/test-db-bootstrap.py")
@@ -22,7 +21,10 @@ def check(db_id, workdir, _password, _report):
     if "KITCHEN_TRANSFER|passed" not in h.psql(db_id, workdir, tests):
         h.fail("private kitchen transfer contract did not complete")
     h.psql(db_id, workdir, tests.split("create function pg_temp.transfer_body", 1)[0] + "commit;")
-    at = int(time.time() * 1000)
+    # The transfer's time comes from the database clock that stamped the batch, never the host clock: Docker's clock runs
+    # ahead of Windows (22.7 ms measured on 14 November 2026, more after sleep), and a host time earlier than the batch is
+    # correctly refused as ZB003 (kitchen stock cannot support this transfer date).
+    at = int(h.psql(db_id, workdir, "select (extract(epoch from clock_timestamp()) * 1000)::bigint;").strip())
     transfer = json.dumps({"id": "b0764000-0000-4000-8000-000000000001",
         "day_id": "b0752000-0000-4000-8000-000000000001", "product_id": "p075-cookie", "source_drop": 5, "qty": 4, "at": at})
     discard = json.dumps({"id": "b0765000-0000-4000-8000-000000000001", "kind": "baked",
