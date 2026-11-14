@@ -71,7 +71,15 @@ function Stats({ event }: { event: BazaarEventView }) {
         detail={profit?.note ?? undefined}
         parts={partsOf(profit)}
       />
-      <StatTile label="Cookies sold" value={event.figures.length ? event.soldCount : null} />
+      <StatTile
+        label="Cookies sold"
+        value={event.figures.length ? event.soldCount : null}
+        detail={
+          event.itemsSold > 0
+            ? `and ${event.itemsSold.toLocaleString('en-PH')} other ${event.itemsSold === 1 ? 'item' : 'items'}`
+            : undefined
+        }
+      />
       <div className="flex min-w-0 flex-col gap-2 rounded-card border border-line bg-surface p-4">
         <span className="text-caption font-semibold text-ink-soft">Against the target</span>
         <ProgressBar
