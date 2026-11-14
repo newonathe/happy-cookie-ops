@@ -77,6 +77,11 @@ export interface BazaarDayRow {
    * (one this phone holds is drawn as the till, never as a row, and reviewed from "Close out"). `see`: a closed day's review.
    */
   action: 'start' | 'review' | 'see' | 'resume' | null;
+  /**
+   * An open day another of her devices is selling: "Sell on this device" moves the selling here (14 November 2026: the day
+   * belongs to her account, not to one browser). Null otherwise, and while offline.
+   */
+  takeOver?: (() => void) | null;
   /** Why the action is not available now, in words; null when it is. */
   actionNote: string | null;
   /** Words under the row that block nothing: where an open day is selling, how a closed day was counted. */
@@ -457,6 +462,11 @@ export interface LiveBazaarVals {
   /** U3: the id of the event added last, so its row can rise and show a ring. Null once she opens an event or leaves. */
   justAdded: string | null;
   retry: () => void;
+  /**
+   * Reads the open event again without a loading state (every 15 s while the page is on screen and online, and when she comes
+   * back to it), so sales from her other devices show up. Does nothing while a day plan is being edited or a save is out.
+   */
+  refresh?: () => void;
   /** From a booking that could not be read (or any view of one) back to the list. */
   back: () => void;
 }

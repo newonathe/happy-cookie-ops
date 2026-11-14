@@ -197,9 +197,10 @@ describe('closing a day', () => {
           'mp0s-c': { left: 2, carry_next: 0, to_shop: 2, written_off: 0 }
         },
         expected: '4'.repeat(64),
-        // S3.1: the till's own figures, for the server to check against what it holds.
-        sales_count: 3,
-        cash_cents: 48000
+        // Nothing waits on this phone, so the server holds all its sales: its own figures are not sent (14 November 2026,
+        // a day sold on two of her devices could never match one phone's count, and the close was refused for good).
+        sales_count: null,
+        cash_cents: null
       }
     });
     expect(h.deps.dayClosed).toHaveBeenCalledWith(DAY2);
@@ -515,6 +516,7 @@ describe('S3.1: refused sales, till figures, taking back, and ids that outlive a
   it('finalising from the phone that still holds a closed day sends that day and its till figures', async () => {
     const h = harness(clone());
     h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 1, refused: 0, stock: {} };
+    h.state.queue = 1;
     h.state.till = { salesCount: 3, cashCents: 48000 };
     h.store.open(BOOKING);
     await settle();
@@ -524,6 +526,36 @@ describe('S3.1: refused sales, till figures, taking back, and ids that outlive a
       sales_count: 3,
       cash_cents: 48000
     });
+  });
+
+  it('finalising from a device with nothing waiting sends no till figures (more than one device sold the day)', async () => {
+    const h = harness(clone());
+    h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 0, refused: 0, stock: {} };
+    h.state.queue = 0;
+    h.state.till = { salesCount: 1, cashCents: 10000 };
+    h.store.open(BOOKING);
+    await settle();
+    expect(await h.store.vals().event!.finalise!.run(NO_CHOICES)).toBeNull();
+    expect(h.calls('finalise_bazaar')[0]!.p_till ?? null).toBeNull();
+  });
+
+  it('an open day another of her devices sells offers Sell on this device, which moves the selling here', async () => {
+    const h = harness(day2Open());
+    h.store.open(BOOKING);
+    await settle();
+    const row = h.store.vals().event!.days.find((d) => d.id === DAY2)!;
+    expect(row.action).toBe('review');
+    expect(typeof row.takeOver).toBe('function');
+    row.takeOver!();
+    await settle();
+    expect(h.deps.begin).toHaveBeenCalledWith(
+      { id: BOOKING, name: 'Fixture fair' },
+      expect.objectContaining({ id: DAY2 })
+    );
+    h.state.online = false;
+    h.store.open(BOOKING);
+    await settle();
+    expect(h.store.vals().event!.days.find((d) => d.id === DAY2)!.takeOver ?? null).toBeNull();
   });
 
   it('a loss taken back on the selling phone gives the till its cookies back once; a repeat adds nothing', async () => {
@@ -1075,5 +1107,41 @@ describe('End event: delete an event that never sold', () => {
     expect(await h.store.vals().event!.deleteEvent!.run('Fixture fair')).toMatch(/has sales/);
     expect(h.deps.dayClosed).not.toHaveBeenCalled();
     expect(h.store.vals().event).toBeTruthy();
+  });
+});
+
+describe('more than one of her devices (14 November 2026)', () => {
+  it('a quiet refresh reads the event again with no loading state, and never while a save is out or offline', async () => {
+    const h = harness(day2Open());
+    h.store.open(BOOKING);
+    await settle();
+    const reads = () => h.calls('get_bazaar').length;
+    const before = reads();
+    const refresh = h.store.vals().refresh!;
+    expect(h.store.vals().refresh).toBe(refresh);
+    refresh();
+    expect(h.store.vals().event).toBeTruthy();
+    await settle();
+    expect(reads()).toBe(before + 1);
+    h.state.online = false;
+    refresh();
+    await settle();
+    expect(reads()).toBe(before + 1);
+  });
+});
+
+describe('Sell on this device guards (review, 14 November 2026)', () => {
+  it('is not offered while this phone sells another event', async () => {
+    const h = harness(day2Open());
+    h.state.held = {
+      dayId: 'another-day',
+      scheduledId: 'another-booking',
+      unsent: 0,
+      refused: 0,
+      stock: {}
+    };
+    h.store.open(BOOKING);
+    await settle();
+    expect(h.store.vals().event!.days.find((d) => d.id === DAY2)!.takeOver ?? null).toBeNull();
   });
 });

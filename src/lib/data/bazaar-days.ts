@@ -786,6 +786,28 @@ export async function dayEventId(dayId: string): Promise<string> {
   ].join('-');
 }
 
+/**
+ * Makes this device the one that sells an open day (the owner only; `set_event_device`). The device that sold it before stays
+ * on the event's former devices, so the sales it still holds are accepted when they send. True once the server answers with
+ * this device.
+ */
+export async function setEventDevice(
+  client: BazaarClient,
+  eventId: string,
+  device: string
+): Promise<'moved' | 'refused' | 'offline'> {
+  try {
+    const { data, error } = await client.rpc('set_event_device', {
+      p_event: eventId,
+      p_device: device
+    });
+    if (error) return classifySaveError(error) === 'offline' ? 'offline' : 'refused';
+    return data === device ? 'moved' : 'offline';
+  } catch {
+    return 'offline';
+  }
+}
+
 export async function fetchBazaar(client: BazaarClient, bookingId: string): Promise<Bazaar> {
   const { data, error } = await client.rpc('get_bazaar', { p_booking: bookingId });
   if (error) throw new Error('bazaar load failed: ' + (error.code || error.message));
