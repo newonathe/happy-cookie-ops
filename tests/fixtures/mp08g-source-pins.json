@@ -84,6 +84,7 @@
     "20260101007900_bazaar_kitchen_source_read.sql": "cda27d5782dd592add12a3eff2af51917231367ff2d08a0a4aa1d7a29240a49a",
     "20260101008000_bazaar_book_labels.sql": "e776bc361063413218abd669ca9cc725c3f4135b0e1f85ae0f9b423b52a2068c",
     "20260101008100_bazaar_aggregate_returns.sql": "3f381cf2e8076d734afe3b15a4c06b83a9d05cc022169a2fd7cc5d54b363ed7c",
-    "20260101008200_customer_payment_read.sql": "401d120da4c7ea245cd1307cd2553bdcf13b493c8c1c9f1478295dd212bdb8e6"
+    "20260101008200_customer_payment_read.sql": "401d120da4c7ea245cd1307cd2553bdcf13b493c8c1c9f1478295dd212bdb8e6",
+    "20260101008300_bazaar_delete_unsold.sql": "0ba22111adf3e9a8fa89222ba321a40a983e7987ead96da524401bff5d3bde88"
   }
 }

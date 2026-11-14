@@ -2670,6 +2670,10 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      delete_bazaar_booking: {
+        Args: { p_booking: string; p_confirm_name: string }
+        Returns: Json
+      }
       drop_remaining: { Args: { p_drop_id: string }; Returns: number }
       event_summary: {
         Args: { p_event: string }

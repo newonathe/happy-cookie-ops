@@ -68,6 +68,8 @@ historyAnswer.summary.booking.name = 'Katipunan market';
 historyAnswer.summary.days = [historyAnswer.summary.days[0]];
 Object.assign(historyAnswer.summary.days[0], {state:'open',closed_at:null,count:null,counted_cents:null,over_cents:null,short_cents:null});
 Object.assign(historyAnswer,{finalised_at:null,final_hash:null,final_summary:null});
+// `/bazaar?unsold`: the same event with no sale, so End event offers Delete (14 November 2026).
+if (new URLSearchParams(window.location.search).has('unsold')) historyAnswer.summary.revenue.sales = 0;
 const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
   (window as unknown as {qaCalls:string[]}).qaCalls.push(name);
   // HCB-002: `window.qaFailRpcs` lists reads that fail as a network error would (synthetic probe of each screen's failed read).
