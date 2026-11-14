@@ -120,4 +120,13 @@ describe('visual plain-language product editor', () => {
     expect(first.save).not.toHaveBeenCalled();
     expect(second.save).not.toHaveBeenCalled();
   });
+
+  it('lets an item stored at 0 cookie slots be saved again (migration 86)', () => {
+    render(<LiveFormHost v={vals(editor({ itemType: 'item', capacityWeight: 0 }))} />);
+    const weight = form().elements.namedItem('capacityWeight') as HTMLInputElement;
+    expect(weight.value).toBe('0');
+    // The browser blocks Save on an invalid field; 0 must be valid here.
+    expect(weight.checkValidity()).toBe(true);
+    expect(form().checkValidity()).toBe(true);
+  });
 });

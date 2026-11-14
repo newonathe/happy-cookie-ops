@@ -342,7 +342,8 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
               name="capacityWeight"
               type="number"
               inputMode="numeric"
-              min={1}
+              // An item is stored at 0 (migration 86), so 0 must pass the browser; a cookie at 0 is refused by flavourFieldError.
+              min={0}
               max={48}
               step={1}
               required
