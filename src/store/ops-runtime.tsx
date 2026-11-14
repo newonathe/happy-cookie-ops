@@ -2250,10 +2250,11 @@ export class OpsRuntime extends OpsProvider {
   private pricesRead = 0;
   private async refreshHeldPrices(): Promise<void> {
     const event = this.state.event as LiveEvent | null;
-    const client = (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null;
-    if (!isLiveMode() || !event?.id || !event.dayId || !client || this.state.role !== 'owner')
-      return;
+    // The cheap checks first: no connection is asked for unless there is an open day to re-read (release test, 15 November 2026).
+    if (!isLiveMode() || !event?.id || !event.dayId || this.state.role !== 'owner') return;
     if (!this.state.online) return;
+    const client = (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null;
+    if (!client) return;
     const seq = (this.pricesRead += 1);
     const read = await fetchEventPrices(client, event.id);
     if (!read || this.unmounted || seq !== this.pricesRead) return;
