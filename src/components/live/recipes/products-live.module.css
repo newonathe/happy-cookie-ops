@@ -111,6 +111,9 @@
   color: var(--color-ink-mute);
   font-weight: 500;
 }
+.readNotice {
+  margin-bottom: 16px;
+}
 .empty {
   margin: 0;
   padding: 28px 16px;

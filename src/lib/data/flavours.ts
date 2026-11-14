@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
 import type { EngineFlavour } from '@/store/engine/ops-engine';
 import { resolveImagePath } from '@/lib/media/resolve-image';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { centavosFromDb, centavosToPesos, pesosToCentavos, type Pesos } from '@/lib/money';
 
 /**
@@ -60,12 +61,7 @@ export function engineCatalogue(
   return { list: sorted.map(engineFlavour), allergens };
 }
 
-export async function fetchFlavours(client: FlavoursClient): Promise<FlavourRow[]> {
-  const { data, error } = await client.rpc('get_flavours');
-  if (error) throw new Error('flavour load failed: ' + (error.code || error.message));
-  return data ?? [];
-}
-
+/** A bigint column can arrive as a number or a digit string through the client. */
 const publicPrice = z
   .union([
     z.number(),
@@ -75,6 +71,45 @@ const publicPrice = z
       .transform(Number)
   ])
   .pipe(z.number().int().min(0).max(Number.MAX_SAFE_INTEGER));
+
+/**
+ * HCB-004: the `get_flavours` answer, checked field by field. ANY malformed row fails the whole
+ * read: a partial list would be shown as her whole menu, a save or publish from that cache could
+ * shrink it, and an order naming a dropped id would crash the engine's render.
+ */
+const staffMenu = z
+  .array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      short_name: z.string().min(1),
+      kind: z.string().min(1),
+      price_cents: publicPrice,
+      capacity_weight: z.number().int(),
+      sort_order: z.number().int(),
+      tag: z.string(),
+      description: z.string(),
+      image_path: z.string(),
+      allergens: z.string(),
+      item_type: z.string(),
+      active: z.boolean(),
+      published: z.boolean(),
+      updated_at: z.string()
+    })
+  )
+  .refine((rows) => new Set(rows.map((row) => row.id)).size === rows.length);
+
+export async function fetchFlavours(client: FlavoursClient): Promise<FlavourRow[]> {
+  const { data, error } = await client.rpc('get_flavours');
+  if (error) throw new Error('flavour load failed: ' + (error.code || error.message));
+  // `null` is an answered, empty menu (the read state keeps that distinct from a failure).
+  if (data == null) return [];
+  const parsed = staffMenu.safeParse(data);
+  // No row values in the message: a failed read reports that it failed, not what it held.
+  if (!parsed.success) throw new Error('flavour load failed: malformed answer');
+  return parsed.data;
+}
+
 const publicMenu = z
   .array(
     z.object({
@@ -310,6 +345,8 @@ export interface FlavourHost {
   restore(id: string, edit: FlavourEdit): void;
   online(): boolean;
   toast(message: string, tone?: 'ok' | 'warn'): void;
+  /** A read started by the Products page's Try again has settled; `loaded` is `load()`'s answer. */
+  retried?(loaded: boolean): void;
 }
 
 /**
@@ -324,11 +361,25 @@ export class FlavourSync {
   private readonly again = new Set<string>();
   /** True only once `load()` has actually populated `rows` from the server. */
   private loaded = false;
+  /**
+   * HCB-003: every read gets a number. The list only ever moves to a newer read's answer, and
+   * the reported state follows the newest settled read (`flavours-read-state.ts`).
+   */
+  private started = 0;
+  private shownRead = 0;
+  private failedRead = 0;
+  private readAt: number | null = null;
+  private emptyRead = false;
+  private retired = false;
+  private readonly retry = (): void =>
+    void this.load().then((loaded) => this.host.retried?.(loaded));
 
   constructor(
     private readonly client: FlavoursClient,
     private readonly host: FlavourHost
-  ) {}
+  ) {
+    flavoursRead.claim(this);
+  }
 
   /** The rows last read or saved, in no particular order. */
   current(): FlavourRow[] {
@@ -338,26 +389,65 @@ export class FlavourSync {
   /** True when the last read was answered and held no flavour: an empty menu, not a failed read. */
   readEmpty = false;
 
+  /** A retired reader (its page is gone) or a replaced one applies and reports nothing more. */
+  private isCurrent(): boolean {
+    return !this.retired && flavoursRead.owns(this);
+  }
+
+  retire(): void {
+    this.retired = true;
+    flavoursRead.release(this);
+  }
+
   /** False if the read failed or returned nothing; the engine keeps its list. */
   async load(): Promise<boolean> {
-    let rows: FlavourRow[];
+    if (!this.isCurrent()) return false;
+    const read = ++this.started;
+    const askedAt = Date.now();
     this.readEmpty = false;
+    this.report();
+    let rows: FlavourRow[];
     try {
       rows = await fetchFlavours(this.client);
     } catch {
+      if (!this.isCurrent()) return false;
+      this.failedRead = Math.max(this.failedRead, read);
+      this.report();
       return false;
     }
+    // Retired or replaced while the read was out: this answer changes nothing.
+    if (!this.isCurrent()) return false;
+    // An answer older than the one already shown cannot overwrite it.
+    if (read < this.shownRead) return rows.length > 0;
+    this.shownRead = read;
+    this.readAt = askedAt;
+    this.emptyRead = !rows.length;
     if (!rows.length) {
       // Answered, with nothing in it. Still not `loaded`: publishing or adding from an empty
       // cache stays refused (the c1c review's P0), but the screens may say "no flavours".
       this.readEmpty = true;
+      this.report();
       return false;
     }
     this.rows.clear();
     for (const row of rows) this.rows.set(row.id, row);
     this.loaded = true;
     this.host.apply(rows);
+    this.report();
     return true;
+  }
+
+  /** The read state for the Products page, from the newest read that has an answer. */
+  private report(): void {
+    if (!this.isCurrent()) return;
+    const everRead = this.shownRead > 0;
+    flavoursRead.publish(this, {
+      phase: this.failedRead > this.shownRead ? 'failed' : everRead ? 'read' : 'loading',
+      everRead,
+      empty: everRead && this.emptyRead,
+      readAt: this.readAt,
+      retry: this.retry
+    });
   }
 
   /**
@@ -423,9 +513,10 @@ export class FlavourSync {
    * flight is snapshotted first and restored after, rather than visibly reverting it.
    *
    * Refuses to create a new flavour (`expectedUpdatedAt` null) unless `load()` has actually
-   * populated the cache: the success path re-applies every row `current()` holds, and a new
-   * flavour saved onto an empty (never-loaded) cache would shrink the engine's whole list to
-   * that one row.
+   * populated the cache, or the newest read was answered with no flavours (`readEmpty`): the
+   * success path re-applies every row `current()` holds, and a new flavour saved onto an
+   * unread or failed cache would shrink the engine's whole list to that one row. On a
+   * confirmed empty menu that one row is the whole menu.
    */
   async saveWhole(
     id: string,
@@ -433,7 +524,9 @@ export class FlavourSync {
     expectedUpdatedAt: string | null
   ): Promise<FlavourSaveResult['status']> {
     if (flavourFieldError(fields) || this.inFlight.has(id)) return 'rejected';
-    if (expectedUpdatedAt === null && !this.loaded) return 'rejected';
+    // HCB-004: a read that was ANSWERED with no flavours is a confirmed empty menu, so the first
+    // product may be made. An unread, failed or still-out read (readEmpty is false then) is not.
+    if (expectedUpdatedAt === null && !this.loaded && !this.readEmpty) return 'rejected';
     if (!this.host.online()) {
       this.host.toast(FLAVOUR_TOASTS.offline, 'warn');
       return 'offline';

@@ -270,11 +270,19 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(screen.getAllByText('₱250').length).toBeGreaterThan(0);
   });
 
+  it('the settings button announces its visible word first (WCAG 2.5.3, HCB-014)', () => {
+    render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
+    const button = screen.getByRole('button', { name: /^Settings/ });
+    expect(button.textContent).toBe('Settings');
+    expect(button.getAttribute('aria-label') ?? 'Settings').toMatch(/^Settings/);
+    expect(screen.queryByRole('button', { name: 'Till menu' })).toBeNull();
+  });
+
   it('every way out is offered, each through its own handler', () => {
     const v = vals();
     const t = till();
     render(<ConsolidatedTill v={v} till={t} panel={null} />);
-    const open = () => fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    const open = () => fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     const pickItem = (name: RegExp) => fireEvent.click(screen.getByRole('button', { name }));
     pickItem(/Add cookies/);
     pickItem(/Fees and expenses/);
@@ -298,11 +306,11 @@ describe('the consolidated till calls the ported handlers', () => {
     const first = render(
       <ConsolidatedTill v={vals({ unsynced: 1 })} till={till({ leave })} panel={null} />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     expect(screen.queryByRole('button', { name: /Leave this event/ })).toBeNull();
     first.unmount();
     render(<ConsolidatedTill v={vals({ unsynced: 0 })} till={till({ leave })} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /Leave this event/ }));
     expect(leave).toHaveBeenCalledOnce();
   });
@@ -311,7 +319,7 @@ describe('the consolidated till calls the ported handlers', () => {
     render(
       <ConsolidatedTill v={vals()} till={till({ home: null, addCookies: null })} panel={null} />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     expect(screen.queryByRole('button', { name: /Back to Home/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Add cookies/ })).toBeNull();
     expect(screen.getByRole('button', { name: /Review and close the day/ })).toBeTruthy();
@@ -386,7 +394,7 @@ describe('the consolidated till calls the ported handlers', () => {
   it('its settings say what this device holds, with the way to send it', () => {
     const v = vals({ unsynced: 2 });
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     const page = screen.getByRole('region', { name: 'Till settings' });
     expect(within(page).getByText('Waiting to send')).toBeTruthy();
     expect(within(page).getByText(/Keep this browser open/)).toBeTruthy();
@@ -580,7 +588,7 @@ describe('in the frame', () => {
 
   it('switches to the classic till and back, and the phone remembers the choice', () => {
     mountFrame();
-    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /Use the classic till/ }));
     expect(consolidated()).toBeNull();
     expect(screen.getByRole('button', { name: 'Close out' })).toBeTruthy();
@@ -599,13 +607,14 @@ describe('in the frame', () => {
     const runtime = mountFrame();
     act(() => runtime.toast('Test toast'));
     const toast = screen.getByText('Test toast').closest('[style*="bottom"]') as HTMLElement | null;
-    expect(toast?.style.bottom).toBe('104px');
+    // HCB-005: the height is the sale bar's own, measured by the till, not a guess.
+    expect(toast?.getAttribute('style')).toContain('var(--till-sale-bar');
   });
 
   it('a helper sells on the consolidated till, with no Home and no Add cookies', () => {
     mountFrame('helper');
     expect(consolidated()).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     const sheet = screen.getByRole('region', { name: 'Till settings' });
     expect(within(sheet).queryByRole('button', { name: /Back to Home/ })).toBeNull();
     expect(within(sheet).queryByRole('button', { name: /Add cookies/ })).toBeNull();

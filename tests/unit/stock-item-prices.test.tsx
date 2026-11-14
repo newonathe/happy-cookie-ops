@@ -62,3 +62,11 @@ it('has accessible empty and populated price states with Back still available', 
   expect(screen.getByRole('button', { name: 'Back to item' })).toBeTruthy();
   await check();
 });
+
+it('names the way back when Compare prices came from Shopping', () => {
+  const p = { ...page(), pricesOpen: true, closePricesLabel: 'Back to Shopping' };
+  render(view(p));
+  fireEvent.click(screen.getByRole('button', { name: 'Back to Shopping' }));
+  expect(p.closePrices).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole('button', { name: 'Back to item' })).toBeNull();
+});

@@ -1,6 +1,6 @@
 'use client';
 
-import { Component, useState, type ReactNode } from 'react';
+import { Component, useCallback, useRef, useState, type ReactNode } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,26 @@ import { TillPanelPage, TillBack } from './till-bar';
 
 type Till = NonNullable<OpsVals['liveTill']>;
 type Sale = OpsVals['bzSales'][number];
+
+/**
+ * HCB-005: tells the toast how tall the sale bar is (`--till-sale-bar`), so a message stands above Charge and never on it.
+ * Set while the bar is drawn and taking room; removed when it unmounts or is hidden (`lg:hidden`, height 0).
+ */
+function watchSaleBar(el: HTMLElement): () => void {
+  const root = document.documentElement;
+  const write = () => {
+    const height = Math.ceil(el.getBoundingClientRect().height);
+    if (height > 0) root.style.setProperty('--till-sale-bar', `${height}px`);
+    else root.style.removeProperty('--till-sale-bar');
+  };
+  write();
+  const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(write);
+  observer?.observe(el);
+  return () => {
+    observer?.disconnect();
+    root.style.removeProperty('--till-sale-bar');
+  };
+}
 
 /**
  * The consolidated till (Ethan, 19 October 2026; mockups K5nHQS8GjtBYGseDtYZDnZ). Only the look is new: every control
@@ -35,6 +55,11 @@ export function ConsolidatedTill({
   till: Till;
   panel: TillPanelView | null | undefined;
 }) {
+  const unwatchSaleBar = useRef<(() => void) | null>(null);
+  const saleBarRef = useCallback((el: HTMLDivElement | null) => {
+    unwatchSaleBar.current?.();
+    unwatchSaleBar.current = el ? watchSaleBar(el) : null;
+  }, []);
   const [menu, setMenu] = useState(false);
   // The open sale, counted from the oldest: the list is newest first, so a sale arriving cannot move it.
   const [saleFromOldest, setSaleFromOldest] = useState<number | null>(null);
@@ -120,7 +145,7 @@ export function ConsolidatedTill({
                 <Button variant="secondary" onClick={v.askClose}>
                   Close day
                 </Button>
-                <Button variant="secondary" aria-label="Till menu" onClick={() => setMenu(true)}>
+                <Button variant="secondary" onClick={() => setMenu(true)}>
                   Settings
                 </Button>
               </>
@@ -218,6 +243,7 @@ export function ConsolidatedTill({
 
         {Number(v.bzCartCount) ? (
           <div
+            ref={saleBarRef}
             data-part="sale-bar"
             style={{ bottom: 'calc(var(--workspace-dock, 0px) + 12px)' }}
             className="order-4 sticky z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-card border border-line bg-surface/95 p-3 shadow-lift backdrop-blur lg:hidden"

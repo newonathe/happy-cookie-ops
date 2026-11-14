@@ -80,7 +80,8 @@ async function mounted(role: Role, f: ReturnType<typeof fake>) {
       { id: 'c1', name: 'Cookie', item_type: 'cookie' },
       { id: 's1', name: 'Sampler box', item_type: 'set' }
     ],
-    dispose: () => undefined
+    dispose: () => undefined,
+    retire: () => undefined
   };
   f.rpc.mockClear();
   return runtime;
@@ -226,6 +227,25 @@ describe('B4a: the boxes and add-ons form', () => {
     expect(called(f.rpc, 'get_order_extras').length).toBeGreaterThanOrEqual(2);
   });
 
+  it('a conflict whose re-read fails closes the form, so no stale value stays editable', async () => {
+    const f = fake({ save: { error: { code: 'P0002' } } });
+    const runtime = await mounted('owner', f);
+    const vals = await open(runtime);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_order_extras'
+        ? { data: null, error: { code: '57014' } }
+        : name === 'save_order_extras'
+          ? { error: { code: 'P0002' } }
+          : { data: null, error: null }
+    );
+    act(() => vals.save({ ...vals.extras, sameDayPercent: 10 }));
+    await settle();
+    // The read-failure toast is the one left showing.
+    expect(toasts(runtime)).toContain('could not be read');
+    expect(runtime.renderVals().liveOrderExtras ?? null).toBeNull();
+    expect(runtime.state.sheet).toBeNull();
+  });
+
   it('a refusal and a lost connection each say so and keep the sheet', async () => {
     for (const [save, words] of [
       [{ error: { code: '22023' } }, 'could not be saved'],
@@ -248,7 +268,27 @@ describe('B4a: the boxes and add-ons form', () => {
     await act(async () => entry(runtime)!.go());
     await settle();
     expect(runtime.renderVals().liveOrderExtras ?? null).toBeNull();
-    expect(toasts(runtime)).toContain('Offline');
+    expect(toasts(runtime)).toContain('could not be read');
+    expect(toasts(runtime)).not.toContain('did not save');
+    expect(toasts(runtime)).not.toContain('Offline');
+  });
+
+  it('a read that fails after a save says it could not be refreshed, never that it did not save', async () => {
+    const f = fake();
+    const runtime = await mounted('owner', f);
+    const vals = await open(runtime);
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_order_extras'
+        ? { data: null, error: { code: '57014' } }
+        : name === 'save_order_extras'
+          ? { data: [{ updated_at: STAMP }], error: null }
+          : { data: null, error: null }
+    );
+    act(() => vals.save({ ...vals.extras }));
+    await settle();
+    expect(toasts(runtime)).toContain('saved');
+    expect(toasts(runtime)).toContain('could not be refreshed');
+    expect(toasts(runtime)).not.toContain('did not save');
   });
 
   it('is the owner’s alone, even with the configuration already read and the sheet open', async () => {

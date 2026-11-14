@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
 import type { Role } from '@/store/engine/ops-engine';
@@ -55,7 +56,20 @@ export const STATE_LEVEL_KEYS: ReadonlySet<string> = new Set([
   'inactiveCats'
 ]);
 
-export type SettingsRow = Database['public']['Functions']['get_settings']['Returns'][number];
+/**
+ * One `get_settings` / `get_operating_settings` row as `fetchSettings` returns it, after the
+ * answer was checked. The generated type calls every column non-null; the columns a key does not
+ * use really are null, so they are typed so here. `is_default` is unread by the app.
+ */
+export type SettingsRow = {
+  key: string;
+  int_value: number | null;
+  cents_value: number | null;
+  text_value: string | null;
+  json_value: Json;
+  is_default?: boolean;
+  updated_at: string | null;
+};
 export type SettingsClient = Pick<SupabaseClient<Database>, 'rpc'>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -109,6 +123,52 @@ export function dbValueFor(key: string, value: unknown): DbValue {
   return Number.isInteger(step) ? { ok: true, value } : { ok: false, reason: 'fraction' };
 }
 
+/** A bigint column can arrive as a number or a digit string; either way it leaves as a number. */
+const bigintColumn = z
+  .union([
+    z.number(),
+    z
+      .string()
+      .regex(/^[0-9]+$/)
+      .transform(Number)
+  ])
+  .pipe(z.number().int().min(0).max(Number.MAX_SAFE_INTEGER));
+/** `int_value` has no sign rule at the table (each key's range is the server's): any safe integer. */
+const intColumn = z
+  .union([
+    z.number(),
+    z
+      .string()
+      .regex(/^-?[0-9]+$/)
+      .transform(Number)
+  ])
+  .pipe(z.number().int().min(Number.MIN_SAFE_INTEGER).max(Number.MAX_SAFE_INTEGER));
+const jsonValue: z.ZodType<Json> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(jsonValue),
+    z.record(z.string(), jsonValue.optional())
+  ])
+);
+/**
+ * HCB-004: a settings answer is checked before anything reads it. Any malformed row fails the
+ * whole read (the engine keeps its defaults). Unknown keys stay allowed: `cfgValueFromRow` skips them.
+ */
+const settingsAnswer = z.array(
+  z.object({
+    key: z.string().min(1),
+    int_value: intColumn.nullable(),
+    cents_value: bigintColumn.nullable(),
+    text_value: z.string().nullable(),
+    json_value: jsonValue,
+    is_default: z.boolean().optional(),
+    updated_at: z.string().nullable()
+  })
+);
+
 /** The owner reads every key; helper and support read the staff-safe projection only. */
 export async function fetchSettings(client: SettingsClient, role: Role): Promise<SettingsRow[]> {
   const { data, error } =
@@ -116,7 +176,10 @@ export async function fetchSettings(client: SettingsClient, role: Role): Promise
       ? await client.rpc('get_settings')
       : await client.rpc('get_operating_settings');
   if (error) throw new Error('settings load failed: ' + (error.code || error.message));
-  return data ?? [];
+  if (data == null) return [];
+  const parsed = settingsAnswer.safeParse(data);
+  if (!parsed.success) throw new Error('settings load failed: malformed answer');
+  return parsed.data;
 }
 
 export type SaveResult =

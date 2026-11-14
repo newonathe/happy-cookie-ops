@@ -405,8 +405,19 @@ export interface LiveBazaarVals {
     heldName: string;
   };
   online: boolean;
+  /**
+   * HCB-004: whether the catalogue the engine holds is hers (read from the server, or the copy this phone kept for an
+   * offline open). When false, a day is not planned or started: the built-in flavours are not hers. Absent: held.
+   */
+  catalogue?: { held: boolean };
   /** False until the owner's bookings have been read: the list must not say there are none before it knows. */
   eventsRead: boolean;
+  /** HCB-002e: the newest settled read of the events failed. With `eventsRead` false the list says so and offers a retry. */
+  eventsFailed?: boolean;
+  /** A read of the events is out (a retry in flight). */
+  eventsRefreshing?: boolean;
+  /** Reads the events again. */
+  refreshEvents?: () => void;
   /** `loading` while a read is in flight; `failed` when it could not be read (shown with a retry). */
   state: 'read' | 'loading' | 'failed';
   list: BazaarListRow[];

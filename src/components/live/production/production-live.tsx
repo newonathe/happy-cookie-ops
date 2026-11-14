@@ -17,6 +17,11 @@ import { resolveImagePath } from '@/lib/media/resolve-image';
 import { PageTitle } from '@/components/ui/owner-kit';
 import { useAreaSettings } from '@/components/live/account/settings-areas';
 import { MakeTabs } from '../recipes/make-shared';
+import {
+  CatalogueNotice,
+  PRODUCTS_NOTICE_COPY,
+  useCatalogueHeld
+} from '../bazaar/catalogue-notice';
 
 function WorkRow({ row }: { row: OpsVals['bakeRows'][number] }) {
   return (
@@ -57,6 +62,9 @@ export function ProductionLive({ v }: { v: OpsVals }) {
   const wasStarting = useRef(false);
   const entryOpen = !!data?.start?.draft;
   const settings = useAreaSettings(v, 'make', 'Back to production');
+  // HCB-004 a2: the order plan and the flavours' work are worked out from her products, which this phone may not have read.
+  const catalogue = useCatalogueHeld(v.catalogueHeld);
+  const unread = !catalogue.held && catalogue.started;
   useEffect(() => {
     if (entryOpen) wasStarting.current = true;
     else if (wasStarting.current) {
@@ -112,7 +120,15 @@ export function ProductionLive({ v }: { v: OpsVals }) {
               Production is saving. You can prepare another batch while you wait.
             </p>
           ) : null}
-          {data.planReady ? (
+          {unread ? (
+            <div id={planNote}>
+              <CatalogueNotice
+                failed={catalogue.failed}
+                retry={catalogue.retry}
+                copy={PRODUCTS_NOTICE_COPY}
+              />
+            </div>
+          ) : data.planReady ? (
             <div className={styles.plan}>
               <strong>{v.bakeTotals.toBakeNum}</strong>
               <span>
@@ -133,7 +149,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
                   : unavailable}
             </p>
           )}
-          {data.planReady && !canStart ? (
+          {!unread && data.planReady && !canStart ? (
             <p id={planNote} className={styles.muted}>
               {unavailable}
             </p>
@@ -176,7 +192,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
           ) : null}
           <ProductionReceipts rows={data.completed ?? []} />
           <ProductionResults data={data} />
-          {data.planReady ? (
+          {!unread && data.planReady ? (
             <section aria-label="Baking work" className={styles.work}>
               <h2>To make</h2>
               {active.length ? (

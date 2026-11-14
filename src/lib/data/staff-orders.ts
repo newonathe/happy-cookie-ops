@@ -88,6 +88,11 @@ const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.i
 const text = (v: unknown): v is string => typeof v === 'string';
 const whole = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v);
 
+/** The database's order state / pay state as the app's, or undefined: one mapping for a read and an acknowledgement. */
+const stateOf = (v: unknown): StaffState | undefined => STAFF_STATES.find((s) => s === v);
+const payStateOf = (v: unknown): StaffPayState | undefined => PAY_STATES.find((s) => s === v);
+const paidOf = (v: unknown): number | null => (whole(v) ? centavosFromDb(v) : null);
+
 function parseItem(raw: unknown): StaffOrderItem | null {
   if (!isObj(raw) || !text(raw.product_id) || !whole(raw.qty) || raw.qty < 1) return null;
   if (!whole(raw.unit_price_cents) || raw.unit_price_cents < 0) return null;
@@ -148,8 +153,8 @@ export function readStaffOrders(json: unknown): { orders: StaffOrder[]; dropped:
   const out: StaffOrder[] = [];
   for (const raw of json) {
     if (!isObj(raw)) continue;
-    const state = STAFF_STATES.find((s) => s === raw.state);
-    const payState = PAY_STATES.find((s) => s === raw.pay_state);
+    const state = stateOf(raw.state);
+    const payState = payStateOf(raw.pay_state);
     const placed = text(raw.placed_at) ? Date.parse(raw.placed_at) : NaN;
     if (
       !text(raw.id) ||
@@ -175,7 +180,7 @@ export function readStaffOrders(json: unknown): { orders: StaffOrder[]; dropped:
       payMethod: text(raw.pay_method) ? raw.pay_method : '',
       payRef: text(raw.pay_ref) ? raw.pay_ref : '',
       totalCents: centavosFromDb(raw.total_cents),
-      paidCents: whole(raw.paid_cents) ? centavosFromDb(raw.paid_cents) : null,
+      paidCents: paidOf(raw.paid_cents),
       refundRef: text(raw.refund_ref) ? raw.refund_ref : '',
       pickupDate: text(raw.pickup_date) ? raw.pickup_date : null,
       pickupWindow: text(raw.pickup_window) ? raw.pickup_window : null,
@@ -324,8 +329,25 @@ export function toEngineOrder(
   };
 }
 
+/**
+ * The row every `staff_*` RPC answers with, as far as the app uses it (HCB-006): what the database
+ * says the order is now. Used only to show the saved change when the read that follows it fails.
+ */
+export interface StaffSavedRow {
+  orderId: string;
+  state: StaffState;
+  payState: StaffPayState;
+  paidCents: number | null;
+  totalCents: number;
+  updatedAt: string;
+}
+
+/**
+ * `refreshed` is false when the change was acknowledged but the list read that followed it failed:
+ * the list then shows the acknowledged row (if it parsed), not the database's current state.
+ */
 export type StaffOutcome =
-  | { kind: 'ok'; replayed: boolean }
+  | { kind: 'ok'; replayed: boolean; refreshed: boolean }
   | { kind: 'conflict' }
   | { kind: 'capacity'; left: number }
   | { kind: 'gone' }
@@ -337,14 +359,46 @@ interface RpcResult {
   error?: { code?: string; details?: string | null } | null;
 }
 
+/** The acknowledged row, or undefined when it is not the shape the RPCs answer with. */
+function parseSaved(row: unknown): StaffSavedRow | undefined {
+  if (!isObj(row)) return undefined;
+  const state = stateOf(row.state);
+  const payState = payStateOf(row.pay_state);
+  if (
+    !text(row.order_id) ||
+    !row.order_id ||
+    !state ||
+    !payState ||
+    !whole(row.total_cents) ||
+    !text(row.updated_at) ||
+    !row.updated_at
+  )
+    return undefined;
+  return {
+    orderId: row.order_id,
+    state,
+    payState,
+    paidCents: paidOf(row.paid_cents),
+    totalCents: centavosFromDb(row.total_cents),
+    updatedAt: row.updated_at
+  };
+}
+
+/** The server's answer, before the refresh that follows a success. */
+export type StaffAnswer =
+  { kind: 'ok'; replayed: boolean; saved?: StaffSavedRow } | Exclude<StaffOutcome, { kind: 'ok' }>;
+
 /** The server's answer as one outcome. An error with no SQLSTATE is a network failure. */
-export function classify(result: RpcResult): StaffOutcome {
+export function classify(result: RpcResult): StaffAnswer {
   const code = result.error?.code;
   if (!result.error) {
-    const row = Array.isArray(result.data)
-      ? (result.data[0] as { replayed?: boolean } | undefined)
-      : undefined;
-    return { kind: 'ok', replayed: row?.replayed === true };
+    const row: unknown = Array.isArray(result.data) ? result.data[0] : undefined;
+    const saved = parseSaved(row);
+    return {
+      kind: 'ok',
+      replayed: isObj(row) && row.replayed === true,
+      ...(saved ? { saved } : {})
+    };
   }
   if (code === 'P0002') return { kind: 'conflict' };
   if (code === 'ZC002') {
@@ -387,6 +441,16 @@ export interface StaffOrderHooks {
 type Call = (stamp: string) => PromiseLike<RpcResult>;
 
 /**
+ * What an action changes beyond state, payment and the stamp, for the patch kept when the refresh fails (HCB-006):
+ * `items` for a swap or flag (the list still holds the old items, so the old total stays with them), `refundRef`
+ * for a refund (the reference the owner sent).
+ */
+interface Effect {
+  items?: boolean;
+  refundRef?: string;
+}
+
+/**
  * The owner's orders for the live app. The list is read again after every change (and when the
  * tab comes back), because customers place orders all day: whatever the database says wins.
  */
@@ -405,6 +469,13 @@ export class StaffOrderSync {
   private readAt: number | null = null;
   private dropped = 0;
   private retired = false;
+  /** The order whose change was acknowledged but whose list refresh failed; cleared by the next good read. */
+  private savedNotRefreshed: string | null = null;
+  /**
+   * HCB-006: the newest read started when a saved change was kept locally. Only a read started after it may replace the
+   * list: an older one (a tab-visible refresh still out during the change) holds the order as it was before.
+   */
+  private savedFloor = 0;
   private readonly retry = (): void => void this.load();
 
   constructor(
@@ -426,6 +497,7 @@ export class StaffOrderSync {
     this.retired = true;
     this.list = [];
     this.loaded = false;
+    this.savedNotRefreshed = null;
     ordersRead.release(this);
   }
 
@@ -450,14 +522,14 @@ export class StaffOrderSync {
     // A newer reader (a new owner session, a re-run of the live gate) has taken over: this
     // answer may be older than what it shows, so it changes nothing.
     if (!this.isCurrent()) return false;
-    if (read > this.shownRead) {
+    if (read > this.shownRead && read > this.savedFloor) {
       this.shownRead = read;
       this.readAt = askedAt;
       this.dropped = answer.dropped;
+      this.savedNotRefreshed = null;
       this.list = answer.orders;
       this.loaded = true;
-      const week = currentWeek(this.list, this.hooks.today?.() ?? manilaToday());
-      this.hooks.apply(this.list.map((o) => toEngineOrder(o, this.hooks.pickupDays(), week)));
+      this.applyList();
     }
     this.report();
     return true;
@@ -472,6 +544,7 @@ export class StaffOrderSync {
       everRead,
       readAt: this.readAt,
       dropped: this.dropped,
+      savedNotRefreshed: this.savedNotRefreshed,
       retry: this.retry
     });
   }
@@ -479,9 +552,10 @@ export class StaffOrderSync {
   /**
    * One change: offline is refused before anything is sent; the stamp is the one the owner is
    * looking at (from the last read), so a change made elsewhere meanwhile is a conflict, not a
-   * silent overwrite. Success and conflict both reload; the caller words the rest.
+   * silent overwrite. Success and conflict both reload; the caller words the rest. A success whose
+   * reload failed says `refreshed: false` (HCB-006).
    */
-  private async run(id: string, call: Call): Promise<StaffOutcome> {
+  private async run(id: string, call: Call, effect: Effect = {}): Promise<StaffOutcome> {
     if (!this.isCurrent()) return { kind: 'offline' };
     if (!this.hooks.online()) {
       this.hooks.toast(STAFF_COPY.offline, 'warn');
@@ -492,16 +566,65 @@ export class StaffOrderSync {
       this.hooks.toast(STAFF_COPY.notLoaded, 'warn');
       return { kind: 'gone' };
     }
-    let outcome: StaffOutcome;
+    let answer: StaffAnswer;
     try {
-      outcome = classify(await call(order.updatedAt));
+      answer = classify(await call(order.updatedAt));
     } catch {
-      outcome = { kind: 'offline' };
+      answer = { kind: 'offline' };
     }
     // Preserve the actual outcome of an already-sent request, without touching a new session.
+    if (answer.kind !== 'ok') return this.afterRefusal(answer);
+    if (!this.isCurrent()) return { kind: 'ok', replayed: answer.replayed, refreshed: false };
+    const refreshed = await this.load();
+    // A replayed answer wrote nothing new: the database kept the first reference, so none the owner just sent is shown.
+    if (!refreshed && this.isCurrent())
+      this.keepSaved(
+        id,
+        answer.saved,
+        answer.replayed ? { ...effect, refundRef: undefined } : effect
+      );
+    return { kind: 'ok', replayed: answer.replayed, refreshed };
+  }
+
+  /**
+   * HCB-006: the change was acknowledged but the read after it failed, so the list still holds the
+   * order as it was before. Show the acknowledged state (never a guess: only a row that parsed for
+   * this order is used) and record the order, so the page says the list could not be refreshed.
+   */
+  private keepSaved(id: string, saved: StaffSavedRow | undefined, effect: Effect): void {
+    this.savedNotRefreshed = id;
+    this.savedFloor = this.started;
+    if (saved && saved.orderId === id) {
+      this.list = this.list.map((o) =>
+        o.id === id
+          ? {
+              ...o,
+              state: saved.state,
+              payState: saved.payState,
+              paidCents: saved.paidCents,
+              // A swap or flag changed the items, which this list does not have yet: keep the total they add up to.
+              totalCents: effect.items ? o.totalCents : saved.totalCents,
+              ...(effect.refundRef !== undefined ? { refundRef: effect.refundRef } : {}),
+              updatedAt: saved.updatedAt
+            }
+          : o
+      );
+      this.applyList();
+    }
+    this.report();
+  }
+
+  private applyList(): void {
+    const week = currentWeek(this.list, this.hooks.today?.() ?? manilaToday());
+    this.hooks.apply(this.list.map((o) => toEngineOrder(o, this.hooks.pickupDays(), week)));
+  }
+
+  /** What follows an answer that is not a success: tell the owner, and read what the database holds. */
+  private async afterRefusal(
+    outcome: Exclude<StaffOutcome, { kind: 'ok' }>
+  ): Promise<StaffOutcome> {
     if (!this.isCurrent()) return outcome;
-    if (outcome.kind === 'ok') await this.load();
-    else if (outcome.kind === 'conflict') {
+    if (outcome.kind === 'conflict') {
       this.hooks.toast(STAFF_COPY.conflict, 'warn');
       await this.load();
     } else if (outcome.kind === 'gone') {
@@ -543,29 +666,38 @@ export class StaffOrderSync {
     );
   }
   flag(id: string, productId: string, flagged: boolean): Promise<StaffOutcome> {
-    return this.run(id, (at) =>
-      this.client.rpc('staff_flag_item', {
-        p_order_id: id,
-        p_product_id: productId,
-        p_flagged: flagged,
-        p_expected_updated_at: at
-      })
+    return this.run(
+      id,
+      (at) =>
+        this.client.rpc('staff_flag_item', {
+          p_order_id: id,
+          p_product_id: productId,
+          p_flagged: flagged,
+          p_expected_updated_at: at
+        }),
+      { items: true }
     );
   }
   swap(id: string, from: string, to: string, clientId: string): Promise<StaffOutcome> {
-    return this.run(id, (at) =>
-      this.client.rpc('staff_swap_item', {
-        p_order_id: id,
-        p_from_product: from,
-        p_to_product: to,
-        p_client_id: clientId,
-        p_expected_updated_at: at
-      })
+    return this.run(
+      id,
+      (at) =>
+        this.client.rpc('staff_swap_item', {
+          p_order_id: id,
+          p_from_product: from,
+          p_to_product: to,
+          p_client_id: clientId,
+          p_expected_updated_at: at
+        }),
+      { items: true }
     );
   }
   refund(id: string, ref: string): Promise<StaffOutcome> {
-    return this.run(id, (at) =>
-      this.client.rpc('staff_refund', { p_order_id: id, p_ref: ref, p_expected_updated_at: at })
+    return this.run(
+      id,
+      (at) =>
+        this.client.rpc('staff_refund', { p_order_id: id, p_ref: ref, p_expected_updated_at: at }),
+      { refundRef: ref }
     );
   }
   settle(id: string): Promise<StaffOutcome> {

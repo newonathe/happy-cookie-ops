@@ -36,4 +36,15 @@ describe('synchronous sale-name fallback', () => {
     expect(Object.getPrototypeOf(lookup)).toBe(prototype);
     expect(Object.keys(lookup)).toEqual([]);
   });
+  it('also lends placeholders for extra ids, for the render only', () => {
+    const lookup: Record<string, { short: string } | undefined> = { known: { short: 'Chocolate' } };
+    const names = renderWithSaleLabels(
+      [],
+      lookup,
+      () => [lookup.known?.short, lookup['qa-own']?.short],
+      ['known', 'qa-own']
+    );
+    expect(names).toEqual(['Chocolate', 'Product unavailable']);
+    expect(lookup).toEqual({ known: { short: 'Chocolate' } });
+  });
 });

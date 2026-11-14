@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { OfflineBridge } from '@/components/app/offline-bridge';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { RouteSync } from '@/components/app/route-sync';
+import { screenForPath } from '@/lib/screens';
 import { LiveOrderRoute } from '@/components/app/live-order-route';
 import bazaarAnswer from '@/../tests/fixtures/bazaar-example.json';
 import { OwnerWorkspace } from '@/components/live/owner-workspace';
@@ -16,6 +17,7 @@ import { registerLiveSellScreens } from '@/components/live/sell/register';
 import { registerLiveCustomerScreens } from '@/components/live/customer/register';
 import { registerLiveAccountScreens } from '@/components/live/account/register';
 import { PRODUCTS } from '@/store/engine/ops-engine';
+import { flavoursRead } from '@/lib/data/flavours-read-state';
 import { demoRecipes, demoStock, demoSuppliers } from './demo-records';
 import '@/app/globals.css';
 import '@/app/fonts/onest.css';
@@ -58,6 +60,9 @@ const production = {batches:[
 ],dough:[],baked:[{product_id:'dcf',qty:24},{product_id:'hc',qty:9},{product_id:'wcb',qty:4}],shortfalls:[]};
 // The /bazaar fixture adds the real browser-history adapter; the ordinary fixture is unchanged.
 const historyPreview = window.location.pathname === '/bazaar';
+// HCB-012/013: `window.qaRouteSync` (set by a check's init script, so it survives a reload) mounts RouteSync for the
+// current path, as the app does, and lands the load chain on that path's screen.
+const routeSyncPreview = !historyPreview && (window as unknown as {qaRouteSync?:boolean}).qaRouteSync === true;
 const historyAnswer = JSON.parse(JSON.stringify(bazaarAnswer));
 historyAnswer.summary.booking.name = 'Katipunan market';
 historyAnswer.summary.days = [historyAnswer.summary.days[0]];
@@ -65,6 +70,10 @@ Object.assign(historyAnswer.summary.days[0], {state:'open',closed_at:null,count:
 Object.assign(historyAnswer,{finalised_at:null,final_hash:null,final_summary:null});
 const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
   (window as unknown as {qaCalls:string[]}).qaCalls.push(name);
+  // HCB-002: `window.qaFailRpcs` lists reads that fail as a network error would (synthetic probe of each screen's failed read).
+  if(((window as unknown as {qaFailRpcs?:string[]}).qaFailRpcs ?? []).includes(name)) return {data:null,error:{code:'08006'}};
+  // `window.qaHoldRpcs` lists reads that never answer (a stalled connection), for the read time limits.
+  if(((window as unknown as {qaHoldRpcs?:string[]}).qaHoldRpcs ?? []).includes(name)) return new Promise<never>(() => undefined);
   if(name==='get_scheduled_events') return {data:[{...historyAnswer.summary.booking,started:true,updated_at:'2026-10-20T02:00:00Z'}],error:null};
   if(name==='get_bazaar') return {data:historyAnswer,error:null};
   if(name==='get_shop_status') return {data:{open_dow:1,open_h:9,open_m:0,close_dow:4,close_h:21,close_m:0,extend_h:0,override:null},error:null};
@@ -73,10 +82,25 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
   if(name==='save_order_rules'||name==='save_order_extras'){(window as unknown as {qaShopWrites:unknown[]}).qaShopWrites.push({name,args});const t=new Date().toISOString();if(name==='save_order_rules')Object.assign(shopRules,(args as {p_rules:object}).p_rules,{updated_at:t});else Object.assign(shopExtras,(args as {p_extras:object}).p_extras,{updated_at:t});return {data:null,error:null};}
   if(name==='get_books'){const d=86400000,t=Date.now(),L=(id:string,kind:string,cat:string,label:string,pesos:number,days:number)=>({id,kind,cat,label,amount_cents:pesos*100,at:t-days*d});
     return {data:{basis:'used',lines:[L('b1','revenue','Orders','Drop 31 · 14 orders paid',8400,26),L('b2','expense','Ingredients','Flour, butter and chocolate',5100,24),L('b3','revenue','Bazaar','Katipunan market · day 1',6250,19),L('b4','expense','Stall rent','Katipunan market stall',2000,19),L('b5','expense','Packaging','Cookie pouches',700,12),L('b6','revenue','Orders','Drop 32 · 9 orders paid',3600,5),L('b7','refund','Orders','Refund · order 1042',260,4),L('b8','expense','Ingredients','Biscoff spread and cream cheese',1480,3),L('b9','draw','Owner drawings','Owner draw',1500,2)],uncosted:[{id:'u1',kind:'use',item:'Cream cheese',qty:225,unit:'g',at:t-3*d}],receipts:[],held:[]},error:null};}
+  // HCB-006: `window.qaStaffAck` acknowledges a confirm or reject with the server's row; with `window.qaFailReadAfterAck` every
+  // later orders read fails (the change is saved, the refresh is not).
+  const qa = window as unknown as {qaStaffAck?:boolean;qaFailReadAfterAck?:boolean;qaStaffOrdersFail?:boolean};
+  if(qa.qaStaffAck && (name==='staff_confirm_payment'||name==='staff_reject_payment')){
+    if(qa.qaFailReadAfterAck) qa.qaStaffOrdersFail = true;
+    const confirm = name==='staff_confirm_payment';
+    return {data:[{order_id:String(args?.p_order_id ?? ''),state:confirm?'Confirmed':'Cancelled',pay_state:confirm?'confirmed':'unpaid',total_cents:81000,paid_cents:confirm?81000:null,updated_at:new Date().toISOString(),replayed:false}],error:null};
+  }
+  if(name==='get_staff_orders' && qa.qaStaffOrdersFail) return {data:null,error:{code:'08006'}};
   if(name==='get_staff_orders'){const day=(n:number)=>new Date(Date.now()+n*86400000).toISOString().slice(0,10);const O=(id:string,nm:string,state:string,pay:string,items:Array<[string,number]>,pickup:number,placed:number)=>({id,name:nm,phone:'09170000000',ig:'',state,pay_state:pay,pay_method:'GCash',pay_ref:pay==='unpaid'?null:'REF-'+id.slice(3),total_cents:items.reduce((t,[p,q])=>t+q*(PRODUCTS.find(x=>x.id===p)?.price??120)*100,0),paid_cents:pay==='confirmed'?items.reduce((t,[p,q])=>t+q*(PRODUCTS.find(x=>x.id===p)?.price??120)*100,0):null,refund_ref:null,pickup_date:day(pickup),pickup_window:'10:00',placed_at:new Date(Date.now()-placed*3600000).toISOString(),updated_at:'2026-11-01T02:00:00.000Z',status_token:'b'.repeat(64),holds:true,items:items.map(([p,q])=>({product_id:p,qty:q,unit_price_cents:(PRODUCTS.find(x=>x.id===p)?.price??120)*100,unavailable:false})),swaps:[]});
-    return {data:[O('HC-1101','Bea Villanueva','Payment review','unpaid',[['dcf',3],['hc',3]],2,5),O('HC-1102','Miguel Santos','Confirmed','confirmed',[['wcb',4],['dcf',2]],2,20),O('HC-1103','Joanna Reyes','Preparing','confirmed',[['hc',6]],1,30),O('HC-1104','Karla Mendoza','Ready','confirmed',[['dcf',6]],0,40),O('HC-1105','Paolo Cruz','Confirmed','confirmed',[['wcb',3],['hc',3]],3,8)],error:null};}
-  if(name==='get_production')return (window as unknown as {qaProductionFail?:boolean}).qaProductionFail ? {data:null,error:{code:'08006'}} : {data:(window as unknown as {qaProductionEmpty?:boolean}).qaProductionEmpty ? {batches:[],dough:[],baked:[],shortfalls:[]} : production,error:null};
-  if(name==='get_flavours') return {data:flavours,error:null};
+    return {data:[O('HC-1101','Bea Villanueva','Payment review','unpaid',[['dcf',3],['hc',3]],2,5),O('HC-1102','Miguel Santos','Confirmed','confirmed',[['wcb',4],['dcf',2]],2,20),O('HC-1103','Joanna Reyes','Preparing','confirmed',[['hc',6]],1,30),O('HC-1104','Karla Mendoza','Ready','confirmed',[['dcf',6]],0,40),O('HC-1105','Paolo Cruz','Confirmed','confirmed',[['wcb',3],['hc',3]],3,8)].concat(
+      // `window.qaMalformedOrder` adds one unreadable order (no items): the read drops it and says so.
+      (window as unknown as {qaMalformedOrder?:boolean}).qaMalformedOrder ? [{...O('HC-1199','Unreadable Row','Confirmed','confirmed',[['dcf',1]],1,1),items:[]}] : []),error:null};}
+  if(name==='get_production')return (window as unknown as {qaProductionFail?:boolean}).qaProductionFail ? {data:null,error:{code:'08006'}} : {data:(window as unknown as {qaProductionEmpty?:boolean}).qaProductionEmpty ? {batches:[],dough:[],baked:[],shortfalls:[]} : ((window as unknown as {qaProductionForeign?:boolean}).qaProductionForeign ? {...production,batches:[...production.batches,{product_id:'qa-own',qty:12,target:12,rejects:0,version:1,at:Date.parse('2026-11-02T09:00:00Z')}]} : production),error:null};
+  // HCB-004 a3: `window.qaFlavoursHold` leaves the catalogue read out (never answered), as when the gate has just started it.
+  if(name==='get_flavours' && (window as unknown as {qaFlavoursHold?:boolean}).qaFlavoursHold) return new Promise<never>(() => undefined);
+  // HCB-004: `window.qaFlavoursMalformed` answers with one row that has no id beside the good ones (schema drift).
+  if(name==='get_flavours' && (window as unknown as {qaFlavoursMalformed?:boolean}).qaFlavoursMalformed) return {data:[{...flavours[0],id:undefined},...flavours.slice(1)],error:null};
+  if(name==='get_flavours') return (window as unknown as {qaFlavoursFail?:boolean}).qaFlavoursFail ? {data:null,error:{code:'08006'}} : {data:flavours,error:null};
   if(name==='get_recipes') return (window as unknown as {qaRecipeFail?:boolean}).qaRecipeFail ? {data:null,error:{code:'08006'}} : {data:fullDemo?demoRecipes:[{product_id:'dcf',yield:12,version:3,updated_at:source.updated_at,lines:[{name:'Unsalted butter',qty:320,unit:'g'},{name:'Eggs',qty:2,unit:'pcs'}],history:[]}],error:null};
   if (name === 'get_stock_catalogue') return { data: { items: fullDemo ? [{...source,par_level:1000},...demoStock] : [source, { ...source, id: 'qa-butter', name: 'Unsalted butter', on_hand: 300, pack_size: 250, pack_label: '250 g' }, { ...source, id: 'qa-pouch', name: 'Cookie pouch', category: 'Packaging', unit: 'pcs', on_hand: 7, par_level: 10, pack_size: 25, pack_label: '25 pouches' }, { ...source, id: 'qa-old', name: 'Old packaging jar', active: false, category: 'Ingredients' }], suppliers:fullDemo?[...suppliers,...demoSuppliers]:suppliers, prices }, error: null };
   if (name === 'save_supplier') {
@@ -112,7 +136,7 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
 
 function Frame({ navigationReady = false }: {navigationReady?: boolean}) {
   const v=useOpsVals(); const engine=useOpsEngine();
-  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}<LiveOrderRoute /><OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /></>;
+  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}{routeSyncPreview && navigationReady ? <RouteSync initialScreen={screenForPath(window.location.pathname)} /> : null}<LiveOrderRoute /><OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /></>;
 }
 function App() {
   const ref = useRef<OpsRuntime | null>(null);
@@ -121,7 +145,13 @@ function App() {
     if (new URLSearchParams(window.location.search).has('public-shop')) { runtime.go('shop'); setNavigationReady(true); return; }
     runtime.setRole('owner');
     const scope = {userId:'11111111-1111-4111-8111-111111111111',business:'https://preview.happy-cookie.test'};
-    void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => runtime.loadFlavours(client as never)).then(() => runtime.loadStockCatalogue(client as never)).then(() => runtime.loadRecipes(client as never,undefined,undefined,scope)).then(() => runtime.loadOrders(client as never)).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
+    let catalogueHeld = true;
+    void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => { const w = window as unknown as {qaFlavoursSkip?:boolean;qaFlavoursHold?:boolean;qaExpectCatalogue?:boolean}; if (w.qaFlavoursSkip) { if (w.qaExpectCatalogue) flavoursRead.expect(); return false; } const read = runtime.loadFlavours(client as never); return w.qaFlavoursHold ? false : read; }).then((held) => { catalogueHeld = held !== false; return runtime.loadStockCatalogue(client as never); })
+      // As the live gate does: Recipes and Orders are read only once the catalogue has answered (`window.qaFlavoursFail` makes it fail;
+      // `window.qaProductionForeign` adds a batch of a product outside the built-in six, HCB-004 g; `window.qaFlavoursSkip` starts no
+      // catalogue reader at all, as the gate did before HCB-004 a3 when a check verified on the shop; with `window.qaExpectCatalogue`
+      // the store is told a reader is due, exactly as the live gate's staff-screen layout effect does).
+      .then(() => catalogueHeld ? runtime.loadRecipes(client as never,undefined,undefined,scope) : undefined).then(() => catalogueHeld ? runtime.loadOrders(client as never) : undefined).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : routeSyncPreview ? screenForPath(window.location.pathname) : 'inventory');setNavigationReady(true);});
   }, []);
   return <OpsRuntime ref={ref}><Frame navigationReady={navigationReady} /><OfflineBridge /></OpsRuntime>;
 }
@@ -131,4 +161,5 @@ function App() {
 (window as unknown as {qaPriceWrites:unknown[]}).qaPriceWrites = [];
 (window as unknown as {qaCalls:string[]}).qaCalls = [];
 (window as unknown as {qaProductIds:string[]}).qaProductIds = PRODUCTS.map(p=>p.id);
+(window as unknown as {qaBuiltIn:string[]}).qaBuiltIn = PRODUCTS.flatMap(p=>[String(p.short),String(p.name)]);
 createRoot(document.getElementById('root')!).render(<App />);

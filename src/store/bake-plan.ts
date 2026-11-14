@@ -87,6 +87,8 @@ export interface BakePlanDeps {
   production?: (rows: Array<{ productId: string; cookies: number }>) => (() => void) | null;
   scope?: () => ProductionRecoveryScope | null;
   products: () => BakePlanProduct[];
+  /** False while the products on offer are not hers: a plan cannot be opened then. Absent means ready. */
+  ready?: () => boolean;
   recipe: (productId: string) => BakePlanRecipe | null;
   items: () => BakePlanItem[] | null;
   storage?: () => Pick<Storage, 'getItem' | 'setItem'> | null;
@@ -153,6 +155,7 @@ export class BakePlan {
   }
 
   private edit(): void {
+    if (this.deps.ready && !this.deps.ready()) return;
     const plan = this.plan();
     const first = this.deps.products()[0]?.id ?? '';
     this.rows = plan.length

@@ -7,13 +7,28 @@ import {
   secondaryButton,
   smallLabel
 } from '@/components/live/form-styles';
+import {
+  CatalogueNotice,
+  PRODUCTS_NOTICE_COPY,
+  useCatalogueHeld
+} from '@/components/live/bazaar/catalogue-notice';
 
 type DraftForm = NonNullable<OpsVals['liveRecipeDrafts']>;
 const value = (form: HTMLFormElement, name: string): string =>
   (form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null)?.value ?? '';
 
-export function RecipeDraftsForm({ liveDrafts }: { liveDrafts: DraftForm }) {
+export function RecipeDraftsForm({
+  liveDrafts,
+  catalogueHeld
+}: {
+  liveDrafts: DraftForm;
+  /** `OpsVals.catalogueHeld`: absent when the form was never given one, which counts as held. */
+  catalogueHeld?: boolean;
+}) {
   const { editing } = liveDrafts;
+  // HCB-004 a2: the drafts are listed by her own products, which this phone may not have read yet.
+  const catalogue = useCatalogueHeld(catalogueHeld);
+  const unread = !catalogue.held && catalogue.started;
   const error = liveDrafts.error ? (
     <span role="alert" style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
       {liveDrafts.error}
@@ -50,7 +65,14 @@ export function RecipeDraftsForm({ liveDrafts }: { liveDrafts: DraftForm }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {error}
-        {liveDrafts.rows.map((row) => (
+        {unread ? (
+          <CatalogueNotice
+            failed={catalogue.failed}
+            retry={catalogue.retry}
+            copy={PRODUCTS_NOTICE_COPY}
+          />
+        ) : null}
+        {(unread ? [] : liveDrafts.rows).map((row) => (
           <button
             key={row.productId}
             type="button"

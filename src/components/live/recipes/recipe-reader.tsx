@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
+import type { KeptRecipeEditView, LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
 import { batchStock, scaleQty, type BatchStockRow } from '@/lib/recipes/batch';
 import { formatQuantity } from '@/lib/stock/stock-status';
 import { cookiePicture } from '@/lib/media/cookie-art';
@@ -9,6 +9,7 @@ import { resolveImagePath } from '@/lib/media/resolve-image';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { OwnerField, Panel, TaskRow } from '@/components/ui/owner-kit';
+import { KeptEditBanner } from './kept-edit-banner';
 import styles from './recipe-reader.module.css';
 
 type Page = NonNullable<LiveRecipesVals['recipePage']>;
@@ -55,11 +56,14 @@ function Checklist({
 export function RecipeReader({
   page,
   onCosts,
-  onCreate
+  onCreate,
+  kept
 }: {
   page: Page;
   onCosts: () => void;
   onCreate?: () => void;
+  /** HCB-038: an unsaved edit kept across a reload, offered back or explained. */
+  kept?: KeptRecipeEditView | null;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -118,6 +122,7 @@ export function RecipeReader({
           <p>{[page.versionText, page.yieldText].filter(Boolean).join(' · ') || 'Saved recipe'}</p>
         </div>
       </header>
+      <KeptEditBanner kept={kept} />
       <div className={styles.tools}>
         <Button variant="secondary" onClick={onCosts}>
           Cost, history &amp; edit
@@ -127,7 +132,11 @@ export function RecipeReader({
         <Banner
           tone={page.state === 'failed' ? 'warn' : 'info'}
           title={
-            page.state === 'failed' ? 'The recipe could not be refreshed.' : 'Reading the recipe…'
+            page.state === 'failed'
+              ? page.rows.length
+                ? 'The recipe could not be refreshed.'
+                : 'The recipe could not be read.'
+              : 'Reading the recipe…'
           }
           body={page.rows.length ? 'Showing the last saved copy.' : undefined}
           action={

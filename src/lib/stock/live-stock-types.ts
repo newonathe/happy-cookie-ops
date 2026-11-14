@@ -67,6 +67,8 @@ export interface StockItemPage {
   pricesOpen?: boolean;
   openPrices?: () => void;
   closePrices?: () => void;
+  /** The prices page's Back button when it is not "Back to item": Compare prices came from another screen. */
+  closePricesLabel?: string;
   managePrices?: () => void;
   chooseSupplier?: () => void;
   priceSources?: Array<{

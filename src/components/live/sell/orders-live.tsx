@@ -10,16 +10,8 @@ import { isLiveMode } from '@/lib/config/app-mode';
 import { ordersRead } from '@/lib/orders/orders-read-state';
 import { orderActionWord, orderStatusWord } from '@/lib/orders/owner-words';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
-import { formatManila, manilaToday } from '@/lib/time/business-clock';
+import { readAtText } from '@/lib/time/read-at-text';
 import { OrderPill, SellSettings, SellTabs, SellTools } from './sell-shared';
-
-/** When the shown list was read, on the shop's clock: "10:00 AM", or "Mon 10:00 AM" on an earlier day. */
-function readAtText(at: number): string {
-  const time = formatManila(at, { hour: 'numeric', minute: '2-digit' });
-  return manilaToday(at) === manilaToday()
-    ? time
-    : formatManila(at, { weekday: 'short' }) + ' ' + time;
-}
 
 type Row = OpsVals['orderList'][number];
 

@@ -1,12 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import type { OpsVals } from '@/view-models/vals';
 import type { LiveRecipesVals, RecipeBookItem } from '@/lib/recipes/live-recipes-types';
 import { MARGIN_FLOOR_PERCENT, bookCounts, filterBook, type BookFilter } from '@/lib/recipes/book';
 import { RecipesScreen } from '@/components/screens/recipes';
 import { Banner } from '@/components/ui/banner';
+import {
+  CatalogueNotice,
+  PRODUCTS_NOTICE_COPY,
+  useCatalogueHeld
+} from '@/components/live/bazaar/catalogue-notice';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { FilterChips } from '@/components/ui/filter-chips';
@@ -60,6 +65,8 @@ type View =
  */
 export function RecipeBookLive({ v }: { v: OpsVals }) {
   const book = liveRecipesOf(v);
+  // HCB-004 a2: the book lists her own products, which this phone may not have read yet.
+  const catalogue = useCatalogueHeld(v.catalogueHeld);
   const run = useViewTransition();
   const [view, setView] = useState<View>({ kind: 'book' });
   const [filter, setFilter] = useState<BookFilter>('menu');
@@ -68,6 +75,21 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
   const [named, setNamed] = useState<string | null>(null);
   const [fade, setFade] = useState(false);
   const refresh = book?.refresh;
+  // HCB-013: the editor tells the address which flavour it is open on, and reopens where an address asked for it.
+  const editor = book?.editor;
+  const report = editor?.report;
+  const editing = view.kind === 'editor' ? view.id : null;
+  useEffect(() => {
+    report?.(editing);
+  }, [report, editing]);
+  useEffect(() => () => report?.(null), [report]);
+  const restoreEditor = editor?.restore ?? null;
+  const reopened = useRef<string | null>(null);
+  useEffect(() => {
+    if (!restoreEditor || reopened.current === restoreEditor) return;
+    reopened.current = restoreEditor;
+    setView({ kind: 'editor', id: restoreEditor, origin: 'recipe' });
+  }, [restoreEditor]);
   const readingRecipe = !!book?.recipePage && view.kind === 'book';
   useEffect(() => {
     if (!readingRecipe) refresh?.();
@@ -91,6 +113,7 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
       <section aria-label="Recipes" data-screen-label="Recipes" className="pb-24">
         <RecipeEditor
           v={v}
+          kept={book.keptEdit?.(view.id)}
           backLabel={
             view.origin === 'recipe'
               ? 'Back to recipe'
@@ -139,12 +162,29 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
       <RecipeReader
         key={recipePage.id}
         page={recipePage}
+        kept={book.keptEdit?.(recipePage.id)}
         onCosts={() => go({ kind: 'flavour', id: recipePage.id }, recipePage.id)}
         onCreate={() => {
           if (recipePage.createRecipe?.())
             go({ kind: 'editor', id: recipePage.id, origin: 'recipe' }, null);
         }}
       />
+    );
+
+  if (!catalogue.held && catalogue.started)
+    return (
+      <section
+        aria-label="Recipe book"
+        data-screen-label="Recipes"
+        className={cx('flex flex-col gap-3 pb-24', fade && 'motion-enter')}
+      >
+        <h1 className="m-0 text-title text-ink">Recipe book</h1>
+        <CatalogueNotice
+          failed={catalogue.failed}
+          retry={catalogue.retry}
+          copy={PRODUCTS_NOTICE_COPY}
+        />
+      </section>
     );
 
   const counts = bookCounts(book.items);
