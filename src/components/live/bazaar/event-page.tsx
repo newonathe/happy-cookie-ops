@@ -23,6 +23,7 @@ import { StatusPill } from '@/components/ui/status-pill';
 import { Notices } from './field';
 import { Figures } from './figure';
 import { CloseEventSheet } from './close-event-sheet';
+import { DeleteEventSheet } from './delete-event-sheet';
 import { StartDaySheet } from './start-day-sheet';
 import { useIssues } from './use-issues';
 import { useSave } from './use-save';
@@ -648,6 +649,7 @@ export function EventPage({
   const noCatalogue = planning != null;
   const [starting, setStarting] = useState<BazaarDayRow | null>(null);
   const [closing, setClosing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [settings, setSettings] = useState(false);
   const primary = primaryActionOf(event);
   const startDay = (day: BazaarDayRow) => {
@@ -659,6 +661,14 @@ export function EventPage({
   const primaryDayId = primary && 'dayId' in primary ? primary.dayId : null;
   if (closing && event.finalise)
     return <CloseEventSheet finalise={event.finalise} onClose={() => setClosing(false)} />;
+  if (deleting && event.deleteEvent)
+    return (
+      <DeleteEventSheet
+        name={event.name}
+        remove={event.deleteEvent}
+        onClose={() => setDeleting(false)}
+      />
+    );
   if (settings)
     return (
       <>
@@ -781,6 +791,24 @@ export function EventPage({
             className="self-start"
           >
             Close the event
+          </Button>
+        </section>
+      ) : null}
+      {event.deleteEvent ? (
+        <section aria-labelledby="bazaar-delete" className="flex flex-col gap-2">
+          <SectionHeader title={<span id="bazaar-delete">End event</span>} />
+          <p className="m-0 text-caption text-ink-mute">
+            This event has no sales. Deleting it removes its day plans and costs; Money and Stock do
+            not change.
+          </p>
+          <Button
+            variant="danger"
+            onClick={() => setDeleting(true)}
+            disabled={event.deleteEvent.blocked !== null}
+            reason={event.deleteEvent.blocked ?? undefined}
+            className="self-start"
+          >
+            Delete this event
           </Button>
         </section>
       ) : null}

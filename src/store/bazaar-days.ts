@@ -1,6 +1,7 @@
 import {
   addBazaarDayStock,
   closeBazaarDay,
+  deleteBazaarBooking,
   feeError,
   fetchBazaar,
   finaliseBazaar,
@@ -251,6 +252,19 @@ const COPY = {
   finaliseRefused:
     'The event could not be closed. Every started day must be closed, and a flavour sent to the shop needs a recipe.',
   finalised: 'Event closed. It now counts in the books.',
+  deleteNeedsSignal:
+    'Deleting the event needs signal. If you tapped Delete just before the signal dropped, it may already be gone: check the event list.',
+  deleteUnsent: (n: number) =>
+    `This phone still has ${n === 1 ? '1 sale' : `${n} sales`} for this event that the server has not taken. They must send first.`,
+  deleteWrongName: 'Type the event name exactly as it is shown.',
+  deleteOpenDay:
+    'A day of this event is still selling. Close that day first, so the selling phone hands over every sale.',
+  deleteHasSales:
+    'This event has sales, so it cannot be deleted. Close it from the event page so its sales are kept.',
+  deleteInBooks:
+    'Part of this event is already in Money or Stock (a fee, an expense, a drawer difference or kitchen cookies), so it cannot be deleted.',
+  deleteRefused: 'This event could not be deleted. It may already be gone: check the event list.',
+  deleted: (name: string) => `${name} deleted. Nothing changed in Money or Stock.`,
   finalisedNotice: 'This event is closed. Its sales, fees and stock are counted in the books.',
   finalisedChanged:
     'Changed after it was closed: a sale or a void arrived later. The figures below are the ones that were booked.'
@@ -789,6 +803,17 @@ export class BazaarDays {
               blocked: !online ? COPY.finaliseNeedsSignal : open ? COPY.finaliseOpenDay : null,
               ...this.finaliseAsks(data, names),
               run: (input) => this.finalise(data, input)
+            },
+      deleteEvent:
+        data.finalised || data.revenue.sales > 0
+          ? null
+          : {
+              blocked: !online
+                ? COPY.deleteNeedsSignal
+                : open
+                  ? COPY.deleteOpenDay
+                  : this.unsentFor(booking.id),
+              run: (name) => this.deleteEvent(booking, data, name)
             },
       unplanned: data.finalised
         ? []
@@ -1535,6 +1560,56 @@ export class BazaarDays {
    * is given back as `expected`; the close is then made against that fresh read. A changed event (40001) is read again and she
    * closes it again herself.
    */
+  /** Sales this phone still holds for a day of this booking (unsent or refused), in words; null when it holds none. */
+  private unsentFor(bookingId: string): string | null {
+    const held = this.deps.held();
+    if (!held || held.scheduledId !== bookingId) return null;
+    const n = held.unsent + held.refused;
+    return n > 0 ? COPY.deleteUnsent(n) : null;
+  }
+
+  /**
+   * End event, first part: deletes an event that never sold. The server refuses anything that touched Money or Stock; this
+   * phone also refuses while it holds a sale for the event that the server has not taken. When deleted, a day this phone
+   * held for it is let go and the list is read again.
+   */
+  private async deleteEvent(
+    booking: ScheduledEvent,
+    data: Bazaar,
+    name: string
+  ): Promise<string | null> {
+    if (this.busy) return COPY.busy;
+    if (name !== booking.name) return COPY.deleteWrongName;
+    if (data.days.some((d) => d.state === 'open')) return COPY.deleteOpenDay;
+    const client = this.deps.client();
+    if (!client || !this.deps.online()) return COPY.deleteNeedsSignal;
+    const unsent = this.unsentFor(booking.id);
+    if (unsent) return unsent;
+    this.busy = true;
+    try {
+      const outcome = await deleteBazaarBooking(client, booking.id, name);
+      if (outcome === 'deleted') {
+        const held = this.deps.held();
+        if (held && held.scheduledId === booking.id) this.deps.dayClosed(held.dayId);
+        this.deps.toast(COPY.deleted(name));
+        await this.deps.refreshBookings().catch(() => false);
+        this.back();
+        return null;
+      }
+      if (outcome === 'wrong-name') return COPY.deleteWrongName;
+      if (outcome === 'open-day') {
+        await this.reload();
+        return COPY.deleteOpenDay;
+      }
+      if (outcome === 'has-sales') return COPY.deleteHasSales;
+      if (outcome === 'in-books') return COPY.deleteInBooks;
+      if (outcome === 'refused') return COPY.deleteRefused;
+      return COPY.deleteNeedsSignal;
+    } finally {
+      this.busy = false;
+    }
+  }
+
   private async finalise(data: Bazaar, input: FinaliseInput): Promise<string | null> {
     if (this.busy) return COPY.busy;
     const client = this.deps.client();
