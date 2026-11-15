@@ -580,6 +580,21 @@
       )
       border-box;
 }
+/* Home floats its glass cards straight on the espresso ground: the frosted sheet is dropped for this screen. The
+   sheet's 16 px margin stays, so the page edge is 24 px (8 px on a phone, plus 8 px of padding). Specificity beats
+   every `.main` rule above, including the reduced-transparency one. */
+.main[data-screen='today'] {
+  min-height: 0;
+  padding: 8px 8px 24px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+@media (max-width: 650px) {
+  .main[data-screen='today'] {
+    padding: 8px 8px 96px;
+  }
+}
 /* The rail's drop figure. */
 .dropCard {
   margin-top: auto;
@@ -801,4 +816,10 @@
   .workspace {
     transition: none;
   }
+}
+/* Past the workspace's edge (a phone's overscroll, a long page's tail) the page shows the espresso's deepest shade,
+   never the light app ground. */
+:global(html):has(.workspace),
+:global(body):has(.workspace) {
+  background: #1e0f09;
 }

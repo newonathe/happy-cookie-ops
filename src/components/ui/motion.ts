@@ -134,29 +134,56 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 /**
  * A number that counts from 0 to `target` the first time it shows (400 ms), then follows `target` without counting
  * again. Returns the final value at once under reduced motion or with `enabled` false.
+ *
+ * `delayMs` holds the first count at 0 for that long (the espresso-glass pages start at 100 ms). `followChanges` makes
+ * a later change of `target` count from the figure on show to the new one, instead of jumping; a value that has not
+ * changed never counts again. Never use it for money in the till.
  */
 export function useCountUp(
   target: number,
-  options: { enabled?: boolean; durationMs?: number } = {}
+  options: {
+    enabled?: boolean;
+    durationMs?: number;
+    delayMs?: number;
+    followChanges?: boolean;
+  } = {}
 ): number {
-  const { enabled = true, durationMs = 400 } = options;
+  const { enabled = true, durationMs = 400, delayMs = 0, followChanges = false } = options;
   const reduced = usePrefersReducedMotion();
   const [shown, setShown] = useState<number | null>(null);
   const [played, setPlayed] = useState(false);
-  const animate = enabled && !reduced && !played && typeof requestAnimationFrame === 'function';
+  const latest = useRef<number | null>(null);
+  const animate =
+    enabled &&
+    !reduced &&
+    (followChanges || !played) &&
+    typeof requestAnimationFrame === 'function';
   useEffect(() => {
     if (!animate) return;
     let frame = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
-      setShown(target * easeOut(t));
-      if (t < 1) frame = requestAnimationFrame(tick);
-      else setPlayed(true);
+    let timer = 0;
+    // The first count starts at 0; a change counts on from what is on show, with no second delay.
+    const from = latest.current ?? 0;
+    const first = latest.current === null;
+    const begin = () => {
+      const start = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / durationMs);
+        const value = from + (target - from) * easeOut(t);
+        latest.current = value;
+        setShown(value);
+        if (t < 1) frame = requestAnimationFrame(tick);
+        else setPlayed(true);
+      };
+      frame = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [animate, target, durationMs]);
+    if (first && delayMs > 0) timer = window.setTimeout(begin, delayMs);
+    else begin();
+    return () => {
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
+    };
+  }, [animate, target, durationMs, delayMs]);
   if (!animate) return target;
   return shown === null ? 0 : Math.round(shown);
 }

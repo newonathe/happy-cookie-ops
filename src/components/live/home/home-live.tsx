@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useSyncExternalStore } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { ordersRead } from '@/lib/orders/orders-read-state';
 import { StockReadNotice } from '@/components/live/stock/stock-read-notice';
 import { STAFF_COPY, STOCK_COPY } from '@/lib/orders/staff-copy';
@@ -8,17 +9,218 @@ import type { LiveHome, OpsVals } from '@/view-models/vals';
 import { NextEventCard, SellingCard } from '@/components/live/bazaar/home-card';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
-import { HeadedPanel, PageTitle, SignedMoney } from '@/components/ui/owner-kit';
-import { ListRow, PanelLink, StackedBar } from '@/components/ui/owner-patterns';
+import { useCountUp } from '@/components/ui/motion';
+import { ListRow, PanelLink } from '@/components/ui/owner-patterns';
+import styles from './home-live.module.css';
 
 const WORK_SHOWN = 3;
+const ATTENTION_SHOWN = 3;
+const RING_RADIUS = 52;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-/** Why a stock item is on Home, marked by more than colour. */
-function StockTag({ status }: { status: string }) {
+/** The espresso-glass count-up: 700 ms from 100 ms, and a changed figure counts on from the one on show. */
+const COUNT = { durationMs: 700, delayMs: 100, followChanges: true } as const;
+
+const centsText = (cents: number) =>
+  `₱${(cents / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/**
+ * A peso figure that counts up. It counts in centavos so the last frame is the books' own figure, to the centavo; a
+ * screen reader hears that final figure, never a frame of the count.
+ */
+function CountMoney({ pesos, sign = '' }: { pesos: number; sign?: string }) {
+  const cents = Math.round(Math.abs(pesos) * 100);
+  const counted = useCountUp(cents, COUNT);
+  return (
+    <>
+      <span aria-hidden="true" className="whitespace-nowrap">
+        {sign}
+        {centsText(counted)}
+      </span>
+      <span className="sr-only">
+        {sign}
+        {centsText(cents)}
+      </span>
+    </>
+  );
+}
+
+/** The goal ring: how much of the month's profit goal is made. Drawn in once, then it keeps its place. */
+function GoalRing({ pct }: { pct: number }) {
+  const counted = useCountUp(pct, COUNT);
+  const arc = (RING_CIRCUMFERENCE * pct) / 100;
+  return (
+    <div
+      role="img"
+      aria-label={`${pct}% of this month's profit goal`}
+      data-goal-pct={pct}
+      className={styles.ring}
+    >
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle className={styles.ringTrack} cx="60" cy="60" r={RING_RADIUS} />
+        {pct > 0 ? (
+          <circle
+            className={styles.ringArc}
+            cx="60"
+            cy="60"
+            r={RING_RADIUS}
+            style={
+              {
+                strokeDasharray: `${arc} ${RING_CIRCUMFERENCE}`,
+                '--circ': RING_CIRCUMFERENCE
+              } as CSSProperties
+            }
+          />
+        ) : null}
+      </svg>
+      <span aria-hidden="true" className="relative flex flex-col items-center">
+        <span className={cx(styles.ringNum, 'font-mono leading-none font-semibold tabular-nums')}>
+          {counted}%
+        </span>
+        <span className={cx(styles.ringCap, 'mt-1 text-ink-mute')}>of goal</span>
+      </span>
+    </div>
+  );
+}
+
+interface SplitPart {
+  id: string;
+  label: string;
+  value: number;
+  /** A theme background class, such as `bg-ok`. */
+  tone: string;
+}
+
+/** How a whole splits into parts: one segment per non-empty part, each growing in 40 ms after the one before. */
+function SplitBar({ parts, label }: { parts: SplitPart[]; label?: string }) {
+  const total = parts.reduce((sum, part) => sum + part.value, 0);
+  return (
+    <div
+      role="img"
+      aria-label={label ?? parts.map((part) => `${part.value} ${part.label}`).join(', ')}
+      className={styles.splitBar}
+    >
+      {parts
+        .filter((part) => part.value > 0)
+        .map((part, index) => (
+          <span
+            key={part.id}
+            data-segment={part.id}
+            data-count={part.value}
+            className={cx(styles.segment, part.tone)}
+            style={{ width: `${(part.value / total) * 100}%`, '--i': index } as CSSProperties}
+          />
+        ))}
+    </div>
+  );
+}
+
+/** A glass card with the one head every card shares: its name, and room for one thing on the right. */
+function GlassCard({
+  title,
+  action,
+  className,
+  children
+}: {
+  title: string;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-label={title} className={cx(styles.glassCard, className)}>
+      <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3">
+        <h2 className="text-heading font-semibold text-ink">{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+const ICON = {
+  production: (
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+  ),
+  receive: (
+    <>
+      <path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14" />
+      <path d="M3.3 7 12 12l8.7-5M12 22V12M16 17h6M19 14v6" />
+    </>
+  ),
+  count: (
+    <>
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <path d="M9 2h6v4H9zM9 14l2 2 4-4" />
+    </>
+  ),
+  products: (
+    <>
+      <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" />
+      <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+    </>
+  ),
+  shopping: (
+    <>
+      <circle cx="8" cy="21" r="1" />
+      <circle cx="19" cy="21" r="1" />
+      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+    </>
+  )
+} as const;
+
+/** One quick action: an icon, what it does, one line of detail. The whole tile is the button. */
+function ActionTile({
+  icon,
+  title,
+  detail,
+  onOpen
+}: {
+  icon: keyof typeof ICON;
+  title: string;
+  detail: ReactNode;
+  onOpen: () => void;
+}) {
+  return (
+    <button type="button" onClick={onOpen} className={styles.tile}>
+      <span aria-hidden="true" className={styles.tileIcon}>
+        <svg viewBox="0 0 24 24">{ICON[icon]}</svg>
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-label font-semibold text-ink">{title}</span>
+        <span className="text-caption text-ink-mute">{detail}</span>
+      </span>
+    </button>
+  );
+}
+
+const STATUS_ICON: Record<LiveHome['stockAttention'][number]['status'], ReactNode> = {
+  Out: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m15 9-6 6M9 9l6 6" />
+    </>
+  ),
+  Low: (
+    <>
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <path d="M12 9v4M12 17h.01" />
+    </>
+  ),
+  'Not counted': (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" />
+    </>
+  )
+};
+
+/** Why a stock item is on Home, marked by an icon and a word, never by colour alone. */
+function StockTag({ status }: { status: LiveHome['stockAttention'][number]['status'] }) {
   return (
     <span
       className={cx(
-        'rounded-full border px-2 py-0.5 text-caption font-semibold',
+        'inline-flex items-center gap-1.5 rounded-full border bg-surface px-2.5 py-1 text-caption font-semibold',
         status === 'Out'
           ? 'border-danger-line text-danger'
           : status === 'Low'
@@ -26,38 +228,42 @@ function StockTag({ status }: { status: string }) {
             : 'border-line text-ink-mute'
       )}
     >
+      <svg aria-hidden="true" viewBox="0 0 24 24" className={styles.chipIcon}>
+        {STATUS_ICON[status]}
+      </svg>
       {status}
     </span>
   );
 }
 
-/** One count of the day's orders. A source still loading shows a dash, never a zero. */
+/** One count of the day's orders, with its colour in the bar. A source still loading shows a dash, never a zero. */
 function OrderCount({
   label,
   value,
+  tone,
   onOpen,
   warn
 }: {
   label: string;
   value: number | null;
+  tone: string;
   onOpen: () => void;
   warn?: boolean;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="flex min-h-20 min-w-0 flex-col justify-center gap-1 px-4 py-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
-    >
-      <span
-        className={cx(
-          'text-title leading-none',
-          value === null ? 'text-ink-faint' : warn && value > 0 ? 'text-brand-deep' : 'text-ink'
-        )}
-      >
-        {value === null ? '—' : value}
+    <button type="button" onClick={onOpen} className={styles.stat}>
+      <span className="flex items-center gap-2">
+        <span aria-hidden="true" className={cx(styles.dot, tone)} />
+        <span
+          className={cx(
+            'font-mono text-[26px] leading-none font-semibold tabular-nums md:text-[32px]',
+            value === null ? 'text-ink-faint' : warn && value > 0 ? 'text-brand-deep' : 'text-ink'
+          )}
+        >
+          {value === null ? '—' : value}
+        </span>
       </span>
-      <span className="text-caption text-ink-mute">{label}</span>
+      <span className={styles.statLabel}>{label}</span>
     </button>
   );
 }
@@ -66,23 +272,30 @@ function OrderCount({
 function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']> }) {
   if (!counts.ok && !counts.low && !counts.out && !counts.unknown)
     return <p className="text-caption text-ink-mute">No stock items yet.</p>;
+  const parts: SplitPart[] = [
+    { id: 'out', label: 'Out', value: counts.out, tone: 'bg-danger' },
+    { id: 'low', label: 'Low', value: counts.low, tone: 'bg-warn-dot' },
+    { id: 'ok', label: 'In stock', value: counts.ok, tone: 'bg-ok' },
+    { id: 'unknown', label: 'Unknown count', value: counts.unknown ?? 0, tone: 'bg-ink-faint' }
+  ];
   return (
     <>
-      <StackedBar
-        parts={[
-          { id: 'out', label: 'Out', value: counts.out, tone: 'bg-danger' },
-          { id: 'low', label: 'Low', value: counts.low, tone: 'bg-warn' },
-          { id: 'ok', label: 'In stock', value: counts.ok, tone: 'bg-ok' },
-          {
-            id: 'unknown',
-            label: 'Unknown count',
-            value: counts.unknown ?? 0,
-            tone: 'bg-line-strong'
-          }
-        ]}
-      />
+      <SplitBar parts={parts} />
+      <ul className={styles.legend}>
+        {parts.map((part) => (
+          <li key={part.id} className={styles.stat} style={{ minHeight: 64 }}>
+            <span className="flex items-center gap-2">
+              <span aria-hidden="true" className={cx(styles.dot, part.tone)} />
+              <span className="font-mono text-[26px] leading-none font-semibold tabular-nums md:text-[32px]">
+                {part.value}
+              </span>
+            </span>
+            <span className={styles.statLabel}>{part.label}</span>
+          </li>
+        ))}
+      </ul>
       {counts.neverCounted ? (
-        <p className="mt-2 text-caption text-ink-mute">
+        <p className="text-caption text-ink-mute">
           {counts.neverCounted} {counts.neverCounted === 1 ? 'item has' : 'items have'} never been
           counted, so {counts.neverCounted === 1 ? 'its balance is' : 'their balances are'} as
           recorded.
@@ -99,6 +312,7 @@ function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']>
  */
 export function HomeLive({ v }: { v: OpsVals }) {
   const [allWork, setAllWork] = useState(false);
+  const [allAttention, setAllAttention] = useState(false);
   const home = v.liveHome;
   // HCB-002i: a first read that failed is not "still loading".
   const read = useSyncExternalStore(ordersRead.subscribe, ordersRead.get, ordersRead.getServer);
@@ -118,8 +332,14 @@ export function HomeLive({ v }: { v: OpsVals }) {
       ]
         .filter(Boolean)
         .join(' · ') || 'No recorded shortages';
-  const actions = [
+  const actions: Array<{
+    icon: keyof typeof ICON;
+    title: string;
+    detail: ReactNode;
+    onOpen: () => void;
+  }> = [
     {
+      icon: 'production',
       title: 'Start production',
       detail:
         Number(v.prep?.n) > 0 ? (
@@ -131,9 +351,20 @@ export function HomeLive({ v }: { v: OpsVals }) {
         ),
       onOpen: go.production
     },
-    { title: 'Add to inventory', detail: 'Ingredients & packaging', onOpen: go.receive },
-    { title: 'Count stock', detail: 'Enter a physical count', onOpen: go.count },
     {
+      icon: 'receive',
+      title: 'Add to inventory',
+      detail: 'Ingredients & packaging',
+      onOpen: go.receive
+    },
+    {
+      icon: 'count',
+      title: 'Count stock',
+      detail: 'Enter a physical count',
+      onOpen: go.count
+    },
+    {
+      icon: 'products',
       title: 'Products & recipes',
       // HCB-004: a count of the built-in six is not hers; until her products are read it says so.
       detail:
@@ -141,170 +372,175 @@ export function HomeLive({ v }: { v: OpsVals }) {
       onOpen: go.products
     },
     {
+      icon: 'shopping',
       title: 'Shopping list',
       detail: shoppingDetail,
       onOpen: go.shopping
     }
   ];
+  const goal = v.profitGoal;
+  const goalPct =
+    goal && goal.profit !== null
+      ? Math.max(0, Math.min(100, Math.round((goal.profit / goal.goal) * 100)))
+      : null;
+  const attention = allAttention
+    ? home.stockAttention
+    : home.stockAttention.slice(0, ATTENTION_SHOWN);
+  const needsCount =
+    (orders && orders.review > 0 ? 1 : 0) + (v.system?.bad ? 1 : 0) + home.stockAttention.length;
+  const orderParts = orders
+    ? [
+        { id: 'review', label: 'Payments to check', value: orders.review, tone: 'bg-warn-dot' },
+        { id: 'prepare', label: 'Orders to prepare', value: orders.toPrepare, tone: 'bg-accent' },
+        { id: 'ready', label: 'Ready for pickup', value: orders.ready, tone: 'bg-ok' }
+      ]
+    : null;
+  const month = home.month;
+  // Of every ₱100 that came in this month, how much was kept: shown only while income covers the costs.
+  const kept =
+    month && month.revenue > 0 && month.profit >= 0
+      ? Math.min(100, Math.round((month.profit / month.revenue) * 100))
+      : null;
   return (
-    <div data-screen-label="Home" className="flex w-full flex-col gap-4">
-      <PageTitle
-        title={home.greeting}
-        subtitle={home.dateText}
-        actions={
-          v.drop ? (
-            <Button variant="secondary" size="sm" onClick={v.drop.go}>
-              <span
-                aria-hidden="true"
-                className={cx(
-                  'inline-block size-1.5 rounded-full align-middle',
-                  v.drop.open ? 'bg-ok' : 'bg-ink-faint'
-                )}
-              />
-              {v.drop.open ? 'Shop open' : 'Shop closed'} · {v.drop.closes}
-            </Button>
-          ) : null
-        }
-      />
+    <div data-screen-label="Home" className={styles.home}>
+      <header className={cx(styles.span12, 'flex flex-wrap items-start justify-between gap-3.5')}>
+        <div className="min-w-0">
+          <h1
+            tabIndex={-1}
+            className="font-display text-page text-on-ground lowercase outline-none md:text-page-lg"
+          >
+            {home.greeting}
+          </h1>
+          <p className="mt-1 font-mono text-caption tracking-[0.06em] text-on-ground uppercase">
+            {home.dateText}
+          </p>
+        </div>
+        {v.drop ? (
+          <Button variant="secondary" size="sm" onClick={v.drop.go}>
+            <span
+              aria-hidden="true"
+              className={cx(
+                'inline-block size-1.5 rounded-full align-middle',
+                v.drop.open ? 'bg-ok' : 'bg-ink-faint'
+              )}
+            />
+            {v.drop.open ? 'Shop open' : 'Shop closed'} · {v.drop.closes}
+          </Button>
+        ) : null}
+      </header>
 
-      {till ? <SellingCard till={till} /> : null}
-      {next ? <NextEventCard next={next} /> : null}
-
-      {v.system?.bad ? (
-        <HeadedPanel title="Needs attention">
-          <ListRow
-            title={v.system.label}
-            detail={v.system.detail}
-            trailing={<span className="text-label font-semibold text-brand">Review</span>}
-            onOpen={v.system.go}
-          />
-        </HeadedPanel>
+      {till ? (
+        <div className={cx(styles.span12, styles.glassSlot)}>
+          <SellingCard till={till} />
+        </div>
+      ) : null}
+      {next ? (
+        <div className={cx(styles.span12, styles.glassSlot)}>
+          <NextEventCard next={next} />
+        </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 min-[1100px]:grid-cols-2">
-        <HeadedPanel title="Orders" action={<PanelLink onOpen={go.orders}>Open orders</PanelLink>}>
-          <div className="grid grid-cols-3 divide-x divide-divide">
-            <OrderCount
-              label="Payments to check"
-              value={orders?.review ?? null}
-              onOpen={go.payments}
-              warn
-            />
-            <OrderCount
-              label="Orders to prepare"
-              value={orders?.toPrepare ?? null}
-              onOpen={go.orders}
-            />
-            <OrderCount label="Ready for pickup" value={orders?.ready ?? null} onOpen={go.orders} />
-          </div>
-          {!orders ? (
-            <p className="border-t border-divide px-4 py-2 text-caption text-ink-mute">
-              {read.phase === 'failed' && !read.everRead
-                ? 'Your orders could not be read. Open Orders to retry.'
-                : 'Orders are still loading.'}
-            </p>
-          ) : null}
-        </HeadedPanel>
-
-        <HeadedPanel
-          title="This month"
-          className="@container"
-          action={<PanelLink onOpen={go.money}>Open Money</PanelLink>}
-        >
-          {home.month && home.booksReadState === 'failed' ? (
-            <p role="status" className="px-4 pt-3 text-caption text-ink-mute">
-              Books could not be refreshed. Showing the last successful read.
-            </p>
-          ) : home.month && home.booksReadState === 'loading' ? (
-            <p role="status" className="px-4 pt-3 text-caption text-ink-mute">
-              Updating books. Showing the last successful read.
-            </p>
-          ) : null}
-          {home.month ? (
-            <dl className="grid grid-cols-2 gap-y-3 px-4 py-3 @md:grid-cols-3">
-              <div className="col-span-2 flex min-w-0 flex-col gap-1 @md:col-span-1">
-                <dt className="order-2 text-caption text-ink-mute">
-                  {home.month.profit < 0 ? 'Loss so far' : 'Profit so far'}
-                </dt>
-                <dd className="order-1 text-heading leading-tight font-semibold">
-                  <SignedMoney pesos={home.month.profit} />
+      <GlassCard
+        title="This month"
+        className={styles.spanHero}
+        action={<PanelLink onOpen={go.money}>Open Money</PanelLink>}
+      >
+        {month && home.booksReadState === 'failed' ? (
+          <p role="status" className="text-caption text-ink-mute">
+            Books could not be refreshed. Showing the last successful read.
+          </p>
+        ) : month && home.booksReadState === 'loading' ? (
+          <p role="status" className="text-caption text-ink-mute">
+            Updating books. Showing the last successful read.
+          </p>
+        ) : null}
+        {month ? (
+          <>
+            <div className={styles.heroFigure}>
+              <div className="flex min-w-0 flex-col gap-2">
+                <span className="text-label font-medium text-ink-soft">
+                  {month.profit < 0 ? 'Loss this month' : 'Profit this month'}
+                </span>
+                <span
+                  className={cx(
+                    'font-mono text-[length:clamp(28px,9vw,40px)] leading-none font-semibold tabular-nums md:text-[56px]',
+                    month.profit < 0 ? 'text-danger' : 'text-ink'
+                  )}
+                >
+                  <CountMoney pesos={month.profit} sign={month.profit < 0 ? '−' : ''} />
+                </span>
+                {goal && goalPct !== null ? (
+                  <span className="text-caption text-ink-mute">
+                    of ₱{Math.round(goal.goal).toLocaleString('en-PH')} goal
+                  </span>
+                ) : null}
+              </div>
+              {goalPct !== null ? <GoalRing pct={goalPct} /> : null}
+            </div>
+            {kept !== null ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                  <span className="text-label font-medium text-ink-soft">Where income went</span>
+                  <span className="text-caption text-ink-mute">₱{kept} kept of every ₱100</span>
+                </div>
+                <SplitBar
+                  label={`${100 - kept}% spent, ${kept}% kept`}
+                  parts={[
+                    { id: 'spent', label: 'Spent', value: month.expenses, tone: 'bg-danger' },
+                    { id: 'kept', label: 'Kept', value: month.profit, tone: 'bg-ok' }
+                  ]}
+                />
+              </div>
+            ) : null}
+            <dl className={styles.moneyWells}>
+              <div className={styles.glassWell}>
+                <dt>Income</dt>
+                <dd className="text-ok">
+                  <CountMoney pesos={month.revenue} sign={month.revenue > 0 ? '+' : ''} />
                 </dd>
               </div>
-              <div className="flex min-w-0 flex-col gap-1">
-                <dt className="order-2 text-caption text-ink-mute">Income</dt>
-                <dd className="order-1 text-heading leading-tight font-semibold">
-                  <SignedMoney pesos={home.month.revenue} />
-                </dd>
-              </div>
-              <div className="flex min-w-0 flex-col gap-1">
-                <dt className="order-2 text-caption text-ink-mute">Expenses</dt>
-                <dd className="order-1 text-heading leading-tight font-semibold">
-                  <SignedMoney pesos={-home.month.expenses} />
+              <div className={styles.glassWell}>
+                <dt>Expenses</dt>
+                <dd className="text-danger">
+                  <CountMoney pesos={month.expenses} sign={month.expenses > 0 ? '−' : ''} />
                 </dd>
               </div>
             </dl>
-          ) : (
-            <p className="px-4 py-3 text-caption text-ink-mute">
-              {home.booksReadState === 'failed'
-                ? 'Your books could not be read. Open Money to retry.'
-                : 'Your books are still loading.'}
-            </p>
-          )}
-        </HeadedPanel>
+          </>
+        ) : (
+          <p className="text-caption text-ink-mute">
+            {home.booksReadState === 'failed'
+              ? 'Your books could not be read. Open Money to retry.'
+              : 'Your books are still loading.'}
+          </p>
+        )}
+      </GlassCard>
 
-        <div className="flex min-w-0 flex-col gap-4">
-          <HeadedPanel title="What would you like to do?" className="flex-1">
-            <div className="divide-y divide-divide">
-              {actions.map((action) => (
+      <GlassCard
+        title="Needs you"
+        className={styles.spanSide}
+        action={needsCount ? <span className={styles.badge}>{needsCount}</span> : undefined}
+      >
+        {needsCount ? (
+          <>
+            <div className={styles.glassRows}>
+              {orders && orders.review > 0 ? (
                 <ListRow
-                  key={action.title}
-                  title={action.title}
-                  detail={action.detail}
-                  onOpen={action.onOpen}
+                  title="Payments to check"
+                  detail={`${orders.review} ${orders.review === 1 ? 'order is' : 'orders are'} waiting`}
+                  trailing={<span className="text-label font-semibold text-brand">Review</span>}
+                  onOpen={go.payments}
                 />
-              ))}
-            </div>
-          </HeadedPanel>
-          {home.production.length ? (
-            <HeadedPanel title="Continue unfinished work">
-              <div className="divide-y divide-divide">
-                {(allWork ? home.production : home.production.slice(0, WORK_SHOWN)).map((work) => (
-                  <ListRow
-                    key={work.id}
-                    title={work.name}
-                    detail={`${work.detail} · not recorded yet`}
-                    trailing={<span className="text-label font-semibold text-brand">Continue</span>}
-                    onOpen={work.open}
-                  />
-                ))}
-                {home.production.length > WORK_SHOWN ? (
-                  <button
-                    type="button"
-                    onClick={() => setAllWork(!allWork)}
-                    className="min-h-11 w-full bg-raise text-caption font-semibold text-ink-soft"
-                  >
-                    {allWork ? 'Show fewer' : `Show all ${home.production.length}`}
-                  </button>
-                ) : null}
-              </div>
-            </HeadedPanel>
-          ) : null}
-        </div>
-
-        <HeadedPanel title="Stock" action={<PanelLink onOpen={go.stock}>Open stock</PanelLink>}>
-          <div className="px-4 py-3">
-            {v.liveStockRead?.state === 'failed' || v.liveStockRead?.stale ? (
-              <StockReadNotice read={v.liveStockRead} />
-            ) : null}
-            {home.stockCounts ? (
-              <StockSummary counts={home.stockCounts} />
-            ) : v.liveStockRead?.state === 'failed' ? null : (
-              <p className="text-caption text-ink-mute">Stock is still loading.</p>
-            )}
-          </div>
-          {home.stockAttention.length ? (
-            <div className="divide-y divide-divide border-t border-divide">
-              {home.stockAttention.map((item) => (
+              ) : null}
+              {v.system?.bad ? (
+                <ListRow
+                  title={v.system.label}
+                  detail={v.system.detail}
+                  trailing={<span className="text-label font-semibold text-brand">Review</span>}
+                  onOpen={v.system.go}
+                />
+              ) : null}
+              {attention.map((item) => (
                 <ListRow
                   key={item.name}
                   title={item.name}
@@ -314,9 +550,115 @@ export function HomeLive({ v }: { v: OpsVals }) {
                 />
               ))}
             </div>
+            {home.stockAttention.length > ATTENTION_SHOWN ? (
+              <button
+                type="button"
+                onClick={() => setAllAttention(!allAttention)}
+                className="min-h-11 w-full rounded-[14px] bg-chip text-caption font-semibold text-ink-soft"
+              >
+                {allAttention ? 'Show fewer' : `Show all ${home.stockAttention.length}`}
+              </button>
+            ) : null}
+          </>
+        ) : (
+          <p className="text-caption text-ink-mute">
+            {orders && home.stockCounts
+              ? 'Nothing needs you right now.'
+              : 'Checking your orders and stock…'}
+          </p>
+        )}
+      </GlassCard>
+
+      <GlassCard
+        title="Orders"
+        className={styles.spanHalf}
+        action={<PanelLink onOpen={go.orders}>Open orders</PanelLink>}
+      >
+        {orderParts && orderParts.some((part) => part.value > 0) ? (
+          <SplitBar parts={orderParts} />
+        ) : (
+          <div className={styles.splitBar} aria-hidden="true" />
+        )}
+        <div className={styles.orderTiles}>
+          <OrderCount
+            label="Payments to check"
+            value={orders?.review ?? null}
+            tone="bg-warn-dot"
+            onOpen={go.payments}
+            warn
+          />
+          <OrderCount
+            label="Orders to prepare"
+            value={orders?.toPrepare ?? null}
+            tone="bg-accent"
+            onOpen={go.orders}
+          />
+          <OrderCount
+            label="Ready for pickup"
+            value={orders?.ready ?? null}
+            tone="bg-ok"
+            onOpen={go.orders}
+          />
+        </div>
+        {!orders ? (
+          <p className="text-caption text-ink-mute">
+            {read.phase === 'failed' && !read.everRead
+              ? 'Your orders could not be read. Open Orders to retry.'
+              : 'Orders are still loading.'}
+          </p>
+        ) : null}
+      </GlassCard>
+
+      <GlassCard
+        title="Stock"
+        className={styles.spanHalf}
+        action={<PanelLink onOpen={go.stock}>Open stock</PanelLink>}
+      >
+        {v.liveStockRead?.state === 'failed' || v.liveStockRead?.stale ? (
+          <StockReadNotice read={v.liveStockRead} />
+        ) : null}
+        {home.stockCounts ? (
+          <StockSummary counts={home.stockCounts} />
+        ) : v.liveStockRead?.state === 'failed' ? null : (
+          <p className="text-caption text-ink-mute">Stock is still loading.</p>
+        )}
+      </GlassCard>
+
+      <GlassCard
+        title="What would you like to do?"
+        className={home.production.length ? styles.spanTwoThirds : styles.span12}
+      >
+        <div className={styles.tiles}>
+          {actions.map((action) => (
+            <ActionTile key={action.title} {...action} />
+          ))}
+        </div>
+      </GlassCard>
+
+      {home.production.length ? (
+        <GlassCard title="Continue unfinished work" className={styles.spanThird}>
+          <div className={styles.glassRows}>
+            {(allWork ? home.production : home.production.slice(0, WORK_SHOWN)).map((work) => (
+              <ListRow
+                key={work.id}
+                title={work.name}
+                detail={`${work.detail} · not recorded yet`}
+                trailing={<span className="text-label font-semibold text-brand">Continue</span>}
+                onOpen={work.open}
+              />
+            ))}
+          </div>
+          {home.production.length > WORK_SHOWN ? (
+            <button
+              type="button"
+              onClick={() => setAllWork(!allWork)}
+              className="min-h-11 w-full rounded-[14px] bg-chip text-caption font-semibold text-ink-soft"
+            >
+              {allWork ? 'Show fewer' : `Show all ${home.production.length}`}
+            </button>
           ) : null}
-        </HeadedPanel>
-      </div>
+        </GlassCard>
+      ) : null}
     </div>
   );
 }
