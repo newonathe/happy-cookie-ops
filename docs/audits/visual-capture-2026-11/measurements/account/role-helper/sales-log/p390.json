@@ -1,0 +1,89 @@
+{
+  "id": "account/role-helper/sales-log@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 3,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Notifications",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Sign out",
+        "el": "button",
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "covered": [
+      {
+        "name": "Quick add",
+        "by": "You are seeing what a helper sees. Costs"
+      }
+    ],
+    "sticky": [
+      {
+        "el": "button",
+        "pos": "fixed",
+        "name": "Sign out",
+        "x": 12,
+        "y": 728,
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": null,
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h2",
+      "name": "0 sales recorded",
+      "x": 31,
+      "y": 92.3,
+      "w": 118.8,
+      "h": 22.5,
+      "fontSize": "15px",
+      "fontWeight": "600",
+      "lineHeight": "22.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 15.15,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": []
+}

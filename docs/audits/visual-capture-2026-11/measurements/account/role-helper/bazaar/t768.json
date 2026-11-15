@@ -1,0 +1,118 @@
+{
+  "id": "account/role-helper/bazaar@t768",
+  "viewport": {
+    "w": 768,
+    "h": 1024
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 768,
+      "h": 1024,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 1024,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 5,
+    "smallTargets": [
+      {
+        "name": "Home",
+        "el": "button",
+        "w": 165,
+        "h": 42
+      },
+      {
+        "name": "Sales log",
+        "el": "button",
+        "w": 165,
+        "h": 42
+      },
+      {
+        "name": "Bazaar",
+        "el": "button",
+        "w": 165,
+        "h": 42
+      },
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Notifications",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      }
+    ],
+    "covered": [],
+    "sticky": [],
+    "images": [
+      {
+        "alt": "",
+        "broken": false,
+        "scale": 0.05,
+        "x": 18,
+        "y": 21.5,
+        "w": 31.2,
+        "h": 28
+      }
+    ],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": "Bazaar",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "Bazaar",
+      "x": 214,
+      "y": 85,
+      "w": 530,
+      "h": 33,
+      "fontSize": "22px",
+      "fontWeight": "700",
+      "lineHeight": "33px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 15.15,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "image",
+      "name": "img",
+      "x": 18,
+      "y": 21.5,
+      "w": 31.2,
+      "h": 28,
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.66,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": []
+}

@@ -1,0 +1,73 @@
+{
+  "id": "account/role-helper/bazaar@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 2,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Notifications",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      }
+    ],
+    "covered": [
+      {
+        "name": "Quick add",
+        "by": "You are seeing what a helper sees. Costs"
+      }
+    ],
+    "sticky": [],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": "Bazaar",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "Bazaar",
+      "x": 14,
+      "y": 77,
+      "w": 362,
+      "h": 33,
+      "fontSize": "22px",
+      "fontWeight": "700",
+      "lineHeight": "33px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 15.15,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": []
+}

@@ -1,0 +1,32 @@
+{
+  "id": "make/products/malformed-answer@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 0,
+    "smallTargets": [],
+    "covered": [],
+    "sticky": [],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": null,
+    "dialog": null
+  },
+  "keyElements": [],
+  "inputs": []
+}

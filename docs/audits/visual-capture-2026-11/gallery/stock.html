@@ -1,0 +1,2034 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stock · ACTUAL app</title>
+    <style>
+      body {
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        margin: 0 auto;
+        max-width: 1500px;
+        padding: 16px;
+        color: #222;
+        background: #fff;
+      }
+      .tag {
+        display: inline-block;
+        background: #222;
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        max-width: 100%;
+      }
+      figure img {
+        display: block;
+        max-height: 420px;
+        max-width: 100%;
+        height: auto;
+      }
+      figcaption {
+        font-size: 12px;
+        color: #555;
+        padding-top: 4px;
+      }
+      section {
+        border-top: 2px solid #ddd;
+        margin-top: 24px;
+      }
+      small {
+        color: #666;
+        font-weight: 400;
+      }
+      .bad {
+        color: #b00020;
+      }
+      code {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="tag">ACTUAL application · fictional data · simulated server</p>
+    <p><a href="index.html">All sections</a></p>
+    <h1>stock</h1>
+    <section>
+      <h3>Inventory</h3>
+      <p><code>src/components/live/stock/inventory-live.tsx</code> · reference: stock</p>
+      <h4 id="inventory-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/populated/p320.webp"
+              alt="Inventory populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/populated/p390.webp"
+              alt="Inventory populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/populated/t768.webp"
+              alt="Inventory populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/populated/l1024.webp"
+              alt="Inventory populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/populated/d1440.webp"
+              alt="Inventory populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/populated/w1920.webp"
+              alt="Inventory populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/empty/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/empty/p390.webp"
+              alt="Inventory empty p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/empty/d1440.webp"
+              alt="Inventory empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-many">many <small>data · data:many</small></h4>
+      <p>60 extra orders and 40 extra stock items.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/many/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/many/p390.webp"
+              alt="Inventory many p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/many/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/many/d1440.webp"
+              alt="Inventory many d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/long-text/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/long-text/p390.webp"
+              alt="Inventory long-text p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/long-text/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/long-text/d1440.webp"
+              alt="Inventory long-text d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-large-values">large-values <small>data · data:large</small></h4>
+      <p>Prices and book amounts multiplied by 90.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/large-values/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/large-values/p390.webp"
+              alt="Inventory large-values p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/large-values/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/large-values/d1440.webp"
+              alt="Inventory large-values d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-loading">
+        loading <small>failure · fail:get_stock_catalogue=never</small>
+      </h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/loading/p390.webp"
+              alt="Inventory loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/loading/d1440.webp"
+              alt="Inventory loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-read-failure">
+        read-failure <small>failure · fail:get_stock_catalogue=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/loading/p390.webp"
+              alt="Inventory read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/loading/d1440.webp"
+              alt="Inventory read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-malformed-answer">
+        malformed-answer <small>failure · fail:get_stock_catalogue=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/loading/p390.webp"
+              alt="Inventory malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/loading/d1440.webp"
+              alt="Inventory malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/offline-after-load/p390.webp"
+              alt="Inventory offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/offline-after-load/d1440.webp"
+              alt="Inventory offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/focus-keyboard/d1440.webp"
+              alt="Inventory focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-packaging-tab">packaging-tab <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/packaging-tab/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/packaging-tab/p390.webp"
+              alt="Inventory packaging-tab p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/packaging-tab/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/packaging-tab/d1440.webp"
+              alt="Inventory packaging-tab d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-dough-tab">dough-tab <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/dough-tab/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/dough-tab/p390.webp"
+              alt="Inventory dough-tab p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/dough-tab/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/dough-tab/d1440.webp"
+              alt="Inventory dough-tab d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-baked-tab">baked-tab <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/baked-tab/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/baked-tab/p390.webp"
+              alt="Inventory baked-tab p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/baked-tab/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/baked-tab/d1440.webp"
+              alt="Inventory baked-tab d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-filter-low">filter-low <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/filter-low/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/filter-low/p390.webp"
+              alt="Inventory filter-low p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/filter-low/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/filter-low/d1440.webp"
+              alt="Inventory filter-low d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-filter-out">filter-out <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/filter-out/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/filter-out/p390.webp"
+              alt="Inventory filter-out p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/filter-out/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/filter-out/d1440.webp"
+              alt="Inventory filter-out d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="inventory-dough-tab-empty">dough-tab-empty <small>data · data:empty</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/inventory/dough-tab-empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/dough-tab-empty/p390.webp"
+              alt="Inventory dough-tab-empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/inventory/dough-tab-empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/inventory/dough-tab-empty/d1440.webp"
+              alt="Inventory dough-tab-empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Stock item</h3>
+      <p><code>src/components/live/stock/inventory-live.tsx</code> · reference: item</p>
+      <h4 id="item-with-history">with-history <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item/with-history/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/with-history/p320.webp"
+              alt="Stock item with-history p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/with-history/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/with-history/p390.webp"
+              alt="Stock item with-history p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/with-history/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/with-history/t768.webp"
+              alt="Stock item with-history t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/with-history/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/with-history/l1024.webp"
+              alt="Stock item with-history l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/with-history/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/with-history/d1440.webp"
+              alt="Stock item with-history d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/with-history/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/with-history/w1920.webp"
+              alt="Stock item with-history w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="item-zero-confirmed">zero-confirmed <small>business · default</small></h4>
+      <p>Counted and confirmed zero.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item/zero-confirmed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/zero-confirmed/p390.webp"
+              alt="Stock item zero-confirmed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/zero-confirmed/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/zero-confirmed/d1440.webp"
+              alt="Stock item zero-confirmed d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="item-never-counted">never-counted <small>business · default</small></h4>
+      <p>Zero recorded, never counted: must differ from confirmed zero.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item/never-counted/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/never-counted/p390.webp"
+              alt="Stock item never-counted p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/never-counted/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/never-counted/d1440.webp"
+              alt="Stock item never-counted d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="item-history-failed">
+        history-failed <small>failure · fail:get_item_movements=down</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item/history-failed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/history-failed/p390.webp"
+              alt="Stock item history-failed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item/history-failed/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item/history-failed/d1440.webp"
+              alt="Stock item history-failed d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>New item and edit item</h3>
+      <p><code>src/components/live/stock-items-form.tsx</code> · reference: item-edit, new-item</p>
+      <h4 id="item-form-new-untouched">new-untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item-form/new-untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/new-untouched/p390.webp"
+              alt="New item and edit item new-untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item-form/new-untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/new-untouched/t768.webp"
+              alt="New item and edit item new-untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item-form/new-untouched/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/new-untouched/d1440.webp"
+              alt="New item and edit item new-untouched d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="item-form-new-invalid">new-invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item-form/new-invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/new-invalid/p390.webp"
+              alt="New item and edit item new-invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item-form/new-invalid/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/new-invalid/d1440.webp"
+              alt="New item and edit item new-invalid d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="item-form-edit">edit <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item-form/edit/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/edit/p390.webp"
+              alt="New item and edit item edit p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item-form/edit/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/edit/t768.webp"
+              alt="New item and edit item edit t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item-form/edit/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/edit/d1440.webp"
+              alt="New item and edit item edit d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="item-form-save-conflict">save-conflict <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/item-form/save-conflict/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/save-conflict/p390.webp"
+              alt="New item and edit item save-conflict p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/item-form/save-conflict/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/item-form/save-conflict/d1440.webp"
+              alt="New item and edit item save-conflict d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Add to inventory (receive)</h3>
+      <p>
+        <code>src/components/live/stock/stock-entry-live.tsx</code> · reference: receive,
+        receive-review
+      </p>
+      <h4 id="receive-untouched">untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/receive/untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/untouched/p390.webp"
+              alt="Add to inventory (receive) untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/untouched/t768.webp"
+              alt="Add to inventory (receive) untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/untouched/d1440.webp"
+              alt="Add to inventory (receive) untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="receive-invalid">invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/receive/invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/invalid/p390.webp"
+              alt="Add to inventory (receive) invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/invalid/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/invalid/d1440.webp"
+              alt="Add to inventory (receive) invalid d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="receive-two-items">two-items <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/receive/two-items/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/two-items/p390.webp"
+              alt="Add to inventory (receive) two-items p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/two-items/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/two-items/d1440.webp"
+              alt="Add to inventory (receive) two-items d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="receive-filled">filled <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/receive/filled/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/filled/p390.webp"
+              alt="Add to inventory (receive) filled p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/filled/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/filled/d1440.webp"
+              alt="Add to inventory (receive) filled d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="receive-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/receive/review/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/review/p390.webp"
+              alt="Add to inventory (receive) review p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/review/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/review/t768.webp"
+              alt="Add to inventory (receive) review t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/review/d1440.webp"
+              alt="Add to inventory (receive) review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="receive-saved">saved <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/receive/saved/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/saved/p390.webp"
+              alt="Add to inventory (receive) saved p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/saved/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/saved/d1440.webp"
+              alt="Add to inventory (receive) saved d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="receive-save-failed">save-failed <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/receive/save-failed/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/save-failed/p390.webp"
+              alt="Add to inventory (receive) save-failed p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/receive/save-failed/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/receive/save-failed/d1440.webp"
+              alt="Add to inventory (receive) save-failed d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Count inventory</h3>
+      <p>
+        <code>src/components/live/stock/count-inventory.tsx</code> · reference: count, count-review
+      </p>
+      <h4 id="count-untouched">untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/count/untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/untouched/p390.webp"
+              alt="Count inventory untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/untouched/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/untouched/t768.webp"
+              alt="Count inventory untouched t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/untouched/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/untouched/d1440.webp"
+              alt="Count inventory untouched d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="count-one-entered">one-entered <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/count/one-entered/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/one-entered/p390.webp"
+              alt="Count inventory one-entered p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/one-entered/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/one-entered/d1440.webp"
+              alt="Count inventory one-entered d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="count-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/count/review/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/review/p390.webp"
+              alt="Count inventory review p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/review/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/review/t768.webp"
+              alt="Count inventory review t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/review/d1440.webp"
+              alt="Count inventory review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="count-cancel-prompt">cancel-prompt <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/count/cancel-prompt/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/cancel-prompt/p390.webp"
+              alt="Count inventory cancel-prompt p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/cancel-prompt/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/cancel-prompt/d1440.webp"
+              alt="Count inventory cancel-prompt d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="count-reload-keeps-draft">reload-keeps-draft <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/count/reload-keeps-draft/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/reload-keeps-draft/p390.webp"
+              alt="Count inventory reload-keeps-draft p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/reload-keeps-draft/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/reload-keeps-draft/d1440.webp"
+              alt="Count inventory reload-keeps-draft d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="count-saved">saved <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/count/saved/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/saved/p390.webp"
+              alt="Count inventory saved p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/count/saved/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/count/saved/d1440.webp"
+              alt="Count inventory saved d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Waste / correction</h3>
+      <p>
+        <code>src/components/live/stock/stock-entry-live.tsx</code> · reference: adjust,
+        adjust-review
+      </p>
+      <h4 id="adjust-untouched">untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/adjust/untouched/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/untouched/p390.webp"
+              alt="Waste / correction untouched p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/adjust/untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/untouched/t768.webp"
+              alt="Waste / correction untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/adjust/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/untouched/d1440.webp"
+              alt="Waste / correction untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="adjust-invalid">invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/adjust/invalid/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/invalid/p390.webp"
+              alt="Waste / correction invalid p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/adjust/invalid/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/invalid/d1440.webp"
+              alt="Waste / correction invalid d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="adjust-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/adjust/review/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/review/p390.webp"
+              alt="Waste / correction review p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/adjust/review/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/review/t768.webp"
+              alt="Waste / correction review t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/adjust/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/adjust/review/d1440.webp"
+              alt="Waste / correction review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Shopping</h3>
+      <p><code>src/components/live/stock/grocery-live.tsx</code> · reference: shopping</p>
+      <h4 id="shopping-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/populated/p320.webp"
+              alt="Shopping populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/populated/p390.webp"
+              alt="Shopping populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/populated/t768.webp"
+              alt="Shopping populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/populated/l1024.webp"
+              alt="Shopping populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/populated/d1440.webp"
+              alt="Shopping populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/populated/w1920.webp"
+              alt="Shopping populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/empty/p390.webp"
+              alt="Shopping empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/empty/d1440.webp"
+              alt="Shopping empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-many">many <small>data · data:many</small></h4>
+      <p>60 extra orders and 40 extra stock items.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/many/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/many/p390.webp"
+              alt="Shopping many p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/many/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/many/d1440.webp"
+              alt="Shopping many d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/populated/p390.webp"
+              alt="Shopping long-text p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/long-text/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/long-text/d1440.webp"
+              alt="Shopping long-text d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-loading">loading <small>failure · fail:get_stock_catalogue=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/loading/p390.webp"
+              alt="Shopping loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/loading/d1440.webp"
+              alt="Shopping loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-read-failure">
+        read-failure <small>failure · fail:get_stock_catalogue=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/loading/p390.webp"
+              alt="Shopping read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/loading/d1440.webp"
+              alt="Shopping read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-malformed-answer">
+        malformed-answer <small>failure · fail:get_stock_catalogue=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/loading/p390.webp"
+              alt="Shopping malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/loading/d1440.webp"
+              alt="Shopping malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/offline-after-load/p390.webp"
+              alt="Shopping offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/offline-after-load/d1440.webp"
+              alt="Shopping offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/focus-keyboard/d1440.webp"
+              alt="Shopping focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-receive-from-shopping">
+        receive-from-shopping <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/receive-from-shopping/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/receive-from-shopping/p390.webp"
+              alt="Shopping receive-from-shopping p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/receive-from-shopping/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/receive-from-shopping/d1440.webp"
+              alt="Shopping receive-from-shopping d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="shopping-compare-from-shopping">
+        compare-from-shopping <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/shopping/compare-from-shopping/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/compare-from-shopping/p390.webp"
+              alt="Shopping compare-from-shopping p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/shopping/compare-from-shopping/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/shopping/compare-from-shopping/d1440.webp"
+              alt="Shopping compare-from-shopping d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Planned bake</h3>
+      <p><code>src/components/live/stock/bake-plan-live.tsx</code> · reference: bake-needs</p>
+      <h4 id="bake-needs-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/bake-needs/default/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/default/p390.webp"
+              alt="Planned bake default p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/bake-needs/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/default/t768.webp"
+              alt="Planned bake default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/bake-needs/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/default/d1440.webp"
+              alt="Planned bake default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="bake-needs-plan-entered">plan-entered <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/bake-needs/plan-entered/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/plan-entered/p390.webp"
+              alt="Planned bake plan-entered p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/bake-needs/plan-entered/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/plan-entered/d1440.webp"
+              alt="Planned bake plan-entered d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="bake-needs-plan-used">plan-used <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/bake-needs/plan-used/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/plan-used/p390.webp"
+              alt="Planned bake plan-used p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/bake-needs/plan-used/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/plan-used/t768.webp"
+              alt="Planned bake plan-used t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/bake-needs/plan-used/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/bake-needs/plan-used/d1440.webp"
+              alt="Planned bake plan-used d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Suppliers</h3>
+      <p><code>src/components/live/stock/suppliers-live.tsx</code> · reference: suppliers</p>
+      <h4 id="suppliers-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/populated/p320.webp"
+              alt="Suppliers populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/populated/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/populated/p390.webp"
+              alt="Suppliers populated p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/populated/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/populated/t768.webp"
+              alt="Suppliers populated t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/populated/l1024.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/populated/l1024.webp"
+              alt="Suppliers populated l1024"
+          /></a>
+          <figcaption>l1024</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/populated/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/populated/d1440.webp"
+              alt="Suppliers populated d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/populated/w1920.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/populated/w1920.webp"
+              alt="Suppliers populated w1920"
+          /></a>
+          <figcaption>w1920</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/empty/p390.webp"
+              alt="Suppliers empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/empty/d1440.webp"
+              alt="Suppliers empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/long-text/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/long-text/p390.webp"
+              alt="Suppliers long-text p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/long-text/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/long-text/d1440.webp"
+              alt="Suppliers long-text d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-loading">
+        loading <small>failure · fail:get_stock_catalogue=never</small>
+      </h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/loading/p390.webp"
+              alt="Suppliers loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/loading/d1440.webp"
+              alt="Suppliers loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-read-failure">
+        read-failure <small>failure · fail:get_stock_catalogue=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/loading/p390.webp"
+              alt="Suppliers read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/loading/d1440.webp"
+              alt="Suppliers read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-malformed-answer">
+        malformed-answer <small>failure · fail:get_stock_catalogue=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/loading/p390.webp"
+              alt="Suppliers malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/loading/d1440.webp"
+              alt="Suppliers malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/offline-after-load/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/offline-after-load/p390.webp"
+              alt="Suppliers offline-after-load p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/offline-after-load/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/offline-after-load/d1440.webp"
+              alt="Suppliers offline-after-load d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/focus-keyboard/d1440.webp"
+              alt="Suppliers focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="suppliers-inactive-shown">inactive-shown <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/suppliers/inactive-shown/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/inactive-shown/p390.webp"
+              alt="Suppliers inactive-shown p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/suppliers/inactive-shown/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/suppliers/inactive-shown/d1440.webp"
+              alt="Suppliers inactive-shown d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Supplier</h3>
+      <p><code>src/components/live/stock/suppliers-live.tsx</code> · reference: supplier</p>
+      <h4 id="supplier-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier/default/p390.webp"
+              alt="Supplier default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier/default/t768.webp"
+              alt="Supplier default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier/default/d1440.webp"
+              alt="Supplier default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Add or edit supplier</h3>
+      <p><code>src/components/live/stock-suppliers-form.tsx</code> · reference: supplier-edit</p>
+      <h4 id="supplier-edit-add-untouched">add-untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/add-untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/add-untouched/p390.webp"
+              alt="Add or edit supplier add-untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/add-untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/add-untouched/t768.webp"
+              alt="Add or edit supplier add-untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/add-untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/add-untouched/d1440.webp"
+              alt="Add or edit supplier add-untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="supplier-edit-add-invalid">add-invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/add-invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/add-invalid/p390.webp"
+              alt="Add or edit supplier add-invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/add-invalid/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/add-invalid/d1440.webp"
+              alt="Add or edit supplier add-invalid d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="supplier-edit-edit-existing">edit-existing <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/edit-existing/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/edit-existing/p390.webp"
+              alt="Add or edit supplier edit-existing p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/edit-existing/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/edit-existing/t768.webp"
+              alt="Add or edit supplier edit-existing t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/edit-existing/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/edit-existing/d1440.webp"
+              alt="Add or edit supplier edit-existing d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="supplier-edit-saved">saved <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/saved/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/saved/p390.webp"
+              alt="Add or edit supplier saved p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-edit/saved/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-edit/saved/d1440.webp"
+              alt="Add or edit supplier saved d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Supplier prices &amp; history</h3>
+      <p><code>src/components/live/stock/item-prices.tsx</code> · reference: purchase-prices</p>
+      <h4 id="purchase-prices-compare">compare <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/purchase-prices/compare/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/purchase-prices/compare/p390.webp"
+              alt="Supplier prices &amp; history compare p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/purchase-prices/compare/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/purchase-prices/compare/t768.webp"
+              alt="Supplier prices &amp; history compare t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/purchase-prices/compare/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/purchase-prices/compare/d1440.webp"
+              alt="Supplier prices &amp; history compare d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="purchase-prices-no-prices">no-prices <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/purchase-prices/no-prices/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/purchase-prices/no-prices/p390.webp"
+              alt="Supplier prices &amp; history no-prices p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/purchase-prices/no-prices/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/purchase-prices/no-prices/d1440.webp"
+              alt="Supplier prices &amp; history no-prices d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Edit a supplier price</h3>
+      <p>
+        <code>src/components/live/stock-suppliers-form.tsx</code> · reference: supplier-price-edit
+      </p>
+      <h4 id="supplier-price-edit-open">open <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier-price-edit/open/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-price-edit/open/p390.webp"
+              alt="Edit a supplier price open p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-price-edit/open/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-price-edit/open/t768.webp"
+              alt="Edit a supplier price open t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-price-edit/open/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-price-edit/open/d1440.webp"
+              alt="Edit a supplier price open d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="supplier-price-edit-add-price">add-price <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier-price-edit/add-price/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-price-edit/add-price/p390.webp"
+              alt="Edit a supplier price add-price p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-price-edit/add-price/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-price-edit/add-price/d1440.webp"
+              alt="Edit a supplier price add-price d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="supplier-price-edit-conflict">conflict <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/supplier-price-edit/conflict/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-price-edit/conflict/p390.webp"
+              alt="Edit a supplier price conflict p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/supplier-price-edit/conflict/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/supplier-price-edit/conflict/d1440.webp"
+              alt="Edit a supplier price conflict d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Stock settings</h3>
+      <p><code>src/components/live/account/settings-areas.tsx</code> · reference: stock-settings</p>
+      <h4 id="stock-settings-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/stock-settings/default/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/stock-settings/default/p390.webp"
+              alt="Stock settings default p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/stock-settings/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/stock-settings/default/t768.webp"
+              alt="Stock settings default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/stock-settings/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/stock-settings/default/d1440.webp"
+              alt="Stock settings default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Stock items (tracked items)</h3>
+      <p><code>src/components/live/stock-items-form.tsx</code> · found in code</p>
+      <h4 id="tracked-items-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/stock/tracked-items/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/tracked-items/default/p390.webp"
+              alt="Stock items (tracked items) default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/tracked-items/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/tracked-items/default/t768.webp"
+              alt="Stock items (tracked items) default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/stock/tracked-items/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/stock/tracked-items/default/d1440.webp"
+              alt="Stock items (tracked items) default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+  </body>
+</html>

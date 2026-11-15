@@ -1,0 +1,2219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bazaar · ACTUAL app</title>
+    <style>
+      body {
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        margin: 0 auto;
+        max-width: 1500px;
+        padding: 16px;
+        color: #222;
+        background: #fff;
+      }
+      .tag {
+        display: inline-block;
+        background: #222;
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        max-width: 100%;
+      }
+      figure img {
+        display: block;
+        max-height: 420px;
+        max-width: 100%;
+        height: auto;
+      }
+      figcaption {
+        font-size: 12px;
+        color: #555;
+        padding-top: 4px;
+      }
+      section {
+        border-top: 2px solid #ddd;
+        margin-top: 24px;
+      }
+      small {
+        color: #666;
+        font-weight: 400;
+      }
+      .bad {
+        color: #b00020;
+      }
+      code {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="tag">ACTUAL application · fictional data · simulated server</p>
+    <p><a href="index.html">All sections</a></p>
+    <h1>bazaar</h1>
+    <section>
+      <h3>Bazaar events</h3>
+      <p><code>src/components/live/bazaar/event-list.tsx</code> · reference: events</p>
+      <h4 id="events-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/populated/p320.webp"
+              alt="Bazaar events populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/populated/p390.webp"
+              alt="Bazaar events populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/populated/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/populated/t768.webp"
+              alt="Bazaar events populated t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/populated/l1024.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/populated/l1024.webp"
+              alt="Bazaar events populated l1024"
+          /></a>
+          <figcaption>l1024</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/populated/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/populated/d1440.webp"
+              alt="Bazaar events populated d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/populated/w1920.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/populated/w1920.webp"
+              alt="Bazaar events populated w1920"
+          /></a>
+          <figcaption>w1920</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/empty/p390.webp"
+              alt="Bazaar events empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/empty/d1440.webp"
+              alt="Bazaar events empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-many">many <small>data · data:many</small></h4>
+      <p>60 extra orders and 40 extra stock items.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/many/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/many/p390.webp"
+              alt="Bazaar events many p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/many/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/many/d1440.webp"
+              alt="Bazaar events many d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/long-text/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/long-text/p390.webp"
+              alt="Bazaar events long-text p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/long-text/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/long-text/d1440.webp"
+              alt="Bazaar events long-text d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-large-values">large-values <small>data · data:large</small></h4>
+      <p>Prices and book amounts multiplied by 90.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/large-values/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/large-values/p390.webp"
+              alt="Bazaar events large-values p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/large-values/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/large-values/d1440.webp"
+              alt="Bazaar events large-values d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-loading">loading <small>failure · fail:get_scheduled_events=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/loading/p390.webp"
+              alt="Bazaar events loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/loading/d1440.webp"
+              alt="Bazaar events loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-read-failure">
+        read-failure <small>failure · fail:get_scheduled_events=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/loading/p390.webp"
+              alt="Bazaar events read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/loading/d1440.webp"
+              alt="Bazaar events read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-malformed-answer">
+        malformed-answer <small>failure · fail:get_scheduled_events=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/loading/p390.webp"
+              alt="Bazaar events malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/loading/d1440.webp"
+              alt="Bazaar events malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/offline-after-load/p390.webp"
+              alt="Bazaar events offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/offline-after-load/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/offline-after-load/d1440.webp"
+              alt="Bazaar events offline-after-load d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/focus-keyboard/d1440.webp"
+              alt="Bazaar events focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-upcoming-open">upcoming-open <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/populated/p390.webp"
+              alt="Bazaar events upcoming-open p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/upcoming-open/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/upcoming-open/d1440.webp"
+              alt="Bazaar events upcoming-open d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-past-open">past-open <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/past-open/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/past-open/p390.webp"
+              alt="Bazaar events past-open p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/past-open/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/past-open/d1440.webp"
+              alt="Bazaar events past-open d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-active-event-held">
+        active-event-held <small>business · bazaar:planned</small>
+      </h4>
+      <p>Return to selling while a day is held on this device.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/active-event-held/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/active-event-held/p390.webp"
+              alt="Bazaar events active-event-held p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/active-event-held/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/active-event-held/t768.webp"
+              alt="Bazaar events active-event-held t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/active-event-held/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/active-event-held/d1440.webp"
+              alt="Bazaar events active-event-held d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="events-detail-summary-loading">
+        detail-summary-loading <small>failure · fail:get_bazaar=never</small>
+      </h4>
+      <p>The active row reads its figures from get_bazaar; that read never answers.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/events/detail-summary-loading/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/detail-summary-loading/p390.webp"
+              alt="Bazaar events detail-summary-loading p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/events/detail-summary-loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/events/detail-summary-loading/d1440.webp"
+              alt="Bazaar events detail-summary-loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Event page</h3>
+      <p><code>src/components/live/bazaar/event-page.tsx</code> · reference: bazaar</p>
+      <h4 id="event-day-selling-elsewhere">
+        day-selling-elsewhere <small>business · default</small>
+      </h4>
+      <p>A day is open on another device.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/day-selling-elsewhere/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-selling-elsewhere/p320.webp"
+              alt="Event page day-selling-elsewhere p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-selling-elsewhere/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-selling-elsewhere/p390.webp"
+              alt="Event page day-selling-elsewhere p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-selling-elsewhere/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-selling-elsewhere/t768.webp"
+              alt="Event page day-selling-elsewhere t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-selling-elsewhere/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-selling-elsewhere/l1024.webp"
+              alt="Event page day-selling-elsewhere l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-selling-elsewhere/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-selling-elsewhere/d1440.webp"
+              alt="Event page day-selling-elsewhere d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-selling-elsewhere/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-selling-elsewhere/w1920.webp"
+              alt="Event page day-selling-elsewhere w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-day-planned-today">
+        day-planned-today <small>business · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/day-planned-today/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-planned-today/p390.webp"
+              alt="Event page day-planned-today p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-planned-today/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-planned-today/t768.webp"
+              alt="Event page day-planned-today t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-planned-today/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-planned-today/d1440.webp"
+              alt="Event page day-planned-today d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-day-planned-not-today">
+        day-planned-not-today <small>business · bazaar:plannedTomorrow</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/day-planned-not-today/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-planned-not-today/p390.webp"
+              alt="Event page day-planned-not-today p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/day-planned-not-today/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/day-planned-not-today/d1440.webp"
+              alt="Event page day-planned-not-today d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-all-days-closed">all-days-closed <small>business · bazaar:allClosed</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/all-days-closed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/all-days-closed/p390.webp"
+              alt="Event page all-days-closed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/all-days-closed/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/all-days-closed/t768.webp"
+              alt="Event page all-days-closed t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/all-days-closed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/all-days-closed/d1440.webp"
+              alt="Event page all-days-closed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-upcoming-no-days">upcoming-no-days <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/upcoming-no-days/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/upcoming-no-days/p390.webp"
+              alt="Event page upcoming-no-days p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/upcoming-no-days/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/upcoming-no-days/t768.webp"
+              alt="Event page upcoming-no-days t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/upcoming-no-days/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/upcoming-no-days/d1440.webp"
+              alt="Event page upcoming-no-days d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-finalized">finalized <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/finalized/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/finalized/p390.webp"
+              alt="Event page finalized p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/finalized/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/finalized/t768.webp"
+              alt="Event page finalized t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/finalized/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/finalized/d1440.webp"
+              alt="Event page finalized d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-read-failure">read-failure <small>failure · fail:get_bazaar=down</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/read-failure/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/read-failure/p390.webp"
+              alt="Event page read-failure p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/read-failure/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/read-failure/d1440.webp"
+              alt="Event page read-failure d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-loading">loading <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/loading/p390.webp"
+              alt="Event page loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event/loading/d1440.webp"
+              alt="Event page loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Add event</h3>
+      <p><code>src/components/live/bazaar/event-form.tsx</code> · reference: event-edit</p>
+      <h4 id="event-add-form-untouched">form-untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-add/form-untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/form-untouched/p390.webp"
+              alt="Add event form-untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-add/form-untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/form-untouched/t768.webp"
+              alt="Add event form-untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-add/form-untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/form-untouched/d1440.webp"
+              alt="Add event form-untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-add-invalid-empty">invalid-empty <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-add/invalid-empty/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/invalid-empty/p390.webp"
+              alt="Add event invalid-empty p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-add/invalid-empty/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/invalid-empty/d1440.webp"
+              alt="Add event invalid-empty d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-add-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-add/review/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/review/p390.webp"
+              alt="Add event review p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-add/review/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/review/t768.webp"
+              alt="Add event review t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-add/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/review/d1440.webp"
+              alt="Add event review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-add-date-order-invalid">
+        date-order-invalid <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-add/date-order-invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/date-order-invalid/p390.webp"
+              alt="Add event date-order-invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-add/date-order-invalid/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-add/date-order-invalid/d1440.webp"
+              alt="Add event date-order-invalid d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Edit or switch off events</h3>
+      <p><code>src/components/live/scheduled-events-form.tsx</code> · reference: event-edit</p>
+      <h4 id="event-edit-list-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-edit-list/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-edit-list/default/p390.webp"
+              alt="Edit or switch off events default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-edit-list/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-edit-list/default/t768.webp"
+              alt="Edit or switch off events default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-edit-list/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-edit-list/default/d1440.webp"
+              alt="Edit or switch off events default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Plan a day</h3>
+      <p><code>src/components/live/bazaar/day-plan.tsx</code> · reference: plan, plan-review</p>
+      <h4 id="day-plan-change-existing">
+        change-existing <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/change-existing/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/change-existing/p390.webp"
+              alt="Plan a day change-existing p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/change-existing/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/change-existing/t768.webp"
+              alt="Plan a day change-existing t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/change-existing/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/change-existing/d1440.webp"
+              alt="Plan a day change-existing d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="day-plan-new-day">new-day <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/new-day/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/new-day/p390.webp"
+              alt="Plan a day new-day p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/new-day/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/new-day/t768.webp"
+              alt="Plan a day new-day t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/new-day/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/new-day/d1440.webp"
+              alt="Plan a day new-day d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="day-plan-start-not-today-prompt">
+        start-not-today-prompt <small>business · bazaar:plannedTomorrow</small>
+      </h4>
+      <p>plan-review equivalent: the question asked before opening a day dated elsewhere.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/start-not-today-prompt/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/start-not-today-prompt/p390.webp"
+              alt="Plan a day start-not-today-prompt p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/day-plan/start-not-today-prompt/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-plan/start-not-today-prompt/d1440.webp"
+              alt="Plan a day start-not-today-prompt d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Sell at the bazaar (till)</h3>
+      <p><code>src/components/live/bazaar/till.tsx</code> · reference: till</p>
+      <h4 id="till-empty-cart">empty-cart <small>data · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/p320.webp"
+              alt="Sell at the bazaar (till) empty-cart p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/p390.webp"
+              alt="Sell at the bazaar (till) empty-cart p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/t768.webp"
+              alt="Sell at the bazaar (till) empty-cart t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/l1024.webp"
+              alt="Sell at the bazaar (till) empty-cart l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/d1440.webp"
+              alt="Sell at the bazaar (till) empty-cart d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/w1920.webp"
+              alt="Sell at the bazaar (till) empty-cart w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-height-constrained">
+        height-constrained <small>responsive · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/height-constrained/land.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/height-constrained/land.webp"
+              alt="Sell at the bazaar (till) height-constrained land"
+          /></a>
+          <figcaption>land · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/height-constrained/short.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/height-constrained/short.webp"
+              alt="Sell at the bazaar (till) height-constrained short"
+          /></a>
+          <figcaption>short · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-one-product">one-product <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/one-product/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/one-product/p320.webp"
+              alt="Sell at the bazaar (till) one-product p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/one-product/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/one-product/p390.webp"
+              alt="Sell at the bazaar (till) one-product p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/one-product/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/one-product/t768.webp"
+              alt="Sell at the bazaar (till) one-product t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/one-product/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/one-product/l1024.webp"
+              alt="Sell at the bazaar (till) one-product l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/one-product/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/one-product/d1440.webp"
+              alt="Sell at the bazaar (till) one-product d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/one-product/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/one-product/w1920.webp"
+              alt="Sell at the bazaar (till) one-product w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-several-products">
+        several-products <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/several-products/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/several-products/p390.webp"
+              alt="Sell at the bazaar (till) several-products p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/several-products/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/several-products/t768.webp"
+              alt="Sell at the bazaar (till) several-products t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/several-products/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/several-products/d1440.webp"
+              alt="Sell at the bazaar (till) several-products d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-cash-handed-over">
+        cash-handed-over <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/cash-handed-over/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/cash-handed-over/p390.webp"
+              alt="Sell at the bazaar (till) cash-handed-over p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/cash-handed-over/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/cash-handed-over/t768.webp"
+              alt="Sell at the bazaar (till) cash-handed-over t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/cash-handed-over/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/cash-handed-over/d1440.webp"
+              alt="Sell at the bazaar (till) cash-handed-over d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-cash-too-little">cash-too-little <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/cash-too-little/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/cash-too-little/p390.webp"
+              alt="Sell at the bazaar (till) cash-too-little p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/cash-too-little/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/cash-too-little/d1440.webp"
+              alt="Sell at the bazaar (till) cash-too-little d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-wallet-needs-reference">
+        wallet-needs-reference <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/wallet-needs-reference/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/wallet-needs-reference/p390.webp"
+              alt="Sell at the bazaar (till) wallet-needs-reference p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/wallet-needs-reference/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/wallet-needs-reference/d1440.webp"
+              alt="Sell at the bazaar (till) wallet-needs-reference d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-discount-selected">
+        discount-selected <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/discount-selected/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/discount-selected/p390.webp"
+              alt="Sell at the bazaar (till) discount-selected p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/discount-selected/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/discount-selected/d1440.webp"
+              alt="Sell at the bazaar (till) discount-selected d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-sale-acknowledged">
+        sale-acknowledged <small>business · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/sale-acknowledged/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sale-acknowledged/p390.webp"
+              alt="Sell at the bazaar (till) sale-acknowledged p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/sale-acknowledged/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sale-acknowledged/t768.webp"
+              alt="Sell at the bazaar (till) sale-acknowledged t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/sale-acknowledged/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sale-acknowledged/d1440.webp"
+              alt="Sell at the bazaar (till) sale-acknowledged d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-freebie-recorded">freebie-recorded <small>business · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/freebie-recorded/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/freebie-recorded/p390.webp"
+              alt="Sell at the bazaar (till) freebie-recorded p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/freebie-recorded/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/freebie-recorded/d1440.webp"
+              alt="Sell at the bazaar (till) freebie-recorded d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-summary-collapsed">
+        summary-collapsed <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/summary-collapsed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/summary-collapsed/p390.webp"
+              alt="Sell at the bazaar (till) summary-collapsed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/summary-collapsed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/summary-collapsed/d1440.webp"
+              alt="Sell at the bazaar (till) summary-collapsed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-offline-indicator">offline-indicator <small>failure · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/offline-indicator/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/offline-indicator/p390.webp"
+              alt="Sell at the bazaar (till) offline-indicator p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/offline-indicator/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/offline-indicator/d1440.webp"
+              alt="Sell at the bazaar (till) offline-indicator d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-offline-toast-over-charge">
+        offline-toast-over-charge <small>failure · bazaar:planned</small>
+      </h4>
+      <p>
+        While the offline message shows, it sits on top of the Charge button at tablet width.
+        Measured with elementFromPoint.
+      </p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/offline-toast-over-charge/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/offline-toast-over-charge/p390.webp"
+              alt="Sell at the bazaar (till) offline-toast-over-charge p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/offline-toast-over-charge/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/offline-toast-over-charge/t768.webp"
+              alt="Sell at the bazaar (till) offline-toast-over-charge t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-offline-sale-queued">
+        offline-sale-queued <small>business · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/offline-sale-queued/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/offline-sale-queued/p390.webp"
+              alt="Sell at the bazaar (till) offline-sale-queued p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/offline-sale-queued/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/offline-sale-queued/t768.webp"
+              alt="Sell at the bazaar (till) offline-sale-queued t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/offline-sale-queued/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/offline-sale-queued/d1440.webp"
+              alt="Sell at the bazaar (till) offline-sale-queued d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-sale-refused-waiting">
+        sale-refused-waiting <small>failure · bazaar:planned</small>
+      </h4>
+      <p>
+        Stuck-sale display only. The simulated server refused this sale. Not a diagnosis of the real
+        stuck sales.
+      </p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/sale-refused-waiting/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sale-refused-waiting/p390.webp"
+              alt="Sell at the bazaar (till) sale-refused-waiting p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/sale-refused-waiting/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sale-refused-waiting/d1440.webp"
+              alt="Sell at the bazaar (till) sale-refused-waiting d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-sale-server-error-waiting">
+        sale-server-error-waiting <small>failure · bazaar:planned</small>
+      </h4>
+      <p>Stuck-sale display only. The simulated server was unreachable.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/sale-refused-waiting/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sale-refused-waiting/p390.webp"
+              alt="Sell at the bazaar (till) sale-server-error-waiting p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/sale-refused-waiting/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sale-refused-waiting/d1440.webp"
+              alt="Sell at the bazaar (till) sale-server-error-waiting d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-reload-holds-day">reload-holds-day <small>failure · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/reload-holds-day/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/reload-holds-day/p390.webp"
+              alt="Sell at the bazaar (till) reload-holds-day p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/reload-holds-day/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/reload-holds-day/d1440.webp"
+              alt="Sell at the bazaar (till) reload-holds-day d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-sold-out-product">sold-out-product <small>business · bazaar:planned</small></h4>
+      <p>Stock injected to zero so the sold-out tile shows without 20 sales.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/sold-out-product/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sold-out-product/p390.webp"
+              alt="Sell at the bazaar (till) sold-out-product p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/sold-out-product/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/sold-out-product/d1440.webp"
+              alt="Sell at the bazaar (till) sold-out-product d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-reduced-motion">reduced-motion <small>accessibility · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/p390.webp"
+              alt="Sell at the bazaar (till) reduced-motion p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/d1440.webp"
+              alt="Sell at the bazaar (till) reduced-motion d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-reduced-transparency">
+        reduced-transparency <small>accessibility · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/reduced-transparency/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/reduced-transparency/p390.webp"
+              alt="Sell at the bazaar (till) reduced-transparency p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/empty-cart/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/empty-cart/d1440.webp"
+              alt="Sell at the bazaar (till) reduced-transparency d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-review-sale-sheet">
+        review-sale-sheet <small>interaction · bazaar:planned</small>
+      </h4>
+      <p>Phone only: the cart opens from the floating bar.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/review-sale-sheet/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/review-sale-sheet/p320.webp"
+              alt="Sell at the bazaar (till) review-sale-sheet p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/review-sale-sheet/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/review-sale-sheet/p390.webp"
+              alt="Sell at the bazaar (till) review-sale-sheet p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-pay-panel">pay-panel <small>interaction · bazaar:planned</small></h4>
+      <p>The payment panel.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/pay-panel/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/pay-panel/p320.webp"
+              alt="Sell at the bazaar (till) pay-panel p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/pay-panel/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/pay-panel/p390.webp"
+              alt="Sell at the bazaar (till) pay-panel p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/pay-panel/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/pay-panel/t768.webp"
+              alt="Sell at the bazaar (till) pay-panel t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/pay-panel/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/pay-panel/l1024.webp"
+              alt="Sell at the bazaar (till) pay-panel l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/pay-panel/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/pay-panel/d1440.webp"
+              alt="Sell at the bazaar (till) pay-panel d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till/pay-panel/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/pay-panel/w1920.webp"
+              alt="Sell at the bazaar (till) pay-panel w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-playwright-webkit">
+        playwright-webkit <small>responsive · bazaar:planned</small>
+      </h4>
+      <p>Playwright WebKit on Windows. Not Safari or an iPhone.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/playwright-webkit/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/playwright-webkit/p390.webp"
+              alt="Sell at the bazaar (till) playwright-webkit p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-focus-keyboard">focus-keyboard <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till/focus-keyboard/d1440.webp"
+              alt="Sell at the bazaar (till) focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Classic till (ported fallback)</h3>
+      <p>
+        <code>src/components/screens/bazaar-mode.tsx</code> · reference: classic-till ·
+        <b>old ported screen</b>
+      </p>
+      <h4 id="classic-till-default">default <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/classic-till/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/classic-till/default/p390.webp"
+              alt="Classic till (ported fallback) default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/classic-till/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/classic-till/default/t768.webp"
+              alt="Classic till (ported fallback) default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/classic-till/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/classic-till/default/d1440.webp"
+              alt="Classic till (ported fallback) default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Sale row and receipt</h3>
+      <p><code>src/components/live/bazaar/till-takings.tsx</code> · reference: receipt</p>
+      <h4 id="receipt-default">default <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/receipt/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/receipt/default/p390.webp"
+              alt="Sale row and receipt default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/receipt/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/receipt/default/t768.webp"
+              alt="Sale row and receipt default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/receipt/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/receipt/default/d1440.webp"
+              alt="Sale row and receipt default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Void a sale</h3>
+      <p><code>src/components/live/bazaar/till.tsx</code> · reference: void</p>
+      <h4 id="void-confirm">confirm <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/void/confirm/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/void/confirm/p390.webp"
+              alt="Void a sale confirm p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/void/confirm/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/void/confirm/t768.webp"
+              alt="Void a sale confirm t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/void/confirm/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/void/confirm/d1440.webp"
+              alt="Void a sale confirm d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="void-done">done <small>business · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/void/done/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/void/done/p390.webp"
+              alt="Void a sale done p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/void/done/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/void/done/d1440.webp"
+              alt="Void a sale done d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Close day: count and drawer</h3>
+      <p><code>src/components/live/bazaar/close-form.tsx</code> · reference: close, close-review</p>
+      <h4 id="close-untouched">untouched <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/close/untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/untouched/p390.webp"
+              alt="Close day: count and drawer untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/untouched/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/untouched/t768.webp"
+              alt="Close day: count and drawer untouched t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/untouched/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/untouched/d1440.webp"
+              alt="Close day: count and drawer untouched d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="close-cash-matches">cash-matches <small>business · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/close/cash-matches/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/cash-matches/p390.webp"
+              alt="Close day: count and drawer cash-matches p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/cash-matches/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/cash-matches/d1440.webp"
+              alt="Close day: count and drawer cash-matches d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="close-cash-short">cash-short <small>business · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/close/cash-short/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/cash-short/p390.webp"
+              alt="Close day: count and drawer cash-short p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/cash-short/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/cash-short/t768.webp"
+              alt="Close day: count and drawer cash-short t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/cash-short/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/cash-short/d1440.webp"
+              alt="Close day: count and drawer cash-short d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="close-cash-over">cash-over <small>business · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/close/cash-over/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/cash-over/p390.webp"
+              alt="Close day: count and drawer cash-over p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/cash-over/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/cash-over/d1440.webp"
+              alt="Close day: count and drawer cash-over d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="close-closed-without-cash-typed">
+        closed-without-cash-typed <small>business · bazaar:planned</small>
+      </h4>
+      <p>Close pressed with the form untouched: the app closed the day.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/close/closed-without-cash-typed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/closed-without-cash-typed/p390.webp"
+              alt="Close day: count and drawer closed-without-cash-typed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/closed-without-cash-typed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/closed-without-cash-typed/d1440.webp"
+              alt="Close day: count and drawer closed-without-cash-typed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="close-closed-short">closed-short <small>business · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/close/closed-without-cash-typed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/closed-without-cash-typed/p390.webp"
+              alt="Close day: count and drawer closed-short p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/closed-short/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/closed-short/d1440.webp"
+              alt="Close day: count and drawer closed-short d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="close-unsent-sales-block">
+        unsent-sales-block <small>business · bazaar:planned</small>
+      </h4>
+      <p>A refused sale still waits when the day is being closed.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/close/unsent-sales-block/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/unsent-sales-block/p390.webp"
+              alt="Close day: count and drawer unsent-sales-block p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/close/unsent-sales-block/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/close/unsent-sales-block/d1440.webp"
+              alt="Close day: count and drawer unsent-sales-block d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Review of a closed day</h3>
+      <p><code>src/components/live/bazaar/day-review.tsx</code> · reference: close-review</p>
+      <h4 id="day-review-closed-short">closed-short <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/day-review/closed-short/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-review/closed-short/p390.webp"
+              alt="Review of a closed day closed-short p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/day-review/closed-short/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-review/closed-short/t768.webp"
+              alt="Review of a closed day closed-short t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/day-review/closed-short/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/day-review/closed-short/d1440.webp"
+              alt="Review of a closed day closed-short d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Review and close the event</h3>
+      <p><code>src/components/live/bazaar/close-event-sheet.tsx</code> · reference: event-review</p>
+      <h4 id="event-review-ready">ready <small>interaction · bazaar:allClosed</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-review/ready/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-review/ready/p390.webp"
+              alt="Review and close the event ready p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-review/ready/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-review/ready/t768.webp"
+              alt="Review and close the event ready t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-review/ready/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-review/ready/d1440.webp"
+              alt="Review and close the event ready d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Add cookies, fees and losses</h3>
+      <p>
+        <code>src/components/live/bazaar/till-bar.tsx</code> · reference: event-tools,
+        event-tool-review
+      </p>
+      <h4 id="till-tools-add-cookies">add-cookies <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/add-cookies/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/add-cookies/p390.webp"
+              alt="Add cookies, fees and losses add-cookies p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/add-cookies/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/add-cookies/t768.webp"
+              alt="Add cookies, fees and losses add-cookies t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/add-cookies/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/add-cookies/d1440.webp"
+              alt="Add cookies, fees and losses add-cookies d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-tools-add-cookies-filled">
+        add-cookies-filled <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/add-cookies-filled/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/add-cookies-filled/p390.webp"
+              alt="Add cookies, fees and losses add-cookies-filled p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/add-cookies-filled/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/add-cookies-filled/d1440.webp"
+              alt="Add cookies, fees and losses add-cookies-filled d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-tools-add-cookies-invalid">
+        add-cookies-invalid <small>interaction · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/add-cookies-invalid/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/add-cookies-invalid/p390.webp"
+              alt="Add cookies, fees and losses add-cookies-invalid p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/add-cookies-invalid/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/add-cookies-invalid/d1440.webp"
+              alt="Add cookies, fees and losses add-cookies-invalid d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-tools-fees">fees <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/fees/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/fees/p390.webp"
+              alt="Add cookies, fees and losses fees p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/fees/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/fees/t768.webp"
+              alt="Add cookies, fees and losses fees t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/fees/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/fees/d1440.webp"
+              alt="Add cookies, fees and losses fees d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="till-tools-fees-invalid">fees-invalid <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/fees-invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/fees-invalid/p390.webp"
+              alt="Add cookies, fees and losses fees-invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/till-tools/fees-invalid/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/till-tools/fees-invalid/d1440.webp"
+              alt="Add cookies, fees and losses fees-invalid d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Selling settings and device</h3>
+      <p>
+        <code>src/components/live/bazaar/till.tsx</code> · reference: device-recovery,
+        bazaar-settings
+      </p>
+      <h4 id="selling-settings-default">default <small>interaction · bazaar:planned</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/selling-settings/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/selling-settings/default/p390.webp"
+              alt="Selling settings and device default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/selling-settings/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/selling-settings/default/t768.webp"
+              alt="Selling settings and device default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/selling-settings/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/selling-settings/default/d1440.webp"
+              alt="Selling settings and device default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Bazaar settings (event)</h3>
+      <p><code>src/components/live/bazaar/event-page.tsx</code> · reference: bazaar-settings</p>
+      <h4 id="event-settings-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/default/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/default/p390.webp"
+              alt="Bazaar settings (event) default p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/default/t768.webp"
+              alt="Bazaar settings (event) default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/default/d1440.webp"
+              alt="Bazaar settings (event) default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-settings-fees">fees <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/fees/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/fees/p390.webp"
+              alt="Bazaar settings (event) fees p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/fees/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/fees/d1440.webp"
+              alt="Bazaar settings (event) fees d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-settings-target">target <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/target/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/target/p390.webp"
+              alt="Bazaar settings (event) target p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/target/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/target/d1440.webp"
+              alt="Bazaar settings (event) target d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="event-settings-cookie-cost">cookie-cost <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/cookie-cost/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/cookie-cost/p390.webp"
+              alt="Bazaar settings (event) cookie-cost p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/bazaar/event-settings/cookie-cost/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/bazaar/event-settings/cookie-cost/d1440.webp"
+              alt="Bazaar settings (event) cookie-cost d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+  </body>
+</html>

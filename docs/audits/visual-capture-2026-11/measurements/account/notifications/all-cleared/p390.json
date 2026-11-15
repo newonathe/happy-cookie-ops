@@ -1,0 +1,291 @@
+{
+  "id": "account/notifications/all-cleared@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 1066,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 2,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 36,
+        "h": 36
+      },
+      {
+        "name": "Sign out",
+        "el": "button",
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "covered": [
+      {
+        "name": "Sign out",
+        "by": "Cleared. They come back if the underlyin"
+      }
+    ],
+    "sticky": [
+      {
+        "el": "header",
+        "pos": "sticky",
+        "name": "Notifications Quick add O",
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 63
+      },
+      {
+        "el": "nav",
+        "pos": "sticky",
+        "name": "Phone navigation",
+        "x": 0,
+        "y": 775.5,
+        "w": 390,
+        "h": 68.5
+      },
+      {
+        "el": "div",
+        "pos": "fixed",
+        "name": "Cleared. They come back if the underlyin",
+        "x": 14,
+        "y": 687.6,
+        "w": 362,
+        "h": 60.4
+      },
+      {
+        "el": "button",
+        "pos": "fixed",
+        "name": "Sign out",
+        "x": 12,
+        "y": 728,
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": "Notifications",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "Notifications",
+      "x": 14,
+      "y": 83,
+      "w": 362,
+      "h": 32.5,
+      "fontSize": "26px",
+      "fontWeight": "600",
+      "lineHeight": "32.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "h2",
+      "name": "What you get told about",
+      "x": 14,
+      "y": 364.6,
+      "w": 210.1,
+      "h": 27,
+      "fontSize": "18px",
+      "fontWeight": "600",
+      "lineHeight": "27px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "header",
+      "name": "Notifications Quick add O",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 63,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "9px 14px",
+      "gap": "12px",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "visible",
+      "position": "sticky",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "main",
+      "name": "Notifications Each one points at something you can act on. T",
+      "x": 0,
+      "y": 63,
+      "w": 390,
+      "h": 934.6,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "20px 14px 96px",
+      "gap": "16px",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "nav",
+      "name": "Phone navigation",
+      "x": 0,
+      "y": 775.5,
+      "w": 390,
+      "h": 68.5,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "7px 2px",
+      "gap": "0px",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(255, 255, 255, 0.94)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "sticky",
+      "outline": "none",
+      "boxShadow": "set"
+    },
+    {
+      "kind": "button",
+      "name": "Show them again",
+      "x": 232,
+      "y": 190.3,
+      "w": 127,
+      "h": 44,
+      "fontSize": "12.5px",
+      "fontWeight": "600",
+      "lineHeight": "16.875px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 12px",
+      "gap": "8px",
+      "radius": "12px",
+      "color": "rgb(169, 61, 15)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 6.25,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "status",
+      "name": "Cleared. They come back if the underlying problem is still t",
+      "x": 14,
+      "y": 687.6,
+      "w": 362,
+      "h": 60.4,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "fixed",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "New order",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "Low stock",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "Grocery shortage",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "Pickup reminder",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "Backup failure",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "System error",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "Payment proof received",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "Dough nearing expiry",
+      "value": "on"
+    }
+  ]
+}

@@ -1,0 +1,699 @@
+{
+  "id": "stock/supplier-price-edit/add-price@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 1585,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 16,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 36,
+        "h": 36
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "All-purpose flour · 1000 g",
+        "el": "summary",
+        "w": 338,
+        "h": 21
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "Unsalted butter · 225 g",
+        "el": "summary",
+        "w": 338,
+        "h": 21
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "Chocolate chunks · 1000 g",
+        "el": "summary",
+        "w": 338,
+        "h": 21
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "Brown sugar · 1000 g",
+        "el": "summary",
+        "w": 338,
+        "h": 21
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      },
+      {
+        "name": "on",
+        "el": "input",
+        "w": 13,
+        "h": 13
+      }
+    ],
+    "covered": [
+      {
+        "name": "All-purpose flour",
+        "by": "Unsalted butter · 225 g"
+      },
+      {
+        "name": "1000 g",
+        "by": "Make"
+      },
+      {
+        "name": "Unsalted butter",
+        "by": "Make"
+      },
+      {
+        "name": "Chocolate chunks · 1000 g",
+        "by": "Make"
+      }
+    ],
+    "sticky": [
+      {
+        "el": "header",
+        "pos": "sticky",
+        "name": "Stock Quick add O",
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 63
+      },
+      {
+        "el": "nav",
+        "pos": "sticky",
+        "name": "Phone navigation",
+        "x": 0,
+        "y": 775.5,
+        "w": 390,
+        "h": 68.5
+      }
+    ],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": {
+      "name": "Suppliers & prices",
+      "fontSize": "26px",
+      "fontWeight": "600",
+      "lineHeight": "32.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none",
+      "x": 14,
+      "y": 83,
+      "w": 246.1,
+      "h": 32.5
+    },
+    "heading": "Suppliers & prices",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "Suppliers & prices",
+      "x": 14,
+      "y": 83,
+      "w": 246.1,
+      "h": 32.5,
+      "fontSize": "26px",
+      "fontWeight": "600",
+      "lineHeight": "32.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "header",
+      "name": "Stock Quick add O",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 63,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "9px 14px",
+      "gap": "12px",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "visible",
+      "position": "sticky",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "main",
+      "name": "Suppliers & prices Who you buy from and what they charge. Pr",
+      "x": 0,
+      "y": 63,
+      "w": 390,
+      "h": 1453.4,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "20px 14px 96px",
+      "gap": "16px",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "nav",
+      "name": "Phone navigation",
+      "x": 0,
+      "y": 775.5,
+      "w": 390,
+      "h": 68.5,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "7px 2px",
+      "gap": "0px",
+      "radius": "0px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgba(255, 255, 255, 0.94)",
+      "contrast": 13.88,
+      "overflow": "visible",
+      "position": "sticky",
+      "outline": "none",
+      "boxShadow": "set"
+    },
+    {
+      "kind": "button",
+      "name": "Save",
+      "x": 14,
+      "y": 1316.4,
+      "w": 362,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(194, 74, 21)",
+      "contrast": 4.9,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "button",
+      "name": "Back to item prices",
+      "x": 14,
+      "y": 1376.4,
+      "w": 362,
+      "h": 44,
+      "fontSize": "13px",
+      "fontWeight": "600",
+      "lineHeight": "19.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "11px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "Baking Supply Co.",
+      "x": 14,
+      "y": 212.4,
+      "w": 362,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "Sample City",
+      "x": 14,
+      "y": 295.4,
+      "w": 362,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "09170000101",
+      "x": 14,
+      "y": 378.4,
+      "w": 362,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "Fictional supplier. Morning delivery.",
+      "x": 14,
+      "y": 461.4,
+      "w": 362,
+      "h": 64,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "10px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "auto",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "on",
+      "x": 14,
+      "y": 539.9,
+      "w": 13,
+      "h": 13,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 13.89,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "All-purpose flour",
+      "x": 26,
+      "y": 724.4,
+      "w": 338,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "normal",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "1000 g",
+      "x": 26,
+      "y": 795.4,
+      "w": 338,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "80.5",
+      "x": 26,
+      "y": 866.4,
+      "w": 338,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(36, 38, 43)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.14,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Name",
+      "value": "Baking Supply Co."
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Place",
+      "value": "Sample City"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Phone",
+      "value": "09170000101"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "label": "Notes",
+      "value": "Fictional supplier. Morning delivery."
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "In use",
+      "value": "on"
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "label": "prItem0",
+      "value": "All-purpose flour"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prPack0",
+      "value": "1000 g"
+    },
+    {
+      "tag": "INPUT",
+      "type": "number",
+      "label": "prPrice0",
+      "value": "80.5"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prBought0",
+      "value": "2 Nov"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prPref0",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prOn0",
+      "value": "on"
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "label": "prItem1",
+      "value": "Unsalted butter"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prPack1",
+      "value": "225 g"
+    },
+    {
+      "tag": "INPUT",
+      "type": "number",
+      "label": "prPrice1",
+      "value": "125"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prBought1",
+      "value": "2 Nov"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prPref1",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prOn1",
+      "value": "on"
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "label": "prItem2",
+      "value": "Chocolate chunks"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prPack2",
+      "value": "1000 g"
+    },
+    {
+      "tag": "INPUT",
+      "type": "number",
+      "label": "prPrice2",
+      "value": "450"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prBought2",
+      "value": "28 Oct"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prPref2",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prOn2",
+      "value": "on"
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "label": "prItem3",
+      "value": "Brown sugar"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prPack3",
+      "value": "1000 g"
+    },
+    {
+      "tag": "INPUT",
+      "type": "number",
+      "label": "prPrice3",
+      "value": "95"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "prBought3",
+      "value": "20 Oct"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prPref3",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "prOn3",
+      "value": "on"
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "label": "Add a price: item Pick an item All-purpose flour Unsalted bu",
+      "value": "All-purpose flour"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Pack (like 1 kg block)",
+      "value": "1000 g"
+    },
+    {
+      "tag": "INPUT",
+      "type": "number",
+      "label": "Price (₱)",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Last bought (like 2 Aug)",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "My preferred source",
+      "value": "on"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "label": "Price in use",
+      "value": "on"
+    }
+  ]
+}

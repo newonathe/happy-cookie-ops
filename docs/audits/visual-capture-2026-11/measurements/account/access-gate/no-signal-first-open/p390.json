@@ -1,0 +1,116 @@
+{
+  "id": "account/access-gate/no-signal-first-open@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 1,
+    "smallTargets": [
+      {
+        "name": "Sign out",
+        "el": "button",
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "covered": [],
+    "sticky": [
+      {
+        "el": "button",
+        "pos": "fixed",
+        "name": "Sign out",
+        "x": 12,
+        "y": 728,
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": null,
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "main",
+      "name": "No signal This phone could not check your sign-in, so the ap",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "fontFamily": "QAOnest",
+      "padding": "24px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(241, 239, 238)",
+      "contrast": 13.22,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "button",
+      "name": "Try again",
+      "x": 47,
+      "y": 468.1,
+      "w": 93.9,
+      "h": 44,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 16px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(255, 245, 229)",
+      "background": "rgb(58, 31, 20)",
+      "contrast": 14.03,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "status",
+      "name": "No signal This phone could not check your sign-in, so the ap",
+      "x": 24,
+      "y": 308.9,
+      "w": 342,
+      "h": 226.3,
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "fontFamily": "QAOnest",
+      "padding": "22px",
+      "gap": "10px",
+      "radius": "18px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": []
+}
