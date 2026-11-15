@@ -66,7 +66,8 @@ export function ConsolidatedTill({
   const [voiding, setVoiding] = useState(false);
   const sales = v.bzSales ?? [];
   const [reviewSale, setReviewSale] = useState(false);
-  const [summaryOpen, setSummaryOpen] = useState(true);
+  // The Today strip answers at a glance; Details opens the full trackers.
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const sale = saleFromOldest === null ? undefined : sales[sales.length - 1 - saleFromOldest];
   const closeSale = () => setSaleFromOldest(null);
   const pick = (run: () => void) => () => {
@@ -205,6 +206,7 @@ export function ConsolidatedTill({
                       count={count}
                       soldOut={!!p.soldOut && !count}
                       onPress={p.tap}
+                      onMinus={p.minus}
                     />
                   );
                 })}
