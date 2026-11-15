@@ -83,6 +83,25 @@ describe('product-centered Make library', () => {
     ).toContain('Show');
   });
 
+  it('shows an item sold by the piece with no baked count and no recipe nag, and keeps its Recipe link', () => {
+    render(
+      <ProductsLive
+        v={vals([
+          product({
+            hasRecipe: false,
+            soldByPiece: true,
+            bakedText: '0 baked cookies in stock'
+          })
+        ])}
+      />
+    );
+    expect(screen.queryByText('0 baked cookies in stock')).toBeNull();
+    expect(screen.queryByText(/Needs a recipe/)).toBeNull();
+    expect(screen.getByRole('button', { name: /^Recipe/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Needs recipe' }));
+    expect(screen.queryByText('QA cookie')).toBeNull();
+  });
+
   it('has an honest empty state and accessible product cards', async () => {
     const ui = render(<ProductsLive v={vals()} />);
     expect(
