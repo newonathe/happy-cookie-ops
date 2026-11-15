@@ -4,22 +4,24 @@ import { StockReadNotice } from './stock-read-notice';
 
 import type { OpsVals } from '@/view-models/vals';
 import type { GroceryRowView, LiveStockVals, StockItemView } from '@/lib/stock/live-stock-types';
-import { OfflineLine, StatusWord, StockLoading, liveStockOf } from './stock-shared';
+import { OfflineLine, StatusWord, liveStockOf } from './stock-shared';
+import { Notice, SubPage, Tile, stockGlass as G } from './stock-glass';
+import { GlassCard, glassStyles } from '@/components/ui/glass';
 import { ReceiveLive } from './stock-entry-live';
 import { BAKE_PLAN_CATALOGUE_COPY, BakePlanNeeds, BakePlanPage } from './bake-plan-live';
 import { CatalogueNotice, useCatalogueHeld } from '@/components/live/bazaar/catalogue-notice';
 import { Button } from '@/components/ui/button';
 import { SectionNavigation } from '@/components/live/section-navigation';
 import { useAreaSettings } from '@/components/live/account/settings-areas';
-import { FooterActions, PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
-import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
+import { FooterActions, PageTitle } from '@/components/ui/owner-kit';
+import { OpenRow } from '@/components/ui/owner-patterns';
 
 const NOTHING_TO_BUY = 'Nothing to buy';
 
 function BuyRow({ row }: { row: GroceryRowView }) {
   const nothing = row.toBuyText === NOTHING_TO_BUY;
   return (
-    <li className="flex flex-wrap items-start justify-between gap-3 border-b border-line py-3 last:border-b-0">
+    <li className={`${G.buyRow} flex flex-wrap items-start justify-between gap-3`}>
       <span className="flex min-w-0 flex-1 basis-52 flex-col gap-0.5">
         <span className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
           {row.name} <StatusWord status={row.status} />
@@ -58,7 +60,9 @@ function BuyRow({ row }: { row: GroceryRowView }) {
         </span>
       </span>
       {nothing ? null : (
-        <span className="text-label font-semibold text-ink">{row.lineCostText}</span>
+        <span className="font-mono text-label font-semibold tabular-nums text-ink">
+          {row.lineCostText}
+        </span>
       )}
     </li>
   );
@@ -76,35 +80,30 @@ function SupplierGroup({
   onSupplier: () => void;
 }) {
   return (
-    <>
-      <SectionHeading>{name}</SectionHeading>
-      <Panel>
-        <ul aria-label={`To buy from ${name}`} className="flex flex-col">
-          {rows.map((row) => (
-            <BuyRow key={row.itemId} row={row} />
-          ))}
-        </ul>
-        <div className="mt-2">
-          <FooterActions
-            back={
-              <Button variant="secondary" onClick={onSupplier}>
-                View supplier
-              </Button>
-            }
-            forward={
-              stock.openReceive ? (
-                <Button
-                  variant="primary"
-                  onClick={() => stock.openReceive?.(rows.map((row) => row.name))}
-                >
-                  Add to inventory
-                </Button>
-              ) : null
-            }
-          />
-        </div>
-      </Panel>
-    </>
+    <GlassCard title={name}>
+      <ul aria-label={`To buy from ${name}`} className="m-0 flex list-none flex-col gap-2 p-0">
+        {rows.map((row) => (
+          <BuyRow key={row.itemId} row={row} />
+        ))}
+      </ul>
+      <FooterActions
+        back={
+          <Button variant="secondary" onClick={onSupplier}>
+            View supplier
+          </Button>
+        }
+        forward={
+          stock.openReceive ? (
+            <Button
+              variant="primary"
+              onClick={() => stock.openReceive?.(rows.map((row) => row.name))}
+            >
+              Add to inventory
+            </Button>
+          ) : null
+        }
+      />
+    </GlassCard>
   );
 }
 
@@ -123,105 +122,147 @@ export function GroceryLive({ v }: { v: OpsVals }) {
   // HCB-004: a bake is planned from her own products, which this phone may not have read.
   const catalogue = useCatalogueHeld(v.catalogueHeld);
   if (!stock)
-    return v.liveStockRead ? (
-      <section aria-label="Shopping">
-        <PageTitle title="Shopping" />
-        <StockReadNotice read={v.liveStockRead} />
+    return (
+      <section aria-label="Shopping" data-screen-label="Shopping" className={G.page}>
+        <PageTitle onGround title="Shopping" />
+        <Notice>
+          <StockReadNotice read={v.liveStockRead} />
+        </Notice>
+        {v.liveStockRead ? null : (
+          <Notice>
+            <p aria-live="polite">Stock is loading.</p>
+          </Notice>
+        )}
       </section>
-    ) : (
-      <StockLoading title="Shopping" label="Shopping" />
     );
-  if (stock.receive) return <ReceiveLive receive={stock.receive} backLabel="Back to shopping" />;
+  if (stock.receive)
+    return (
+      <SubPage>
+        <ReceiveLive receive={stock.receive} backLabel="Back to shopping" />
+      </SubPage>
+    );
   if (stock.bakePlan?.open)
     return (
-      <BakePlanPage
-        plan={stock.bakePlan}
-        unread={catalogue.held ? undefined : { failed: catalogue.failed, retry: catalogue.retry }}
-      />
+      <SubPage>
+        <BakePlanPage
+          plan={stock.bakePlan}
+          unread={catalogue.held ? undefined : { failed: catalogue.failed, retry: catalogue.retry }}
+        />
+      </SubPage>
     );
-  if (settings.page) return settings.page;
+  if (settings.page) return <SubPage>{settings.page}</SubPage>;
   const { grocery } = stock;
   const bySupplier = new Map<string, GroceryRowView[]>();
   for (const row of grocery.rows)
     bySupplier.set(row.supplier, [...(bySupplier.get(row.supplier) ?? []), row]);
   const toCount = uncounted(stock.items);
+  const toBuy = grocery.rows.filter((row) => row.toBuyText !== NOTHING_TO_BUY).length;
   return (
-    <section aria-label="Shopping" data-screen-label="Shopping" className="w-full">
-      <PageTitle
-        title="Shopping"
-        subtitle="What is out or low, and what the next bake needs."
-        actions={
-          <>
-            {stock.bakePlan ? (
-              <Button variant="secondary" onClick={stock.bakePlan.edit} disabled={!catalogue.held}>
-                {stock.bakePlan.cookies ? 'Edit planned bake' : 'Plan a bake'}
+    <section aria-label="Shopping" data-screen-label="Shopping" className={G.page}>
+      <div>
+        <PageTitle
+          onGround
+          title="Shopping"
+          subtitle="What is out or low, and what the next bake needs."
+          actions={
+            <>
+              {stock.bakePlan ? (
+                <Button
+                  variant="secondary"
+                  onClick={stock.bakePlan.edit}
+                  disabled={!catalogue.held}
+                >
+                  {stock.bakePlan.cookies ? 'Edit planned bake' : 'Plan a bake'}
+                </Button>
+              ) : null}
+              <Button variant="secondary" onClick={settings.open}>
+                Settings
               </Button>
-            ) : null}
-            <Button variant="secondary" onClick={settings.open}>
-              Settings
-            </Button>
-          </>
-        }
-      />
-      <div className="mb-4">
-        <SectionNavigation v={v} refined tools={false} />
+            </>
+          }
+        />
+        <SectionNavigation v={v} refined tools={false} onGround />
       </div>
-      <StockReadNotice read={v.liveStockRead} />
+      <Notice>
+        <StockReadNotice read={v.liveStockRead} />
+      </Notice>
       {catalogue.held ? null : (
-        <div className="mb-3">
+        <Notice>
           <CatalogueNotice
             failed={catalogue.failed}
             retry={catalogue.retry}
             copy={BAKE_PLAN_CATALOGUE_COPY}
           />
-        </div>
+        </Notice>
       )}
-      <OfflineLine online={stock.online} />
-      <section aria-label="Totals">
-        <Panel>
+      <Notice>
+        <OfflineLine online={stock.online} />
+      </Notice>
+      <GlassCard title="Totals">
+        <div className={G.tilesAuto}>
           {v.bakeTotals?.toBakeNum !== undefined ? (
-            <FactRow label="Cookies to bake">{v.bakeTotals.toBakeNum}</FactRow>
+            <Tile labelFirst label="Cookies to bake">
+              {v.bakeTotals.toBakeNum}
+            </Tile>
           ) : null}
-          <FactRow label="Known purchase total">{grocery.totalText}</FactRow>
-          {grocery.unknownCount ? (
-            <p className="text-caption text-ink-mute">
-              Count {grocery.unknownCount} unknown {grocery.unknownCount === 1 ? 'item' : 'items'}{' '}
-              before the shopping total can be complete.
-            </p>
-          ) : null}
+          <Tile labelFirst label="Items to buy">
+            {toBuy}
+          </Tile>
+          <Tile labelFirst label="Need a count">
+            {toCount.length}
+          </Tile>
+          <Tile labelFirst textual label="Known purchase total">
+            {grocery.totalText}
+          </Tile>
           {grocery.budgetText !== null ? (
-            <FactRow label="Budget" detail={grocery.budgetNoteText}>
+            <Tile labelFirst textual label="Budget">
               {grocery.budgetText}
-            </FactRow>
+              {grocery.budgetNoteText ? (
+                <span className={`${G.tileNote} block font-sans font-normal`}>
+                  {grocery.budgetNoteText}
+                </span>
+              ) : null}
+            </Tile>
           ) : null}
-        </Panel>
-      </section>
-      {stock.bakePlan ? <BakePlanNeeds plan={stock.bakePlan} /> : null}
+        </div>
+        {grocery.unknownCount ? (
+          <p className="text-caption text-ink-mute">
+            Count {grocery.unknownCount} unknown {grocery.unknownCount === 1 ? 'item' : 'items'}{' '}
+            before the shopping total can be complete.
+          </p>
+        ) : null}
+      </GlassCard>
+      {stock.bakePlan?.cookies || stock.bakePlan?.retention ? (
+        <GlassCard title="Planned bake needs">
+          <BakePlanNeeds plan={stock.bakePlan} />
+        </GlassCard>
+      ) : null}
       {grocery.rows.length === 0 ? (
-        <Panel>
+        <GlassCard title="To buy">
           <p className="text-caption text-ink-mute">
             {grocery.unknownCount
               ? 'Count the unknown items before working out what to buy.'
               : 'No recorded shortages to buy for.'}
           </p>
-        </Panel>
+        </GlassCard>
       ) : (
-        [...bySupplier.entries()].map(([name, rows]) => (
-          <SupplierGroup
-            key={name}
-            name={name}
-            rows={rows}
-            stock={stock}
-            onSupplier={() =>
-              v.liveScreen?.tabs?.places.find((place) => place.label === 'Suppliers')?.go()
-            }
-          />
-        ))
+        <div className={G.groups}>
+          {[...bySupplier.entries()].map(([name, rows]) => (
+            <SupplierGroup
+              key={name}
+              name={name}
+              rows={rows}
+              stock={stock}
+              onSupplier={() =>
+                v.liveScreen?.tabs?.places.find((place) => place.label === 'Suppliers')?.go()
+              }
+            />
+          ))}
+        </div>
       )}
       {toCount.length ? (
-        <>
-          <SectionHeading>Count before buying</SectionHeading>
-          <Panel>
+        <GlassCard title="Count before buying">
+          <div className={`${glassStyles.glassRows} ${G.taskRows}`}>
             {toCount.map((item) => (
               <OpenRow
                 key={item.id}
@@ -231,8 +272,8 @@ export function GroceryLive({ v }: { v: OpsVals }) {
                 onOpen={item.count}
               />
             ))}
-          </Panel>
-        </>
+          </div>
+        </GlassCard>
       ) : null}
     </section>
   );

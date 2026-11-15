@@ -331,7 +331,9 @@ it('filters unknown zero separately from recorded low stock without a count date
       ]
     })
   );
-  expect(screen.getByLabelText('Stock counts')).toHaveTextContent('0 Out1 Low1 Unknown count');
+  expect(screen.getByLabelText('Stock counts')).toHaveTextContent(
+    '0 Out1 Low0 In stock1 Unknown count'
+  );
   fireEvent.change(screen.getByLabelText('Stock status'), { target: { value: 'Unknown count' } });
   expect(screen.getByText('Unknown flour')).toBeTruthy();
   expect(screen.queryByText('Recorded flour')).toBeNull();

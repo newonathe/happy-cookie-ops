@@ -584,7 +584,10 @@
    sheet's 16 px margin stays, so the page edge is 24 px (8 px on a phone, plus 8 px of padding). Specificity beats
    every `.main` rule above, including the reduced-transparency one. */
 .main[data-screen='today'],
-.main[data-screen='pnl'] {
+.main[data-screen='pnl'],
+.main[data-screen='inventory'],
+.main[data-screen='grocery'],
+.main[data-screen='suppliers'] {
   min-height: 0;
   padding: 8px 8px 24px;
   border-color: transparent;
@@ -593,7 +596,10 @@
 }
 @media (max-width: 650px) {
   .main[data-screen='today'],
-  .main[data-screen='pnl'] {
+  .main[data-screen='pnl'],
+  .main[data-screen='inventory'],
+  .main[data-screen='grocery'],
+  .main[data-screen='suppliers'] {
     padding: 8px 8px 96px;
   }
 }

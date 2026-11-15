@@ -27,6 +27,9 @@ import { useAreaSettings } from '@/components/live/account/settings-areas';
 import { OpenRow } from '@/components/ui/owner-patterns';
 import { Button } from '@/components/ui/button';
 import { SectionNavigation } from '@/components/live/section-navigation';
+import { GlassCard, SplitBar } from '@/components/ui/glass';
+import type { SplitPart } from '@/components/ui/glass';
+import { Notice, SubPage, Tile, stockGlass as G } from './stock-glass';
 import styles from './inventory.module.css';
 
 type Filter = 'All' | 'Unknown count' | StockStatus;
@@ -86,11 +89,13 @@ function MadeList({
       ) : !rows.length ? (
         <p>No {category === 'Dough' ? 'dough' : 'baked cookies'} recorded.</p>
       ) : (
-        <ul aria-label={category} className={styles.panel}>
+        <ul aria-label={category} className={G.rows}>
           {rows.map((row) => (
-            <li key={row.id} className={styles.madeRow}>
-              <strong className={styles.name}>{row.name}</strong>
-              <span className={styles.amount}>{row.qtyText}</span>
+            <li key={row.id} className={G.plainRow}>
+              <strong className="min-w-0 text-label font-semibold [overflow-wrap:anywhere]">
+                {row.name}
+              </strong>
+              <span className="font-mono text-label font-semibold tabular-nums">{row.qtyText}</span>
             </li>
           ))}
         </ul>
@@ -117,27 +122,36 @@ const CATEGORY_WORDS: Readonly<Record<string, string>> = {
 function ItemRow({ item }: { item: StockItemView }) {
   return (
     <li>
-      <button type="button" onClick={item.open} className={styles.row}>
-        <span>
-          <strong className={styles.name}>{item.name}</strong>
-          <span className={styles.detail}>
+      <button type="button" onClick={item.open}>
+        <span className="min-w-0">
+          <strong className="block text-label font-semibold [overflow-wrap:anywhere]">
+            {item.name}
+          </strong>
+          <span className="mt-1 block text-caption text-ink-mute [overflow-wrap:anywhere]">
             {item.packText}
             {item.costText.startsWith('Cost pending') ? ` · ${item.costText}` : ''}
           </span>
         </span>
-        <span className={styles.amount}>
-          {unknown(item) || item.confidence === 'unavailable' ? '—' : item.qtyText}
-          <span className={styles.status}>
-            {unknown(item) ? (
-              'Not counted'
-            ) : item.confidence === 'unavailable' ? (
-              'Unavailable'
-            ) : (
-              <>
-                <StatusWord status={item.status} />
-                {item.confidence === 'recorded' ? ' · recorded, not counted' : null}
-              </>
-            )}
+        <span className={G.trail}>
+          <span className="max-w-32 text-right">
+            <span className="block font-mono text-label font-semibold tabular-nums [overflow-wrap:anywhere]">
+              {unknown(item) || item.confidence === 'unavailable' ? '—' : item.qtyText}
+            </span>
+            <span className="mt-1 block text-caption">
+              {unknown(item) ? (
+                'Not counted'
+              ) : item.confidence === 'unavailable' ? (
+                'Unavailable'
+              ) : (
+                <>
+                  <StatusWord status={item.status} />
+                  {item.confidence === 'recorded' ? ' · recorded, not counted' : null}
+                </>
+              )}
+            </span>
+          </span>
+          <span aria-hidden="true" className={G.chev}>
+            ›
           </span>
         </span>
       </button>
@@ -173,56 +187,98 @@ function InventoryList({
       : filter === 'Unknown count'
         ? items.filter(unknown)
         : items.filter((item) => item.status === filter && known(item));
+  const made = MADE_CATEGORIES.includes(category);
+  const counts = {
+    out: items.filter((item) => item.status === 'Out' && known(item)).length,
+    low: items.filter((item) => item.status === 'Low' && known(item)).length,
+    ok: items.filter((item) => item.status === 'Good' && known(item)).length,
+    unknown: items.filter(unknown).length
+  };
+  const parts: SplitPart[] = [
+    { id: 'out', label: 'Out', value: counts.out, tone: 'bg-danger' },
+    { id: 'low', label: 'Low', value: counts.low, tone: 'bg-warn-dot' },
+    { id: 'ok', label: 'In stock', value: counts.ok, tone: 'bg-ok' },
+    { id: 'unknown', label: 'Unknown count', value: counts.unknown, tone: 'bg-ink-faint' }
+  ];
   return (
     <>
-      <div role="group" aria-label="Stock categories" className={styles.categories}>
+      <div role="group" aria-label="Stock categories" className={G.chips}>
         {categories.map((name) => (
           <button
             key={name}
             type="button"
             aria-pressed={category === name}
+            className={G.chip}
             onClick={() => setCategory(name)}
           >
             {CATEGORY_WORDS[name] ?? name}
           </button>
         ))}
       </div>
-      {MADE_CATEGORIES.includes(category) ? (
-        <MadeList stock={stock} category={category} catalogueHeld={catalogueHeld} />
+      {made ? (
+        <GlassCard title={CATEGORY_WORDS[category] ?? category}>
+          <MadeList stock={stock} category={category} catalogueHeld={catalogueHeld} />
+        </GlassCard>
       ) : null}
-      <div hidden={MADE_CATEGORIES.includes(category)} className={styles.toolbar}>
-        <div role="group" aria-label="Stock counts" className={styles.counts}>
-          <span>{items.length === 1 ? '1 item' : `${items.length} items`}</span>
-          <span>{items.filter((item) => item.status === 'Out' && known(item)).length} Out</span>
-          <span>{items.filter((item) => item.status === 'Low' && known(item)).length} Low</span>
-          <span>{items.filter(unknown).length} Unknown count</span>
-        </div>
-        <label className={styles.filter}>
-          Stock status
-          <select
-            aria-label="Stock status"
-            value={filter}
-            onChange={(event) => setFilter(event.target.value as Filter)}
-          >
-            {FILTERS.map((name) => (
-              <option key={name} value={name}>
-                {name === 'All' ? 'All statuses' : name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div hidden={made} className={G.stack}>
+        <GlassCard title="Stock health">
+          {items.length ? <SplitBar parts={parts} /> : null}
+          <div role="group" aria-label="Stock counts" className="flex flex-col gap-3">
+            <span className="text-caption text-ink-mute">
+              {items.length === 1 ? '1 item' : `${items.length} items`}
+            </span>
+            <div className={G.tiles}>
+              {parts.map((part) => (
+                <Tile key={part.id} label={part.label} tone={part.tone}>
+                  {part.value}
+                </Tile>
+              ))}
+            </div>
+          </div>
+        </GlassCard>
+        <GlassCard
+          title={CATEGORY_WORDS[category] ?? category}
+          action={
+            <div className={G.headTools}>
+              {stock.startCount && !stock.count && !made ? (
+                <Button
+                  onClick={() => stock.startCount?.(category)}
+                  disabled={!stock.items.some((item) => item.active && item.category === category)}
+                  reason={`Add an item to ${category.toLowerCase()} before counting.`}
+                >
+                  Count stock
+                </Button>
+              ) : null}
+              <label className={styles.filter}>
+                Stock status
+                <select
+                  aria-label="Stock status"
+                  value={filter}
+                  onChange={(event) => setFilter(event.target.value as Filter)}
+                >
+                  {FILTERS.map((name) => (
+                    <option key={name} value={name}>
+                      {name === 'All' ? 'All statuses' : name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          }
+        >
+          {made ? null : active.length === 0 ? (
+            <p className={styles.empty}>No items yet</p>
+          ) : shown.length === 0 ? (
+            <p className={styles.empty}>No items in this view.</p>
+          ) : (
+            <ul aria-label="Stock items" className={G.rows}>
+              {shown.map((item) => (
+                <ItemRow key={item.id} item={item} />
+              ))}
+            </ul>
+          )}
+        </GlassCard>
       </div>
-      {MADE_CATEGORIES.includes(category) ? null : active.length === 0 ? (
-        <p className={styles.empty}>No items yet</p>
-      ) : shown.length === 0 ? (
-        <p className={styles.empty}>No items in this view.</p>
-      ) : (
-        <ul aria-label="Stock items" className={styles.panel}>
-          {shown.map((item) => (
-            <ItemRow key={item.id} item={item} />
-          ))}
-        </ul>
-      )}
     </>
   );
 }
@@ -379,72 +435,86 @@ export function InventoryLive({ v }: { v: OpsVals }) {
       </Panel>
     ) : null
   );
-  if (stock?.count && !stock.count.paused) return <CountInventory v={v} stock={stock} />;
-  if (stock?.receive) return <ReceiveLive receive={stock.receive} />;
-  if (stock?.change) return <StockChangeLive change={stock.change} />;
-  if (settings.page) return settings.page;
+  if (stock?.count && !stock.count.paused)
+    return (
+      <SubPage>
+        <CountInventory v={v} stock={stock} />
+      </SubPage>
+    );
+  if (stock?.receive)
+    return (
+      <SubPage>
+        <ReceiveLive receive={stock.receive} />
+      </SubPage>
+    );
+  if (stock?.change)
+    return (
+      <SubPage>
+        <StockChangeLive change={stock.change} />
+      </SubPage>
+    );
+  if (settings.page) return <SubPage>{settings.page}</SubPage>;
+  const resume = stock?.count?.paused ? (
+    <Button onClick={stock.count.resume}>
+      {stock.count.pending ? 'Review unconfirmed count' : 'Continue count'}
+    </Button>
+  ) : null;
+  if (stock?.page)
+    return (
+      <SubPage>
+        <section aria-label="Inventory" data-screen-label="Inventory" className={styles.screen}>
+          <StockReadNotice read={v.liveStockRead} />
+          {resume}
+          <ItemPage key={stock.page.item.id} stock={stock} page={stock.page} />
+        </section>
+      </SubPage>
+    );
   return (
-    <section aria-label="Inventory" data-screen-label="Inventory" className={styles.screen}>
-      <StockReadNotice read={v.liveStockRead} />
-      {stock?.count?.paused ? (
-        <Button onClick={stock.count.resume}>
-          {stock.count.pending ? 'Review unconfirmed count' : 'Continue count'}
-        </Button>
-      ) : null}
-      {stock?.page ? (
-        <ItemPage key={stock.page.item.id} stock={stock} page={stock.page} />
-      ) : (
-        <>
-          <PageTitle
-            title="Inventory"
-            subtitle="Ingredients, packaging, dough and baked cookies."
-            actions={
-              <>
-                {stock?.openReceive ? (
-                  <Button variant="primary" onClick={() => stock.openReceive?.()}>
-                    Add to inventory
-                  </Button>
-                ) : null}
-                <Button variant="secondary" onClick={settings.open}>
-                  Settings
-                </Button>
-              </>
-            }
-          />
-          <SectionNavigation v={v} refined tools={false} />
-          {stock ? (
-            <div className={styles.actions}>
-              {stock.addItem ? <Button onClick={stock.addItem}>New item</Button> : null}
-              {stock.startCount && !stock.count && !MADE_CATEGORIES.includes(category) ? (
-                <Button
-                  onClick={() => stock.startCount?.(category)}
-                  disabled={!stock.items.some((item) => item.active && item.category === category)}
-                  reason={`Add an item to ${category.toLowerCase()} before counting.`}
-                >
-                  Count stock
+    <section aria-label="Inventory" data-screen-label="Inventory" className={G.page}>
+      <div>
+        <PageTitle
+          onGround
+          title="Inventory"
+          subtitle="Ingredients, packaging, dough and baked cookies."
+          actions={
+            <>
+              {stock?.openReceive ? (
+                <Button variant="primary" onClick={() => stock.openReceive?.()}>
+                  Add to inventory
                 </Button>
               ) : null}
-            </div>
-          ) : null}
-          {stock ? (
-            <>
-              <OfflineLine online={stock.online} />
-              <InventoryList
-                stock={stock}
-                category={category}
-                filter={filter}
-                setCategory={setCategory}
-                setFilter={setFilter}
-                catalogueHeld={v.catalogueHeld}
-              />
+              {stock?.addItem ? <Button onClick={stock.addItem}>New item</Button> : null}
+              <Button variant="secondary" onClick={settings.open}>
+                Settings
+              </Button>
             </>
-          ) : !v.liveStockRead ? (
-            <p className={styles.note} role="status">
-              Stock is loading.
-            </p>
-          ) : null}
+          }
+        />
+        <SectionNavigation v={v} refined tools={false} onGround />
+      </div>
+      <Notice>
+        <StockReadNotice read={v.liveStockRead} />
+      </Notice>
+      {resume ? <Notice>{resume}</Notice> : null}
+      {stock ? (
+        <>
+          <Notice>
+            <OfflineLine online={stock.online} />
+          </Notice>
+          <InventoryList
+            stock={stock}
+            category={category}
+            filter={filter}
+            setCategory={setCategory}
+            setFilter={setFilter}
+            catalogueHeld={v.catalogueHeld}
+          />
         </>
-      )}
+      ) : !v.liveStockRead ? (
+        <Notice>
+          <p role="status">Stock is loading.</p>
+        </Notice>
+      ) : null}
     </section>
   );
 }

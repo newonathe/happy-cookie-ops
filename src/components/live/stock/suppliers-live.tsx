@@ -9,6 +9,9 @@ import { SectionNavigation } from '@/components/live/section-navigation';
 import { useAreaSettings } from '@/components/live/account/settings-areas';
 import { peso } from '@/lib/money/format';
 import { pesosToCentavos } from '@/lib/money';
+import { GlassCard } from '@/components/ui/glass';
+import { PageTitle } from '@/components/ui/owner-kit';
+import { Notice, SubPage, stockGlass as G } from './stock-glass';
 import styles from './inventory.module.css';
 
 /** Supplier browsing is a page; existing acknowledged supplier/price saves remain in their form. */
@@ -19,116 +22,145 @@ export function SuppliersLive({ v }: { v: OpsVals }) {
   const data = v.liveSupplierDirectory;
   const selected = data?.rows.find((row) => row.id === selectedId);
   const rows = data?.rows.filter((row) => showInactive || row.active) ?? [];
-  if (settings.page) return settings.page;
-  return (
-    <section className={styles.screen} data-screen-label="Suppliers">
-      {selectedId ? (
-        <Button className="self-start" onClick={() => setSelectedId(null)}>
-          Back to suppliers
-        </Button>
-      ) : null}
-      <div className={styles.title}>
-        <div>
-          <h1>{selectedId ? (selected?.name ?? 'Supplier unavailable') : 'Suppliers'}</h1>
-          <p className={styles.subtitle}>
-            {selectedId ? selected?.place : 'Contacts, supplied items and saved prices.'}
-          </p>
-        </div>
-        <div className={styles.actions}>
-          {data && (!selectedId || selected) ? (
-            <Button
-              variant={selectedId ? 'secondary' : 'primary'}
-              onClick={() => (selectedId ? data.edit(selectedId) : data.add())}
-            >
-              {selectedId ? 'Edit supplier' : 'Add supplier'}
-            </Button>
-          ) : null}
-          {selectedId ? null : (
-            <Button variant="secondary" onClick={settings.open}>
-              Settings
-            </Button>
-          )}
-        </div>
-      </div>
-      <SectionNavigation v={v} refined tools={false} />
-      <StockReadNotice read={v.liveStockRead} />
+  if (settings.page) return <SubPage>{settings.page}</SubPage>;
+  const notices = (
+    <>
+      <Notice>
+        <StockReadNotice read={v.liveStockRead} />
+      </Notice>
       {!data && !v.liveStockRead ? (
-        <p role="status">Suppliers are loading.</p>
-      ) : !data ? null : selectedId ? (
-        selected ? (
-          <>
-            <section className={styles.itemPanel} aria-label="Supplier details">
-              {!selected.active ? (
-                <p className={styles.note}>
-                  Inactive supplier · History is kept. Edit supplier to reactivate.
-                </p>
+        <Notice>
+          <p role="status">Suppliers are loading.</p>
+        </Notice>
+      ) : null}
+    </>
+  );
+  if (selectedId)
+    return (
+      <section className={G.page} data-screen-label="Suppliers">
+        <SectionNavigation v={v} refined tools={false} onGround />
+        {notices}
+        <SubPage>
+          <div className={styles.screen}>
+            <Button className="self-start" onClick={() => setSelectedId(null)}>
+              Back to suppliers
+            </Button>
+            <div className={styles.title}>
+              <div>
+                <h1>{selected?.name ?? 'Supplier unavailable'}</h1>
+                <p className={styles.subtitle}>{selected?.place}</p>
+              </div>
+              <div className={styles.actions}>
+                {data && selected ? (
+                  <Button variant="secondary" onClick={() => data.edit(selectedId)}>
+                    Edit supplier
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+            {!data ? null : selected ? (
+              <>
+                <section className={styles.itemPanel} aria-label="Supplier details">
+                  {!selected.active ? (
+                    <p className={styles.note}>
+                      Inactive supplier · History is kept. Edit supplier to reactivate.
+                    </p>
+                  ) : null}
+                  <dl className={styles.facts}>
+                    <div>
+                      <dt>Phone</dt>
+                      <dd>{selected.phone || 'Not provided'}</dd>
+                    </div>
+                    <div>
+                      <dt>Notes</dt>
+                      <dd>{selected.notes || 'No notes'}</dd>
+                    </div>
+                  </dl>
+                </section>
+                <section className={styles.history} aria-label="Items and prices">
+                  <h2>Items & prices</h2>
+                  {selected.prices?.length ? (
+                    <ul className={styles.historyList}>
+                      {selected.prices.map((price) => (
+                        <li key={price.id} className={styles.movement}>
+                          <strong>{price.itemName}</strong>
+                          <span>
+                            {price.packLabel || 'Pack not specified'} ·{' '}
+                            {peso(pesosToCentavos(price.pricePesos))}
+                          </span>
+                          {price.lastBought ? <span>Last bought: {price.lastBought}</span> : null}
+                          <span>{price.previousText}</span>
+                          <span>
+                            {!price.active
+                              ? 'Price not in use'
+                              : price.preferred
+                                ? 'Preferred source'
+                                : 'Saved price'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={styles.empty}>No saved prices yet.</p>
+                  )}
+                </section>
+              </>
+            ) : (
+              <p className={styles.empty}>
+                This supplier is unavailable. Return to suppliers to choose another.
+              </p>
+            )}
+          </div>
+        </SubPage>
+      </section>
+    );
+  return (
+    <section className={G.page} data-screen-label="Suppliers">
+      <div>
+        <PageTitle
+          onGround
+          title="Suppliers"
+          subtitle="Contacts, supplied items and saved prices."
+          actions={
+            <>
+              {data ? (
+                <Button variant="primary" onClick={() => data.add()}>
+                  Add supplier
+                </Button>
               ) : null}
-              <dl className={styles.facts}>
-                <div>
-                  <dt>Phone</dt>
-                  <dd>{selected.phone || 'Not provided'}</dd>
-                </div>
-                <div>
-                  <dt>Notes</dt>
-                  <dd>{selected.notes || 'No notes'}</dd>
-                </div>
-              </dl>
-            </section>
-            <section className={styles.history} aria-label="Items and prices">
-              <h2>Items & prices</h2>
-              {selected.prices?.length ? (
-                <ul className={styles.historyList}>
-                  {selected.prices.map((price) => (
-                    <li key={price.id} className={styles.movement}>
-                      <strong>{price.itemName}</strong>
-                      <span>
-                        {price.packLabel || 'Pack not specified'} ·{' '}
-                        {peso(pesosToCentavos(price.pricePesos))}
-                      </span>
-                      {price.lastBought ? <span>Last bought: {price.lastBought}</span> : null}
-                      <span>{price.previousText}</span>
-                      <span>
-                        {!price.active
-                          ? 'Price not in use'
-                          : price.preferred
-                            ? 'Preferred source'
-                            : 'Saved price'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.empty}>No saved prices yet.</p>
-              )}
-            </section>
-          </>
-        ) : (
-          <p className={styles.empty}>
-            This supplier is unavailable. Return to suppliers to choose another.
-          </p>
-        )
-      ) : (
-        <>
-          <label className={`${styles.filter} min-h-11`}>
-            <input
-              type="checkbox"
-              checked={showInactive}
-              onChange={(e) => setShowInactive(e.target.checked)}
-            />
-            Show inactive suppliers
-          </label>
+              <Button variant="secondary" onClick={settings.open}>
+                Settings
+              </Button>
+            </>
+          }
+        />
+        <SectionNavigation v={v} refined tools={false} onGround />
+      </div>
+      {notices}
+      {data ? (
+        <GlassCard
+          title="Directory"
+          action={
+            <label className={`${styles.filter} min-h-11`}>
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={(e) => setShowInactive(e.target.checked)}
+              />
+              Show inactive suppliers
+            </label>
+          }
+        >
           {rows.length ? (
-            <ul className={styles.panel} aria-label="Supplier directory">
+            <ul className={G.rows} aria-label="Supplier directory">
               {rows.map((row) => (
                 <li key={row.id}>
-                  <button
-                    type="button"
-                    className={styles.row}
-                    onClick={() => setSelectedId(row.id)}
-                  >
-                    <span>
-                      <strong className={styles.name}>{row.name}</strong>
-                      <span className={styles.detail}>
+                  <button type="button" onClick={() => setSelectedId(row.id)}>
+                    <span className="min-w-0">
+                      <strong className="block text-label font-semibold [overflow-wrap:anywhere]">
+                        {row.name}
+                      </strong>
+                      <span className="mt-1 block text-caption text-ink-mute [overflow-wrap:anywhere]">
                         {[
                           row.place,
                           `${row.priceCount} saved ${row.priceCount === 1 ? 'price' : 'prices'}`,
@@ -138,7 +170,9 @@ export function SuppliersLive({ v }: { v: OpsVals }) {
                           .join(' · ')}
                       </span>
                     </span>
-                    <span aria-hidden="true">›</span>
+                    <span aria-hidden="true" className={G.chev}>
+                      ›
+                    </span>
                   </button>
                 </li>
               ))}
@@ -150,8 +184,8 @@ export function SuppliersLive({ v }: { v: OpsVals }) {
                 : 'No suppliers yet. Add your first supplier here.'}
             </p>
           )}
-        </>
-      )}
+        </GlassCard>
+      ) : null}
     </section>
   );
 }

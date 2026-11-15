@@ -6,18 +6,21 @@ import { SectionTools } from './section-tools';
 export function SectionNavigation({
   v,
   refined = true,
-  tools = true
+  tools = true,
+  onGround = false
 }: {
   v: OpsVals;
   refined?: boolean;
   /** Off on a page whose Settings page lists these tools. */
   tools?: boolean;
+  /** True on the espresso ground (glass pages). */
+  onGround?: boolean;
 }) {
   const tabs = v.liveScreen?.tabs;
   if (!tabs) return null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <SubTabs label={tabs.label} tabs={tabs.places} refined={refined} />
+      <SubTabs label={tabs.label} tabs={tabs.places} refined={refined} onGround={onGround} />
       {tools ? (
         <SectionTools
           key={`${tabs.placeLabel}:${tabs.places.find((item) => item.active)?.id}`}
