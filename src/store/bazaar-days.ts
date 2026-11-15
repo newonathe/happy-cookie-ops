@@ -1012,7 +1012,8 @@ export class BazaarDays {
             dayYmd: day.day,
             today: this.deps.today(),
             now: new Date(this.deps.now()),
-            firstStart: !eventStarted
+            firstStart: !eventStarted,
+            floatCents: day.floatCents
           })
         : null;
     const total = day.lines.reduce((t, l) => t + l.made + l.carried, 0);
