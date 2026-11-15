@@ -188,15 +188,20 @@ export function InfoTip({ label, children }: { label: string; children: ReactNod
             setPinned(false);
           }
         }}
-        className="ml-1.5 flex size-6 cursor-pointer items-center justify-center rounded-full border border-line text-caption font-semibold text-ink-mute hover:border-ink-faint hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
+        className="group -my-2.5 flex size-11 cursor-pointer items-center justify-center focus-visible:outline-2 focus-visible:outline-brand"
       >
-        i
+        <span
+          aria-hidden="true"
+          className="flex size-6 items-center justify-center rounded-full border border-line text-caption font-semibold text-ink-mute group-hover:border-ink-faint group-hover:text-ink"
+        >
+          i
+        </span>
       </button>
       {shown ? (
         <span
           id={tipId}
           role="note"
-          className="absolute top-8 left-0 z-30 w-64 max-w-[calc(100vw-48px)] rounded-control border border-line p-3 text-caption font-normal text-ink shadow-lg"
+          className="absolute top-9 left-0 z-30 w-64 max-w-[calc(100vw-48px)] rounded-control border border-line p-3 text-caption font-normal text-ink shadow-lg"
           style={{
             background: 'var(--owner-popover-surface, var(--color-surface))',
             backdropFilter: 'var(--owner-popover-filter, none)',

@@ -12,7 +12,12 @@ export const inputStyle = {
   background: 'var(--color-surface)',
   color: 'var(--color-ink)'
 };
-export const labelStyle = { display: 'flex', flexDirection: 'column' as const, gap: '5px' };
+export const labelStyle = {
+  display: 'flex',
+  flexDirection: 'column' as const,
+  gap: '5px',
+  minWidth: 0
+};
 export const smallLabel = { fontSize: '13px', fontWeight: 600, color: 'var(--color-ink-soft)' };
 export const primaryButton = {
   minHeight: '48px',

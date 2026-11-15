@@ -280,7 +280,9 @@ function ActiveCard({
   if (row.reading)
     return (
       <div aria-busy="true" className="py-3">
-        <p className="m-0 mb-2 truncate text-body font-semibold text-ink">{row.name}</p>
+        <p className="m-0 mb-2 [overflow-wrap:anywhere] text-body font-semibold text-ink">
+          {row.name}
+        </p>
         <Skeleton lines={2} />
       </div>
     );
@@ -293,9 +295,7 @@ function ActiveCard({
       )}
     >
       <div className="flex min-w-0 flex-1 basis-56 flex-col gap-1">
-        <h3 className="m-0 line-clamp-2 text-body font-semibold break-words text-ink">
-          {row.name}
-        </h3>
+        <h3 className="m-0 text-body font-semibold break-words text-ink">{row.name}</h3>
         <span className="text-caption text-ink-mute">
           {row.datesText} · {row.placeText}
         </span>
@@ -342,7 +342,7 @@ function EventRow({
       )}
     >
       <span className="flex min-w-0 flex-1 basis-44 flex-col gap-1">
-        <span className="line-clamp-2 min-w-0 text-body font-semibold break-words">{row.name}</span>
+        <span className="min-w-0 text-body font-semibold break-words">{row.name}</span>
         <span className="text-caption text-ink-mute">
           {row.datesText} · {row.placeText}
           {whenOf(row) ? ' · ' + whenOf(row) : ''}

@@ -113,10 +113,10 @@ export function ChipRow({ label, options }: { label: string; options: ChipOption
           aria-pressed={option.active}
           onClick={option.onSelect}
           className={cx(
-            'min-h-10 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
+            'min-h-11 rounded-full border px-3.5 text-label transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
             option.active
-              ? 'border-ink bg-ink text-surface'
-              : 'border-line-strong bg-surface text-ink hover:bg-raise'
+              ? 'border-ink bg-ink font-semibold text-surface'
+              : 'border-line-strong bg-surface font-normal text-ink hover:bg-raise'
           )}
         >
           {option.label}

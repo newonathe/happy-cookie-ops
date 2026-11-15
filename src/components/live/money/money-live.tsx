@@ -101,7 +101,7 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
         <p className="mt-2 text-caption text-ink-mute">Reversed expenses appear above zero.</p>
       ) : null}
       <details className="mt-3 text-caption">
-        <summary className="min-h-10 cursor-pointer py-2 font-semibold text-ink-soft">
+        <summary className="flex min-h-11 cursor-pointer items-center py-2 font-semibold text-ink-soft">
           Show amounts
         </summary>
         <table className="w-full">
@@ -241,7 +241,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
   const catMax = Math.max(1, ...money.categories.map((c) => c.amount));
   const chip = (active: boolean) =>
     cx(
-      'min-h-10 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
+      'min-h-11 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
       active
         ? 'border-ink bg-ink text-surface'
         : 'border-line-strong bg-surface text-ink hover:bg-raise'
@@ -442,7 +442,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
                         className="flex min-h-14 w-full items-center justify-between gap-3 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
                       >
                         <span className="flex min-w-0 flex-col gap-0.5">
-                          <span className="truncate text-label font-semibold text-ink">
+                          <span className="[overflow-wrap:anywhere] text-label font-semibold text-ink">
                             {t.label}
                           </span>
                           <span className="text-caption text-ink-mute">

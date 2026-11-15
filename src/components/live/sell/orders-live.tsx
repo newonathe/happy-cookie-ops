@@ -151,7 +151,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
             aria-pressed={!!filter.active}
             onClick={filter.go}
             className={cx(
-              'min-h-10 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
+              'min-h-11 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
               filter.active
                 ? 'border-ink bg-ink text-surface'
                 : 'border-line-strong bg-surface text-ink hover:bg-raise'

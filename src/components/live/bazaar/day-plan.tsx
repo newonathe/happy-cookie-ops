@@ -131,7 +131,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
           stepper={
             <div className="flex w-full flex-col items-center gap-2">
               {canSetPrices ? (
-                <label className="flex items-center gap-2 text-caption text-ink-soft">
+                <label className="flex min-h-11 items-center gap-2 text-caption text-ink-soft">
                   <input
                     type="checkbox"
                     className="h-5 w-5 accent-brand"

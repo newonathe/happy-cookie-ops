@@ -185,7 +185,7 @@ function SaleRow({
         <span className="col-start-1 row-start-3 flex min-w-0 flex-wrap items-baseline gap-x-2 text-caption text-ink-soft @4xl:contents">
           <span className="text-label text-ink">{sale.pay}</span>
           {reference ? (
-            <span className="min-w-0 truncate">
+            <span className="min-w-0 [overflow-wrap:anywhere]">
               <span className="@4xl:hidden">Ref </span>
               {reference}
             </span>

@@ -115,17 +115,19 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
                 key={i}
                 className="flex flex-wrap items-center gap-3 border-b border-line py-2.5 last:border-b-0"
               >
-                <input
-                  type="checkbox"
-                  checked={!!row.ticked}
-                  onChange={row.toggle}
-                  aria-label={`Tick ${String(row.ref)}`}
-                  className="size-6 shrink-0 accent-[var(--color-brand)]"
-                />
+                <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={!!row.ticked}
+                    onChange={row.toggle}
+                    aria-label={`Tick ${String(row.ref)}`}
+                    className="size-6 shrink-0 accent-[var(--color-brand)]"
+                  />
+                </label>
                 <button
                   type="button"
                   onClick={row.open}
-                  className="flex min-w-0 flex-1 basis-40 flex-col text-left focus-visible:outline-2 focus-visible:outline-brand"
+                  className="flex min-h-11 min-w-0 flex-1 basis-40 flex-col justify-center text-left focus-visible:outline-2 focus-visible:outline-brand"
                 >
                   <span className="text-label font-semibold break-all text-ink">{row.ref}</span>
                   <span className="text-caption text-ink-mute">

@@ -95,7 +95,7 @@ export function TillCard({
             type="button"
             onClick={onMinus}
             aria-label={`One less ${name} in this sale`}
-            className="motion-press grid h-10 w-11 place-items-center rounded-control text-heading leading-none font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="motion-press grid h-11 w-11 place-items-center rounded-control text-heading leading-none font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             −
           </button>

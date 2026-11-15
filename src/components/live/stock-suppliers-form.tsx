@@ -201,7 +201,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
           style={{ ...inputStyle, height: 'auto', padding: '10px 13px' }}
         />
       </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
         <input name="supActive" type="checkbox" defaultChecked={editing.active} />
         <span style={smallLabel}>In use</span>
       </label>
@@ -280,11 +280,11 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
                 {r.previousText}
               </span>
             ) : null}
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
               <input name={'prPref' + i} type="checkbox" defaultChecked={r?.preferred ?? true} />
               <span style={smallLabel}>My preferred source</span>
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
               <input name={'prOn' + i} type="checkbox" defaultChecked={r?.active ?? true} />
               <span style={smallLabel}>Price in use</span>
             </label>

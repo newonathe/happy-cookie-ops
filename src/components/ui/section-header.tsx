@@ -15,7 +15,7 @@ export function SectionHeader({ title, count, action, level = 2 }: SectionHeader
   return (
     <div className="flex min-h-9 items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
-        <Heading className="m-0 truncate text-heading text-ink">{title}</Heading>
+        <Heading className="m-0 [overflow-wrap:anywhere] text-heading text-ink">{title}</Heading>
         {count !== undefined ? (
           <span className="rounded-tag bg-chip px-2 py-0.5 text-caption font-semibold text-ink-mute">
             {count}

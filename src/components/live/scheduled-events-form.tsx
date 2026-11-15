@@ -127,7 +127,7 @@ export function ScheduledEventsForm({ liveScheduled }: { liveScheduled: LiveSche
               style={inputStyle}
             />
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
             <input name={'evOn' + i} type="checkbox" defaultChecked={r?.active ?? true} />
             <span style={smallLabel}>{r?.started ? C.onStarted : C.on}</span>
           </label>

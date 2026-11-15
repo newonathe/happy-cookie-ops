@@ -253,7 +253,13 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           />
         </label>
         {/* What decides the rest comes first: the type (cookie slots, recipe) and the price customers pay. */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+            gap: '8px'
+          }}
+        >
           <label style={labelStyle}>
             <span style={smallLabel}>Type</span>
             <select
@@ -365,7 +371,13 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         >
           Shown beside the name on the order form.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+            gap: '8px'
+          }}
+        >
           <label style={labelStyle}>
             <span style={smallLabel}>Permanent or rotating</span>
             <select name="kind" defaultValue={editing.kind} style={inputStyle}>
@@ -420,7 +432,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
             />
           </label>
         )}
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '44px' }}>
           <input name="active" type="checkbox" defaultChecked={editing.active} />
           <span style={smallLabel}>On the order form</span>
         </label>

@@ -189,7 +189,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
           style={inputStyle}
         />
       </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
         <input name="itemActive" type="checkbox" defaultChecked={editing.active} />
         <span style={smallLabel}>In use</span>
       </label>

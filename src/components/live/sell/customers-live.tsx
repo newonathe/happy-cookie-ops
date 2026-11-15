@@ -280,7 +280,9 @@ export function CustomersLive({ v }: { v: OpsVals }) {
                 className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-line py-2 last:border-b-0"
               >
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-label font-semibold text-ink">{person.name}</span>
+                  <span className="[overflow-wrap:anywhere] text-label font-semibold text-ink">
+                    {person.name}
+                  </span>
                   {person.want || person.when ? (
                     <span className="text-caption text-ink-mute">
                       {[person.want, person.when].filter(Boolean).join(' · ')}

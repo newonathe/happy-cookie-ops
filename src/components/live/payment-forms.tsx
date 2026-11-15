@@ -187,7 +187,7 @@ export function PayEditForm({ editing }: { editing: NonNullable<LivePay['editing
           style={inputStyle}
         />
       </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '44px' }}>
         <input name="active" type="checkbox" defaultChecked={editing.active} />
         <span style={smallLabel}>Shown to customers</span>
       </label>
