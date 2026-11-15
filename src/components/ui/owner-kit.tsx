@@ -15,10 +15,13 @@ export function PageTitle({
   title,
   subtitle,
   actions,
-  headingId
+  headingId,
+  onGround = false
 }: {
   title: string;
   subtitle?: ReactNode;
+  /** True on the espresso ground (glass pages): the title and subtitle take the on-ground colour. */
+  onGround?: boolean;
   /** The page's primary action first, then Settings. */
   actions?: ReactNode;
   headingId?: string;
@@ -29,11 +32,18 @@ export function PageTitle({
         <h1
           id={headingId}
           tabIndex={-1}
-          className="font-display text-page text-ink lowercase outline-none md:text-page-lg"
+          className={cx(
+            'font-display text-page lowercase outline-none md:text-page-lg',
+            onGround ? 'text-on-ground' : 'text-ink'
+          )}
         >
           {title}
         </h1>
-        {subtitle ? <p className="mt-1 text-caption text-ink-mute">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className={cx('mt-1 text-caption', onGround ? 'text-on-ground' : 'text-ink-mute')}>
+            {subtitle}
+          </p>
+        ) : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>

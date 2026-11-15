@@ -9,6 +9,8 @@ export interface HomeDeskDeps {
   stockItems: () => readonly StockItem[] | null;
   /** This month's books; null until they are read. */
   month: () => { revenue: number; totalExp: number; profit: number } | null;
+  /** Income on each of the last seven days; null until the books are read. */
+  week?: () => LiveHome['week'];
   /** Unconfirmed production work on this device. */
   production: () => LiveHome['production'];
   flavourCount: () => number | null;
@@ -86,6 +88,7 @@ export class HomeDesk {
       month: month
         ? { revenue: month.revenue, expenses: month.totalExp, profit: month.profit }
         : null,
+      week: this.deps.week?.() ?? null,
       flavours: this.deps.flavourCount(),
       go: this.deps.go
     };

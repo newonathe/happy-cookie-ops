@@ -9,135 +9,77 @@ import type { LiveHome, OpsVals } from '@/view-models/vals';
 import { NextEventCard, SellingCard } from '@/components/live/bazaar/home-card';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
-import { useCountUp } from '@/components/ui/motion';
+import { CountMoney, GlassCard, GoalRing, SplitBar, glassStyles } from '@/components/ui/glass';
+import type { SplitPart } from '@/components/ui/glass';
 import { ListRow, PanelLink } from '@/components/ui/owner-patterns';
 import styles from './home-live.module.css';
 
 const WORK_SHOWN = 3;
-const ATTENTION_SHOWN = 3;
-const RING_RADIUS = 52;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-/** The espresso-glass count-up: 700 ms from 100 ms, and a changed figure counts on from the one on show. */
-const COUNT = { durationMs: 700, delayMs: 100, followChanges: true } as const;
-
-const centsText = (cents: number) =>
-  `₱${(cents / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const peso = (pesos: number) =>
+  `₱${Math.round(pesos).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`;
 
 /**
- * A peso figure that counts up. It counts in centavos so the last frame is the books' own figure, to the centavo; a
- * screen reader hears that final figure, never a frame of the count.
+ * Sales this week: income on each of the last seven days as bars, today last and solid. One series, so no legend; the
+ * busiest day and today carry their figure, every bar names its day and figure on hover, and a screen reader gets the
+ * seven figures as a list. A day of refunds only draws no bar.
  */
-function CountMoney({ pesos, sign = '' }: { pesos: number; sign?: string }) {
-  const cents = Math.round(Math.abs(pesos) * 100);
-  const counted = useCountUp(cents, COUNT);
+function WeekBars({ week }: { week: NonNullable<LiveHome['week']> }) {
+  const total = week.reduce((sum, day) => sum + day.income, 0);
+  const max = Math.max(0, ...week.map((day) => day.income));
+  const best = max > 0 ? week.findIndex((day) => day.income === max) : -1;
   return (
     <>
-      <span aria-hidden="true" className="whitespace-nowrap">
-        {sign}
-        {centsText(counted)}
-      </span>
-      <span className="sr-only">
-        {sign}
-        {centsText(cents)}
-      </span>
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="font-mono text-[26px] leading-none font-semibold text-ink tabular-nums md:text-[32px]">
+          <CountMoney pesos={Math.max(0, total)} />
+        </span>
+        <span className="text-caption text-ink-mute">taken in the last 7 days, less refunds</span>
+      </div>
+      <ul className="sr-only">
+        {week.map((day, i) => (
+          <li key={i}>
+            {day.today ? 'Today' : day.label}: {peso(day.income)}
+          </li>
+        ))}
+      </ul>
+      <div className={styles.weekChart} aria-hidden="true">
+        {week.map((day, i) => {
+          const pct = max > 0 ? Math.max(0, day.income) / max : 0;
+          // The busiest day's figure is left out beside today's, where the two would touch.
+          const labelled = day.income > 0 && (day.today || (i === best && best < week.length - 2));
+          return (
+            <div
+              key={i}
+              className={styles.weekCol}
+              title={`${day.today ? 'Today' : day.label}: ${peso(day.income)}`}
+            >
+              <div className={styles.weekPlot}>
+                {labelled ? (
+                  <span
+                    className={styles.weekValue}
+                    style={{ bottom: `calc(${pct * 100}% + 6px)` }}
+                  >
+                    {peso(day.income)}
+                  </span>
+                ) : null}
+                {pct > 0 ? (
+                  <span
+                    className={cx(styles.weekBar, day.today ? 'bg-ok' : 'bg-ok/45')}
+                    style={{ height: `${pct * 100}%`, '--i': i } as CSSProperties}
+                  />
+                ) : null}
+              </div>
+              <span className={cx(styles.weekDay, day.today && 'font-semibold text-ink')}>
+                {day.today ? 'Today' : day.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
-
-/** The goal ring: how much of the month's profit goal is made. Drawn in once, then it keeps its place. */
-function GoalRing({ pct }: { pct: number }) {
-  const counted = useCountUp(pct, COUNT);
-  const arc = (RING_CIRCUMFERENCE * pct) / 100;
-  return (
-    <div
-      role="img"
-      aria-label={`${pct}% of this month's profit goal`}
-      data-goal-pct={pct}
-      className={styles.ring}
-    >
-      <svg viewBox="0 0 120 120" aria-hidden="true">
-        <circle className={styles.ringTrack} cx="60" cy="60" r={RING_RADIUS} />
-        {pct > 0 ? (
-          <circle
-            className={styles.ringArc}
-            cx="60"
-            cy="60"
-            r={RING_RADIUS}
-            style={
-              {
-                strokeDasharray: `${arc} ${RING_CIRCUMFERENCE}`,
-                '--circ': RING_CIRCUMFERENCE
-              } as CSSProperties
-            }
-          />
-        ) : null}
-      </svg>
-      <span aria-hidden="true" className="relative flex flex-col items-center">
-        <span className={cx(styles.ringNum, 'font-mono leading-none font-semibold tabular-nums')}>
-          {counted}%
-        </span>
-        <span className={cx(styles.ringCap, 'mt-1 text-ink-mute')}>of goal</span>
-      </span>
-    </div>
-  );
-}
-
-interface SplitPart {
-  id: string;
-  label: string;
-  value: number;
-  /** A theme background class, such as `bg-ok`. */
-  tone: string;
-}
-
-/** How a whole splits into parts: one segment per non-empty part, each growing in 40 ms after the one before. */
-function SplitBar({ parts, label }: { parts: SplitPart[]; label?: string }) {
-  const total = parts.reduce((sum, part) => sum + part.value, 0);
-  return (
-    <div
-      role="img"
-      aria-label={label ?? parts.map((part) => `${part.value} ${part.label}`).join(', ')}
-      className={styles.splitBar}
-    >
-      {parts
-        .filter((part) => part.value > 0)
-        .map((part, index) => (
-          <span
-            key={part.id}
-            data-segment={part.id}
-            data-count={part.value}
-            className={cx(styles.segment, part.tone)}
-            style={{ width: `${(part.value / total) * 100}%`, '--i': index } as CSSProperties}
-          />
-        ))}
-    </div>
-  );
-}
-
-/** A glass card with the one head every card shares: its name, and room for one thing on the right. */
-function GlassCard({
-  title,
-  action,
-  className,
-  children
-}: {
-  title: string;
-  action?: ReactNode;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section aria-label={title} className={cx(styles.glassCard, className)}>
-      <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3">
-        <h2 className="text-heading font-semibold text-ink">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </section>
-  );
-}
-
+const ATTENTION_SHOWN = 3;
 const ICON = {
   production: (
     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
@@ -251,9 +193,9 @@ function OrderCount({
   warn?: boolean;
 }) {
   return (
-    <button type="button" onClick={onOpen} className={styles.stat}>
+    <button type="button" onClick={onOpen} className={glassStyles.stat}>
       <span className="flex items-center gap-2">
-        <span aria-hidden="true" className={cx(styles.dot, tone)} />
+        <span aria-hidden="true" className={cx(glassStyles.dot, tone)} />
         <span
           className={cx(
             'font-mono text-[26px] leading-none font-semibold tabular-nums md:text-[32px]',
@@ -263,7 +205,7 @@ function OrderCount({
           {value === null ? '—' : value}
         </span>
       </span>
-      <span className={styles.statLabel}>{label}</span>
+      <span className={glassStyles.statLabel}>{label}</span>
     </button>
   );
 }
@@ -283,14 +225,14 @@ function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']>
       <SplitBar parts={parts} />
       <ul className={styles.legend}>
         {parts.map((part) => (
-          <li key={part.id} className={styles.stat} style={{ minHeight: 64 }}>
+          <li key={part.id} className={glassStyles.stat} style={{ minHeight: 64 }}>
             <span className="flex items-center gap-2">
-              <span aria-hidden="true" className={cx(styles.dot, part.tone)} />
+              <span aria-hidden="true" className={cx(glassStyles.dot, part.tone)} />
               <span className="font-mono text-[26px] leading-none font-semibold tabular-nums md:text-[32px]">
                 {part.value}
               </span>
             </span>
-            <span className={styles.statLabel}>{part.label}</span>
+            <span className={glassStyles.statLabel}>{part.label}</span>
           </li>
         ))}
       </ul>
@@ -430,12 +372,12 @@ export function HomeLive({ v }: { v: OpsVals }) {
       </header>
 
       {till ? (
-        <div className={cx(styles.span12, styles.glassSlot)}>
+        <div className={cx(styles.span12, glassStyles.glassSlot)}>
           <SellingCard till={till} />
         </div>
       ) : null}
       {next ? (
-        <div className={cx(styles.span12, styles.glassSlot)}>
+        <div className={cx(styles.span12, glassStyles.glassSlot)}>
           <NextEventCard next={next} />
         </div>
       ) : null}
@@ -456,7 +398,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
         ) : null}
         {month ? (
           <>
-            <div className={styles.heroFigure}>
+            <div className={glassStyles.heroFigure}>
               <div className="flex min-w-0 flex-col gap-2">
                 <span className="text-label font-medium text-ink-soft">
                   {month.profit < 0 ? 'Loss this month' : 'Profit this month'}
@@ -492,14 +434,14 @@ export function HomeLive({ v }: { v: OpsVals }) {
                 />
               </div>
             ) : null}
-            <dl className={styles.moneyWells}>
-              <div className={styles.glassWell}>
+            <dl className={glassStyles.moneyWells}>
+              <div className={glassStyles.glassWell}>
                 <dt>Income</dt>
                 <dd className="text-ok">
                   <CountMoney pesos={month.revenue} sign={month.revenue > 0 ? '+' : ''} />
                 </dd>
               </div>
-              <div className={styles.glassWell}>
+              <div className={glassStyles.glassWell}>
                 <dt>Expenses</dt>
                 <dd className="text-danger">
                   <CountMoney pesos={month.expenses} sign={month.expenses > 0 ? '−' : ''} />
@@ -519,11 +461,11 @@ export function HomeLive({ v }: { v: OpsVals }) {
       <GlassCard
         title="Needs you"
         className={styles.spanSide}
-        action={needsCount ? <span className={styles.badge}>{needsCount}</span> : undefined}
+        action={needsCount ? <span className={glassStyles.badge}>{needsCount}</span> : undefined}
       >
         {needsCount ? (
           <>
-            <div className={styles.glassRows}>
+            <div className={glassStyles.glassRows}>
               {orders && orders.review > 0 ? (
                 <ListRow
                   title="Payments to check"
@@ -569,6 +511,20 @@ export function HomeLive({ v }: { v: OpsVals }) {
         )}
       </GlassCard>
 
+      {home.week !== undefined ? (
+        <GlassCard title="Sales this week" className={styles.spanTwoThirds}>
+          {home.week ? (
+            <WeekBars week={home.week} />
+          ) : (
+            <p className="text-caption text-ink-mute">
+              {home.booksReadState === 'failed'
+                ? 'Sales could not be read yet.'
+                : 'Sales are still loading.'}
+            </p>
+          )}
+        </GlassCard>
+      ) : null}
+
       <GlassCard
         title="Orders"
         className={styles.spanHalf}
@@ -577,7 +533,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
         {orderParts && orderParts.some((part) => part.value > 0) ? (
           <SplitBar parts={orderParts} />
         ) : (
-          <div className={styles.splitBar} aria-hidden="true" />
+          <div className={glassStyles.splitBar} aria-hidden="true" />
         )}
         <div className={styles.orderTiles}>
           <OrderCount
@@ -637,7 +593,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
 
       {home.production.length ? (
         <GlassCard title="Continue unfinished work" className={styles.spanThird}>
-          <div className={styles.glassRows}>
+          <div className={glassStyles.glassRows}>
             {(allWork ? home.production : home.production.slice(0, WORK_SHOWN)).map((work) => (
               <ListRow
                 key={work.id}
