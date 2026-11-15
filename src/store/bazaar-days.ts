@@ -6,6 +6,7 @@ import {
   fetchBazaar,
   finaliseBazaar,
   lossError,
+  reverseBazaarTest,
   saveBazaarDay,
   saveBazaarFee,
   saveBazaarLoss,
@@ -289,6 +290,14 @@ const COPY = {
     'Part of this event is already in Money or Stock (a fee, an expense, a drawer difference or kitchen cookies), so it cannot be deleted.',
   deleteRefused: 'This event could not be deleted. It may already be gone: check the event list.',
   deleted: (name: string) => `${name} deleted. Nothing changed in Money or Stock.`,
+  scratchNeedsSignal:
+    'Scratching the event needs signal. If you tapped Scratch just before the signal dropped, it may already be done: check Money.',
+  scratchRefused:
+    'The books refused: the event is not closed, sent cookies to the shop, or its stock was counted since.',
+  scratchStale: 'The event changed: try again.',
+  scratchedNotice:
+    'This event was scratched from the books as a test. Its sales, fees and stock use were taken back out of Money and Stock.',
+  scratched: (name: string) => `${name} was scratched from the books.`,
   finalisedNotice: 'This event is closed. Its sales, fees and stock are counted in the books.',
   finalisedChanged:
     'Changed after it was closed: a sale or a void arrived later. The figures below are the ones that were booked.'
@@ -787,7 +796,7 @@ export class BazaarDays {
     const shown = data.finalSummary ?? data;
     const notices: string[] = [];
     if (data.finalised) {
-      notices.push(COPY.finalisedNotice);
+      notices.push(data.reversedAt ? COPY.scratchedNotice : COPY.finalisedNotice);
       if (data.finalSummary && !sameBooks(data.finalSummary, data))
         notices.push(COPY.finalisedChanged);
     }
@@ -864,6 +873,13 @@ export class BazaarDays {
                   : this.unsentFor(booking.id),
               run: (name) => this.deleteEvent(booking, data, name)
             },
+      scratchTest:
+        data.finalised && !data.reversedAt
+        ? {
+            blocked: !online ? COPY.scratchNeedsSignal : this.unsentFor(booking.id),
+            run: (name) => this.scratchTest(booking, data, name)
+          }
+        : null,
       unplanned: data.finalised
         ? []
         : datesBetween(data.booking.startsOn, data.booking.endsOn)
@@ -1732,6 +1748,43 @@ export class BazaarDays {
       if (outcome === 'in-books') return COPY.deleteInBooks;
       if (outcome === 'refused') return COPY.deleteRefused;
       return COPY.deleteNeedsSignal;
+    } finally {
+      this.busy = false;
+    }
+  }
+
+  /**
+   * Scratches a closed event that was only a test (U6): the server appends reversing lines to Money and Stock and deletes
+   * nothing. Same guards as the delete: the exact name, signal, and no sale on this phone that the server has not taken.
+   * The server refuses an event that is not closed, sent cookies to the shop, or whose stock was counted since; a repeat
+   * is answered with what the first call did.
+   */
+  private async scratchTest(
+    booking: ScheduledEvent,
+    data: Bazaar,
+    name: string
+  ): Promise<string | null> {
+    if (this.busy) return COPY.busy;
+    if (name !== booking.name) return COPY.deleteWrongName;
+    if (!data.finalised) return COPY.scratchRefused;
+    const client = this.deps.client();
+    if (!client || !this.deps.online()) return COPY.scratchNeedsSignal;
+    const unsent = this.unsentFor(booking.id);
+    if (unsent) return unsent;
+    this.busy = true;
+    try {
+      const outcome = await reverseBazaarTest(client, booking.id, name);
+      if (outcome === 'saved') {
+        this.deps.toast(COPY.scratched(name));
+        await this.reload();
+        return null;
+      }
+      if (outcome === 'stale') {
+        await this.reload();
+        return COPY.scratchStale;
+      }
+      if (outcome === 'refused') return COPY.scratchRefused;
+      return COPY.scratchNeedsSignal;
     } finally {
       this.busy = false;
     }
