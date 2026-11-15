@@ -898,6 +898,14 @@ export function EventPage({
             setStarting(null);
           }}
           onClose={() => setStarting(null)}
+          onSetFloat={
+            starting.edit
+              ? () => {
+                  starting.edit?.();
+                  setStarting(null);
+                }
+              : null
+          }
         />
       ) : null}
     </>

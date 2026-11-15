@@ -264,6 +264,38 @@ describe('A2: starting a day that is not today asks first', () => {
       startPromptOf({ dayYmd: '2026-10-14', today: '2026-10-15', now, firstStart: false })
     ).not.toBeNull();
   });
+  it('asks before a day starts with no starting cash, today or not, and not when there is cash', () => {
+    const today = startPromptOf({
+      dayYmd: '2026-10-15',
+      today: '2026-10-15',
+      now,
+      firstStart: true,
+      floatCents: 0
+    })!;
+    expect(today.title).toBe('Start with no cash in the drawer?');
+    expect(today.noFloat).toBe(true);
+    expect(today.body).toMatch(/^The starting cash in the drawer is ₱0\./);
+    const later = startPromptOf({
+      dayYmd: '2026-10-19',
+      today: '2026-10-15',
+      now,
+      firstStart: false,
+      floatCents: 0
+    })!;
+    expect(later.title).toBe('Start a day that is not today?');
+    expect(later.body).toMatch(
+      /Sales will be dated today\. The starting cash in the drawer is ₱0\./
+    );
+    expect(
+      startPromptOf({
+        dayYmd: '2026-10-15',
+        today: '2026-10-15',
+        now,
+        firstStart: true,
+        floatCents: 50000
+      })
+    ).toBeNull();
+  });
   it('finds the date after one, across a month end', () => {
     expect(nextDate('2026-10-25')).toBe('2026-10-26');
     expect(nextDate('2026-10-31')).toBe('2026-11-01');
