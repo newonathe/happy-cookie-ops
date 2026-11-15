@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ComponentType } from 'react';
+import { useEffect, useRef, useSyncExternalStore, type ComponentType } from 'react';
 import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
@@ -332,6 +332,7 @@ function Navigation({ items, phone = false }: { items: OpsVals['dockNav']; phone
           key={String(item.label)}
           type="button"
           aria-current={item.active ? 'page' : undefined}
+          data-label={String(item.label)}
           onClick={item.go}
         >
           <Icon path={item.icon} size={19} weight={1.6} />
@@ -381,6 +382,57 @@ function DropProgress({ v }: { v: OpsVals }) {
   );
 }
 
+const RAIL_KEY = 'hc-rail-collapsed-v1';
+let railMemory = false;
+const railListeners = new Set<() => void>();
+
+/** Where the rail's fold is kept on this device; memory only when storage is blocked. */
+function readRail(): boolean {
+  try {
+    return window.localStorage.getItem(RAIL_KEY) === '1';
+  } catch {
+    return railMemory;
+  }
+}
+function writeRail(collapsed: boolean): void {
+  railMemory = collapsed;
+  try {
+    window.localStorage.setItem(RAIL_KEY, collapsed ? '1' : '0');
+  } catch {
+    // Not kept; the memory value still drives this tab.
+  }
+  railListeners.forEach((listener) => listener());
+}
+function subscribeRail(listener: () => void): () => void {
+  railListeners.add(listener);
+  window.addEventListener('storage', listener);
+  return () => {
+    railListeners.delete(listener);
+    window.removeEventListener('storage', listener);
+  };
+}
+
+/**
+ * The rail folds to an icon column (espresso glass, Ethan 16 Nov 2026, from the "Glassy SideBar" references). The
+ * server always renders it open and the device's choice applies after hydration (AGENTS.md: storage never in an
+ * initialiser). "[" toggles it, except while typing.
+ */
+function useRailCollapsed(): [boolean, () => void] {
+  const collapsed = useSyncExternalStore(subscribeRail, readRail, () => false);
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== '[' || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))
+        return;
+      writeRail(!readRail());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  return [collapsed, () => writeRail(!readRail())];
+}
+
 export function OwnerWorkspace({
   v,
   screen,
@@ -393,6 +445,7 @@ export function OwnerWorkspace({
   onAccount: () => void;
 }) {
   const title = !v.denied && typeof v.pageTitle === 'string' ? v.pageTitle : 'The Happy Cookie';
+  const [railCollapsed, toggleRail] = useRailCollapsed();
   useEffect(() => {
     if (isLiveMode())
       document.title = title === 'The Happy Cookie' ? title : `${title} · The Happy Cookie`;
@@ -457,8 +510,32 @@ export function OwnerWorkspace({
       className={`${styles.workspace} ${theme.theme}`}
       data-refined-frame
       data-owner-theme="neutral-glass"
+      data-rail={railCollapsed ? 'collapsed' : 'open'}
     >
       <aside className={styles.rail}>
+        <button
+          type="button"
+          className={styles.railToggle}
+          aria-label={railCollapsed ? 'Open the menu' : 'Fold the menu to icons'}
+          aria-expanded={!railCollapsed}
+          title={railCollapsed ? 'Open the menu ([)' : 'Fold the menu ([)'}
+          onClick={toggleRail}
+        >
+          <span aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d={railCollapsed ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} />
+            </svg>
+          </span>
+        </button>
         <div className={styles.brand}>
           <Image src="/assets/mark.png" alt="" width={30} height={30} unoptimized />
           <span>

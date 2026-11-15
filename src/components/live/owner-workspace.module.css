@@ -687,3 +687,118 @@
     background: #fff;
   }
 }
+
+/* The rail folds to icons (76 px panel). Labels stay in the DOM for screen readers and show as a tooltip on hover or
+   keyboard focus; badges sit on the icon; the drop card and the owner's name step aside. */
+.workspace {
+  transition: grid-template-columns 240ms cubic-bezier(0.3, 0, 0.1, 1);
+}
+.rail {
+  z-index: 45;
+}
+.railToggle {
+  position: absolute;
+  top: 18px;
+  right: -22px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+}
+.railToggle > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+  transition: transform 160ms ease;
+}
+.railToggle:hover > span {
+  transform: scale(1.08);
+}
+.navigation button {
+  position: relative;
+}
+.workspace[data-rail='collapsed'] {
+  --workspace-sidebar: 108px;
+  grid-template-columns: 108px minmax(0, 1fr);
+}
+.workspace[data-rail='collapsed'] .rail {
+  align-items: center;
+  padding-inline: 12px;
+}
+.workspace[data-rail='collapsed'] .brand {
+  justify-content: center;
+  padding: 0;
+}
+.workspace[data-rail='collapsed'] .brand > span,
+.workspace[data-rail='collapsed'] .owner > span:not(.avatar),
+.workspace[data-rail='collapsed'] .dropCard {
+  display: none;
+}
+.workspace[data-rail='collapsed'] .owner {
+  justify-content: center;
+  margin-top: auto;
+  padding-inline: 0;
+}
+.workspace[data-rail='collapsed'] .navigation button {
+  justify-content: center;
+  width: 52px;
+  padding: 0;
+}
+.workspace[data-rail='collapsed'] .navigation button > span:not(.badge) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.workspace[data-rail='collapsed'] .navigation .badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  margin: 0;
+}
+.workspace[data-rail='collapsed'] .navigation button:hover::after,
+.workspace[data-rail='collapsed'] .navigation button:focus-visible::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 14px);
+  z-index: 60;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.96);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: tipIn 140ms ease-out;
+}
+@keyframes tipIn {
+  from {
+    opacity: 0;
+    transform: translate(-4px, -50%);
+  }
+}
+@media (max-width: 650px) {
+  .railToggle {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace {
+    transition: none;
+  }
+}
