@@ -75,7 +75,7 @@ describe('visual plain-language product editor', () => {
     expect(
       screen.getByLabelText('Shop label (optional)').getAttribute('aria-describedby')
     ).toBeTruthy();
-    expect(screen.getByText('Shown beside the cookie name.')).toBeTruthy();
+    expect(screen.getByText('Shown beside the name on the order form.')).toBeTruthy();
     expect(imageField().type).toBe('hidden');
     expect(imageField().value).toBe(fields.imagePath);
     fireEvent.submit(form());
@@ -121,12 +121,63 @@ describe('visual plain-language product editor', () => {
     expect(second.save).not.toHaveBeenCalled();
   });
 
-  it('lets an item stored at 0 cookie slots be saved again (migration 86)', () => {
-    render(<LiveFormHost v={vals(editor({ itemType: 'item', capacityWeight: 0 }))} />);
-    const weight = form().elements.namedItem('capacityWeight') as HTMLInputElement;
-    expect(weight.value).toBe('0');
-    // The browser blocks Save on an invalid field; 0 must be valid here.
-    expect(weight.checkValidity()).toBe(true);
+  const typeOptions = [
+    { id: 'cookie', label: 'Cookie', behavesAs: 'cookie' as const },
+    { id: 'set', label: 'Set', behavesAs: 'set' as const },
+    { id: 'ice-cream', label: 'Ice cream', behavesAs: 'item' as const }
+  ];
+  const item = () =>
+    editor({ itemType: 'item', typeId: 'ice-cream', capacityWeight: 0, typeOptions });
+  const weightField = () => form().elements.namedItem('capacityWeight') as HTMLInputElement;
+  const typeField = () => form().elements.namedItem('typeId') as HTMLSelectElement;
+
+  it('lets an item stored at 0 cookie slots be saved again, with no slot field to fill (migration 86)', () => {
+    const edit = item();
+    render(<LiveFormHost v={vals(edit)} />);
+    expect(screen.queryByLabelText('Cookies counted toward the order limit')).toBeNull();
+    expect(screen.getByText(/uses no cookie slots/)).toBeTruthy();
+    expect(weightField().value).toBe('0');
+    // The browser blocks Save on an invalid field: the form must be valid as it opens.
     expect(form().checkValidity()).toBe(true);
+    fireEvent.submit(form());
+    expect(edit.save).toHaveBeenCalledWith(
+      expect.objectContaining({ itemType: 'item', typeId: 'ice-cream', capacityWeight: 0 })
+    );
+  });
+
+  it('shows the slot field from 1 when an item becomes a cookie, and hides it again for an item', () => {
+    const edit = item();
+    render(<LiveFormHost v={vals(edit)} />);
+    fireEvent.change(typeField(), { target: { value: 'cookie' } });
+    const weight = screen.getByLabelText(
+      'Cookies counted toward the order limit'
+    ) as HTMLInputElement;
+    expect(weight.value).toBe('1');
+    expect(form().checkValidity()).toBe(true);
+    fireEvent.submit(form());
+    expect(edit.save).toHaveBeenLastCalledWith(
+      expect.objectContaining({ itemType: 'cookie', typeId: 'cookie', capacityWeight: 1 })
+    );
+    fireEvent.change(typeField(), { target: { value: 'ice-cream' } });
+    expect(screen.queryByLabelText('Cookies counted toward the order limit')).toBeNull();
+  });
+
+  it('keeps a cookie’s own slot count and a cookie at 0 stays invalid in the browser', () => {
+    render(<LiveFormHost v={vals(editor({ capacityWeight: 3, typeOptions }))} />);
+    expect(weightField().value).toBe('3');
+    fireEvent.change(weightField(), { target: { value: '0' } });
+    expect(weightField().checkValidity()).toBe(false);
+  });
+
+  it('names the cost per piece for an item and per cookie for a cookie', () => {
+    const { unmount } = render(<LiveFormHost v={vals(item())} />);
+    expect(
+      screen.getByText('The cost per piece appears here once the product is on the menu.')
+    ).toBeTruthy();
+    unmount();
+    render(<LiveFormHost v={vals(editor())} />);
+    expect(
+      screen.getByText('The cost per cookie appears here once the product is on the menu.')
+    ).toBeTruthy();
   });
 });
