@@ -608,7 +608,7 @@ export function OwnerWorkspace({
             </button>
           </div>
         </header>
-        <main key={screen} className={styles.main}>
+        <main key={screen} data-screen={screen} className={styles.main}>
           {pageForm ? <PageForm key={pageForm.title} v={v} page={pageForm} /> : null}
           {/* The page under a settings form stays mounted, so its selection and scroll survive the form. */}
           <div hidden={!!pageForm} className={styles.screenBody}>

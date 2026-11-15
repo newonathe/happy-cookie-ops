@@ -1,0 +1,430 @@
+/*
+ * Espresso glass (approved 16 Nov 2026; mockups in design-handoff/mockups, glass.css and anim.js).
+ * The `.glass*` block is generic on purpose: later pages float their cards on the espresso with the same classes.
+ * Colours are tokens or a white or coffee wash; the rim is the approved 1px gradient (padding-box fill over a
+ * border-box gradient), so the page needs no second border.
+ */
+
+/* ---- Glass recipe (reusable) ------------------------------------------------------------------------------ */
+.glassCard,
+.glassSlot > section {
+  border: 1px solid transparent;
+  border-radius: 24px;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.88), rgb(255 255 255 / 0.88)) padding-box,
+    linear-gradient(
+        135deg,
+        rgb(255 200 155 / 0.95),
+        rgb(255 255 255 / 0.35) 42%,
+        rgb(231 95 35 / 0.65)
+      )
+      border-box;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 12px 32px rgb(0 0 0 / 0.28);
+  color: var(--color-ink);
+}
+.glassCard {
+  position: relative;
+  container-type: inline-size;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+/* The page cascade animates `transform` with fill-mode both, which would hold the lift off; `translate` is free. */
+@media (hover: hover) and (pointer: fine) {
+  .glassCard {
+    transition:
+      translate 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 180ms ease;
+  }
+  .glassCard:hover {
+    translate: 0 -4px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 18px 40px rgb(0 0 0 / 0.34);
+  }
+}
+@media (max-width: 650px) {
+  .glassCard {
+    gap: 12px;
+    padding: 16px;
+  }
+  .glassCard,
+  .glassSlot > section {
+    border-radius: 20px;
+    background:
+      linear-gradient(rgb(255 255 255 / 0.93), rgb(255 255 255 / 0.93)) padding-box,
+      linear-gradient(
+          135deg,
+          rgb(255 200 155 / 0.95),
+          rgb(255 255 255 / 0.35) 42%,
+          rgb(231 95 35 / 0.65)
+        )
+        border-box;
+  }
+}
+/* Inner rows and wells: a lighter white inside the card, radius 14. */
+.glassRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.glassRows > button,
+.glassWell {
+  min-height: 56px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+.glassRows > button:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.glassRows > button:focus-visible,
+.tile:focus-visible,
+.stat:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.glassMore {
+  min-height: 44px;
+  border-radius: 14px;
+  background: rgb(58 31 20 / 0.06);
+}
+
+/* ---- Home layout: 12 columns, gap 24; one column and gap 12 on a phone ---------------------------------- */
+.home {
+  display: grid;
+  width: 100%;
+  max-width: 1600px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.span12,
+.spanHero,
+.spanSide,
+.spanHalf,
+.spanThird,
+.spanTwoThirds {
+  grid-column: 1 / -1;
+}
+@media (min-width: 651px) {
+  .home {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .spanHalf {
+    grid-column: span 6;
+  }
+}
+/* From 1000 px, "Needs you" runs down the right beside the month and the orders and stock cards under it, so a long
+   list fills its column instead of stretching the month card around empty space. A short list keeps its own height. */
+@media (min-width: 1000px) {
+  .spanHero {
+    grid-column: span 8;
+  }
+  .spanSide {
+    grid-column: span 4;
+    grid-row: span 2;
+    align-self: start;
+  }
+  .spanHalf {
+    grid-column: span 4;
+  }
+  .spanTwoThirds {
+    grid-column: span 8;
+  }
+  .spanThird {
+    grid-column: span 4;
+  }
+}
+
+/* ---- Hero ------------------------------------------------------------------------------------------------ */
+.heroFigure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+}
+.ring {
+  position: relative;
+  display: grid;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+  place-items: center;
+}
+.ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ringTrack {
+  fill: none;
+  stroke: rgb(58 31 20 / 0.1);
+  stroke-width: 12;
+}
+.ringArc {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 12;
+  stroke-linecap: round;
+  animation: ringDraw 700ms cubic-bezier(0.33, 1, 0.68, 1) 200ms both;
+}
+@keyframes ringDraw {
+  from {
+    stroke-dasharray: 0 var(--circ);
+  }
+}
+
+/* ---- Split bars (orders, stock) ---------------------------------------------------------------------------- */
+.splitBar {
+  display: flex;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(58 31 20 / 0.08);
+}
+.segment {
+  min-width: 6px;
+  transform-origin: left;
+  animation: grow 500ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation-delay: calc(300ms + var(--i, 0) * 40ms);
+}
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stat {
+  display: flex;
+  min-height: 72px;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  text-align: left;
+}
+button.stat:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+/* ---- Quick action tiles -------------------------------------------------------------------------------------- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+.tile {
+  display: flex;
+  min-height: 72px;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  color: var(--color-ink);
+  text-align: left;
+}
+.tile:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.tileIcon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(231 95 35 / 0.12);
+  color: var(--color-brand-deep);
+}
+.tileIcon svg,
+.chipIcon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chipIcon {
+  width: 14px;
+  height: 14px;
+}
+.badge {
+  display: inline-grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Contrast and transparency preferences: a solid card. Motion: everything at its final value at once. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glassCard,
+  .glassSlot > section {
+    border-color: var(--color-line);
+    background: var(--color-surface);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .segment,
+  .ringArc {
+    animation: none;
+  }
+  .glassCard:hover {
+    translate: none;
+  }
+}
+
+/* A count's label sits under its figure with the tile's full width, so two-word labels break once, evenly. */
+.statLabel {
+  font-size: var(--text-caption);
+  line-height: 1.3;
+  color: var(--color-ink-mute);
+  text-wrap: balance;
+}
+/* Income and expenses: label-left rows on a phone, figure-over-label cards from 640 px; always at the card's foot. */
+.moneyWells {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: auto 0 0;
+}
+.moneyWells > .glassWell {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.moneyWells dt {
+  font-size: var(--text-label);
+  color: var(--color-ink-mute);
+}
+.moneyWells dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+@media (min-width: 640px) {
+  .moneyWells {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .moneyWells > .glassWell {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .moneyWells dt {
+    font-size: var(--text-caption);
+  }
+  .moneyWells dd {
+    font-size: 22px;
+  }
+}
+@media (min-width: 768px) {
+  .moneyWells dd {
+    font-size: 28px;
+  }
+}
+.ringNum {
+  font-size: var(--text-title);
+}
+.ringCap {
+  font-size: var(--text-caption);
+}
+/* On a phone the ring sits beside the figure instead of under it: a smaller ring, the figure scaled to the width. */
+@media (max-width: 650px) {
+  .heroFigure {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+  .ring {
+    width: 84px;
+    height: 84px;
+  }
+  .ringNum {
+    font-size: 20px;
+  }
+  .ringCap {
+    font-size: 12px;
+  }
+}
+/* The stock counts: two by two, all four in a row once the card has room for them. */
+@container (min-width: 520px) {
+  .legend {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* The three order counts: side by side when the card has room, one row each in a narrow card. */
+.orderTiles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.orderTiles > .stat {
+  min-height: 56px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+@container (min-width: 300px) {
+  .orderTiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .orderTiles > .stat {
+    min-height: 72px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 4px;
+  }
+}
+@container (min-width: 380px) {
+  .orderTiles {
+    gap: 12px;
+  }
+}
