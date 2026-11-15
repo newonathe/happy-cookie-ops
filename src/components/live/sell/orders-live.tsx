@@ -5,7 +5,7 @@ import type { OpsVals } from '@/view-models/vals';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
-import { HeadedPanel, PageTitle, Panel } from '@/components/ui/owner-kit';
+import { PANEL_CLASS, PageTitle, Panel } from '@/components/ui/owner-kit';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { ordersRead } from '@/lib/orders/orders-read-state';
 import { orderActionWord, orderStatusWord } from '@/lib/orders/owner-words';
@@ -24,6 +24,14 @@ const GROUP_ORDER = [
 ] as const;
 type GroupName = (typeof GROUP_ORDER)[number];
 
+/** The status dot of a pipeline column (wide screens only). */
+const GROUP_DOT: Record<GroupName, string> = {
+  'To prepare': 'bg-warn-dot',
+  'Ready for customer pickup': 'bg-ok',
+  'Payments & other orders': 'bg-brand',
+  Closed: 'bg-ink-mute'
+};
+
 const groupOf = (order: Row): GroupName => {
   const word = String(order.label).toLowerCase();
   if (word.includes('paid') && !word.includes('unpaid')) return 'To prepare';
@@ -35,15 +43,18 @@ const groupOf = (order: Row): GroupName => {
   return 'Payments & other orders';
 };
 
-/** One order. The row opens it; a button stays only for a next step that changes the order. */
+/**
+ * One order. The row opens it; a button stays only for a next step that changes the order.
+ * Below `lg` it is a list row; from `lg` the same markup is an inset card in a pipeline column.
+ */
 function OrderRow({ order }: { order: Row }) {
   const next = order.review ? '' : orderActionWord(order.action);
   return (
-    <div className="flex flex-wrap items-center gap-x-3 border-b border-divide pr-4 last:border-b-0 hover:bg-raise">
+    <div className="flex flex-wrap items-center gap-x-3 border-b border-divide pr-4 last:border-b-0 hover:bg-raise lg:flex-col lg:flex-nowrap lg:items-stretch lg:gap-x-0 lg:rounded-2xl lg:border lg:border-owner-line lg:bg-owner-raise lg:p-3.5 lg:last:border-b">
       <button
         type="button"
         onClick={order.go}
-        className="flex min-h-16 min-w-0 flex-1 basis-56 flex-col gap-1 py-3 pl-4 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
+        className="flex min-h-16 min-w-0 flex-1 basis-56 flex-col gap-1 py-3 pl-4 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand lg:flex-none lg:basis-auto lg:p-0"
       >
         <span className="flex flex-wrap items-baseline gap-x-2">
           <span className="text-body font-semibold text-ink">{order.name}</span>
@@ -60,7 +71,12 @@ function OrderRow({ order }: { order: Row }) {
         {order.warn ? <span className="text-caption text-danger">{order.warn}</span> : null}
       </button>
       {next ? (
-        <Button variant="secondary" size="sm" onClick={order.act}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={order.act}
+          className="lg:mt-2 lg:self-end lg:whitespace-nowrap"
+        >
           {next}
         </Button>
       ) : null}
@@ -74,9 +90,10 @@ function OrderRow({ order }: { order: Row }) {
  */
 export function OrdersLive({ v }: { v: OpsVals }) {
   const orders = v.orderList ?? [];
+  // Every group is kept: an empty one is hidden on a phone and stays a column from `lg`.
   const ordered = GROUP_ORDER.map(
     (name) => [name, orders.filter((order) => groupOf(order) === name)] as const
-  ).filter(([, rows]) => rows.length > 0);
+  );
   const review = v.orderFilters?.find((filter) => filter.label === 'To review');
   // HCB-002a: what the order read has achieved. Until a read has answered, nothing is listed or
   // counted, so no empty result, zero count or tally is shown for data that was never read.
@@ -177,19 +194,43 @@ export function OrdersLive({ v }: { v: OpsVals }) {
         ) : null}
       </div>
 
-      <div className="mb-4 flex flex-col gap-4">
-        {v.orderEmpty && read.dropped === 0 ? (
+      {v.orderEmpty && read.dropped === 0 ? (
+        <div className="mb-4">
           <Panel>
             <p className="text-body font-semibold text-ink">No orders match this filter</p>
             <p className="text-caption text-ink-mute">Try another filter, or clear the search.</p>
           </Panel>
-        ) : null}
+        </div>
+      ) : null}
+      <div className="mb-4 flex flex-col gap-4 lg:grid lg:auto-cols-[minmax(250px,1fr)] lg:grid-flow-col lg:items-start lg:gap-6 lg:overflow-x-auto">
         {ordered.map(([label, rows]) => (
-          <HeadedPanel key={label} title={`${label} (${rows.length})`}>
-            {rows.map((order) => (
-              <OrderRow key={String(order.id)} order={order} />
-            ))}
-          </HeadedPanel>
+          <section
+            key={label}
+            aria-label={`${label} (${rows.length})`}
+            className={cx(
+              PANEL_CLASS,
+              'min-w-0',
+              rows.length === 0 && 'hidden lg:block',
+              'lg:overflow-visible lg:rounded-[24px] lg:border-owner-line lg:bg-owner-glass lg:p-4 lg:shadow-owner-glass'
+            )}
+          >
+            <div className="flex min-h-[52px] flex-wrap items-center gap-x-3 border-b border-divide px-4 py-1 lg:min-h-0 lg:flex-nowrap lg:gap-x-2 lg:border-b-0 lg:px-1 lg:pt-0 lg:pb-3">
+              <span
+                aria-hidden="true"
+                className={cx('hidden size-2 shrink-0 rounded-full lg:block', GROUP_DOT[label])}
+              />
+              <h2 className="text-body font-semibold text-ink lg:text-heading">
+                {`${label} (${rows.length})`}
+              </h2>
+            </div>
+            <div className="lg:flex lg:flex-col lg:gap-3">
+              {rows.length === 0 ? (
+                <p className="px-1 py-2 text-caption text-ink-mute">Nothing here</p>
+              ) : (
+                rows.map((order) => <OrderRow key={String(order.id)} order={order} />)
+              )}
+            </div>
+          </section>
         ))}
       </div>
 
