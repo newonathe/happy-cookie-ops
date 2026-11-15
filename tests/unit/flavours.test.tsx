@@ -372,6 +372,7 @@ describe('MP-09 c1: flavours from the database', () => {
         'name',
         'price_cents',
         'short_name',
+        'sold_by_piece',
         'sort_order',
         'tag'
       ].sort()
@@ -383,6 +384,16 @@ describe('MP-09 c1: flavours from the database', () => {
     expect(migration).toContain(
       'select id, name, short_name, price_cents, kind, tag, description, image_path, sort_order, allergens\nfrom public.products where published and active;'
     );
+    // Migration 87 adds one flag, last; the view still exposes no cost, weight or switch.
+    const flag = readFileSync(
+      join(process.cwd(), 'supabase/migrations/20260101008700_profit_goal_and_menu_types.sql'),
+      'utf8'
+    );
+    const view = flag.slice(flag.indexOf('create or replace view public.shop_products'));
+    expect(view).toMatch(
+      /allergens,\s+\(item_type = 'item'\) as sold_by_piece\s+from public\.products where published and active;/
+    );
+    expect(view).not.toMatch(/cost|capacity_weight|published,|active,/i);
   });
 });
 /** MP-09 c1b: prices through `save_flavour`, `publish_flavours`, and the live shop's menu. */
@@ -610,6 +621,7 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
   });
 
   const shopRow = (row: FlavourRow): ShopFlavourRow => ({
+    sold_by_piece: row.item_type === 'item',
     id: row.id,
     name: row.name,
     short_name: row.short_name,

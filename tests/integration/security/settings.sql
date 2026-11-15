@@ -121,7 +121,7 @@ declare cap_value bigint; row_count integer;
 begin
   select int_value into cap_value from public.get_settings() where key = 'capacity';
   select count(*) into row_count from public.get_settings();
-  if cap_value is distinct from 200 or row_count <> 29 then
+  if cap_value is distinct from 200 or row_count <> 30 then
     raise exception 'get_settings owner projection differs: %', actor;
   end if;
   insert into pg_temp.authority_results values ('get_settings', actor, 'full_projection');

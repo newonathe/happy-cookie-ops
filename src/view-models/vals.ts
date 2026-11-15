@@ -485,6 +485,11 @@ export interface OpsVals {
   liveMake?: LiveMake | null;
   /** Live owner only: Home's facts, each null until its own source has loaded. */
   liveHome?: LiveHome | null;
+  /**
+   * The month's profit goal (Ethan, 16 Nov 2026; settings key `profitGoal`, migration 87), in pesos, with this month's
+   * profit from the books (null until read). Null when the goal is not known yet (before migration 87, or demo).
+   */
+  profitGoal?: { goal: number; profit: number | null; set: (pesos: number) => void } | null;
   /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */
   liveOrderExtras?: {
     online: boolean;

@@ -363,6 +363,25 @@ function ownerSellingInFrame(v: OpsVals, screen: string): boolean {
  * with confirmed and pending in the bar. It is the engine's own drop figures, and it opens the drop page.
  */
 function DropProgress({ v }: { v: OpsVals }) {
+  const goal = v.profitGoal;
+  if (goal && goal.profit !== null) {
+    const pct = Math.max(0, Math.min(100, Math.round((goal.profit / goal.goal) * 100)));
+    return (
+      <div className={styles.dropCard}>
+        <span className={styles.dropTop}>
+          <span>Goal this month</span>
+          <b>{pct}%</b>
+        </span>
+        <span className={styles.dropBar} aria-hidden="true">
+          <span style={{ width: `${pct}%`, background: 'var(--color-accent)' }} />
+        </span>
+        <small>
+          ₱{Math.round(goal.profit).toLocaleString('en-PH')} of ₱
+          {Math.round(goal.goal).toLocaleString('en-PH')}
+        </small>
+      </div>
+    );
+  }
   const cap = v.drop2?.capValue;
   if (cap === undefined || cap === null || cap === '' || cap === 0) return null;
   return (

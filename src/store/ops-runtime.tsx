@@ -2846,6 +2846,24 @@ export class OpsRuntime extends OpsProvider {
    * The sampler card on the customer shop says which cookies are inside, from the owner's saved list
    * (`get_shop_extras`, published cookies only). The engine builds the cards in this same filtered order.
    */
+  /**
+   * The month's profit goal for the rail and Money (Ethan, 16 Nov 2026). The goal is the owner's setting (`profitGoal`,
+   * pesos in the engine's cfg, centavos in the database); until migration 87 is applied the key never arrives and this
+   * stays null, so the rail keeps showing the drop. Saving goes through `setCfg`, which queues `save_setting`.
+   */
+  private profitGoalVals(starved: OpsVals): OpsVals['profitGoal'] {
+    if (!isLiveMode() || this.state.role !== 'owner') return null;
+    const raw = (this.state.cfg as Record<string, unknown> | undefined)?.profitGoal;
+    if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return null;
+    const month = this.liveHomeVals(starved)?.month ?? null;
+    return {
+      goal: raw,
+      profit: month ? month.profit : null,
+      set: (pesos: number) =>
+        this.setCfg('profitGoal', Math.max(0, Math.min(1000000, Math.round(pesos))))
+    };
+  }
+
   private liveShopSampler(rows: OpsVals['shopFlavours']): OpsVals['shopFlavours'] {
     const sampler = this.orderFlow?.extras?.sampler;
     const flavours = sampler?.flavours ?? [];
@@ -3229,11 +3247,29 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  /** Product id → sold by the piece, from the public menu (migration 87); empty until the menu is read. */
+  private soldByPiece = new Map<string, boolean>();
+
+  /** True when every product in the customer's cart is known to be a cookie (or a cookie set). */
+  private cartAllCookies(): boolean {
+    const box = (this.state.cust as { box?: Record<string, number> } | undefined)?.box ?? {};
+    const ids = Object.keys(box).filter((id) => (box[id] ?? 0) > 0);
+    if (ids.length === 0) return false;
+    return ids.every((id) => {
+      if (this.soldByPiece.has(id)) return this.soldByPiece.get(id) === false;
+      const row = this.flavourSync?.current().find((flavour) => flavour.id === id);
+      return row ? row.item_type !== 'item' : false;
+    });
+  }
+
   private shopMenu = new ShopMenuRead({
     active: () => !this.unmounted && !this.flavourSync,
     canRetry: () => this.onCustomerScreen(),
     online: () => Boolean(this.state.online),
     apply: (rows) => {
+      this.soldByPiece = new Map(
+        rows.filter((row) => row.id).map((row) => [String(row.id), row.sold_by_piece === true])
+      );
       const { list, allergens, onMenu } = shopCatalogue(
         rows,
         PRODUCTS.map((p) => ({ ...p })),
@@ -3993,6 +4029,7 @@ export class OpsRuntime extends OpsProvider {
       liveMake: this.state.role === 'owner' && isLiveMode() ? this.makeDesk.vals() : null,
       liveCustomers: this.state.role === 'owner' && isLiveMode() ? this.customerDesk.vals() : null,
       liveHome: this.liveHomeVals(starved),
+      profitGoal: this.profitGoalVals(starved),
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
       ...health,
@@ -4085,7 +4122,7 @@ export class OpsRuntime extends OpsProvider {
       events: [] as OpsVals['events'],
       cust: {
         ...this.liveStatusCust(this.livePayCust(starved.cust)),
-        countText: cartWords(starved).countText
+        countText: cartWords(starved, this.cartAllCookies()).countText
       },
       liveStatusRead: this.liveStatusReadVals(),
       liveCustomerPayment: this.liveCustomerPaymentVals(),
@@ -4130,8 +4167,8 @@ export class OpsRuntime extends OpsProvider {
       },
       ...(this.onCustomerScreen() ? openingTimesBanner(starved, this.shopAvailability.view()) : {}),
       // The cart's words hold for cookies and items alike: the shop's menu does not carry product types.
-      boxCountText: cartWords(starved).boxCountText,
-      boxTitle: cartWords(starved).boxTitle,
+      boxCountText: cartWords(starved, this.cartAllCookies()).boxCountText,
+      boxTitle: cartWords(starved, this.cartAllCookies()).boxTitle,
       shopFlavours: this.liveShopSampler(starved.shopFlavours).map((flavour) =>
         /confirmation required/i.test(String(flavour.allergens))
           ? { ...flavour, allergens: 'Allergens: please ask us before ordering.' }

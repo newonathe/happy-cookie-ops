@@ -2411,6 +2411,7 @@ export type Database = {
           name: string | null
           price_cents: number | null
           short_name: string | null
+          sold_by_piece: boolean | null
           sort_order: number | null
           tag: string | null
         }
@@ -2423,6 +2424,7 @@ export type Database = {
           name?: string | null
           price_cents?: number | null
           short_name?: string | null
+          sold_by_piece?: boolean | null
           sort_order?: number | null
           tag?: string | null
         }
@@ -2435,6 +2437,7 @@ export type Database = {
           name?: string | null
           price_cents?: number | null
           short_name?: string | null
+          sold_by_piece?: boolean | null
           sort_order?: number | null
           tag?: string | null
         }
