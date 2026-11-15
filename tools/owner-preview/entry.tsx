@@ -41,6 +41,9 @@ const shopExtras = {same_day_enabled:false,same_day_percent:20,same_day_on_extra
 (window as unknown as {qaShopWrites:unknown[]}).qaShopWrites = [];
 const flavours = PRODUCTS.map((p,i)=>({id:p.id,name:p.name,short_name:p.short,price_cents:Math.round(p.price*100),kind:p.kind,item_type:'cookie',capacity_weight:1,tag:p.tag,description:p.desc,image_path:p.img,allergens:'milk, eggs, wheat',active:p.id!=='nch',published:true,sort_order:i,updated_at:'2026-10-01T00:00:00.000Z'}));
 flavours.push({...flavours[0],id:'sampler',name:'Sampler box',short_name:'Sampler',item_type:'set',kind:'set',price_cents:42000,sort_order:99});
+// Migration 84/86: one of her item types and an ice cream product of it (0 cookie slots).
+flavours.push({...flavours[0],id:'vanilla-ice-cream',name:'Vanilla ice cream',short_name:'Ice cream',item_type:'item',kind:'Permanent',capacity_weight:0,price_cents:15000,tag:'',description:'One scoop in a cup.',allergens:'milk',sort_order:100});
+const productTypes={types:[{id:'cookie',label:'Cookie',behaves_as:'cookie',sort_order:0,active:true,built_in:true,updated_at:'2026-11-14T00:00:00Z'},{id:'set',label:'Set',behaves_as:'set',sort_order:1,active:true,built_in:true,updated_at:'2026-11-14T00:00:00Z'},{id:'ice-cream',label:'Ice cream',behaves_as:'item',sort_order:2,active:true,built_in:false,updated_at:'2026-11-14T00:00:00Z'}],products:Object.fromEntries(flavours.map((f)=>[f.id,f.item_type==='item'?'ice-cream':f.item_type==='set'?'set':'cookie']))};
 const source = {
   id: 'qa-flour', name: 'All-purpose flour', category: 'Ingredients', unit: 'g', on_hand: 800,
   par_level: 100, pack_size: 1000, pack_label: '1 kg', supplier_id: null, use_by_days: null,
@@ -89,6 +92,7 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
     l.price_cents=c.priceCents; w.qaPriceVersion=(w.qaPriceVersion??0)+1;
     return {data:{version:w.qaPriceVersion,latest:w.qaPriceVersion,prices:list(),duplicate:false},error:null};
   }
+  if(name==='get_product_types') return {data:productTypes,error:null};
   if(name==='get_scheduled_events') return {data:[{...historyAnswer.summary.booking,started:true,updated_at:'2026-10-20T02:00:00Z'}],error:null};
   if(name==='get_bazaar') return {data:historyAnswer,error:null};
   if(name==='get_shop_status') return {data:{open_dow:1,open_h:9,open_m:0,close_dow:4,close_h:21,close_m:0,extend_h:0,override:null},error:null};
