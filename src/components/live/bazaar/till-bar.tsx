@@ -8,13 +8,7 @@ import { PageTitle } from '@/components/ui/owner-kit';
 
 export function TillBack({ onBack }: { onBack: () => void }) {
   return (
-    <Button
-      size="sm"
-      variant="ghost"
-      onClick={onBack}
-      aria-label="Back to events"
-      title="Back to events"
-    >
+    <Button size="sm" variant="ghost" onClick={onBack}>
       <svg
         width="18"
         height="18"
@@ -26,7 +20,7 @@ export function TillBack({ onBack }: { onBack: () => void }) {
       >
         <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      Back
+      Back to events
     </Button>
   );
 }
