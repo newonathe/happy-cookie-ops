@@ -21,7 +21,7 @@ describe('fluid customer checkout', () => {
     const v = fixture(),
       ui = render(<CustomerCheckoutLive v={v} />);
     expect(ui.getByText('About you')).toBeTruthy();
-    expect(ui.getByText('Cookie subtotal')).toBeTruthy();
+    expect(ui.getByText('Subtotal')).toBeTruthy();
     expect(
       within(ui.getByRole('complementary', { name: 'Order summary' })).getAllByText('₱250')
     ).toHaveLength(2);
