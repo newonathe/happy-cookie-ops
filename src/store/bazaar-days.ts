@@ -875,11 +875,11 @@ export class BazaarDays {
             },
       scratchTest:
         data.finalised && !data.reversedAt
-        ? {
-            blocked: !online ? COPY.scratchNeedsSignal : this.unsentFor(booking.id),
-            run: (name) => this.scratchTest(booking, data, name)
-          }
-        : null,
+          ? {
+              blocked: !online ? COPY.scratchNeedsSignal : this.unsentFor(booking.id),
+              run: (name) => this.scratchTest(booking, data, name)
+            }
+          : null,
       unplanned: data.finalised
         ? []
         : datesBetween(data.booking.startsOn, data.booking.endsOn)
