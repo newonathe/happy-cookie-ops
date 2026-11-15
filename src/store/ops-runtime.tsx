@@ -15,6 +15,7 @@ import { CustomerOrderSources } from '@/store/customer-order-sources';
 import { ShopMenuRead } from '@/store/shop-menu-read';
 import { ShopAvailabilityRead } from '@/store/shop-availability-read';
 import { ShopOverrideWrites, shopOverrideMode } from '@/store/shop-override-writes';
+import { cartWords } from '@/lib/orders/cart-words';
 import { openingTimesBanner } from '@/components/live/customer-opening-status';
 import { ScopedRecipeEdits } from '@/lib/recipes/scoped-edits';
 import {
@@ -4082,7 +4083,10 @@ export class OpsRuntime extends OpsProvider {
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
       // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
       events: [] as OpsVals['events'],
-      cust: this.liveStatusCust(this.livePayCust(starved.cust)),
+      cust: {
+        ...this.liveStatusCust(this.livePayCust(starved.cust)),
+        countText: cartWords(starved).countText
+      },
       liveStatusRead: this.liveStatusReadVals(),
       liveCustomerPayment: this.liveCustomerPaymentVals(),
       openLookup: () => {
@@ -4125,6 +4129,9 @@ export class OpsRuntime extends OpsProvider {
         closeEarly: this.shopOverrideAction(starved.drop2.closeEarly)
       },
       ...(this.onCustomerScreen() ? openingTimesBanner(starved, this.shopAvailability.view()) : {}),
+      // The cart's words hold for cookies and items alike: the shop's menu does not carry product types.
+      boxCountText: cartWords(starved).boxCountText,
+      boxTitle: cartWords(starved).boxTitle,
       shopFlavours: this.liveShopSampler(starved.shopFlavours).map((flavour) =>
         /confirmation required/i.test(String(flavour.allergens))
           ? { ...flavour, allergens: 'Allergens: please ask us before ordering.' }

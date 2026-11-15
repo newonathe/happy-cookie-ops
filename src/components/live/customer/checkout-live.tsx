@@ -39,7 +39,7 @@ export function CustomerCheckoutLive({ v }: { v: OpsVals }) {
             ))}
           </ul>
           <p className="text-sm text-ink-soft">{v.cust.countText}</p>
-          <p className="mt-4 text-sm font-semibold">{placed ? 'Order total' : 'Cookie subtotal'}</p>
+          <p className="mt-4 text-sm font-semibold">{placed ? 'Order total' : 'Subtotal'}</p>
           <p className="my-2 text-2xl font-bold">{placed?.totalText ?? v.cust.totalText}</p>
           <p className="text-sm text-ink-soft">{v.cust.priceNote}</p>
         </aside>
