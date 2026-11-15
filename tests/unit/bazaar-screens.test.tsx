@@ -671,6 +671,7 @@ const eventView = (over: Partial<BazaarEventView> = {}): BazaarEventView => ({
   planDay: noop,
   back: noop,
   deleteEvent: null,
+  scratchTest: null,
   ...over
 });
 
@@ -1685,6 +1686,97 @@ describe('End event: delete an event that never sold', () => {
     const button = screen.getByRole('button', { name: 'Delete this event' }) as HTMLButtonElement;
     expect(button.disabled || button.getAttribute('aria-disabled') === 'true').toBe(true);
     expect(screen.getByText(/still has 2 sales for this event/)).toBeTruthy();
+  });
+});
+
+describe('Scratch a closed test event', () => {
+  const closedTest = (
+    run = vi.fn(async (): Promise<string | null> => null),
+    blocked: string | null = null
+  ) =>
+    eventView({
+      days: [closedDay()],
+      finalise: null,
+      scratchTest: { blocked, run }
+    });
+
+  it('is not offered on an event that is not closed', () => {
+    render(<EventPage event={eventView()} />);
+    expect(screen.queryByRole('button', { name: 'Scratch this test event' })).toBeNull();
+    expect(screen.queryByText('Scratch a test event')).toBeNull();
+  });
+
+  it('warns, and scratches only after the exact name is typed', async () => {
+    const run = vi.fn(async (): Promise<string | null> => null);
+    render(<EventPage event={closedTest(run)} />);
+    expect(screen.getByText('Scratch a test event')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Scratch this test event' }));
+    const sheet = await screen.findByRole('region', { name: 'Scratch this test event' });
+    expect(within(sheet).getByText(/Real sales must never be scratched/)).toBeTruthy();
+    const confirm = within(sheet).getByRole('button', {
+      name: 'Scratch the event'
+    }) as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+    const box = within(sheet).getByLabelText('Type the event name to confirm');
+    fireEvent.change(box, { target: { value: 'katipunan market' } });
+    expect(confirm.disabled).toBe(true);
+    fireEvent.submit(within(sheet).getByRole('form', { name: 'Scratch this test event' }));
+    expect(run).not.toHaveBeenCalled();
+    fireEvent.change(box, { target: { value: 'Katipunan market' } });
+    expect(confirm.disabled).toBe(false);
+    fireEvent.click(confirm);
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    expect(run).toHaveBeenCalledWith('Katipunan market');
+  });
+
+  it('shows what the books refused and keeps the sheet open', async () => {
+    const run = vi.fn(
+      async (): Promise<string | null> =>
+        'The books refused: the event is not closed, sent cookies to the shop, or its stock was counted since.'
+    );
+    render(<EventPage event={closedTest(run)} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Scratch this test event' }));
+    const sheet = await screen.findByRole('region', { name: 'Scratch this test event' });
+    fireEvent.change(within(sheet).getByLabelText('Type the event name to confirm'), {
+      target: { value: 'Katipunan market' }
+    });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Scratch the event' }));
+    expect(await within(sheet).findByText(/The books refused/)).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Scratch this test event' })).toBeTruthy();
+  });
+
+  it('says why it cannot start without signal', () => {
+    render(<EventPage event={closedTest(undefined, 'Scratching the event needs signal.')} />);
+    const button = screen.getByRole('button', {
+      name: 'Scratch this test event'
+    }) as HTMLButtonElement;
+    expect(button.disabled || button.getAttribute('aria-disabled') === 'true').toBe(true);
+  });
+});
+
+describe('Close the event: a day still selling', () => {
+  it('reaches that day’s close from the blocked button', () => {
+    const run = vi.fn();
+    render(
+      <EventPage
+        event={eventView({
+          days: [dayRow({ run })],
+          finalise: finalise({ blocked: 'Close the day that is still selling first.' })
+        })}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Review and close that day →' }));
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers it only while the close is blocked', () => {
+    render(<EventPage event={eventView({ days: [dayRow()] })} />);
+    expect(screen.queryByRole('button', { name: 'Review and close that day →' })).toBeNull();
+  });
+
+  it('offers nothing extra when no day is selling', () => {
+    render(<EventPage event={eventView({ days: [closedDay()] })} />);
+    expect(screen.queryByRole('button', { name: 'Review and close that day →' })).toBeNull();
   });
 });
 

@@ -6,7 +6,6 @@ import { PANEL_CLASS } from '@/components/ui/owner-kit';
 import { ListRow } from '@/components/ui/owner-patterns';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { StatusPill } from '@/components/ui/status-pill';
-import { cookiesText } from '@/lib/bazaar/plan';
 
 const salesText = (n: number) => (n === 1 ? '1 sale' : `${n} sales`);
 
@@ -40,7 +39,7 @@ export function SellingCard({ till }: { till: LiveHomeTill }) {
       <ProgressBar
         value={till.sold}
         max={till.onTable}
-        label={`${till.sold} of ${cookiesText(till.onTable)} sold`}
+        label={`${till.sold} of ${till.onTable} sold`}
       />
       <Button variant="primary" onClick={till.back}>
         Back to the till →
