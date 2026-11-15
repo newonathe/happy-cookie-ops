@@ -52,10 +52,12 @@ export interface DayOutcome {
   drawerText: string | null;
 }
 
-/** A2: asked before a day is started on a date that is not today. */
+/** A2: asked before a day is started on a date that is not today, or (15 November 2026) with no starting cash. */
 export interface StartPrompt {
   title: string;
   body: string;
+  /** The day's starting cash is ₱0: the sheet offers to set it in the day plan first. */
+  noFloat?: boolean;
 }
 
 /** D3: an open day's prices and "Change a price". Every text is already words. */

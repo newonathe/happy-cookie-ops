@@ -1105,6 +1105,31 @@ describe('the event page', () => {
     expect(start).toHaveBeenCalledWith(true);
   });
 
+  it('with no starting cash it asks first, and Set starting cash opens the day plan instead of starting', async () => {
+    const start = vi.fn();
+    const edit = vi.fn();
+    const planned = dayRow({
+      id: 'p',
+      word: 'Planned',
+      action: 'start',
+      hint: null,
+      edit,
+      startPrompt: {
+        title: 'Start with no cash in the drawer?',
+        body: 'The starting cash in the drawer is ₱0.',
+        noFloat: true
+      },
+      start
+    });
+    render(<EventPage event={eventView({ days: [planned] })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Start the day →' }));
+    const sheet = await screen.findByRole('dialog');
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Set starting cash' }));
+    expect(edit).toHaveBeenCalledTimes(1);
+    expect(start).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
   it('starts a day that is today with no question', () => {
     const start = vi.fn();
     render(

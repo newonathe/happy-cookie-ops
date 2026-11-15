@@ -43,23 +43,37 @@ export function dayOutcomeOf(day: BazaarDay): DayOutcome | null {
 
 /**
  * A2: starting a day whose date is not today asks first. Its sales are dated today, whatever the day says, and the
- * stall rent (booked with the first day started) lands on the day's own date. Null for today's day. `firstStart`: no day
- * of the event has been started, so the rent is booked now.
+ * stall rent (booked with the first day started) lands on the day's own date. `firstStart`: no day of the event has been
+ * started, so the rent is booked now. `floatCents` 0 (Ethan, 15 November 2026): the drawer would start empty, so it asks
+ * too, and the till can say what the drawer should hold only if the starting cash is right. Null when neither applies.
  */
 export function startPromptOf(input: {
   dayYmd: string;
   today: string;
   now: Date;
   firstStart: boolean;
+  floatCents?: number;
 }): StartPrompt | null {
-  if (input.dayYmd === input.today) return null;
-  const day = dayText(input.dayYmd, input.now);
-  const today = dayText(input.today, input.now);
-  return {
-    title: 'Start a day that is not today?',
-    body:
+  const notToday = input.dayYmd !== input.today;
+  const noFloat = input.floatCents === 0;
+  if (!notToday && !noFloat) return null;
+  const parts: string[] = [];
+  if (notToday) {
+    const day = dayText(input.dayYmd, input.now);
+    const today = dayText(input.today, input.now);
+    parts.push(
       `This day is ${day}. Today is ${today}. Sales will be dated today` +
-      (input.firstStart ? `, and the stall rent will be booked on ${day}.` : '.')
+        (input.firstStart ? `, and the stall rent will be booked on ${day}.` : '.')
+    );
+  }
+  if (noFloat)
+    parts.push(
+      'The starting cash in the drawer is ₱0. If the drawer has cash, set it in the day plan first, so the till knows what the drawer should hold.'
+    );
+  return {
+    title: notToday ? 'Start a day that is not today?' : 'Start with no cash in the drawer?',
+    body: parts.join(' '),
+    ...(noFloat ? { noFloat: true } : {})
   };
 }
 

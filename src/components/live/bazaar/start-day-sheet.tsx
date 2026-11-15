@@ -5,17 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/sheet';
 
 /**
- * A2: starting a day whose date is not today asks first. The words are the rule's (`startPromptOf`): which day this is,
- * what today is, and what that does to the dates of its sales and its rent. Starting anyway is the dark, committing button.
+ * A2: starting a day whose date is not today asks first, and so does a day with no starting cash. The words are the rule's
+ * (`startPromptOf`). Starting anyway is the dark, committing button; with no starting cash, "Set starting cash" opens the day
+ * plan instead.
  */
 export function StartDaySheet({
   prompt,
   onConfirm,
-  onClose
+  onClose,
+  onSetFloat
 }: {
   prompt: StartPrompt;
   onConfirm: () => void;
   onClose: () => void;
+  /** Opens the day plan, where the starting cash is set. */
+  onSetFloat?: (() => void) | null;
 }) {
   return (
     <Sheet
@@ -26,6 +30,11 @@ export function StartDaySheet({
           <Button variant="dark" onClick={onConfirm}>
             Start anyway
           </Button>
+          {prompt.noFloat && onSetFloat ? (
+            <Button variant="secondary" onClick={onSetFloat}>
+              Set starting cash
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
