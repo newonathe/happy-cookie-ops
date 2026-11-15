@@ -1303,7 +1303,9 @@ export class OpsRuntime extends OpsProvider {
       this.recipeRows === null
         ? null
         : !!this.recipeRows.find((row) => row.productId === productId)?.lines?.length,
-    photo: (productId) => PRODUCTS.find((row) => row.id === productId)?.img ?? ''
+    photo: (productId) => PRODUCTS.find((row) => row.id === productId)?.img ?? '',
+    soldByPiece: (productId) =>
+      this.flavourSync?.current().find((row) => row.id === productId)?.item_type === 'item'
   });
   private stockEntryDeps = {
     items: (): StockEntryItem[] =>

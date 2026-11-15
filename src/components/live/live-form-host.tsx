@@ -91,7 +91,6 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
       <button onClick={liveForm.addNew} style={secondaryButton}>
         Add a flavour
       </button>
-      {liveForm.types ? <ProductTypesPanel types={liveForm.types} /> : null}
       {liveForm.rows.length ? (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {liveForm.rows.map((row) => (
@@ -113,8 +112,9 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
               <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
                 <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
-                  {row.published ? 'Published' : 'Draft, not published'} ·{' '}
-                  {row.active ? 'on the order form' : 'off the order form'}
+                  {/* Published is the usual state: only a draft is worth a word. */}
+                  {row.published ? '' : 'Draft, not published · '}
+                  {row.active ? 'On the order form' : 'Off the order form'}
                 </span>
               </span>
               <span
@@ -130,6 +130,8 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
           No flavours loaded yet.
         </span>
       )}
+      {/* Her product types are set up once, so they follow the list she works in every day. */}
+      {liveForm.types ? <ProductTypesPanel types={liveForm.types} /> : null}
     </div>
   );
 }
@@ -184,6 +186,13 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
       ? { itemType: chosen.behavesAs, typeId: chosen.id }
       : { itemType: chosen.behavesAs === 'set' ? 'set' : 'cookie' };
   };
+  const [typeId, setTypeId] = useState(
+    editing.typeId ?? (editing.itemType === 'set' ? 'set' : 'cookie')
+  );
+  // Her type decides how it counts: a type sold by the piece (migration 84) takes no cookie slots (migration 86).
+  const soldByPiece =
+    (typeOptions.find((option) => option.id === typeId) ?? typeOptions[0]!).behavesAs === 'item';
+  const unit = editing.itemType === 'item' ? 'piece' : 'cookie';
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -205,16 +214,6 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
   };
   return (
     <>
-      {/* Cine, 14 November 2026: the cost of goods sold is set where the product is edited; every bazaar uses it. */}
-      {editing.costItem ? (
-        <section aria-label="Cost per cookie" style={{ marginBottom: '16px' }}>
-          <CostForm item={editing.costItem} />
-        </section>
-      ) : editing.id ? (
-        <p style={{ ...smallLabel, marginBottom: '12px' }}>
-          The cost per cookie appears here once the product is on the menu.
-        </p>
-      ) : null}
       <form
         key={editing.id ?? 'new'}
         onSubmit={onSubmit}
@@ -230,6 +229,37 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
             style={inputStyle}
           />
         </label>
+        {/* What decides the rest comes first: the type (cookie slots, recipe) and the price customers pay. */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <label style={labelStyle}>
+            <span style={smallLabel}>Type</span>
+            <select
+              name="typeId"
+              value={typeId}
+              onChange={(event) => setTypeId(event.target.value)}
+              style={inputStyle}
+            >
+              {typeOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label style={labelStyle}>
+            <span style={smallLabel}>Price (₱)</span>
+            <input
+              name="price"
+              type="number"
+              inputMode="decimal"
+              min={0.01}
+              step="0.01"
+              required
+              defaultValue={editing.price}
+              style={{ ...inputStyle, fontVariantNumeric: 'tabular-nums' as const }}
+            />
+          </label>
+        </div>
         <label style={labelStyle}>
           <span style={smallLabel}>Short name</span>
           <input
@@ -310,7 +340,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
             lineHeight: 1.5
           }}
         >
-          Shown beside the cookie name.
+          Shown beside the name on the order form.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <label style={labelStyle}>
@@ -319,37 +349,6 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
               <option value="Permanent">Permanent</option>
               <option value="Rotating">Rotating</option>
             </select>
-          </label>
-          <label style={labelStyle}>
-            <span style={smallLabel}>Type</span>
-            <select
-              name="typeId"
-              defaultValue={editing.typeId ?? (editing.itemType === 'set' ? 'set' : 'cookie')}
-              style={inputStyle}
-            >
-              {typeOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <label style={labelStyle}>
-            <span style={smallLabel}>Cookies counted toward the order limit</span>
-            <input
-              name="capacityWeight"
-              type="number"
-              inputMode="numeric"
-              // An item is stored at 0 (migration 86), so 0 must pass the browser; a cookie at 0 is refused by flavourFieldError.
-              min={0}
-              max={48}
-              step={1}
-              required
-              defaultValue={editing.capacityWeight}
-              style={inputStyle}
-            />
           </label>
           <label style={labelStyle}>
             <span style={smallLabel}>Display order</span>
@@ -366,19 +365,38 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
             />
           </label>
         </div>
-        <label style={labelStyle}>
-          <span style={smallLabel}>Price (₱)</span>
-          <input
-            name="price"
-            type="number"
-            inputMode="decimal"
-            min={0.01}
-            step="0.01"
-            required
-            defaultValue={editing.price}
-            style={{ ...inputStyle, fontVariantNumeric: 'tabular-nums' as const }}
-          />
-        </label>
+        {soldByPiece ? (
+          <>
+            {/* Migration 86: an item uses no cookie slots. The saved weight goes back unchanged; the database keeps an item at 0. */}
+            <input type="hidden" name="capacityWeight" value={editing.capacityWeight} readOnly />
+            <p
+              style={{
+                margin: 0,
+                fontSize: '12px',
+                color: 'var(--color-ink-mute)',
+                lineHeight: 1.5
+              }}
+            >
+              Sold by the piece: it uses no cookie slots in the order limit or the drop.
+            </p>
+          </>
+        ) : (
+          <label style={labelStyle}>
+            <span style={smallLabel}>Cookies counted toward the order limit</span>
+            <input
+              name="capacityWeight"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={48}
+              step={1}
+              required
+              // An item switched to a cookie was stored at 0 slots: it starts again from 1.
+              defaultValue={Math.max(1, editing.capacityWeight)}
+              style={inputStyle}
+            />
+          </label>
+        )}
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <input name="active" type="checkbox" defaultChecked={editing.active} />
           <span style={smallLabel}>On the order form</span>
@@ -390,6 +408,16 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           Cancel
         </button>
       </form>
+      {/* Cine, 14 November 2026: the cost of goods sold is set where the product is edited; every bazaar uses it. */}
+      {editing.costItem ? (
+        <section aria-label={'Cost per ' + unit} style={{ marginTop: '20px' }}>
+          <CostForm item={editing.costItem} unit={unit} />
+        </section>
+      ) : editing.id ? (
+        <p style={{ ...smallLabel, marginTop: '16px' }}>
+          The cost per {unit} appears here once the product is on the menu.
+        </p>
+      ) : null}
     </>
   );
 }

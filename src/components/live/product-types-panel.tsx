@@ -26,8 +26,8 @@ export function ProductTypesPanel({ types }: { types: Types }) {
     <section aria-label="Product types" className="flex flex-col gap-3">
       <h3 className="m-0 text-body font-bold text-ink">Product types</h3>
       <p className="m-0 text-caption text-ink-mute">
-        Only types that count as a cookie are counted as cookies, in the per-order cookie limit and
-        the sampler.
+        Cookies and sets count toward the cookie limit per order, the sampler and the drop’s cookie
+        slots. A type sold by the piece, like ice cream or stickers, counts toward none of them.
       </p>
       <ul className="m-0 flex list-none flex-col gap-2 p-0">
         {types.rows.map((row) => (
