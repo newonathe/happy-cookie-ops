@@ -1104,6 +1104,7 @@ export class OpsRuntime extends OpsProvider {
     stockItems: () => this.stockCatalogue?.items ?? null,
     month: () =>
       this.booksRows ? this.monthTotals(this.state as unknown as OpsEngineState) : null,
+    week: () => (this.booksRows ? this.moneyDesk.lastSevenDays() : null),
     production: () =>
       this.productionDrafts.list().map((work) => ({
         id: work.id,

@@ -63,16 +63,39 @@ export class MoneyDesk {
   }
 
   /** Runs the engine's own period sums with the selected period start, as `monthTotals` does. */
-  private inPeriod<T>(s: OpsEngineState, run: () => T): T {
+  private inPeriod<T>(s: OpsEngineState, run: () => T, from = this.periodFrom(s)): T {
     const engine = this.deps.engine();
     const ported = engine.periodFrom;
-    const from = this.periodFrom(s);
     engine.periodFrom = () => from;
     try {
       return run();
     } finally {
       engine.periodFrom = ported;
     }
+  }
+
+  /**
+   * Income for each of the last seven Manila days, oldest first, whatever period the Money page shows: Home's week
+   * bars. The same ledger rows the Money chart groups (sales less refunds). Null until the books are read.
+   */
+  lastSevenDays(): Array<{ label: string; income: number; today: boolean }> | null {
+    if (!this.deps.books()) return null;
+    const s = this.deps.state();
+    const now = Number(s.now);
+    const day = 86_400_000;
+    const from = manilaMidnight(manilaToday(now)) - 6 * day;
+    const rows = this.inPeriod(s, () => this.deps.engine().ledgerIn(s), from);
+    return Array.from({ length: 7 }, (_, i) => {
+      const start = from + i * day;
+      const inside = rows.filter((r) => r.at >= start && (i === 6 || r.at < start + day));
+      const sum = (kind: string) =>
+        inside.filter((r) => r.kind === kind).reduce((t, r) => t + (Number(r.amount) || 0), 0);
+      return {
+        label: formatManila(start, { weekday: 'short' }),
+        income: sum('revenue') - sum('refund'),
+        today: i === 6
+      };
+    });
   }
 
   /** Just the books' read state, for pages that list books-backed rows but need none of the figures. */

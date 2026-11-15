@@ -2025,6 +2025,8 @@ export interface LiveHome {
   production: Array<{ id: string; name: string; detail: string; open: () => void }>;
   /** This month's books; null until they are read. */
   month: { revenue: number; expenses: number; profit: number } | null;
+  /** Income on each of the last seven days, oldest first (today last); null until the books are read. */
+  week?: Array<{ label: string; income: number; today: boolean }> | null;
   /** How many are on the menu, or null while her products have not been read: the built-in six are not hers. */
   flavours: number | null;
   go: Record<
