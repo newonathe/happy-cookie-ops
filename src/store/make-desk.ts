@@ -9,6 +9,8 @@ export interface MakeDeskDeps {
   /** Null until the recipes have been read: "needs a recipe" is never guessed. */
   hasRecipe: (productId: string) => boolean | null;
   photo: (productId: string) => string;
+  /** Her type is sold by the piece (migration 84): it is not baked, so no baked count or recipe nag. */
+  soldByPiece: (productId: string) => boolean;
 }
 
 export interface LiveMake {
@@ -22,6 +24,7 @@ export interface MakeProductFields {
   /** "24 baked cookies in stock", or null until the baked counts are read. */
   bakedText: string | null;
   hasRecipe: boolean | null;
+  soldByPiece: boolean;
 }
 
 /** What the Make pages need beyond the engine's rows: the section's actions and each product's stock line. */
@@ -42,7 +45,8 @@ export class MakeDesk {
     return {
       photo: this.deps.photo(productId),
       bakedText: read ? `${count} baked ${count === 1 ? 'cookie' : 'cookies'} in stock` : null,
-      hasRecipe: this.deps.hasRecipe(productId)
+      hasRecipe: this.deps.hasRecipe(productId),
+      soldByPiece: this.deps.soldByPiece(productId)
     };
   }
 }

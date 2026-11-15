@@ -239,11 +239,14 @@ export function healthView(
           : clear
             ? SETUP_PENDING_COPY.title
             : 'Needs attention',
+    // Unknown still counts as a problem (a stalled read never proves anything), but it is named as what it is.
     healthSub: ok
       ? 'Recorded backup, restore, retention and activity checks are current.'
       : clear
         ? SETUP_PENDING_COPY.sub
-        : 'Check the results below. Missing or old results do not prove the data is protected.',
+        : phase === 'loading'
+          ? 'Reading the latest backup and safety checks. Until they answer, they count as not verified.'
+          : 'Some backup or safety checks failed, are missing or are out of date.',
     setupPending
   };
 }

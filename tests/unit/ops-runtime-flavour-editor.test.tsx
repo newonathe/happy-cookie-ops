@@ -462,7 +462,7 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
       const badge = edit.getByLabelText('Shop label (optional)');
       expect(
         document.getElementById(badge.getAttribute('aria-describedby') ?? '')?.textContent
-      ).toContain('Shown beside the cookie name.');
+      ).toContain('Shown beside the name on the order form.');
       expect(edit.container.innerHTML).not.toMatch(/undefined|\bNaN\b/);
       edit.unmount();
 

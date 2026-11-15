@@ -42,13 +42,16 @@ function ProductCard({ row }: { row: Row }) {
           <strong>{row.priceText}</strong>
           <span>{row.costText}</span>
         </div>
-        <p className={styles.stock}>{row.bakedText ?? 'Baked stock not read yet'}</p>
+        {/* A product sold by the piece is not baked: no baked count. */}
+        {row.soldByPiece ? null : (
+          <p className={styles.stock}>{row.bakedText ?? 'Baked stock not read yet'}</p>
+        )}
         <p className={styles.state}>
           {[
             row.offForm ? 'Off the order form' : 'On the order form',
             row.rotating ? 'Rotating' : null,
             row.soldOut ? 'Sold out' : null,
-            row.hasRecipe === false ? 'Needs a recipe' : null
+            row.hasRecipe === false && !row.soldByPiece ? 'Needs a recipe' : null
           ]
             .filter(Boolean)
             .join(' · ')}
@@ -91,7 +94,11 @@ export function ProductsLive({ v }: { v: OpsVals }) {
   if (settings.page) return settings.page;
   const all = v.productRows ?? [];
   const rows = all.filter((row) =>
-    filter === 'menu' ? !row.offForm : filter === 'recipe' ? row.hasRecipe === false : true
+    filter === 'menu'
+      ? !row.offForm
+      : filter === 'recipe'
+        ? row.hasRecipe === false && !row.soldByPiece
+        : true
   );
   const make = v.liveMake;
   const notRead =

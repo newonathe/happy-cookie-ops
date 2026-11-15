@@ -24,7 +24,14 @@ import { useSave } from '@/components/live/bazaar/use-save';
 export const PHOTO_TRANSITION = 'flavour-photo';
 
 /** The cost per cookie as a field: starts with her cost or the recipe's, and saves only when it has been changed. */
-export function CostForm({ item }: { item: RecipeBookItem }) {
+export function CostForm({
+  item,
+  unit = 'cookie'
+}: {
+  item: RecipeBookItem;
+  /** What one cost buys: a cookie, or a piece for a product sold by the piece. */
+  unit?: 'cookie' | 'piece';
+}) {
   const [pesos, setPesos] = useState(item.startingCost);
   const { error, saving, run } = useSave();
   const field = formIds.cost(item.id);
@@ -57,7 +64,7 @@ export function CostForm({ item }: { item: RecipeBookItem }) {
           }
         >
           <FactRow label="Now">{item.costText}</FactRow>
-          <FactRow label="New cost per cookie">
+          <FactRow label={'New cost per ' + unit}>
             {pesos.trim() ? `₱${pesos.trim()}` : 'The recipe’s cost'}
           </FactRow>
         </ReviewPanel>
@@ -67,7 +74,7 @@ export function CostForm({ item }: { item: RecipeBookItem }) {
     <form
       {...issues.formProps}
       onSubmit={submit}
-      aria-label={'Cost per cookie for ' + item.name}
+      aria-label={'Cost per ' + unit + ' for ' + item.name}
       noValidate
       className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 md:max-w-xl"
     >
@@ -75,7 +82,7 @@ export function CostForm({ item }: { item: RecipeBookItem }) {
       {error ? <Banner tone="danger" title={error} /> : null}
       <Field
         id={field}
-        label="Cost per cookie"
+        label={'Cost per ' + unit}
         mode="decimal"
         prefix="₱"
         hint={
