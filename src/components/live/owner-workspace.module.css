@@ -426,3 +426,126 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* Espresso glass (Ethan, 16 Nov 2026; mockups and spec in the private design handoff). The ground is a warm coffee
+   gradient with slowly drifting light (gradients, not blur, so a phone stays smooth); the rail, header and dock are
+   frosted glass; page content sits on one frosted sheet until each page moves to floating cards. */
+.workspace {
+  --workspace-sidebar: 212px;
+  grid-template-columns: 212px minmax(0, 1fr);
+  isolation: isolate;
+  background: linear-gradient(150deg, #4a2617 0%, #2e170e 55%, #1e0f09 100%) fixed;
+}
+.workspace::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 35% at 85% 10%, rgb(231 95 35 / 0.55), transparent 70%),
+    radial-gradient(35% 30% at 10% 90%, rgb(214 140 70 / 0.4), transparent 70%),
+    radial-gradient(30% 30% at 20% 15%, rgb(255 170 110 / 0.22), transparent 70%);
+  animation: espressoDrift 34s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes espressoDrift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-4%, 3%, 0) scale(1.08);
+  }
+}
+.rail {
+  top: 16px;
+  height: calc(100dvh - 32px);
+  margin: 16px 0 16px 16px;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 0.8);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 8px 32px rgb(0 0 0 / 0.25);
+}
+.navigation button[aria-current] {
+  background: var(--color-ink);
+  color: #fff;
+  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.6);
+}
+.header {
+  top: 16px;
+  margin: 16px 16px 0;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.8);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 8px 24px rgb(0 0 0 / 0.2);
+}
+.main {
+  margin: 16px;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 0.93);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 12px 40px rgb(0 0 0 / 0.28);
+}
+@media (max-width: 1000px) {
+  .workspace {
+    --workspace-sidebar: 172px;
+    grid-template-columns: 172px minmax(0, 1fr);
+  }
+}
+@media (max-width: 650px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .header {
+    top: 8px;
+    margin: 8px 8px 0;
+  }
+  .main {
+    margin: 8px;
+    border-radius: 24px;
+  }
+  .dock {
+    bottom: 8px;
+    margin: 0 8px 8px;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    border-radius: 24px;
+    background: rgb(255 255 255 / 0.82);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 10px 30px rgb(0 0 0 / 0.3);
+  }
+  .dock button[aria-current] {
+    background: var(--color-ink);
+    color: #fff;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace::before {
+    animation: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .workspace::before {
+    display: none;
+  }
+  .rail,
+  .header,
+  .dock,
+  .main {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

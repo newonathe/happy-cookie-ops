@@ -26,7 +26,11 @@ export function PageTitle({
   return (
     <div className="mb-5 flex flex-wrap items-start justify-between gap-3.5">
       <div className="min-w-0">
-        <h1 id={headingId} tabIndex={-1} className="text-title text-ink outline-none">
+        <h1
+          id={headingId}
+          tabIndex={-1}
+          className="font-display text-page text-ink lowercase outline-none md:text-page-lg"
+        >
           {title}
         </h1>
         {subtitle ? <p className="mt-1 text-caption text-ink-mute">{subtitle}</p> : null}
