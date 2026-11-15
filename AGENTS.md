@@ -131,8 +131,8 @@ Every session pays for what it loads. Same quality, less reading:
 2. **Search before reading:** codebase-memory-mcp or a bounded search first; read files over ~300 lines by range.
    Evidence receipts and the lockfile are left out of search by `.ignore`; open them by path only when a goal names them.
 3. **Deterministic tools first:** tests, validators, `git`, hashes and search before a model call or a subagent.
-4. **Delegate only bounded work:** pinned model (Haiku to search, Sonnet to build or review), a prompt that names
-   the files, the question and the stop condition, and a result under ~200 words. At most two workers.
+4. **Build rules:** audit GitHub first, scope by outcome, pinned and sized workers (at most two), push every
+   accepted slice: rule 12 of [agent-orchestration.md](docs/state/agent-orchestration.md).
 5. **Long output to a file:** run builds and suites with output redirected; print only the summary lines.
 6. **Results live in the commit:** no new evidence files. When a slice closes, move its narrative from `current.md`
    to `current-history.md` the same day. `pnpm verify` enforces the budgets (`scripts/check-context-budget.mjs`).
