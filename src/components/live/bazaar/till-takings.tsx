@@ -39,7 +39,7 @@ function Tracker({
 
 /**
  * The day at a glance, each figure once: what came in and how it was paid, what the drawer should hold now, and how far the
- * day is towards selling the whole table. A helper who may not see totals gets the drawer and the cookies only.
+ * day is towards selling the whole table. A helper who may not see totals gets the drawer and what is left only.
  */
 function Trackers({ ledger, unsynced }: { ledger: TillLedger; unsynced: number }) {
   const { totals, drawer, target, cookies } = ledger;
@@ -73,7 +73,7 @@ function Trackers({ ledger, unsynced }: { ledger: TillLedger; unsynced: number }
       </Tracker>
       <Tracker
         title="Target"
-        label={target ? 'Target revenue' : 'Cookies sold'}
+        label={target ? 'Target revenue' : 'Sold'}
         value={target ? target.amountText : cookies.sold}
       >
         {target ? (
@@ -84,16 +84,27 @@ function Trackers({ ledger, unsynced }: { ledger: TillLedger; unsynced: number }
               label={`${target.percent}% reached`}
             />
             <span className="text-caption text-ink-mute">
-              Target: every cookie on the table sold.
+              Target: everything on the table sold.
             </span>
           </div>
         ) : null}
         {target ? <FactRow label="Still to sell">{target.toGoText}</FactRow> : null}
-        {target ? <FactRow label="Cookies sold">{cookies.sold}</FactRow> : null}
-        <FactRow label="Cookies left">{cookies.left}</FactRow>
+        {target ? <FactRow label="Sold">{cookies.sold}</FactRow> : null}
+        <FactRow label="Left on the table">{cookies.left}</FactRow>
         {cookies.freebies ? <FactRow label="Freebies given">{cookies.freebies}</FactRow> : null}
         {unsynced ? <FactRow label="Waiting to send">{plural(unsynced, 'sale')}</FactRow> : null}
       </Tracker>
+    </div>
+  );
+}
+
+/** One figure of the strip: what it is, then the number. */
+function Figure({ label, value, detail }: { label: string; value: ReactNode; detail?: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <dt className="text-caption text-ink-mute">{label}</dt>
+      <dd className="m-0 text-[18px] font-semibold text-ink tabular-nums">{value}</dd>
+      {detail ? <dd className="m-0 text-caption text-ink-mute tabular-nums">{detail}</dd> : null}
     </div>
   );
 }
@@ -283,96 +294,90 @@ export function TillTakings({
   const shown = all ? sales : sales.slice(0, SALES_SHOWN);
   return (
     <div className="@container flex flex-col gap-3">
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        className={`flex min-h-14 w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand ${PANEL_CLASS}`}
+      {/* One strip, each figure once (Ethan, 15 November 2026): Details opens the full trackers, so no line is lost. */}
+      <section
+        aria-label="Today's summary"
+        className={`flex flex-col gap-2.5 px-4 py-3 ${PANEL_CLASS}`}
       >
-        <span className="text-[15px] font-semibold text-ink">{"Today's summary"}</span>
-        <span className="flex items-center gap-x-4">
-          {/* Retracted, the bar still answers the day's three questions; open, the panels below do. */}
-          {open ? null : (
-            <span className="flex flex-wrap justify-end gap-x-4 text-caption text-ink-mute tabular-nums">
-              <span>{plural(sales.length, 'sale')}</span>
-              {ledger.totals ? (
-                <span>
-                  Total <span className="font-semibold text-ink">{ledger.totals.totalText}</span>
-                </span>
-              ) : null}
-              <span>
-                In the drawer{' '}
-                <span className="font-semibold text-ink">{ledger.drawer.expectedText}</span>
-              </span>
-            </span>
-          )}
-          <svg
-            viewBox="0 0 24 24"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            className={`shrink-0 text-ink-mute ${open ? 'rotate-180' : ''}`}
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </span>
-      </button>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-[15px] font-semibold text-ink">Today</h2>
+          <Button variant="secondary" size="sm" aria-expanded={open} onClick={() => setOpen(!open)}>
+            {open ? 'Hide details' : 'Details'}
+          </Button>
+        </div>
+        <dl className="m-0 grid grid-cols-2 gap-x-4 gap-y-2.5 @lg:grid-cols-4">
+          <Figure
+            label="Sales"
+            value={ledger.totals ? ledger.totals.totalText : plural(sales.length, 'sale')}
+            detail={ledger.totals ? plural(sales.length, 'sale') : null}
+          />
+          <Figure label="Should be in the drawer" value={ledger.drawer.expectedText} />
+          {ledger.target ? (
+            <Figure
+              label={`Target ${ledger.target.amountText}`}
+              value={`${ledger.target.percent}%`}
+            />
+          ) : null}
+          <Figure label="Left on the table" value={ledger.cookies.left} />
+          {/* Sales not yet sent stay in sight, never only under Details. */}
+          {Number(v.unsynced) ? (
+            <Figure label="Waiting to send" value={plural(Number(v.unsynced), 'sale')} />
+          ) : null}
+        </dl>
+        <p className="m-0 text-caption text-ink-mute">
+          {ledger.drawer.floatText ? '' : 'Starting cash not recorded. '}
+          Cash taken out for fees is not subtracted from the drawer.
+        </p>
+      </section>
       {open ? <Trackers ledger={ledger} unsynced={Number(v.unsynced) || 0} /> : null}
-      {open ? (
-        <section aria-label="Recent sales" className={PANEL_CLASS}>
-          <PanelHead title="Recent sales">
-            <span className="text-caption text-ink-mute">
-              {sales.length ? `${plural(sales.length, 'sale')} today` : 'No sales yet'}
-            </span>
-          </PanelHead>
-          {sales.length ? (
-            <div
-              aria-hidden="true"
-              className={`hidden items-center border-b border-divide bg-raise px-4 py-2 text-caption font-semibold text-ink-mute @4xl:grid ${COLUMNS}`}
-            >
-              <span>Sale</span>
-              <span>Time</span>
-              <span>Cookies</span>
-              <span>Payment</span>
-              <span>Reference</span>
-              <span className="text-right">Cash given</span>
-              <span className="text-right">Change</span>
-              <span className="text-right">Total</span>
-              <span>Status</span>
-              <span />
-            </div>
-          ) : null}
-          {shown.map((sale, i) => {
-            const fromOldest = sales.length - 1 - i;
-            return (
-              <SaleRow
-                key={fromOldest}
-                sale={sale}
-                row={ledger.rows[i]}
-                number={sales.length - i}
-                open={openFromOldest === fromOldest}
-                toggle={() => setOpenFromOldest(openFromOldest === fromOldest ? null : fromOldest)}
-                toVoid={() => voidSale(i)}
-              />
-            );
-          })}
-          {sales.length > SALES_SHOWN ? (
-            <button
-              type="button"
-              aria-expanded={all}
-              onClick={() => setAll(!all)}
-              className="min-h-11 w-full bg-raise text-caption font-semibold text-ink-soft"
-            >
-              {all ? 'Show fewer' : `See all ${sales.length} sales`}
-            </button>
-          ) : null}
-        </section>
-      ) : null}
+      <section aria-label="Recent sales" className={PANEL_CLASS}>
+        <PanelHead title="Recent sales">
+          <span className="text-caption text-ink-mute">
+            {sales.length ? `${plural(sales.length, 'sale')} today` : 'No sales yet'}
+          </span>
+        </PanelHead>
+        {sales.length ? (
+          <div
+            aria-hidden="true"
+            className={`hidden items-center border-b border-divide bg-raise px-4 py-2 text-caption font-semibold text-ink-mute @4xl:grid ${COLUMNS}`}
+          >
+            <span>Sale</span>
+            <span>Time</span>
+            <span>Cookies</span>
+            <span>Payment</span>
+            <span>Reference</span>
+            <span className="text-right">Cash given</span>
+            <span className="text-right">Change</span>
+            <span className="text-right">Total</span>
+            <span>Status</span>
+            <span />
+          </div>
+        ) : null}
+        {shown.map((sale, i) => {
+          const fromOldest = sales.length - 1 - i;
+          return (
+            <SaleRow
+              key={fromOldest}
+              sale={sale}
+              row={ledger.rows[i]}
+              number={sales.length - i}
+              open={openFromOldest === fromOldest}
+              toggle={() => setOpenFromOldest(openFromOldest === fromOldest ? null : fromOldest)}
+              toVoid={() => voidSale(i)}
+            />
+          );
+        })}
+        {sales.length > SALES_SHOWN ? (
+          <button
+            type="button"
+            aria-expanded={all}
+            onClick={() => setAll(!all)}
+            className="min-h-11 w-full bg-raise text-caption font-semibold text-ink-soft"
+          >
+            {all ? 'Show fewer' : `See all ${sales.length} sales`}
+          </button>
+        ) : null}
+      </section>
     </div>
   );
 }
