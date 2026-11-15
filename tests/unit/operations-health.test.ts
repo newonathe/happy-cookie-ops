@@ -25,6 +25,17 @@ const wire = () => ({
 });
 
 describe('F1 operational health uses evidence rather than demo flags', () => {
+  it('names a check still reading as not verified yet, and a failed read in plain words', () => {
+    const reading = healthView(null, 'loading', now, 0, true);
+    expect(reading.healthOk).toBe(false);
+    expect(reading.healthSub).toMatch(/^Reading the latest backup and safety checks/);
+    const failed = healthView(null, 'error', now, 0, true);
+    expect(failed.healthTitle).toBe('Needs attention');
+    expect(failed.healthSub).toBe(
+      'Some backup or safety checks failed, are missing or are out of date.'
+    );
+  });
+
   it('never reports healthy before a status read, or after a failed read', () => {
     expect(healthView(null, 'loading', now, 0, true).healthOk).toBe(false);
     const data = parseOperationsHealth(wire());
