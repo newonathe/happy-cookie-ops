@@ -583,7 +583,8 @@
 /* Home floats its glass cards straight on the espresso ground: the frosted sheet is dropped for this screen. The
    sheet's 16 px margin stays, so the page edge is 24 px (8 px on a phone, plus 8 px of padding). Specificity beats
    every `.main` rule above, including the reduced-transparency one. */
-.main[data-screen='today'] {
+.main[data-screen='today'],
+.main[data-screen='pnl'] {
   min-height: 0;
   padding: 8px 8px 24px;
   border-color: transparent;
@@ -591,7 +592,8 @@
   box-shadow: none;
 }
 @media (max-width: 650px) {
-  .main[data-screen='today'] {
+  .main[data-screen='today'],
+  .main[data-screen='pnl'] {
     padding: 8px 8px 96px;
   }
 }

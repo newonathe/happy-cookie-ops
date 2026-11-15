@@ -194,4 +194,29 @@ describe('Home, espresso glass', () => {
     expect(loss.queryByText(/kept of every/)).toBeNull();
     expect(loss.getByText('Loss this month')).toBeTruthy();
   });
+
+  it('draws sales this week as seven bars, today last, with the figures as a list', () => {
+    const week = ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'].map((label, i) => ({
+      label,
+      income: [0, 300, 0, 1200, 0, -50, 400][i] ?? 0,
+      today: i === 6
+    }));
+    const view = render(<HomeLive v={build({ week }).v} />);
+    const card = within(view.getByRole('region', { name: 'Sales this week' }));
+    expect(card.getAllByText('₱1,850.00').length).toBeGreaterThan(0);
+    expect(card.getByText('Today: ₱400')).toBeTruthy();
+    expect(card.getByText('Sun: ₱-50')).toBeTruthy();
+    const bars = view.container.querySelectorAll('[style*="--i"]');
+    const heights = [...bars]
+      .map((bar) => (bar as HTMLElement).style.height)
+      .filter((height) => height.endsWith('%'));
+    expect(heights).toEqual(['25%', '100%', '33.33333333333333%']);
+    cleanup();
+    const loading = render(<HomeLive v={build({ week: null }).v} />);
+    expect(
+      within(loading.getByRole('region', { name: 'Sales this week' })).getByText(
+        'Sales are still loading.'
+      )
+    ).toBeTruthy();
+  });
 });

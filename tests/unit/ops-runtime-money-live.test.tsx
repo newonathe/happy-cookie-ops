@@ -319,8 +319,8 @@ describe('the live Money page', () => {
   it('signs and colours money, and keeps the book settings in Money settings', async () => {
     const r = await mounted();
     const view = render(<MoneyLive v={r.renderVals()} />);
-    expect(view.getByText('+₱17,990.00').className).toContain('text-ok');
-    expect(view.getByText('−₱8,580.00').className).toContain('text-danger');
+    expect(view.getByText('+₱17,990.00').closest('dd')?.className).toContain('text-ok');
+    expect(view.getByText('−₱8,580.00').closest('dd')?.className).toContain('text-danger');
     expect(view.getByText(/Holiday pop-up/)).toBeTruthy();
     fireEvent.click(view.getByRole('button', { name: 'Settings' }));
     expect(view.getByText('Books & costs')).toBeTruthy();

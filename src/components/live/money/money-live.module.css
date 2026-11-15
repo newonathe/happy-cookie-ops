@@ -1,0 +1,255 @@
+/*
+ * Money on espresso glass. The card recipe, split bars, ring and count-ups are shared (`@/components/ui/glass`);
+ * this file holds only the Money layout, the light chips and rows, and the chart and category bars.
+ * Colours are tokens or the same white or coffee washes the glass recipe uses.
+ */
+.money {
+  display: grid;
+  width: 100%;
+  max-width: 1600px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.span12,
+.spanHero,
+.spanSide,
+.spanLeft,
+.spanRight {
+  grid-column: 1 / -1;
+}
+.money > * {
+  min-width: 0;
+}
+@media (min-width: 651px) {
+  .money {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+@media (min-width: 1000px) {
+  .spanHero {
+    grid-column: span 8;
+  }
+  .spanSide {
+    grid-column: span 4;
+    align-self: start;
+  }
+  .spanLeft {
+    grid-column: span 5;
+    align-self: start;
+  }
+  .spanRight {
+    grid-column: span 7;
+    align-self: start;
+  }
+}
+
+/* A sub-page (settings, one transaction, a new entry) sits on one light card so nothing reads dark on dark. */
+.subpage {
+  width: 100%;
+  max-width: 900px;
+}
+section.subpage:hover {
+  translate: none;
+}
+
+/* Period, filter and chip rows: a light chip that stays readable on the espresso and on a white card. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgb(58 31 20 / 0.15);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.88);
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.chip:hover {
+  background: rgb(255 255 255 / 1);
+}
+.chip[aria-pressed='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+.chip:focus-visible,
+.rows > li > button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* The period chips sit on the espresso ground: closed ones are light glass with light text, the chosen one is solid
+   white with ink text (ink on the dark ground would vanish). */
+.groundChips .chip {
+  border-color: rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.12);
+  color: var(--color-on-ground);
+}
+.groundChips .chip:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+.groundChips .chip[aria-pressed='true'] {
+  border-color: rgb(255 255 255 / 1);
+  background: rgb(255 255 255 / 1);
+  color: var(--color-ink);
+}
+
+/* Notices on the page flow: a light surface with dark text. */
+.notice {
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
+  color: var(--color-ink);
+}
+.notice:empty {
+  display: none;
+}
+.noticeWarn {
+  border-color: var(--color-warm-line);
+  background: var(--color-warm-high);
+}
+
+/* Hero chips: tax, owner draw, refunded. */
+.statChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.statChip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  color: var(--color-ink-mute);
+  font-size: var(--text-caption);
+}
+
+/* Rows: white .65, radius 14, at least 56 px tall. */
+.rows {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+.rows > li > button,
+.plainRow {
+  min-height: 56px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+.rows > li > button {
+  display: flex;
+  width: 100%;
+  border: 0;
+  padding: 10px 16px;
+  color: var(--color-ink);
+  text-align: left;
+}
+.rows > li > button:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.rows > li > button[aria-pressed='true'] {
+  background: rgb(255 255 255 / 0.95);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+.plainRow {
+  display: grid;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 16px;
+}
+@media (min-width: 651px) {
+  .plainRow {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+}
+
+/* The chart: bars grow from the zero line, 500 ms, 40 ms apart. */
+.bar {
+  animation: barGrow 500ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation-delay: calc(300ms + var(--i, 0) * 40ms);
+}
+.barUp {
+  transform-origin: bottom;
+}
+.barDown {
+  transform-origin: top;
+}
+@keyframes barGrow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* Category bars grow like Home's split bars. */
+.catTrack {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(58 31 20 / 0.08);
+}
+.catFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transform-origin: left;
+  animation: catGrow 500ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation-delay: calc(300ms + var(--i, 0) * 40ms);
+}
+@keyframes catGrow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 24px;
+  background: rgb(255 255 255 / 0.88);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.28);
+  color: var(--color-ink);
+}
+.footer > div {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+}
+@media (max-width: 650px) {
+  .footer {
+    padding: 12px 16px;
+    border-radius: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .catFill {
+    animation: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .chip,
+  .notice,
+  .footer {
+    background: var(--color-surface);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--color-ink);
+  }
+}

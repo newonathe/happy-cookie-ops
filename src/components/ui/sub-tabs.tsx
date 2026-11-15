@@ -16,6 +16,8 @@ export interface SubTabsProps {
   tabs: SubTab[];
   quiet?: boolean;
   refined?: boolean;
+  /** On the espresso ground: a closed tab is light glass with light text, so it stays readable on the dark page. */
+  onGround?: boolean;
 }
 
 const navStyle: CSSProperties = {
@@ -39,7 +41,12 @@ const badgeStyle: CSSProperties = {
   placeItems: 'center'
 };
 
-function tabStyle(active: boolean, quiet: boolean, refined: boolean): CSSProperties {
+function tabStyle(
+  active: boolean,
+  quiet: boolean,
+  refined: boolean,
+  onGround: boolean
+): CSSProperties {
   const tone: CSSProperties = active
     ? { background: '#FDEDE5', color: '#A63C0E', boxShadow: 'inset 0 0 0 2px #E75F23' }
     : quiet
@@ -72,6 +79,9 @@ function tabStyle(active: boolean, quiet: boolean, refined: boolean): CSSPropert
           color: active ? 'var(--color-brand)' : 'var(--color-ink-mute)',
           fontWeight: active ? 600 : 400
         }
+      : {}),
+    ...(onGround && !active
+      ? { background: 'rgb(255 255 255 / 0.12)', color: 'var(--color-on-ground)' }
       : {})
   };
 }
@@ -80,7 +90,13 @@ function tabStyle(active: boolean, quiet: boolean, refined: boolean): CSSPropert
  * The sub-tab strip of the live interface (final-plan.md section 8). The labels and which
  * one is open come from data; destinations wrap so a narrow screen never hides them offscreen.
  */
-export function SubTabs({ label, tabs, quiet = false, refined = false }: SubTabsProps) {
+export function SubTabs({
+  label,
+  tabs,
+  quiet = false,
+  refined = false,
+  onGround = false
+}: SubTabsProps) {
   if (tabs.length === 0) return null;
   return (
     <nav aria-label={label} data-sub-tabs={quiet ? 'entries' : 'places'} style={navStyle}>
@@ -91,9 +107,13 @@ export function SubTabs({ label, tabs, quiet = false, refined = false }: SubTabs
           type="button"
           aria-current={tab.active ? 'page' : undefined}
           onClick={tab.go}
-          style={tabStyle(tab.active, quiet, refined)}
+          style={tabStyle(tab.active, quiet, refined, onGround)}
           hoverStyle={
-            tab.active ? undefined : { background: refined ? 'var(--color-raise)' : '#F3EFEC' }
+            tab.active
+              ? undefined
+              : onGround
+                ? { background: 'rgb(255 255 255 / 0.2)' }
+                : { background: refined ? 'var(--color-raise)' : '#F3EFEC' }
           }
           activeStyle={{ transform: 'scale(.98)' }}
           focusStyle={{ outline: '2px solid #E75F23', outlineOffset: '2px' }}

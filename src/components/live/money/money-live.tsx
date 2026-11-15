@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { LiveMoney, MoneyPeriod, OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
 import { BooksNotLoaded, BooksRefreshNotice } from './books-read-notice';
 import { MoneyEntryLive, TransactionLive } from './money-pages';
 import { SubTabs } from '@/components/ui/sub-tabs';
 import { cx } from '@/components/ui/cx';
+import { CountMoney, GlassCard, GoalRing, SplitBar, glassStyles } from '@/components/ui/glass';
 import {
   FooterActions,
   PageTitle,
@@ -15,6 +17,7 @@ import {
   SignedMoney,
   TaskRow
 } from '@/components/ui/owner-kit';
+import styles from './money-live.module.css';
 
 const PERIODS: Array<[MoneyPeriod, string]> = [
   ['week', 'Last 7 days'],
@@ -29,6 +32,10 @@ const pesos = new Intl.NumberFormat('en-PH', {
   maximumFractionDigits: 2
 });
 
+/** A figure's sign for the count-up: + when it is money in, − when it is money out, nothing at zero. */
+const signOf = (value: number, positive: '+' | '−') =>
+  value === 0 ? '' : value > 0 ? positive : positive === '+' ? '−' : '+';
+
 /** Income against expenses for each day or week of the period, with the exact amounts beside the bars. */
 function IncomeExpenseChart({ money }: { money: LiveMoney }) {
   const max = Math.max(
@@ -37,8 +44,8 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
   );
   const unit = money.period === 'week' ? 'day' : 'week';
   return (
-    <Panel title="Income and expenses">
-      <p className="mb-3 text-caption text-ink-mute">
+    <GlassCard title="Income and expenses" className={styles.span12}>
+      <p className="text-caption text-ink-mute">
         Each pair is one {unit}.{' '}
         <span className="inline-flex items-center gap-1">
           <span aria-hidden="true" className="inline-block size-2.5 rounded-sm bg-ok" /> Income
@@ -63,7 +70,7 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
           −₱{pesos.format(max)}
         </span>
         <span className="absolute left-20 right-0 top-16 border-t border-line-strong" />
-        {money.buckets.map((b) => (
+        {money.buckets.map((b, index) => (
           <div key={b.label} className="flex min-w-0 flex-col items-center gap-1.5">
             <div className="relative flex h-32 w-full justify-center gap-1">
               {(['income', 'expenses'] as const).map((k) => {
@@ -74,15 +81,21 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
                       data-money-series={k}
                       data-value={b[k]}
                       className={cx(
-                        'absolute block w-full transition-[height] duration-[280ms] motion-reduce:transition-none',
-                        flow < 0 ? 'rounded-b-[5px]' : 'rounded-t-[5px]',
+                        'absolute block w-full',
+                        styles.bar,
+                        flow < 0
+                          ? cx('rounded-b-[5px]', styles.barDown)
+                          : cx('rounded-t-[5px]', styles.barUp),
                         flow >= 0 ? 'bg-ok' : 'bg-danger'
                       )}
-                      style={{
-                        top: flow < 0 ? '50%' : undefined,
-                        bottom: flow >= 0 ? '50%' : undefined,
-                        height: `${b[k] !== 0 ? Math.max(1.5, (Math.abs(b[k]) / max) * 50) : 0}%`
-                      }}
+                      style={
+                        {
+                          top: flow < 0 ? '50%' : undefined,
+                          bottom: flow >= 0 ? '50%' : undefined,
+                          height: `${b[k] !== 0 ? Math.max(1.5, (Math.abs(b[k]) / max) * 50) : 0}%`,
+                          '--i': index
+                        } as CSSProperties
+                      }
                     />
                   </span>
                 );
@@ -93,14 +106,14 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
         ))}
       </div>
       {money.buckets.some((b) => b.income < 0) ? (
-        <p className="mt-2 text-caption text-danger">
+        <p className="text-caption text-danger">
           Refunds exceed income in the red bars below zero.
         </p>
       ) : null}
       {money.buckets.some((b) => b.expenses < 0) ? (
-        <p className="mt-2 text-caption text-ink-mute">Reversed expenses appear above zero.</p>
+        <p className="text-caption text-ink-mute">Reversed expenses appear above zero.</p>
       ) : null}
-      <details className="mt-3 text-caption">
+      <details className="text-caption">
         <summary className="flex min-h-11 cursor-pointer items-center py-2 font-semibold text-ink-soft">
           Show amounts
         </summary>
@@ -136,7 +149,7 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
           </tbody>
         </table>
       </details>
-    </Panel>
+    </GlassCard>
   );
 }
 
@@ -214,14 +227,16 @@ function MoneySettings({ money, back }: { money: LiveMoney; back: () => void }) 
 }
 
 /**
- * Money (client v4): one period for every figure, the bars and the list. Positive amounts are
- * green with +, costs red with −; the books' own sums are shown, never a chart's own arithmetic.
- */
-/**
  * The month's profit goal (Ethan, 16 Nov 2026; settings key `profitGoal`). Profit so far is this month's books, not the
  * selected period. "Change goal" saves through the owner's settings (`save_setting`), like every money rule.
  */
-function ProfitGoalCard({ goal }: { goal: NonNullable<OpsVals['profitGoal']> }) {
+function ProfitGoalCard({
+  goal,
+  className
+}: {
+  goal: NonNullable<OpsVals['profitGoal']>;
+  className?: string;
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(goal.goal));
   const pct =
@@ -231,7 +246,7 @@ function ProfitGoalCard({ goal }: { goal: NonNullable<OpsVals['profitGoal']> }) 
   const value = Number(draft);
   const valid = Number.isFinite(value) && value > 0 && value <= 1000000;
   return (
-    <Panel title="Goal this month">
+    <GlassCard title="Goal this month" className={className}>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span className="font-mono text-title font-semibold text-ink">
           {pct === null ? '—' : `${pct}%`}
@@ -242,12 +257,15 @@ function ProfitGoalCard({ goal }: { goal: NonNullable<OpsVals['profitGoal']> }) 
             : `₱${pesos.format(goal.profit)} profit of ₱${pesos.format(goal.goal)}`}
         </span>
       </div>
-      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-chip" aria-hidden="true">
-        <span className="block h-full rounded-full bg-accent" style={{ width: `${pct ?? 0}%` }} />
+      <div className={glassStyles.splitBar} aria-hidden="true">
+        <span
+          className={cx(glassStyles.segment, 'bg-accent')}
+          style={{ width: `${pct ?? 0}%`, minWidth: pct ? undefined : 0 }}
+        />
       </div>
       {editing ? (
         <form
-          className="mt-4 flex flex-wrap items-end gap-3"
+          className="flex flex-wrap items-end gap-3"
           onSubmit={(event) => {
             event.preventDefault();
             if (!valid) return;
@@ -276,7 +294,7 @@ function ProfitGoalCard({ goal }: { goal: NonNullable<OpsVals['profitGoal']> }) 
           </Button>
         </form>
       ) : (
-        <div className="mt-3">
+        <div>
           <Button
             variant="secondary"
             size="sm"
@@ -289,7 +307,16 @@ function ProfitGoalCard({ goal }: { goal: NonNullable<OpsVals['profitGoal']> }) 
           </Button>
         </div>
       )}
-    </Panel>
+    </GlassCard>
+  );
+}
+
+/** A Money sub-page (settings, one transaction, a new entry) on one light card, so nothing reads dark on dark. */
+function SubPage({ children }: { children: React.ReactNode }) {
+  return (
+    <section aria-label="Money" className={cx(glassStyles.glassCard, styles.subpage)}>
+      {children}
+    </section>
   );
 }
 
@@ -299,10 +326,25 @@ export function MoneyLive({ v }: { v: OpsVals }) {
   const [settings, setSettings] = useState(false);
   const [filter, setFilter] = useState<Filter>({ kind: 'all' });
   if (!money) return null;
-  if (money.entry) return <MoneyEntryLive entry={money.entry} />;
-  if (settings) return <MoneySettings money={money} back={() => setSettings(false)} />;
+  if (money.entry)
+    return (
+      <SubPage>
+        <MoneyEntryLive entry={money.entry} />
+      </SubPage>
+    );
+  if (settings)
+    return (
+      <SubPage>
+        <MoneySettings money={money} back={() => setSettings(false)} />
+      </SubPage>
+    );
   const opened = money.transactions.find((t) => t.id === openRow);
-  if (opened) return <TransactionLive row={opened} back={() => setOpenRow(null)} />;
+  if (opened)
+    return (
+      <SubPage>
+        <TransactionLive row={opened} back={() => setOpenRow(null)} />
+      </SubPage>
+    );
   const tabs = v.liveScreen?.tabs;
   const cat = filter.kind === 'cat' ? filter.cat : null;
   const rows = money.transactions.filter((t) =>
@@ -315,96 +357,151 @@ export function MoneyLive({ v }: { v: OpsVals }) {
           : t.kind === 'expense' && t.cat === cat
   );
   const catMax = Math.max(1, ...money.categories.map((c) => c.amount));
-  const chip = (active: boolean) =>
-    cx(
-      'min-h-11 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
-      active
-        ? 'border-ink bg-ink text-surface'
-        : 'border-line-strong bg-surface text-ink hover:bg-raise'
-    );
+  const goal = v.profitGoal;
+  const goalPct =
+    goal && goal.profit !== null
+      ? Math.max(0, Math.min(100, Math.round((goal.profit / goal.goal) * 100)))
+      : null;
+  // Of every ₱100 that came in, how much was kept: shown only while income covers the costs.
+  const kept =
+    money.revenue > 0 && money.profit >= 0
+      ? Math.min(100, Math.round((money.profit / money.revenue) * 100))
+      : null;
   return (
-    <div className="w-full">
-      <PageTitle
-        title="Money"
-        subtitle={money.periodText}
-        actions={
-          <>
-            <Button variant="primary" onClick={money.recordExpense}>
-              Record expense
-            </Button>
-            <Button variant="secondary" onClick={() => setSettings(true)}>
-              Settings
-            </Button>
-          </>
-        }
-      />
-      {tabs ? (
-        <div className="mb-4">
-          <SubTabs
-            label={tabs.label}
-            tabs={tabs.places.filter((t) => t.id !== 'expenses')}
-            refined
-          />
+    <div data-screen-label="Money" className={styles.money}>
+      <div className={styles.span12}>
+        <PageTitle
+          onGround
+          title="Money"
+          subtitle={money.periodText}
+          actions={
+            <>
+              <Button variant="primary" onClick={money.recordExpense}>
+                Record expense
+              </Button>
+              <Button variant="secondary" onClick={() => setSettings(true)}>
+                Settings
+              </Button>
+            </>
+          }
+        />
+        {tabs ? (
+          <div className="mb-4">
+            <SubTabs
+              label={tabs.label}
+              tabs={tabs.places.filter((t) => t.id !== 'expenses')}
+              refined
+              onGround
+            />
+          </div>
+        ) : null}
+        <div role="group" aria-label="Period" className={cx(styles.chips, styles.groundChips)}>
+          {PERIODS.map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={money.period === key}
+              onClick={() => money.setPeriod(key)}
+              className={styles.chip}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-      ) : null}
-      <div role="group" aria-label="Period" className="mb-4 flex flex-wrap gap-2">
-        {PERIODS.map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            aria-pressed={money.period === key}
-            onClick={() => money.setPeriod(key)}
-            className={chip(money.period === key)}
-          >
-            {label}
-          </button>
-        ))}
       </div>
 
       {!money.loaded ? (
-        <BooksNotLoaded read={money.read} />
+        <div className={styles.span12}>
+          <BooksNotLoaded read={money.read} />
+        </div>
       ) : (
         <>
-          <BooksRefreshNotice read={money.read} />
-          {v.profitGoal ? <ProfitGoalCard goal={v.profitGoal} /> : null}
-          <Panel tone="hero">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-caption text-ink-mute">Income</span>
-                <SignedMoney pesos={money.revenue} className="text-title leading-tight" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-caption text-ink-mute">Expenses</span>
-                <SignedMoney pesos={-money.expenses} className="text-title leading-tight" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-label font-semibold text-ink">
-                  {money.profit < 0 ? 'Loss' : 'Profit'}
-                </span>
-                <SignedMoney pesos={money.profit} className="text-display leading-tight" />
-              </div>
+          {money.read?.state ? (
+            <div className={cx(styles.span12, styles.notice, 'px-4 py-1 text-caption')}>
+              <BooksRefreshNotice read={money.read} />
             </div>
-            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 text-caption text-ink-mute">
-              <span>
+          ) : null}
+          <GlassCard
+            title={money.profit < 0 ? 'Loss' : 'Profit'}
+            className={goal ? styles.spanHero : styles.span12}
+          >
+            <div className={glassStyles.heroFigure}>
+              <div className="flex min-w-0 flex-col gap-2">
+                <span className="text-label font-medium text-ink-soft">{money.periodText}</span>
+                <span
+                  className={cx(
+                    'font-mono text-[length:clamp(28px,9vw,40px)] leading-none font-semibold tabular-nums md:text-[56px]',
+                    money.profit < 0 ? 'text-danger' : 'text-ink'
+                  )}
+                >
+                  <CountMoney pesos={money.profit} sign={money.profit < 0 ? '−' : ''} />
+                </span>
+                {goal && goalPct !== null ? (
+                  <span className="text-caption text-ink-mute">
+                    of ₱{Math.round(goal.goal).toLocaleString('en-PH')} goal this month
+                  </span>
+                ) : null}
+              </div>
+              {goalPct !== null ? <GoalRing pct={goalPct} /> : null}
+            </div>
+            {kept !== null ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                  <span className="text-label font-medium text-ink-soft">Where income went</span>
+                  <span className="text-caption text-ink-mute">₱{kept} kept of every ₱100</span>
+                </div>
+                <SplitBar
+                  label={`${100 - kept}% spent, ${kept}% kept`}
+                  parts={[
+                    {
+                      id: 'spent',
+                      label: 'Spent',
+                      value: Math.max(0, money.expenses),
+                      tone: 'bg-danger'
+                    },
+                    { id: 'kept', label: 'Kept', value: money.profit, tone: 'bg-ok' }
+                  ]}
+                />
+              </div>
+            ) : null}
+            <dl className={glassStyles.moneyWells}>
+              <div className={glassStyles.glassWell}>
+                <dt>Income</dt>
+                <dd className="text-ok">
+                  <CountMoney pesos={money.revenue} sign={signOf(money.revenue, '+')} />
+                </dd>
+              </div>
+              <div className={glassStyles.glassWell}>
+                <dt>Expenses</dt>
+                <dd className="text-danger">
+                  <CountMoney pesos={money.expenses} sign={signOf(money.expenses, '−')} />
+                </dd>
+              </div>
+            </dl>
+            <div className={styles.statChips}>
+              <span className={styles.statChip}>
                 Set aside for tax ({money.taxRate}%):{' '}
                 <strong className="text-ink">₱{pesos.format(money.taxSetAside)}</strong>
               </span>
               {money.draw > 0 ? (
-                <span>
+                <span className={styles.statChip}>
                   Taken out by you:{' '}
                   <strong className="text-ink">₱{pesos.format(money.draw)}</strong>
                 </span>
               ) : null}
               {money.refunded > 0 ? (
-                <span>
+                <span className={styles.statChip}>
                   Refunded: <SignedMoney pesos={-money.refunded} />
                 </span>
               ) : null}
             </div>
-          </Panel>
+          </GlassCard>
+          {goal ? <ProfitGoalCard goal={goal} className={styles.spanSide} /> : null}
 
           {money.held.length ? (
-            <details className="mb-4 rounded-control border border-line bg-surface px-3 text-caption text-ink-soft">
+            <details
+              className={cx(styles.span12, styles.notice, 'px-4 text-caption text-ink-soft')}
+            >
               <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-ink">
                 {money.held.length === 1
                   ? '1 open event is not in these books yet'
@@ -423,7 +520,12 @@ export function MoneyLive({ v }: { v: OpsVals }) {
           {money.uncosted > 0 ? (
             <p
               role="status"
-              className="mb-4 rounded-control border border-warm-line bg-warm-high p-3 text-caption text-ink"
+              className={cx(
+                styles.span12,
+                styles.notice,
+                styles.noticeWarn,
+                'p-3 text-caption text-ink'
+              )}
             >
               {money.uncosted} {money.uncosted === 1 ? 'use' : 'uses'} of stock in this period{' '}
               {money.uncosted === 1 ? 'has' : 'have'} no cost yet, so expenses may be higher than
@@ -433,157 +535,154 @@ export function MoneyLive({ v }: { v: OpsVals }) {
 
           <IncomeExpenseChart money={money} />
 
-          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <Panel title="Where the money went">
-              {money.categories.length === 0 ? (
-                <p className="text-caption text-ink-mute">No expenses in this period.</p>
-              ) : (
-                <ul className="flex flex-col">
-                  {money.categories.map((c) => (
-                    <li key={c.cat}>
-                      <button
-                        type="button"
-                        aria-pressed={filter.kind === 'cat' && filter.cat === c.cat}
-                        onClick={() =>
-                          setFilter(
-                            filter.kind === 'cat' && filter.cat === c.cat
-                              ? { kind: 'all' }
-                              : { kind: 'cat', cat: c.cat }
-                          )
-                        }
-                        className="flex w-full flex-col gap-1.5 border-b border-line py-2.5 text-left last:border-b-0 hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand aria-pressed:bg-raise"
-                      >
-                        <span className="flex flex-wrap items-baseline gap-x-2">
-                          <span className="text-label font-semibold text-ink">{c.cat}</span>
-                          <span className="text-caption text-ink-mute">
-                            {c.n} {c.n === 1 ? 'entry' : 'entries'}
-                          </span>
-                          <span className="ml-auto text-label font-semibold text-ink">
-                            ₱{pesos.format(c.amount)}
-                          </span>
+          <GlassCard title="Where the money went" className={styles.spanLeft}>
+            {money.categories.length === 0 ? (
+              <p className="text-caption text-ink-mute">No expenses in this period.</p>
+            ) : (
+              <ul className={styles.rows}>
+                {money.categories.map((c, index) => (
+                  <li key={c.cat}>
+                    <button
+                      type="button"
+                      aria-pressed={filter.kind === 'cat' && filter.cat === c.cat}
+                      onClick={() =>
+                        setFilter(
+                          filter.kind === 'cat' && filter.cat === c.cat
+                            ? { kind: 'all' }
+                            : { kind: 'cat', cat: c.cat }
+                        )
+                      }
+                      className="flex-col justify-center gap-1.5"
+                    >
+                      <span className="flex w-full flex-wrap items-baseline gap-x-2">
+                        <span className="text-label font-semibold text-ink">{c.cat}</span>
+                        <span className="text-caption text-ink-mute">
+                          {c.n} {c.n === 1 ? 'entry' : 'entries'}
                         </span>
-                        <span className="block h-1.5 rounded-full bg-chip">
-                          <span
-                            className="block h-full rounded-full bg-danger/70"
-                            style={{
-                              width: `${Math.max(3, Math.round((c.amount / catMax) * 100))}%`
-                            }}
-                          />
+                        <span className="ml-auto font-mono text-label font-semibold tabular-nums text-ink">
+                          ₱{pesos.format(c.amount)}
                         </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Panel>
-
-            <Panel title="Transactions">
-              <div role="group" aria-label="Show" className="mb-2 flex flex-wrap gap-2">
-                {(
-                  [
-                    ['all', 'All'],
-                    ['income', 'Income'],
-                    ['costs', 'Expenses']
-                  ] as const
-                ).map(([kind, label]) => (
-                  <button
-                    key={kind}
-                    type="button"
-                    aria-pressed={filter.kind === kind}
-                    onClick={() => setFilter({ kind })}
-                    className={chip(filter.kind === kind)}
-                  >
-                    {label}
-                  </button>
+                      </span>
+                      <span className={styles.catTrack}>
+                        <span
+                          className={cx(styles.catFill, 'bg-danger')}
+                          style={
+                            {
+                              width: `${Math.max(3, Math.round((c.amount / catMax) * 100))}%`,
+                              '--i': index
+                            } as CSSProperties
+                          }
+                        />
+                      </span>
+                    </button>
+                  </li>
                 ))}
-                {filter.kind === 'cat' ? (
-                  <button
-                    type="button"
-                    aria-pressed
-                    onClick={() => setFilter({ kind: 'all' })}
-                    className={chip(true)}
-                  >
-                    {filter.cat} ×
-                  </button>
-                ) : null}
-              </div>
-              {rows.length === 0 ? (
-                <p className="py-3 text-caption text-ink-mute">Nothing recorded in this period.</p>
-              ) : (
-                <ul className="flex flex-col">
-                  {rows.map((t) => (
-                    <li key={t.id} className="border-b border-line last:border-b-0">
-                      <button
-                        type="button"
-                        onClick={() => setOpenRow(t.id)}
-                        className="flex min-h-14 w-full items-center justify-between gap-3 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
-                      >
-                        <span className="flex min-w-0 flex-col gap-0.5">
-                          <span className="[overflow-wrap:anywhere] text-label font-semibold text-ink">
-                            {t.label}
-                          </span>
-                          <span className="text-caption text-ink-mute">
-                            {t.when} · {t.kind === 'draw' ? 'Taken out (not an expense)' : t.cat}
-                          </span>
+              </ul>
+            )}
+          </GlassCard>
+
+          <GlassCard title="Transactions" className={styles.spanRight}>
+            <div role="group" aria-label="Show" className={styles.chips}>
+              {(
+                [
+                  ['all', 'All'],
+                  ['income', 'Income'],
+                  ['costs', 'Expenses']
+                ] as const
+              ).map(([kind, label]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  aria-pressed={filter.kind === kind}
+                  onClick={() => setFilter({ kind })}
+                  className={styles.chip}
+                >
+                  {label}
+                </button>
+              ))}
+              {filter.kind === 'cat' ? (
+                <button
+                  type="button"
+                  aria-pressed
+                  onClick={() => setFilter({ kind: 'all' })}
+                  className={styles.chip}
+                >
+                  {filter.cat} ×
+                </button>
+              ) : null}
+            </div>
+            {rows.length === 0 ? (
+              <p className="py-3 text-caption text-ink-mute">Nothing recorded in this period.</p>
+            ) : (
+              <ul className={styles.rows}>
+                {rows.map((t) => (
+                  <li key={t.id}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenRow(t.id)}
+                      className="items-center justify-between gap-3"
+                    >
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span className="[overflow-wrap:anywhere] text-label font-semibold text-ink">
+                          {t.label}
                         </span>
-                        {t.kind === 'draw' ? (
-                          <span className="font-semibold text-ink">
-                            −₱{pesos.format(Math.abs(t.signed))}
-                          </span>
-                        ) : (
-                          <SignedMoney pesos={t.signed} className="whitespace-nowrap" />
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Panel>
-          </div>
+                        <span className="text-caption text-ink-mute">
+                          {t.when} · {t.kind === 'draw' ? 'Taken out (not an expense)' : t.cat}
+                        </span>
+                      </span>
+                      {t.kind === 'draw' ? (
+                        <span className="font-semibold whitespace-nowrap text-ink">
+                          −₱{pesos.format(Math.abs(t.signed))}
+                        </span>
+                      ) : (
+                        <SignedMoney pesos={t.signed} className="whitespace-nowrap" />
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </GlassCard>
 
           {v.pl?.hasMargins ? (
-            <>
-              <SectionHeading>What each flavour earns, all time</SectionHeading>
-              <Panel>
-                <ul className="flex flex-col">
-                  {(v.pl.marginRows ?? []).map((m, i) => (
-                    <li
-                      key={i}
-                      className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-line py-2.5 text-caption last:border-b-0"
-                    >
-                      <span className="flex min-w-0 flex-col">
-                        <span className="text-label font-semibold text-ink">{m.name}</span>
-                        <span className="text-ink-mute">{m.soldText}</span>
-                      </span>
-                      <span className="text-right text-ink-mute">
-                        {m.eachText} each · {m.pctText}
-                      </span>
-                      <span className="text-right text-label font-semibold text-ink">
-                        {m.madeText}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="pt-2 text-caption text-ink-mute">
-                  Per cookie, its margin, and what it has brought in. Counts all recorded orders and
-                  sales, not only this period.
-                </p>
-              </Panel>
-            </>
+            <GlassCard title="What each flavour earns, all time" className={styles.span12}>
+              <ul className={styles.rows}>
+                {(v.pl.marginRows ?? []).map((m, i) => (
+                  <li key={i} className={styles.plainRow}>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-label font-semibold text-ink">{m.name}</span>
+                      <span className="text-caption text-ink-mute">{m.soldText}</span>
+                    </span>
+                    <span className="text-caption text-ink-mute sm:text-right">
+                      {m.eachText} each · {m.pctText}
+                    </span>
+                    <span className="text-label font-semibold text-ink sm:text-right">
+                      {m.madeText}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-caption text-ink-mute">
+                Per cookie, its margin, and what it has brought in. Counts all recorded orders and
+                sales, not only this period.
+              </p>
+            </GlassCard>
           ) : null}
 
-          <FooterActions
-            back={
-              <Button variant="secondary" onClick={money.takeMoneyOut}>
-                Record owner draw
-              </Button>
-            }
-            forward={
-              <Button variant="secondary" onClick={money.exportPeriod}>
-                Export this period (CSV)
-              </Button>
-            }
-          />
+          <div className={cx(styles.span12, styles.footer)}>
+            <FooterActions
+              back={
+                <Button variant="secondary" onClick={money.takeMoneyOut}>
+                  Record owner draw
+                </Button>
+              }
+              forward={
+                <Button variant="secondary" onClick={money.exportPeriod}>
+                  Export this period (CSV)
+                </Button>
+              }
+            />
+          </div>
         </>
       )}
     </div>
