@@ -180,4 +180,31 @@ describe('visual plain-language product editor', () => {
       screen.getByText('The cost per cookie appears here once the product is on the menu.')
     ).toBeTruthy();
   });
+
+  it('offers Publish menu only while a draft waits, and says so otherwise', () => {
+    const row = (id: string, published: boolean) => ({
+      id,
+      name: id,
+      shortName: id,
+      priceText: '₱100',
+      published,
+      active: true,
+      edit: vi.fn()
+    });
+    const list = (rows: ReturnType<typeof row>[], publish = vi.fn()) =>
+      ({
+        liveForm: { kind: 'flavours', online: true, rows, addNew: vi.fn(), publish, editing: null }
+      }) as unknown as OpsVals;
+    const publish = vi.fn();
+    const { unmount } = render(
+      <LiveFormHost v={list([row('cookie', true), row('ice cream', false)], publish)} />
+    );
+    expect(screen.getByText('1 change customers cannot see yet')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Publish menu' }));
+    expect(publish).toHaveBeenCalledTimes(1);
+    unmount();
+    render(<LiveFormHost v={list([row('cookie', true)])} />);
+    expect(screen.queryByRole('button', { name: 'Publish menu' })).toBeNull();
+    expect(screen.getByText('Everything is published.')).toBeTruthy();
+  });
 });
