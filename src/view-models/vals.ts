@@ -1496,6 +1496,8 @@ export interface OpsVals {
     photo?: string;
     bakedText?: string | null;
     hasRecipe?: boolean | null;
+    /** Her type is sold by the piece (migration 84): not baked, and a recipe is optional. */
+    soldByPiece?: boolean;
     returnRecipeFocus?: boolean;
     returnEditFocus?: boolean;
     costText: React.ReactNode;
