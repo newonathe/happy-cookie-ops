@@ -356,7 +356,7 @@ begin
   perform pg_temp.assert_ok(a, 'status_found', s ->> 'order_no' = pg_temp.no('place_ok_priced'));
   perform pg_temp.assert_ok(a, 'status_keys_exact',
     (select array_agg(k order by k) from jsonb_object_keys(s) k)
-      = array['add_ons', 'boxes', 'hold_expires_at', 'items', 'order_no', 'pay_method', 'pay_state', 'pickup_date',
+      = array['add_ons', 'boxes', 'hold_expires_at', 'items', 'order_no', 'paid_cents', 'pay_method', 'pay_state', 'pickup_date',
               'pickup_window', 'placed_at', 'same_day', 'state', 'surcharge_cents', 'total_cents']);
   perform pg_temp.assert_ok(a, 'status_shows_unpaid_hold',
     s ->> 'pay_state' = 'unpaid' and s ->> 'state' = 'Payment review' and (s ->> 'hold_expires_at') is not null);

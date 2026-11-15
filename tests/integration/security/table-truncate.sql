@@ -112,14 +112,34 @@ end $$;
 
 set local role service_role;
 select pg_temp.set_subject(null, 'service_role');
-truncate table public.audit_log, public.bake_batches, public.drops, public.erasure_requests,
+-- Migration 75: the private kitchen tables are closed to service_role, so it can neither truncate
+-- them nor truncate the tables they reference (products, scheduled_events, bazaar_days).
+do $$ declare relation_name text;
+begin
+  foreach relation_name in array array['bazaar_kitchen_sources','bazaar_kitchen_moves'] loop
+    begin
+      execute format('truncate table public.%I', relation_name);
+      raise exception 'forbidden service_role truncate succeeded: %', relation_name;
+    exception when insufficient_privilege then
+      null; -- refused with 42501, as intended
+    end;
+  end loop;
+  begin
+    truncate table public.products;
+    raise exception 'service_role truncated a table referenced by the private kitchen journal';
+  exception when feature_not_supported then
+    null; -- refused: the private kitchen journal still references products
+  end;
+end $$;
+reset role;
+-- Only the trusted owner role empties the whole set, kitchen journal included.
+truncate table public.bazaar_kitchen_moves, public.bazaar_kitchen_sources, public.event_price_versions, public.audit_log, public.bake_batches, public.drops, public.erasure_requests,
   public.event_sale_items, public.event_sales, public.events, public.inventory_items,
   public.ledger_entries, public.order_items, public.orders, public.products, public.profiles,
   public.rate_limits, public.recipe_drafts, public.recipe_ingredients, public.recipes, public.settings,
   public.supplier_prices, public.suppliers, public.event_expenses, public.order_swaps,
   public.order_extras, public.order_add_ons, public.order_boxes, public.scheduled_events, public.recipe_versions, public.stock_movements, public.production_records, public.stock_cost_corrections, public.item_prices, public.books_settings, public.packaging_rules,
   public.bazaar_days, public.bazaar_day_lines, public.bazaar_costs, public.bazaar_fees, public.bazaar_losses, public.bazaar_stock_adds, public.flavour_costs;
-reset role;
 do $$ declare relation_name text; populated boolean;
 begin
   if exists (select 1 from public.settings) or exists (select 1 from public.profiles) then
@@ -133,7 +153,7 @@ begin
     if populated then raise exception 'trusted truncate left rows: %', relation_name; end if;
   end loop;
 end $$;
-insert into pg_temp.authority_results values ('table_truncate', 'service_role', 'all_20_tables_emptied');
+insert into pg_temp.authority_results values ('table_truncate', 'owner', 'all_20_tables_emptied');
 do $$ begin
   if (select jsonb_agg(u order by id) from auth.users u) is distinct from
        (select value from pg_temp.original_users) then raise exception 'auth users changed'; end if;
