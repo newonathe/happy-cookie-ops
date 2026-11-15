@@ -445,7 +445,7 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
           .go()
       );
       const list = render(<AppFrame v={runtime.renderVals()} />);
-      expect(list.container.textContent).toContain('Publish menu');
+      expect(list.container.textContent).toContain('Everything is published.');
       expect(list.container.innerHTML).not.toMatch(/undefined|\bNaN\b/);
       list.unmount();
 

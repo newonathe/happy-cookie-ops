@@ -75,6 +75,7 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
 }
 
 function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> }) {
+  const drafts = liveForm.rows.filter((row) => !row.published).length;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {!liveForm.online ? (
@@ -82,12 +83,38 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
-      <button onClick={liveForm.publish} style={primaryButton}>
-        Publish menu
-      </button>
-      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
-        Customers see every flavour still on the order form as soon as you publish.
-      </span>
+      {/* Publish does something only while a draft waits (publish_flavours publishes every row; a new one starts as a
+        draft). Otherwise it steps aside for one quiet line (Ethan, 15 November 2026). */}
+      {drafts ? (
+        <div
+          role="status"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            padding: '10px 12px',
+            borderRadius: '12px',
+            border: '1px solid var(--color-line-strong)',
+            background: 'var(--color-chip)'
+          }}
+        >
+          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-warn-strong)' }}>
+            {drafts === 1
+              ? '1 change customers cannot see yet'
+              : `${drafts} changes customers cannot see yet`}
+          </span>
+          <button onClick={liveForm.publish} style={primaryButton}>
+            Publish menu
+          </button>
+          <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+            Customers see every flavour still on the order form as soon as you publish.
+          </span>
+        </div>
+      ) : liveForm.rows.length ? (
+        <span role="status" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-ok)' }}>
+          Everything is published.
+        </span>
+      ) : null}
       <button onClick={liveForm.addNew} style={secondaryButton}>
         Add a flavour
       </button>

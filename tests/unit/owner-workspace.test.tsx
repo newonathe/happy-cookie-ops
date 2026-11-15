@@ -66,7 +66,9 @@ it('opens the product form as a page in the frame, with the existing form and cl
   );
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByRole('heading', { name: 'Menu & flavours' })).toBeTruthy();
-  expect(screen.getByRole('button', { name: 'Publish menu' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Add a flavour' })).toBeTruthy();
+  // Nothing is waiting to be published, so Publish menu steps aside.
+  expect(screen.queryByRole('button', { name: 'Publish menu' })).toBeNull();
   expect(screen.getAllByText('Batch kept. Continue it from Make.')).toHaveLength(1);
   fireEvent.click(screen.getByRole('button', { name: 'Back' }));
   expect(close).toHaveBeenCalledTimes(1);

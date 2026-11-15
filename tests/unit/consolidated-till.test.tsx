@@ -158,17 +158,57 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(v.openPay).toHaveBeenCalledOnce();
     expect(screen.queryByRole('dialog', { name: 'Current sale' })).toBeNull();
   });
+
+  it('on a phone, Freebie sits below a divider in the sale and asks once before it records', () => {
+    const v = vals();
+    render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
+    const panel = screen.getByRole('dialog', { name: 'Current sale' });
+    expect(within(panel).getByText('Not a sale?')).toBeTruthy();
+    fireEvent.click(within(panel).getByRole('button', { name: 'Freebie…' }));
+    expect(v.recordFreebie).not.toHaveBeenCalled();
+    fireEvent.click(within(panel).getByRole('button', { name: /^Give \d+ free$/ }));
+    expect(v.recordFreebie).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('dialog', { name: 'Current sale' })).toBeNull();
+  });
+
+  it('a freebie question left open closes when the sale empties, and the next sale starts without it', () => {
+    const v = vals();
+    const { rerender } = render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Freebie…' }));
+    expect(screen.getByRole('group', { name: 'Give as a freebie' })).toBeTruthy();
+    rerender(
+      <ConsolidatedTill
+        v={{ ...v, bzCartCount: 0, bzCartTotalNum: '₱0' }}
+        till={till()}
+        panel={null}
+      />
+    );
+    expect(screen.queryByRole('group', { name: 'Give as a freebie' })).toBeNull();
+    rerender(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    expect(screen.queryByRole('group', { name: 'Give as a freebie' })).toBeNull();
+    expect(v.recordFreebie).not.toHaveBeenCalled();
+  });
   it('a card adds one, and the sale takes one off', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
     fireEvent.click(screen.getByRole('button', { name: /^White Chocolate Biscoff/ }));
     expect(v.bzSell[1]!.tap).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('2 in sale')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: /^Double Chocolate Fudge, .*2 in this sale$/ })
+    ).toBeTruthy();
     const sale = screen.getByRole('complementary', { name: 'Current sale' });
+    // The tile takes one off by itself (its − is a button beside the tile's, never inside it); so does the sale panel.
+    const tileMinus = screen
+      .getAllByRole('button', { name: 'One less Double Chocolate Fudge in this sale' })
+      .find((button) => !sale.contains(button))!;
+    expect(tileMinus.closest('[data-part="tile"]')).toBeNull();
+    fireEvent.click(tileMinus);
+    expect(v.bzSell[0]!.minus).toHaveBeenCalledTimes(1);
     fireEvent.click(
       within(sale).getByRole('button', { name: 'One less Double Chocolate Fudge in this sale' })
     );
-    expect(v.bzSell[0]!.minus).toHaveBeenCalledTimes(1);
+    expect(v.bzSell[0]!.minus).toHaveBeenCalledTimes(2);
     expect(v.bzSell[0]!.tap).not.toHaveBeenCalled();
   });
 
@@ -207,6 +247,10 @@ describe('the consolidated till calls the ported handlers', () => {
         panel={null}
       />
     );
+    const strip = screen.getByRole('region', { name: "Today's summary" });
+    expect(strip).toHaveTextContent('₱425.00');
+    expect(strip).toHaveTextContent('42%');
+    fireEvent.click(within(strip).getByRole('button', { name: 'Details' }));
     expect(screen.getByRole('region', { name: 'Takings' })).toHaveTextContent('₱425.00');
     expect(screen.getByRole('region', { name: 'Cash drawer' })).toHaveTextContent('₱500.00');
     expect(screen.getByRole('region', { name: 'Target' })).toHaveTextContent('₱1,000.00');
@@ -214,25 +258,39 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 
-  it('the whole summary retracts to one bar, which keeps the sales count and the drawer', () => {
+  it('the Today strip gives each figure once; Details opens the full trackers, and Recent sales stays in view', () => {
     render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
-    const bar = screen.getByRole('button', { name: /Today's summary/ });
-    expect(bar.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByRole('region', { name: 'Recent sales' })).toBeTruthy();
-    fireEvent.click(bar);
-    expect(bar.getAttribute('aria-expanded')).toBe('false');
-    expect(screen.queryByRole('region', { name: 'Recent sales' })).toBeNull();
+    const strip = screen.getByRole('region', { name: "Today's summary" });
+    expect(strip).toHaveTextContent('1 sale');
+    expect(strip).toHaveTextContent('₱500.00');
+    expect(strip).toHaveTextContent('Left on the table');
+    expect(strip).toHaveTextContent('Cash taken out for fees is not subtracted from the drawer.');
+    const details = within(strip).getByRole('button', { name: 'Details' });
+    expect(details.getAttribute('aria-expanded')).toBe('false');
     expect(screen.queryByRole('region', { name: 'Cash drawer' })).toBeNull();
-    expect(bar).toHaveTextContent('1 sale');
-    expect(bar).toHaveTextContent('₱500.00');
+    expect(screen.getByRole('region', { name: 'Recent sales' })).toBeTruthy();
+    fireEvent.click(details);
+    expect(details.getAttribute('aria-expanded')).toBe('true');
+    expect(details).toHaveTextContent('Hide details');
+    expect(screen.getByRole('region', { name: 'Cash drawer' })).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Recent sales' })).toBeTruthy();
     // Selling tools stay out of the summary, so they stay in reach.
     expect(screen.getByRole('button', { name: 'Fees and expenses' })).toBeTruthy();
-    fireEvent.click(bar);
-    expect(screen.getByRole('region', { name: 'Recent sales' })).toBeTruthy();
+  });
+
+  it('keeps sales waiting to send in the Today strip, with Details closed', () => {
+    render(<ConsolidatedTill v={vals({ unsynced: 2 })} till={till()} panel={null} />);
+    const strip = screen.getByRole('region', { name: "Today's summary" });
+    expect(
+      within(strip).getByRole('button', { name: 'Details' }).getAttribute('aria-expanded')
+    ).toBe('false');
+    expect(strip).toHaveTextContent('Waiting to send');
+    expect(strip).toHaveTextContent('2 sales');
   });
 
   it('a helper without the totals switch sees the drawer but no takings or target', () => {
     render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
     expect(screen.queryByRole('region', { name: 'Takings' })).toBeNull();
     expect(screen.queryByText('Target revenue')).toBeNull();
     expect(screen.getByRole('region', { name: 'Cash drawer' })).toBeTruthy();
@@ -243,7 +301,7 @@ describe('the consolidated till calls the ported handlers', () => {
     const { container } = render(<ConsolidatedTill v={v} till={till()} panel={null} />);
     expect(container.querySelector('[data-part="sale-bar"]')).toBeNull();
     expect(screen.getByRole('button', { name: /^Charge ₱/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Freebie' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Freebie…' })).toBeDisabled();
   });
 
   it('draws the already-resolved photo as it is', () => {
@@ -263,8 +321,14 @@ describe('the consolidated till calls the ported handlers', () => {
     // A wide screen shows the Current sale panel and a phone shows the pinned bar; both use the same handlers.
     for (const button of screen.getAllByRole('button', { name: /^Charge ₱/ }))
       fireEvent.click(button);
-    for (const button of screen.getAllByRole('button', { name: 'Freebie' }))
-      fireEvent.click(button);
+    // Freebie sits away from Charge and asks once; keeping the sale records nothing.
+    fireEvent.click(screen.getByRole('button', { name: 'Freebie…' }));
+    const ask = screen.getByRole('group', { name: 'Give as a freebie' });
+    fireEvent.click(within(ask).getByRole('button', { name: 'Keep the sale' }));
+    expect(screen.queryByRole('group', { name: 'Give as a freebie' })).toBeNull();
+    expect(v.recordFreebie).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Freebie…' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Give \d+ free$/ }));
     expect(v.openPay).toHaveBeenCalledTimes(2);
     expect(v.recordFreebie).toHaveBeenCalledTimes(1);
     expect(screen.getAllByText('₱250').length).toBeGreaterThan(0);
