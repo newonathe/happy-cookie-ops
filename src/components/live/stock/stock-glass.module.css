@@ -1,0 +1,247 @@
+/*
+ * Stock on espresso glass. The card recipe, split bar and stat tiles are shared (`@/components/ui/glass`); this file
+ * holds only the Stock page layout, the ground chips, the light notices and the list rows. Same washes as Money.
+ */
+.page {
+  display: flex;
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+.page > * {
+  min-width: 0;
+}
+.stack {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+.stack[hidden] {
+  display: none;
+}
+@media (min-width: 651px) {
+  .page,
+  .stack {
+    gap: 24px;
+  }
+}
+
+/* A sub-page (one item, a count, a delivery, settings, one supplier) sits on one light card. */
+.subpage {
+  width: 100%;
+  max-width: 900px;
+}
+div.subpage:hover {
+  translate: none;
+}
+
+/* Category chips sit on the espresso ground: closed ones are light glass with light text, the chosen one is solid white. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  color: var(--color-on-ground);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.chip:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+.chip[aria-pressed='true'] {
+  border-color: rgb(255 255 255 / 1);
+  background: rgb(255 255 255 / 1);
+  color: var(--color-ink);
+}
+.chip:focus-visible,
+.rows > li > button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Notices on the page flow: a light surface with dark text; an empty one takes no room. */
+.notice {
+  padding: 8px 16px;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+}
+.notice:empty {
+  display: none;
+}
+.notice > p {
+  margin: 0;
+}
+
+/* Counts as tiles: 2 x 2 in a narrow card, four across from 520 px of card. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@container (min-width: 520px) {
+  .tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.tilesAuto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.figure {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.countFigure {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+@media (min-width: 768px) {
+  .countFigure {
+    font-size: 32px;
+  }
+}
+.labelFirst {
+  flex-direction: column-reverse;
+}
+.tileNote {
+  color: var(--color-ink-mute);
+  font-size: var(--text-caption);
+  line-height: 1.3;
+}
+
+/* Rows: white .65, radius 14, at least 56 px tall. */
+.rows {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+.rows > li > button,
+.plainRow {
+  min-height: 56px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+.rows > li > button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  padding: 10px 16px;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+}
+.rows > li > button:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.plainRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+}
+.buyRow {
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+.trail {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  text-align: right;
+}
+.chev {
+  color: var(--color-ink-mute);
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Supplier groups on the shopping list: one card each, side by side when there is room. */
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+  gap: 12px;
+}
+@media (min-width: 651px) {
+  .groups {
+    gap: 24px;
+  }
+}
+.headTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 650px) {
+  .page {
+    overflow-x: clip;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .chip,
+  .notice {
+    background: var(--color-surface);
+  }
+  .chip {
+    color: var(--color-ink);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--color-ink);
+    color: var(--color-surface);
+  }
+}
+/* A tile whose value is a sentence, such as "₱0.00 · some cost pending". */
+.textFigure {
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+/* Task rows (a button with a divider) inside glass rows: the divider goes, the row gets the glass padding. */
+.taskRows > button {
+  border-bottom: 0;
+  padding: 10px 16px;
+}
