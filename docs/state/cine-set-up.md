@@ -58,7 +58,7 @@ she sets it, a pack or a bazaar sale takes only the per-cookie packaging in the 
   crinkle, white chocolate biscoff). Nine more have a file name that is not a flavour's name (Banoffee Pie, Apple Pie,
   Strawberry Biscoff Cheesecake, Dubai Chocolate, PB & Miso, Banana Oat Chip, Cereal Milk, Espresso, Matcha): she picks
   the flavour for each. Twenty flavours have no finished picture. None is uploaded: the upload is in the flavour editor.
-- Allergens for each flavour, and whether "Cornflake" is Cereal Milk, are still hers to confirm.
+- Allergens for each flavour are still hers to confirm. "Cornflake" is not Cereal Milk (Ethan, 15 November 2026): two flavours, no rename.
 
 ## 5. Bazaars and people
 
