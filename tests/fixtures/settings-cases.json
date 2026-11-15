@@ -246,6 +246,14 @@
       "max": 72,
       "enum": null,
       "source": "sql-only: hours Bazaar Mode may open offline after the last online check, labelled default 48 (A2, Ethan 2026-10-05)"
+    },
+    {
+      "key": "profitGoal",
+      "column": "cents",
+      "min": 0,
+      "max": 100000000,
+      "enum": null,
+      "source": "sql-only: the month's profit goal in centavos, labelled default 2000000 (Ethan 2026-11-16: placeholder until Cine sets her own; migration 87)"
     }
   ]
 }

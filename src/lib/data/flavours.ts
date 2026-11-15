@@ -21,7 +21,7 @@ export type ShopClient = Pick<SupabaseClient<Database>, 'from'>;
 
 /** The columns the shop may read, named, so a new column is never exposed by accident. */
 export const SHOP_COLUMNS =
-  'id, name, short_name, price_cents, kind, tag, description, image_path, sort_order, allergens';
+  'id, name, short_name, price_cents, kind, tag, description, image_path, sort_order, allergens, sold_by_piece';
 
 /**
  * The engine's asset paths are relative (`assets/…`); the seed stores them rooted
@@ -122,7 +122,13 @@ const publicMenu = z
       description: z.string(),
       image_path: z.string(),
       sort_order: z.number().int(),
-      allergens: z.string()
+      allergens: z.string(),
+      // Migration 87: true for a product sold by the piece; the order form says "cookies" only for the rest.
+      sold_by_piece: z
+        .boolean()
+        .nullable()
+        .optional()
+        .transform((value) => value ?? null)
     })
   )
   .refine((rows) => new Set(rows.map((row) => row.id)).size === rows.length);

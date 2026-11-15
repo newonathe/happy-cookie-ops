@@ -217,6 +217,82 @@ function MoneySettings({ money, back }: { money: LiveMoney; back: () => void }) 
  * Money (client v4): one period for every figure, the bars and the list. Positive amounts are
  * green with +, costs red with −; the books' own sums are shown, never a chart's own arithmetic.
  */
+/**
+ * The month's profit goal (Ethan, 16 Nov 2026; settings key `profitGoal`). Profit so far is this month's books, not the
+ * selected period. "Change goal" saves through the owner's settings (`save_setting`), like every money rule.
+ */
+function ProfitGoalCard({ goal }: { goal: NonNullable<OpsVals['profitGoal']> }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(goal.goal));
+  const pct =
+    goal.profit === null
+      ? null
+      : Math.max(0, Math.min(100, Math.round((goal.profit / goal.goal) * 100)));
+  const value = Number(draft);
+  const valid = Number.isFinite(value) && value > 0 && value <= 1000000;
+  return (
+    <Panel title="Goal this month">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="font-mono text-title font-semibold text-ink">
+          {pct === null ? '—' : `${pct}%`}
+        </span>
+        <span className="text-caption text-ink-mute">
+          {goal.profit === null
+            ? `Profit not read yet · goal ₱${pesos.format(goal.goal)}`
+            : `₱${pesos.format(goal.profit)} profit of ₱${pesos.format(goal.goal)}`}
+        </span>
+      </div>
+      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-chip" aria-hidden="true">
+        <span className="block h-full rounded-full bg-accent" style={{ width: `${pct ?? 0}%` }} />
+      </div>
+      {editing ? (
+        <form
+          className="mt-4 flex flex-wrap items-end gap-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!valid) return;
+            goal.set(value);
+            setEditing(false);
+          }}
+        >
+          <label className="flex flex-col gap-1 text-label font-semibold text-ink">
+            Monthly profit goal (₱)
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={1000000}
+              step={1}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              className="min-h-11 w-44 rounded-control border border-line-strong bg-surface px-3 font-mono text-body text-ink"
+            />
+          </label>
+          <Button type="submit" disabled={!valid}>
+            Save goal
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
+            Cancel
+          </Button>
+        </form>
+      ) : (
+        <div className="mt-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setDraft(String(goal.goal));
+              setEditing(true);
+            }}
+          >
+            Change goal
+          </Button>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 export function MoneyLive({ v }: { v: OpsVals }) {
   const [openRow, setOpenRow] = useState<string | null>(null);
   const money = v.liveMoney;
@@ -290,6 +366,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
       ) : (
         <>
           <BooksRefreshNotice read={money.read} />
+          {v.profitGoal ? <ProfitGoalCard goal={v.profitGoal} /> : null}
           <Panel tone="hero">
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-1">

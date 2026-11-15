@@ -46,13 +46,13 @@ const engineSource = readFileSync(ENGINE_PATH, 'utf8');
 const migrationSource = readFileSync(MIGRATION_PATH, 'utf8');
 
 describe('settings-cases.json completeness', () => {
-  it('has exactly 29 keys, each named once', () => {
-    expect(cases).toHaveLength(29);
-    expect(new Set(cases.map((c) => c.key)).size).toBe(29);
+  it('has exactly 30 keys, each named once', () => {
+    expect(cases).toHaveLength(30);
+    expect(new Set(cases.map((c) => c.key)).size).toBe(30);
   });
 
   it('reads the newest save_setting() definition', () => {
-    expect(path.basename(MIGRATION_PATH)).toBe('20260101005300_offline_open_hours.sql');
+    expect(path.basename(MIGRATION_PATH)).toBe('20260101008700_profit_goal_and_menu_types.sql');
   });
 
   it('gives every numeric or list key a min and max, and every text or channel key an enum', () => {
@@ -106,7 +106,8 @@ describe('settings-cases.json against the protected engine source', () => {
   });
 
   it("converts every cents-column bound from the engine's pesos with src/lib/money.ts", () => {
-    for (const c of cases.filter((x) => x.column === 'cents')) {
+    // A sql-only key (profitGoal, migration 87) has no engine rule to compare with.
+    for (const c of cases.filter((x) => x.column === 'cents' && !x.source.startsWith('sql-only'))) {
       const pesoMatch = engineSource.match(
         new RegExp(`k:\\s*'${c.key}'[\\s\\S]{0,220}?min:\\s*(\\d+),\\s*max:\\s*(\\d+)\\b`)
       );

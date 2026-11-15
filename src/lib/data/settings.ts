@@ -46,7 +46,9 @@ export const SETTING_COLUMNS: Readonly<Record<string, SettingColumn>> = {
   categories: 'list',
   inactiveCats: 'list',
   helperSeesSales: 'int',
-  offlineOpenHours: 'int'
+  offlineOpenHours: 'int',
+  // Ethan, 2026-11-16 (migration 87): the month's profit goal; ₱20,000 until Cine sets her own.
+  profitGoal: 'cents'
 };
 
 /** Keys the engine keeps at the top of its state, not inside `cfg`. */
