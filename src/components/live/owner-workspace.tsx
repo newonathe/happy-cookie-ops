@@ -357,6 +357,30 @@ function ownerSellingInFrame(v: OpsVals, screen: string): boolean {
 }
 
 /** The approved live frame is separate from the locked demo. Its domain runtime never remounts. */
+/**
+ * The rail's one progress figure (espresso glass, Ethan 16 Nov 2026): this week's drop, cookies confirmed of the cap,
+ * with confirmed and pending in the bar. It is the engine's own drop figures, and it opens the drop page.
+ */
+function DropProgress({ v }: { v: OpsVals }) {
+  const cap = v.drop2?.capValue;
+  if (cap === undefined || cap === null || cap === '' || cap === 0) return null;
+  return (
+    <button type="button" className={styles.dropCard} onClick={v.drop.go}>
+      <span className={styles.dropTop}>
+        <span>This week&apos;s drop</span>
+        <b>
+          {v.drop2.capNum} / {cap}
+        </b>
+      </span>
+      <span className={styles.dropBar} aria-hidden="true">
+        <span style={s(v.drop.barConfirmed)} />
+        <span style={s(v.drop.barPending)} className={styles.dropPending} />
+      </span>
+      <small>cookies confirmed</small>
+    </button>
+  );
+}
+
 export function OwnerWorkspace({
   v,
   screen,
@@ -442,6 +466,7 @@ export function OwnerWorkspace({
           </span>
         </div>
         <Navigation items={v.dockNav} />
+        <DropProgress v={v} />
         <div className={styles.owner}>
           <span className={styles.avatar}>{v.roleInitial}</span>
           <span>

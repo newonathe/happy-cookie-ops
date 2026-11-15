@@ -549,3 +549,141 @@
     backdrop-filter: none;
   }
 }
+
+/* Brand rim on the glass (from the V31 reference, in her colours): a 1px gradient edge. */
+.rail,
+.header,
+.main,
+.dock {
+  border-color: transparent;
+}
+.rail,
+.header {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.8)) padding-box,
+    linear-gradient(
+        160deg,
+        rgb(255 200 155 / 0.9),
+        rgb(255 255 255 / 0.3) 50%,
+        rgb(231 95 35 / 0.5)
+      )
+      border-box;
+}
+.main {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.93), rgb(255 255 255 / 0.93)) padding-box,
+    linear-gradient(
+        135deg,
+        rgb(255 200 155 / 0.95),
+        rgb(255 255 255 / 0.35) 42%,
+        rgb(231 95 35 / 0.65)
+      )
+      border-box;
+}
+/* The rail's drop figure. */
+.dropCard {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  border: 0;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.55);
+  color: var(--color-ink);
+  text-align: left;
+  font-family: inherit;
+}
+.dropCard + .owner {
+  margin-top: 12px;
+}
+.dropTop {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--color-ink-mute);
+}
+.dropTop b {
+  font-size: 16px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.dropBar {
+  display: flex;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(58 31 20 / 0.08);
+}
+.dropPending {
+  opacity: 0.45;
+}
+.dropCard small {
+  font-size: 13px;
+  color: var(--color-ink-mute);
+}
+/* Pages enter like the reference: each block materialises in turn (shell, then its content), 40 ms apart. The rail
+   never moves. Navigation remounts `.main` (keyed by screen), which starts this. */
+.screenBody > * > * {
+  animation: blockIn 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.screenBody > * > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.screenBody > * > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.screenBody > * > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.screenBody > * > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.screenBody > * > *:nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+@keyframes blockIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+/* Cards lift 4 px under a mouse (the reference's whileHover y: -4); touch screens never get a stuck hover. */
+@media (hover: hover) and (pointer: fine) {
+  .screenBody section[class*='rounded'][class*='border'] {
+    transition:
+      transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 180ms ease;
+  }
+  .screenBody section[class*='rounded'][class*='border']:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgb(58 31 20 / 0.14);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screenBody > * > * {
+    animation: none;
+  }
+  .screenBody section[class*='rounded'][class*='border']:hover {
+    transform: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .rail,
+  .header,
+  .main,
+  .dock {
+    border-color: var(--color-line);
+    background: #fff;
+  }
+}
