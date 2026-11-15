@@ -335,6 +335,16 @@ export interface BazaarEventView {
     /** Deletes it when `name` is the event's name exactly. Null when deleted; otherwise the words for what is wrong. */
     run: (name: string) => Promise<string | null>;
   } | null;
+  /**
+   * "Scratch this test event", offered once the event is closed: takes its sales, fees and stock use back out of Money and
+   * Stock (the server appends reversing lines and deletes nothing). Null while the event is not closed.
+   */
+  scratchTest: {
+    /** Why it cannot be scratched now (no signal, or sales this phone has not sent), in words; null when it can. */
+    blocked: string | null;
+    /** Scratches it when `name` is the event's name exactly. Null when done; otherwise the words for what is wrong. */
+    run: (name: string) => Promise<string | null>;
+  } | null;
 }
 
 /** A1: one flavour's stranded cookies, with where they are suggested to go. */

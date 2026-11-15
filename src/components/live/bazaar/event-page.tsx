@@ -25,6 +25,7 @@ import { Figures } from './figure';
 import { CloseEventSheet } from './close-event-sheet';
 import { DeleteEventSheet } from './delete-event-sheet';
 import { PriceForm } from './price-form';
+import { ScratchTestSheet } from './scratch-test-sheet';
 import { StartDaySheet } from './start-day-sheet';
 import { useIssues } from './use-issues';
 import { useSave } from './use-save';
@@ -687,6 +688,7 @@ export function EventPage({
   const [starting, setStarting] = useState<BazaarDayRow | null>(null);
   const [closing, setClosing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [scratching, setScratching] = useState(false);
   const [settings, setSettings] = useState(false);
   const primary = primaryActionOf(event);
   const startDay = (day: BazaarDayRow) => {
@@ -694,6 +696,8 @@ export function EventPage({
     if (day.startPrompt) setStarting(day);
     else day.start(false);
   };
+  // A day still selling blocks "Close the event": its close is reachable from there too.
+  const sellingDay = event.days.find((d) => d.word === 'Selling' && d.action === 'review');
   // The primary action is not drawn a second time on its day's row.
   const primaryDayId = primary && 'dayId' in primary ? primary.dayId : null;
   if (closing && event.finalise)
@@ -704,6 +708,14 @@ export function EventPage({
         name={event.name}
         remove={event.deleteEvent}
         onClose={() => setDeleting(false)}
+      />
+    );
+  if (scratching && event.scratchTest)
+    return (
+      <ScratchTestSheet
+        name={event.name}
+        scratch={event.scratchTest}
+        onClose={() => setScratching(false)}
       />
     );
   if (settings)
@@ -828,6 +840,35 @@ export function EventPage({
             className="self-start"
           >
             Close the event
+          </Button>
+          {sellingDay && event.finalise.blocked !== null ? (
+            <Button
+              variant="secondary"
+              onClick={sellingDay.run}
+              disabled={sellingDay.actionNote !== null}
+              reason={sellingDay.actionNote ?? undefined}
+              className="self-start"
+            >
+              Review and close that day →
+            </Button>
+          ) : null}
+        </section>
+      ) : null}
+      {event.scratchTest ? (
+        <section aria-labelledby="bazaar-scratch" className="flex flex-col gap-2">
+          <SectionHeader title={<span id="bazaar-scratch">Scratch a test event</span>} />
+          <p className="m-0 text-caption text-ink-mute">
+            Only for an event that was a test. It takes the event&apos;s sales, fees and stock use
+            back out of Money and Stock.
+          </p>
+          <Button
+            variant="danger"
+            onClick={() => setScratching(true)}
+            disabled={event.scratchTest.blocked !== null}
+            reason={event.scratchTest.blocked ?? undefined}
+            className="self-start"
+          >
+            Scratch this test event
           </Button>
         </section>
       ) : null}

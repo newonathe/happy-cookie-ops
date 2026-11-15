@@ -1110,6 +1110,87 @@ describe('End event: delete an event that never sold', () => {
   });
 });
 
+describe('Scratch a closed test event (U6)', () => {
+  /** The example, closed. */
+  const closed = (): Wire => {
+    const w = clone();
+    Object.assign(w, {
+      finalised_at: '2026-10-26T01:00:00+00:00',
+      final_hash: w.summary.hash,
+      final_summary: w.summary
+    });
+    return w;
+  };
+
+  it('is offered only once the event is closed', async () => {
+    const open = harness(clone());
+    open.store.open(BOOKING);
+    await settle();
+    expect(open.store.vals().event!.scratchTest).toBeNull();
+    const h = harness(closed());
+    h.store.open(BOOKING);
+    await settle();
+    expect(h.store.vals().event!.scratchTest).not.toBeNull();
+    expect(h.store.vals().event!.scratchTest!.blocked).toBeNull();
+  });
+
+  it('is not offered again once the event was scratched, and says so', async () => {
+    const w = closed();
+    Object.assign(w, { reversed_at: '2026-10-27T01:00:00+00:00' });
+    const h = harness(w);
+    h.store.open(BOOKING);
+    await settle();
+    expect(h.store.vals().event!.scratchTest).toBeNull();
+    expect(h.store.vals().event!.notices.join(' ')).toMatch(/scratched from the books/);
+  });
+
+  it('refuses a wrong name and sends nothing', async () => {
+    const h = harness(closed());
+    h.store.open(BOOKING);
+    await settle();
+    expect(await h.store.vals().event!.scratchTest!.run('fixture fair')).toMatch(/exactly/);
+    expect(h.calls('reverse_bazaar_test')).toHaveLength(0);
+  });
+
+  it('refuses without signal and while this phone holds an unsent sale, sending nothing', async () => {
+    const h = harness(closed());
+    h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 1, refused: 0, stock: {} };
+    h.store.open(BOOKING);
+    await settle();
+    const scratch = h.store.vals().event!.scratchTest!;
+    expect(scratch.blocked).toMatch(/still has 1 sale for this event/);
+    expect(await scratch.run('Fixture fair')).toMatch(/still has 1 sale/);
+    h.state.held = null;
+    h.state.online = false;
+    expect(await scratch.run('Fixture fair')).toMatch(/needs signal/);
+    expect(h.calls('reverse_bazaar_test')).toHaveLength(0);
+  });
+
+  it('sends the exact name once, and reads the event again', async () => {
+    const h = harness(closed());
+    h.store.open(BOOKING);
+    await settle();
+    h.reply('reverse_bazaar_test', { data: { reversed_at: 1_792_900_000_000 } });
+    expect(await h.store.vals().event!.scratchTest!.run('Fixture fair')).toBeNull();
+    expect(h.calls('reverse_bazaar_test')).toEqual([
+      { p_booking: BOOKING, p_confirm_name: 'Fixture fair' }
+    ]);
+    expect(h.deps.toast).toHaveBeenCalledWith('Fixture fair was scratched from the books.');
+    expect(h.store.vals().event).toBeTruthy();
+  });
+
+  it('says what the books refused', async () => {
+    const h = harness(closed());
+    h.store.open(BOOKING);
+    await settle();
+    h.reply('reverse_bazaar_test', { error: { code: '55000' } } as Reply);
+    expect(await h.store.vals().event!.scratchTest!.run('Fixture fair')).toMatch(
+      /The books refused/
+    );
+    expect(h.calls('reverse_bazaar_test')).toHaveLength(1);
+  });
+});
+
 describe('more than one of her devices (14 November 2026)', () => {
   it('a quiet refresh reads the event again with no loading state, and never while a save is out or offline', async () => {
     const h = harness(day2Open());
