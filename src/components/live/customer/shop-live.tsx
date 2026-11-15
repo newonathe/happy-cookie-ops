@@ -48,7 +48,7 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
             height="56"
             className="mb-3 h-14 w-auto"
           />
-          <h1 className="m-0 text-3xl font-bold tracking-tight">This week&apos;s drop</h1>
+          <h1 className="m-0 text-title font-bold tracking-tight">This week&apos;s drop</h1>
           {v.shopTagline ? <p className="mt-2 max-w-prose text-ink-soft">{v.shopTagline}</p> : null}
         </div>
         <Button onClick={v.openLookup}>Find my order</Button>
@@ -90,19 +90,21 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h2
                       id={heading}
-                      className="min-w-0 text-lg font-semibold [overflow-wrap:anywhere]"
+                      className="min-w-0 text-heading font-semibold [overflow-wrap:anywhere]"
                     >
                       {flavour.name}
                     </h2>
                     <strong className="whitespace-nowrap">{flavour.priceText}</strong>
                   </div>
                   {flavour.kind ? (
-                    <span className="text-sm text-ink-soft">{flavour.kind}</span>
+                    <span className="text-label text-ink-soft">{flavour.kind}</span>
                   ) : null}
                   {flavour.desc ? (
-                    <p className="text-sm text-ink-soft [overflow-wrap:anywhere]">{flavour.desc}</p>
+                    <p className="text-label text-ink-soft [overflow-wrap:anywhere]">
+                      {flavour.desc}
+                    </p>
                   ) : null}
-                  {hasAllergens ? <p className="text-sm text-ink-soft">{allergens}</p> : null}
+                  {hasAllergens ? <p className="text-label text-ink-soft">{allergens}</p> : null}
                   {flavour.available ? (
                     <div className="mt-auto flex items-center gap-3 pt-2">
                       <Button
@@ -127,7 +129,7 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
                       </Button>
                     </div>
                   ) : (
-                    <p className="mt-auto text-sm font-semibold">
+                    <p className="mt-auto text-label font-semibold">
                       {flavour.soldOut ? 'Sold out this drop' : 'Ordering unavailable'}
                     </p>
                   )}
@@ -140,8 +142,8 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
           aria-label="Your cookies"
           className="min-w-0 rounded-card border border-line bg-surface p-4 lg:sticky lg:top-4"
         >
-          <h2 className="text-xl font-semibold">{v.boxTitle}</h2>
-          <p className="mt-2 text-sm text-ink-soft">{v.boxCountText}</p>
+          <h2 className="text-heading font-semibold">{v.boxTitle}</h2>
+          <p className="mt-2 text-label text-ink-soft">{v.boxCountText}</p>
           <ul className="my-4 grid gap-3">
             {v.pickedItems.map((item, index) => (
               <li key={index} className="flex min-w-0 items-center gap-3">
@@ -154,9 +156,9 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
               </li>
             ))}
           </ul>
-          <p className="text-sm text-ink-soft">{v.boxProgressText}</p>
-          <p className="my-3 text-2xl font-bold">{v.boxTotalText}</p>
-          <p className="mb-4 text-sm text-ink-soft">{ORDER_COPY.extras.priceNote}</p>
+          <p className="text-label text-ink-soft">{v.boxProgressText}</p>
+          <p className="my-3 text-title font-bold">{v.boxTotalText}</p>
+          <p className="mb-4 text-label text-ink-soft">{ORDER_COPY.extras.priceNote}</p>
           <div className="hidden lg:block">{checkout('w-full')}</div>
         </aside>
       </div>
@@ -169,7 +171,7 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
       >
         <span className="min-w-0">
           <strong className="block">{v.boxTotalText}</strong>
-          <span className="text-sm text-ink-soft">{v.boxCountText}</span>
+          <span className="text-label text-ink-soft">{v.boxCountText}</span>
         </span>
         {checkout('min-w-0')}
       </div>

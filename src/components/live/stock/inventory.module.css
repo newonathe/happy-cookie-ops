@@ -33,16 +33,16 @@
 }
 .title h1 {
   margin: 0;
-  font-size: 1.6875rem;
+  font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.65px;
+  letter-spacing: -0.015em;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
 .subtitle {
   margin: 6px 0 0;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .actions {
   display: flex;
@@ -63,8 +63,8 @@
   background: transparent;
   color: var(--color-ink-mute);
   font: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
 }
 .categories button[aria-pressed='true'] {
   background: var(--color-ink);
@@ -93,7 +93,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
 }
 .filter {
@@ -101,7 +101,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
 }
 .filter select {
@@ -144,29 +144,28 @@
 }
 .name {
   display: block;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   overflow-wrap: anywhere;
 }
 .detail {
   display: block;
   margin-top: 4px;
   color: var(--color-ink-mute);
-  font-size: 0.6875rem;
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 .amount {
   max-width: 120px;
   text-align: right;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 .status {
   display: block;
   margin-top: 5px;
-  font-size: 0.6875rem;
+  font-size: 13px;
 }
 .madeRow {
   display: flex;
@@ -180,12 +179,12 @@
   border: 1px solid var(--color-line);
   border-radius: 18px;
   color: var(--color-ink-mute);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .note {
   margin: 0;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -208,9 +207,8 @@
 .balance {
   margin: 10px 0 4px;
   color: var(--color-ink);
-  font-size: 1.75rem;
+  font-size: 24px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 .facts {
@@ -224,13 +222,13 @@
 }
 .facts dt {
   margin-bottom: 4px;
-  font-size: 0.6875rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
 }
 .facts dd {
   margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   overflow-wrap: anywhere;
 }
 .history {
@@ -242,7 +240,7 @@
 .history h2 {
   margin: 0;
   color: var(--color-ink);
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
 }
 .historyList {
@@ -258,7 +256,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 16px 0;
-  font-size: 0.8125rem;
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 .movement + .movement {
@@ -271,10 +269,9 @@
   gap: 8px;
 }
 .historyRow strong {
-  font-weight: 500;
+  font-weight: 400;
 }
 .movementAmount {
-  font-variant-numeric: tabular-nums;
 }
 .historyState {
   display: flex;
@@ -287,7 +284,7 @@
   border-radius: 18px;
   background: var(--color-surface);
   color: var(--color-ink-mute);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .historyState p {
   margin: 0;
@@ -302,7 +299,7 @@
     width: 100%;
   }
   .title h1 {
-    font-size: 1.5625rem;
+    font-size: 24px;
   }
   .amount {
     max-width: 90px;

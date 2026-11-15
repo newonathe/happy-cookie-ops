@@ -114,20 +114,29 @@
   --space-5: 24px;
   --space-6: 32px;
 
-  /* type scale */
-  --text-display: 40px; /* the headline numeral */
-  --text-display--line-height: 1;
+  /* type scale (Ethan, 15 November 2026): six roles and nothing in between. Weights are 400, 600 and 700 only:
+     700 for display and title, 600 for headings, labels and one emphasised item per row, 400 for everything else.
+     Figures are proportional; tabular figures only in right-aligned amount columns. Nothing smaller than 13px
+     except the phone tab bar's labels. */
+  --text-display: 32px; /* one hero figure per screen: the charge total, the profit */
+  --text-display--line-height: 1.125;
   --text-display--font-weight: 700;
   --text-display--letter-spacing: -0.02em;
-  --text-title: 22px; /* screen and sheet titles */
-  --text-title--line-height: 1.2;
+  --text-title: 24px; /* the page and sheet title, once per screen */
+  --text-title--line-height: 1.25;
   --text-title--font-weight: 700;
-  --text-body: 15px;
-  --text-body--line-height: 1.45;
-  --text-body--font-weight: 500;
-  --text-caption: 12.5px; /* labels, hints, pill text */
-  --text-caption--line-height: 1.35;
-  --text-caption--font-weight: 500;
+  --text-title--letter-spacing: -0.015em;
+  --text-heading: 18px; /* card and section titles, empty-state titles */
+  --text-heading--line-height: 1.333;
+  --text-heading--font-weight: 600;
+  --text-body: 16px; /* row names, values, inputs, descriptions */
+  --text-body--line-height: 1.5;
+  --text-body--font-weight: 400;
+  --text-label: 14px; /* buttons, chips, tabs, form labels, pills; weight from the control */
+  --text-label--line-height: 1.43;
+  --text-caption: 13px; /* second lines, dates, helper text (muted) */
+  --text-caption--line-height: 1.385;
+  --text-caption--font-weight: 400;
 
   /* motion: fast = exits, base = most changes, slow = large entries */
   --dur-fast: 150ms;

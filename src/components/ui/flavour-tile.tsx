@@ -73,18 +73,18 @@ export function FlavourTile({
         <span
           key={count}
           data-part="count"
-          className="motion-tick absolute top-1.5 right-1.5 grid min-w-6 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-caption font-bold text-surface tabular-nums"
+          className="motion-tick absolute top-1.5 right-1.5 grid min-w-6 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-caption font-semibold text-surface"
         >
           {count}
         </span>
       ) : null}
       <span className="flex flex-col items-start gap-0.5 text-left">
-        <span className="text-body font-bold text-ink">{name}</span>
-        <span className="text-caption font-semibold text-ink-soft tabular-nums">{price}</span>
+        <span className="text-body font-semibold text-ink">{name}</span>
+        <span className="text-label font-semibold text-ink-soft">{price}</span>
         {meta}
-        {soldOut ? <span className="text-caption font-bold text-danger">Sold out</span> : null}
+        {soldOut ? <span className="text-label font-semibold text-danger">Sold out</span> : null}
         {state === 'offMenu' ? (
-          <span className="text-caption font-semibold text-ink-mute">Not on the menu</span>
+          <span className="text-label font-semibold text-ink-mute">Not on the menu</span>
         ) : null}
       </span>
     </>

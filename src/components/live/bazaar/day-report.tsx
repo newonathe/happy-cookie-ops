@@ -19,7 +19,7 @@ export function DayReport({ review }: { review: DayReviewView }) {
     <div className="flex flex-col gap-4">
       {review.report.tables.map((t) => (
         <section key={t.caption} aria-label={t.caption} className="flex flex-col gap-1">
-          <h3 className="m-0 text-body font-bold text-ink">{t.caption}</h3>
+          <h3 className="m-0 text-body font-semibold text-ink">{t.caption}</h3>
           <ReceiptTable
             caption={t.caption}
             lines={t.lines.map((l) => ({ label: l.label, detail: l.detail, value: l.cents }))}
@@ -31,7 +31,7 @@ export function DayReport({ review }: { review: DayReviewView }) {
         </section>
       ))}
       <section aria-label="By flavour" className="flex flex-col gap-1">
-        <h3 className="m-0 text-body font-bold text-ink">By flavour</h3>
+        <h3 className="m-0 text-body font-semibold text-ink">By flavour</h3>
         <table className="w-full border-collapse text-body">
           <caption className="sr-only">Sold, given away and lost, by flavour</caption>
           <thead>
@@ -63,9 +63,9 @@ export function DayReport({ review }: { review: DayReviewView }) {
                   <th scope="row" className="py-2.5 pr-3 text-left font-semibold text-ink">
                     {s.name}
                   </th>
-                  <td className="py-2.5 pl-2 text-right text-ink tabular-nums">{s.sold}</td>
-                  <td className="py-2.5 pl-2 text-right text-ink tabular-nums">{s.given}</td>
-                  <td className="py-2.5 pl-2 text-right text-ink tabular-nums">{s.lost}</td>
+                  <td className="py-2.5 pl-2 text-right text-ink">{s.sold}</td>
+                  <td className="py-2.5 pl-2 text-right text-ink">{s.given}</td>
+                  <td className="py-2.5 pl-2 text-right text-ink">{s.lost}</td>
                 </tr>
               ))
             )}

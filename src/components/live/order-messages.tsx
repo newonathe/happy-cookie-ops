@@ -14,7 +14,7 @@ export function OrderMessages({
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
         {MESSAGE_SHEET.intro}
       </span>
       {liveMessages.rows.length ? (
@@ -33,7 +33,7 @@ export function OrderMessages({
               {row.name} · {row.order} · {row.label}
             </span>
             {row.details.length ? (
-              <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
                 {MESSAGE_SHEET.packLine}: {row.details.join(' · ')}
               </span>
             ) : null}

@@ -79,7 +79,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {!liveForm.online ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
@@ -98,7 +98,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
             background: 'var(--color-chip)'
           }}
         >
-          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-warn-strong)' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-warn-strong)' }}>
             {drafts === 1
               ? '1 change customers cannot see yet'
               : `${drafts} changes customers cannot see yet`}
@@ -106,7 +106,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
           <button onClick={liveForm.publish} style={primaryButton}>
             Publish menu
           </button>
-          <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
             Customers see every flavour still on the order form as soon as you publish.
           </span>
         </div>
@@ -138,22 +138,18 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
             >
               <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
                   {/* Published is the usual state: only a draft is worth a word. */}
                   {row.published ? '' : 'Draft, not published · '}
                   {row.active ? 'On the order form' : 'Off the order form'}
                 </span>
               </span>
-              <span
-                style={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
-              >
-                {row.priceText}
-              </span>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.priceText}</span>
             </button>
           ))}
         </div>
       ) : (
-        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
           No flavours loaded yet.
         </span>
       )}
@@ -283,7 +279,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
               step="0.01"
               required
               defaultValue={editing.price}
-              style={{ ...inputStyle, fontVariantNumeric: 'tabular-nums' as const }}
+              style={{ ...inputStyle }}
             />
           </label>
         </div>
@@ -362,7 +358,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           id={badgeHintId}
           style={{
             margin: '-4px 0 0',
-            fontSize: '12px',
+            fontSize: '13px',
             color: 'var(--color-ink-mute)',
             lineHeight: 1.5
           }}
@@ -399,7 +395,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
             <p
               style={{
                 margin: 0,
-                fontSize: '12px',
+                fontSize: '13px',
                 color: 'var(--color-ink-mute)',
                 lineHeight: 1.5
               }}

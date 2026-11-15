@@ -23,10 +23,10 @@ export function FactRow({
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 last:border-b-0">
       <span className="flex min-w-0 flex-col">
-        <span className="text-[14px] text-ink-soft">{label}</span>
+        <span className="text-label text-ink-soft">{label}</span>
         {detail ? <span className="text-caption text-ink-mute">{detail}</span> : null}
       </span>
-      <span className="text-right text-[14px] font-semibold text-ink tabular-nums">{children}</span>
+      <span className="text-right text-label font-semibold text-ink">{children}</span>
     </div>
   );
 }
@@ -60,7 +60,7 @@ export function ListRow({
       className="flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
     >
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[14px] font-semibold text-ink">{title}</span>
+        <span className="text-label font-semibold text-ink">{title}</span>
         {detail ? <span className="text-caption text-ink-mute">{detail}</span> : null}
       </span>
       {trailing ? <span className="shrink-0">{trailing}</span> : null}
@@ -120,9 +120,7 @@ export function ChipRow({ label, options }: { label: string; options: ChipOption
           )}
         >
           {option.label}
-          {option.count !== undefined ? (
-            <span className="ml-1.5 tabular-nums">{option.count}</span>
-          ) : null}
+          {option.count !== undefined ? <span className="ml-1.5">{option.count}</span> : null}
         </button>
       ))}
     </div>
@@ -163,7 +161,7 @@ export function StackedBar({ parts, legend = true }: { parts: BarPart[]; legend?
           {parts.map((part) => (
             <li key={part.id} className="inline-flex items-center gap-1.5">
               <span aria-hidden="true" className={cx('size-2.5 rounded-sm', part.tone)} />
-              <span className="font-semibold text-ink tabular-nums">{part.value}</span>
+              <span className="font-semibold text-ink">{part.value}</span>
               {part.label}
             </li>
           ))}

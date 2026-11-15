@@ -48,12 +48,12 @@ export function CustomerPaymentDetails({
       aria-label="Payment details"
       className="min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6"
     >
-      <h2 className="text-xl font-semibold">Payment</h2>
-      <dl className="my-4 grid max-w-md grid-cols-[minmax(0,1fr)_auto] gap-3 text-sm">
+      <h2 className="text-heading font-semibold">Payment</h2>
+      <dl className="my-4 grid max-w-md grid-cols-[minmax(0,1fr)_auto] gap-3 text-label">
         <dt>Order total</dt>
-        <dd className="font-semibold tabular-nums">{peso(order.totalCents)}</dd>
+        <dd className="font-semibold">{peso(order.totalCents)}</dd>
         <dt>Recorded payment</dt>
-        <dd className="font-semibold tabular-nums">
+        <dd className="font-semibold">
           {order.paidCents === undefined
             ? 'Unavailable'
             : paid === null
@@ -63,7 +63,7 @@ export function CustomerPaymentDetails({
         {due !== null && due > 0 ? (
           <>
             <dt>{confirmed ? 'Remaining balance' : 'Amount to pay'}</dt>
-            <dd className="font-semibold tabular-nums">{peso(due)}</dd>
+            <dd className="font-semibold">{peso(due)}</dd>
           </>
         ) : null}
       </dl>

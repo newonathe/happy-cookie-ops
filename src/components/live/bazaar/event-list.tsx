@@ -280,7 +280,7 @@ function ActiveCard({
   if (row.reading)
     return (
       <div aria-busy="true" className="py-3">
-        <p className="m-0 mb-2 truncate text-body font-bold text-ink">{row.name}</p>
+        <p className="m-0 mb-2 truncate text-body font-semibold text-ink">{row.name}</p>
         <Skeleton lines={2} />
       </div>
     );
@@ -293,7 +293,7 @@ function ActiveCard({
       )}
     >
       <div className="flex min-w-0 flex-1 basis-56 flex-col gap-1">
-        <h3 className="m-0 line-clamp-2 text-[15px] font-semibold break-words text-ink">
+        <h3 className="m-0 line-clamp-2 text-body font-semibold break-words text-ink">
           {row.name}
         </h3>
         <span className="text-caption text-ink-mute">
@@ -302,14 +302,12 @@ function ActiveCard({
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Pill row={row} />
           {whenOf(row) ? (
-            <span className="text-caption font-semibold text-ink-mute">{whenOf(row)}</span>
+            <span className="text-label font-semibold text-ink-mute">{whenOf(row)}</span>
           ) : null}
         </div>
         {row.figures ? (
           <div className="flex flex-wrap items-baseline gap-2">
-            <span className="text-body font-semibold text-ink tabular-nums">
-              {row.figures.revenueText}
-            </span>
+            <span className="text-body font-semibold text-ink">{row.figures.revenueText}</span>
             <span className="text-caption text-ink-soft">today · {row.figures.soldText}</span>
           </div>
         ) : null}
@@ -344,7 +342,7 @@ function EventRow({
       )}
     >
       <span className="flex min-w-0 flex-1 basis-44 flex-col gap-1">
-        <span className="line-clamp-2 min-w-0 text-body font-bold break-words">{row.name}</span>
+        <span className="line-clamp-2 min-w-0 text-body font-semibold break-words">{row.name}</span>
         <span className="text-caption text-ink-mute">
           {row.datesText} · {row.placeText}
           {whenOf(row) ? ' · ' + whenOf(row) : ''}

@@ -16,7 +16,7 @@ import { FactRow, ReviewPanel } from '@/components/ui/owner-patterns';
 import { KeptEditBanner } from './kept-edit-banner';
 
 const selectClass =
-  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]';
+  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label';
 
 /**
  * Edit recipe (client v4): the engine's own rows and handlers, with a Review before saving. Saving
@@ -110,7 +110,7 @@ export function RecipeEditor({
       <Panel>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
           <span className="flex min-w-0 flex-col">
-            <span className="text-[14px] font-semibold text-ink">Cookies per batch</span>
+            <span className="text-label font-semibold text-ink">Cookies per batch</span>
             <span className="text-caption text-ink-mute">
               {recipe.isNew ? 'New recipe · not saved' : recipe.version} · {recipe.costText}
             </span>
@@ -119,7 +119,7 @@ export function RecipeEditor({
             <Button variant="secondary" onClick={recipe.yieldDown} aria-label="Lower yield">
               −
             </Button>
-            <span className="w-10 text-center text-[16px] font-semibold text-ink tabular-nums">
+            <span className="w-10 text-center text-body font-semibold text-ink">
               {recipe.yieldNum}
             </span>
             <Button variant="secondary" onClick={recipe.yieldUp} aria-label="Raise yield">
@@ -139,7 +139,7 @@ export function RecipeEditor({
                 />
                 {row.setKind ? (
                   <label className="flex min-w-0 flex-col gap-1.5">
-                    <span className="text-caption font-semibold text-ink-soft">Type</span>
+                    <span className="text-label font-semibold text-ink-soft">Type</span>
                     <select
                       value={row.kind === undefined ? 'ingredient' : (row.kind ?? '')}
                       onChange={(event) =>
@@ -160,7 +160,7 @@ export function RecipeEditor({
                   onChange={row.setQty}
                 />
                 <label className="flex min-w-0 flex-col gap-1.5">
-                  <span className="text-caption font-semibold text-ink-soft">Unit</span>
+                  <span className="text-label font-semibold text-ink-soft">Unit</span>
                   <select value={row.unit} onChange={row.setUnit} className={selectClass}>
                     {(recipe.units ?? []).map((unit) => (
                       <option key={String(unit)} value={unit}>

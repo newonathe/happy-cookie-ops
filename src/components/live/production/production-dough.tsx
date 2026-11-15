@@ -117,7 +117,7 @@ export function ProductionDough({ data }: { data: LiveDoughPreparation }) {
             disabled={locked || data.reviewing}
             aria-invalid={data.actualBalls !== '' && data.validActual === false}
             onChange={(event) => data.setActualBalls?.(event.currentTarget.value)}
-            className="min-h-11 w-full rounded-control border border-line-strong bg-surface p-3 text-[16px] text-ink"
+            className="min-h-11 w-full rounded-control border border-line-strong bg-surface p-3 text-body text-ink"
           />
           <small id={actualId + '-hint'} className="text-caption font-normal text-ink-mute">
             Enter what you made. This count does not change the recipe&apos;s ingredient amounts.
@@ -126,7 +126,7 @@ export function ProductionDough({ data }: { data: LiveDoughPreparation }) {
       ) : null}
       {!data.setActualBalls || data.uncertain || data.reviewing ? (
         <div className="flex items-baseline gap-2">
-          <strong className="text-3xl font-semibold tabular-nums">
+          <strong className="text-title font-semibold">
             {data.setActualBalls && !data.uncertain ? data.actualBalls || '—' : data.balls}
           </strong>
           <span className="text-body text-ink-soft">

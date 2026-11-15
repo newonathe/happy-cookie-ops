@@ -152,7 +152,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
                   Use recorded kitchen cookies
                 </label>
               ) : null}
-              <span className="text-caption font-semibold text-ink-soft">Made separately</span>
+              <span className="text-label font-semibold text-ink-soft">Made separately</span>
               <Stepper
                 size="sm"
                 id={planIds.made(id)}
@@ -168,7 +168,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
               />
               {canCarry ? (
                 <>
-                  <span className="text-caption font-semibold text-ink-soft">Carried over</span>
+                  <span className="text-label font-semibold text-ink-soft">Carried over</span>
                   <Stepper
                     size="sm"
                     id={planIds.carried(id)}
@@ -274,7 +274,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
         className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2"
       >
         <span className="flex min-w-0 flex-1 basis-40 flex-col gap-0.5">
-          <span className="text-body font-bold text-ink">Drawer float</span>
+          <span className="text-body font-semibold text-ink">Drawer float</span>
           <span className="text-caption text-ink-mute">
             The cash in the drawer before the first sale. In ₱100 steps; tap the number to type it.
           </span>
@@ -350,7 +350,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
         // stands above the dock and stops short of the button. The runtime lifts the toast above it (`liveToastVals`).
         className="sticky bottom-0 z-10 -mx-3.5 flex flex-wrap items-center justify-between gap-3 border-t border-line bg-surface px-3.5 py-3 md:-mx-4 md:px-4 max-md:bottom-[84px] max-md:flex-col max-md:items-stretch max-md:pr-[78px]"
       >
-        <span aria-live="polite" className="text-body font-bold text-ink tabular-nums">
+        <span aria-live="polite" className="text-body font-semibold text-ink">
           {priceOnlyIds.length > 0
             ? `Prices for ${priceOnlyIds.length} flavour${priceOnlyIds.length === 1 ? '' : 's'}; quantities must be zero`
             : planTotalsText(flavours)}

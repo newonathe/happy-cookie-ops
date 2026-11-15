@@ -64,7 +64,7 @@
   gap: 12px;
   align-items: center;
   margin-top: 18px;
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .inputs input,
 .inputs select {
@@ -80,8 +80,7 @@
   box-sizing: border-box;
 }
 .inputs input {
-  font-size: 1.125rem;
-  font-variant-numeric: tabular-nums;
+  font-size: 18px;
 }
 .inputs input:focus-visible,
 .inputs select:focus-visible,
@@ -108,11 +107,10 @@
 .review p {
   margin: 5px 0 0;
   color: var(--color-ink-mute);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .review b {
   flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
 }
 .actions {
   display: flex;
@@ -124,7 +122,7 @@
   flex-basis: 100%;
   margin: 0;
   color: var(--color-ink-mute);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .error {
   color: var(--color-danger);

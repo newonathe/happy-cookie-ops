@@ -13,7 +13,7 @@ export const inputStyle = {
   color: 'var(--color-ink)'
 };
 export const labelStyle = { display: 'flex', flexDirection: 'column' as const, gap: '5px' };
-export const smallLabel = { fontSize: '12px', fontWeight: 600, color: 'var(--color-ink-soft)' };
+export const smallLabel = { fontSize: '13px', fontWeight: 600, color: 'var(--color-ink-soft)' };
 export const primaryButton = {
   minHeight: '48px',
   border: '0',

@@ -83,7 +83,7 @@ function Stats({ event }: { event: BazaarEventView }) {
         }
       />
       <div className="flex min-w-0 flex-col gap-2 rounded-card border border-line bg-surface p-4">
-        <span className="text-caption font-semibold text-ink-soft">Against the target</span>
+        <span className="text-label font-semibold text-ink-soft">Against the target</span>
         <ProgressBar
           value={Math.max(0, event.profitCents ?? 0)}
           max={goal ?? 0}
@@ -122,12 +122,12 @@ function DayRow({
   return (
     <li className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-body font-bold text-ink">{day.dateText}</span>
+        <span className="text-body font-semibold text-ink">{day.dateText}</span>
         <StatusPill status={DAY_PILL[day.word]} />
       </div>
       {o ? (
         <div className="flex flex-col gap-1">
-          <span className="text-body font-bold text-ink tabular-nums">{o.revenueText}</span>
+          <span className="text-body font-semibold text-ink">{o.revenueText}</span>
           <span className="text-caption text-ink-soft">
             {[o.soldText, o.leftText, o.carriedText, o.drawerText && `Drawer: ${o.drawerText}`]
               .filter(Boolean)
@@ -413,8 +413,8 @@ function CostCard({
   return (
     <li className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-        <span className="text-body font-bold text-ink">{cost.name}</span>
-        <span className="text-body font-bold text-ink tabular-nums">{cost.unitText}</span>
+        <span className="text-body font-semibold text-ink">{cost.name}</span>
+        <span className="text-body font-semibold text-ink">{cost.unitText}</span>
       </div>
       <span className="text-caption text-ink-mute">
         {cost.unitText === 'Cost pending'
@@ -423,7 +423,7 @@ function CostCard({
       </span>
       {cost.breakdown ? (
         <details className="text-body">
-          <summary className="cursor-pointer text-caption font-semibold text-brand-deep">
+          <summary className="cursor-pointer text-label font-semibold text-brand-deep">
             How the recipe makes it up
           </summary>
           <div className="pt-2">
@@ -627,12 +627,10 @@ function CostsCard({ event }: { event: BazaarEventView }) {
               className="flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-raise"
             >
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="text-body font-bold text-ink">{r.label}</span>
+                <span className="text-body font-semibold text-ink">{r.label}</span>
                 {r.detail ? <span className="text-caption text-ink-mute">{r.detail}</span> : null}
               </span>
-              {r.value ? (
-                <span className="text-body font-bold text-ink tabular-nums">{r.value}</span>
-              ) : null}
+              {r.value ? <span className="text-body font-semibold text-ink">{r.value}</span> : null}
               <span aria-hidden="true" className="text-ink-faint">
                 ›
               </span>
@@ -797,7 +795,7 @@ export function EventPage({
         )}
         {event.unplanned.length ? (
           <div className="flex flex-col gap-2">
-            <span className="text-caption font-semibold text-ink-soft">
+            <span className="text-label font-semibold text-ink-soft">
               {event.days.length === 0 ? 'Plan a day' : 'Plan another day'}
             </span>
             <span className="flex flex-wrap gap-2">

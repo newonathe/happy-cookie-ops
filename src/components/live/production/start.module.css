@@ -1,13 +1,13 @@
 .intro {
   margin: 0;
   color: var(--color-ink-mute);
-  font-size: 0.8125rem;
+  font-size: 13px;
   line-height: 1.6;
 }
 .intro span {
   display: block;
   margin-top: 4px;
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .form {
   display: flex;
@@ -20,7 +20,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 0.8125rem;
+  font-size: 13px;
   font-weight: 600;
 }
 .field select,
@@ -35,12 +35,11 @@
   background: var(--color-surface);
   color: var(--color-ink);
   font: inherit;
-  font-size: 1rem;
+  font-size: 16px;
 }
 .field input {
   max-width: 200px;
-  font-size: 1.5rem;
-  font-variant-numeric: tabular-nums;
+  font-size: 24px;
 }
 .field select:focus-visible,
 .field input:focus-visible {
@@ -64,13 +63,13 @@
   background: center/cover;
 }
 .product strong {
-  font-size: 0.9375rem;
+  font-size: 16px;
   font-weight: 600;
 }
 .product p {
   margin: 6px 0 0;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
   line-height: 1.5;
 }
 .product > div {
@@ -80,12 +79,12 @@
 .hint {
   margin: -8px 0 0;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .error {
   margin: 0;
   color: var(--color-danger);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .actions {
   display: flex;
@@ -97,5 +96,5 @@
 .actions p {
   margin: 0;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
 }

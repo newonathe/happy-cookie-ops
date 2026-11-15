@@ -14,16 +14,16 @@
 }
 .header h1 {
   margin: 0;
-  font-size: 1.6875rem;
+  font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.65px;
+  letter-spacing: -0.015em;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
 .header p {
   margin: 6px 0 0;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .photo {
   width: 64px;
@@ -43,7 +43,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .facts span {
   color: var(--color-ink-mute);
@@ -57,7 +57,7 @@
   gap: 16px;
   padding: 16px 0;
   border-top: 1px solid var(--color-line);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .row dt {
   overflow-wrap: anywhere;
@@ -65,7 +65,6 @@
 .row dd {
   margin: 0;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 .empty {
   margin: 0;
@@ -111,7 +110,7 @@
 .batch h2 {
   margin: 0;
   color: var(--color-ink);
-  font-size: 1.0625rem;
+  font-size: 16px;
   font-weight: 600;
 }
 .batch input {
@@ -120,7 +119,7 @@
 .listTitle {
   margin: 14px 0 4px;
   color: var(--color-ink-soft);
-  font-size: 0.8125rem;
+  font-size: 13px;
   font-weight: 600;
 }
 .list {
@@ -136,7 +135,7 @@
   min-height: 44px;
   border-bottom: 1px solid var(--color-divide);
   color: var(--color-ink);
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 .line input {
   width: 18px;
@@ -149,7 +148,6 @@
 }
 .line strong {
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 .foot {
   display: flex;
@@ -159,12 +157,12 @@
   gap: 10px;
   margin-top: 14px;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .note {
   margin: 0;
   color: var(--color-ink-mute);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 @media (max-width: 860px) {
   .columns {

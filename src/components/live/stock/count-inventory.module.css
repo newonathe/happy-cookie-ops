@@ -1,14 +1,13 @@
 .hint {
   margin: 0;
   color: var(--color-ink-mute);
-  font-size: 0.8125rem;
+  font-size: 13px;
   line-height: 1.5;
 }
 .progress {
   margin: 0;
   color: var(--color-ink-soft);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
+  font-size: 13px;
 }
 .list {
   list-style: none;
@@ -31,14 +30,14 @@
 .item h2 {
   margin: 0;
   color: var(--color-ink);
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 .item p {
   margin: 5px 0 0;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }

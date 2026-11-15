@@ -49,9 +49,7 @@ export function SectionTools({ label, items }: { label: string; items: LiveTabIt
             }}
           >
             {item.label}
-            {item.badge ? (
-              <span className="rounded-tag bg-chip px-2 tabular-nums">{item.badge}</span>
-            ) : null}
+            {item.badge ? <span className="rounded-tag bg-chip px-2">{item.badge}</span> : null}
           </Button>
         ))}
       </div>

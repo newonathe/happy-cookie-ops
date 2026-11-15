@@ -54,10 +54,8 @@ export function CustomerStatusLive({ v, preview = false }: { v: OpsVals; preview
           }
         >
           <div className="order-1 min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6">
-            {known ? (
-              <p className="mb-3 text-sm font-semibold tabular-nums">Order {cust.orderNo}</p>
-            ) : null}
-            <h1 className="text-3xl font-bold tracking-tight [overflow-wrap:anywhere]">
+            {known ? <p className="mb-3 text-label font-semibold">Order {cust.orderNo}</p> : null}
+            <h1 className="text-title font-bold tracking-tight [overflow-wrap:anywhere]">
               {cust.heroTitle}
             </h1>
             {cust.heroBody ? (
@@ -74,7 +72,7 @@ export function CustomerStatusLive({ v, preview = false }: { v: OpsVals; preview
               aria-label="Order progress"
               className="order-3 min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6"
             >
-              <h2 className="text-xl font-semibold">Order progress</h2>
+              <h2 className="text-heading font-semibold">Order progress</h2>
               <ol className="mt-5 grid gap-5">
                 {cust.timeline.map((step, index) => (
                   <li
@@ -91,7 +89,7 @@ export function CustomerStatusLive({ v, preview = false }: { v: OpsVals; preview
                     />
                     <div className="min-w-0 [overflow-wrap:anywhere]">
                       <p className="font-semibold">{step.what}</p>
-                      <p className="mt-1 text-sm text-ink-soft">{step.sub}</p>
+                      <p className="mt-1 text-label text-ink-soft">{step.sub}</p>
                     </div>
                   </li>
                 ))}
@@ -110,7 +108,7 @@ export function CustomerStatusLive({ v, preview = false }: { v: OpsVals; preview
               aria-label="Pickup details"
               className="order-4 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-surface p-5 sm:p-6"
             >
-              <h2 className="text-xl font-semibold">Pickup</h2>
+              <h2 className="text-heading font-semibold">Pickup</h2>
               <p className="[overflow-wrap:anywhere]">
                 {cust.windowText || 'Pickup details are unavailable.'}
               </p>
@@ -128,7 +126,7 @@ export function CustomerStatusLive({ v, preview = false }: { v: OpsVals; preview
         ) : null}
       </div>
       {cust.allergenNote ? (
-        <p className="max-w-prose text-sm text-ink-soft">{cust.allergenNote}</p>
+        <p className="max-w-prose text-label text-ink-soft">{cust.allergenNote}</p>
       ) : null}
     </section>
   );

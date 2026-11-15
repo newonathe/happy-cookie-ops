@@ -119,7 +119,7 @@ export function ProductsLive({ v }: { v: OpsVals }) {
           <Banner tone="warn" title={STAFF_COPY.productsReadFailed} action={retry} />
         ) : (
           <Panel>
-            <p role="status" className="text-[15px] text-ink">
+            <p role="status" className="text-body text-ink">
               {STAFF_COPY.productsNotRead}
             </p>
           </Panel>

@@ -68,11 +68,11 @@ export function ScheduledEventsForm({ liveScheduled }: { liveScheduled: LiveSche
       style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
       {!liveScheduled.online ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
-      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.intro}</span>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{C.intro}</span>
       {all.map((r, i) => (
         <div key={r?.id ?? 'new'} style={rowCard}>
           <label style={labelStyle}>

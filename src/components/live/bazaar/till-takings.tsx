@@ -30,7 +30,7 @@ function Tracker({
       <PanelHead title={title} />
       <div className="flex flex-col gap-0.5 px-4 pt-3">
         <span className="text-caption text-ink-mute">{label}</span>
-        <span className="text-title text-ink tabular-nums">{value}</span>
+        <span className="text-title text-ink">{value}</span>
       </div>
       <div className="px-4 pb-1.5">{children}</div>
     </section>
@@ -103,8 +103,8 @@ function Figure({ label, value, detail }: { label: string; value: ReactNode; det
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
       <dt className="text-caption text-ink-mute">{label}</dt>
-      <dd className="m-0 text-[18px] font-semibold text-ink tabular-nums">{value}</dd>
-      {detail ? <dd className="m-0 text-caption text-ink-mute tabular-nums">{detail}</dd> : null}
+      <dd className="m-0 text-heading font-semibold text-ink">{value}</dd>
+      {detail ? <dd className="m-0 text-caption text-ink-mute">{detail}</dd> : null}
     </div>
   );
 }
@@ -161,11 +161,11 @@ function SaleRow({
         className={`grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 px-4 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand ${COLUMNS}`}
       >
         <span className="col-start-1 row-start-1 flex items-baseline gap-2 @4xl:contents">
-          <span className="text-[14px] font-semibold text-ink">
+          <span className="text-label font-semibold text-ink">
             <span className="@4xl:hidden">Sale </span>
             {number}
           </span>
-          <span className="text-caption text-ink-mute tabular-nums">{row?.whenText}</span>
+          <span className="text-caption text-ink-mute">{row?.whenText}</span>
         </span>
         <span className="col-span-2 row-start-2 flex min-w-0 flex-wrap gap-1.5 @4xl:col-span-1 @4xl:row-start-auto">
           {row?.lines.length ? (
@@ -174,7 +174,7 @@ function SaleRow({
                 key={i}
                 className="inline-flex max-w-full items-baseline gap-1 rounded-tag bg-owner-soft px-2 py-0.5 text-caption text-ink"
               >
-                <span className="font-semibold tabular-nums">{line.qty}×</span>{' '}
+                <span className="font-semibold">{line.qty}×</span>{' '}
                 <span className="min-w-0">{line.name}</span>
               </span>
             ))
@@ -183,9 +183,9 @@ function SaleRow({
           )}
         </span>
         <span className="col-start-1 row-start-3 flex min-w-0 flex-wrap items-baseline gap-x-2 text-caption text-ink-soft @4xl:contents">
-          <span className="text-[14px] text-ink">{sale.pay}</span>
+          <span className="text-label text-ink">{sale.pay}</span>
           {reference ? (
-            <span className="min-w-0 truncate tabular-nums">
+            <span className="min-w-0 truncate">
               <span className="@4xl:hidden">Ref </span>
               {reference}
             </span>
@@ -193,7 +193,7 @@ function SaleRow({
             <Blank />
           )}
           {given ? (
-            <span className="tabular-nums @4xl:text-right">
+            <span className="@4xl:text-right">
               {given === 'Exact' ? null : <span className="@4xl:hidden">Given </span>}
               {given}
             </span>
@@ -201,7 +201,7 @@ function SaleRow({
             <Blank right />
           )}
           {change ? (
-            <span className="tabular-nums @4xl:text-right">
+            <span className="@4xl:text-right">
               <span className="@4xl:hidden">Change </span>
               {change}
             </span>
@@ -209,11 +209,11 @@ function SaleRow({
             <Blank right />
           )}
         </span>
-        <span className="col-start-2 row-start-1 text-right text-[15px] font-semibold text-ink tabular-nums @4xl:col-start-auto @4xl:row-start-auto">
+        <span className="col-start-2 row-start-1 text-right text-body font-semibold text-ink @4xl:col-start-auto @4xl:row-start-auto">
           {sale.totalText}
         </span>
         <span
-          className={`col-start-2 row-start-3 flex items-center justify-end gap-1.5 text-caption @4xl:col-start-auto @4xl:row-start-auto @4xl:justify-start ${sale.bad ? 'font-semibold text-danger' : 'text-ink-soft'}`}
+          className={`col-start-2 row-start-3 flex items-center justify-end gap-1.5 text-label @4xl:col-start-auto @4xl:row-start-auto @4xl:justify-start ${sale.bad ? 'font-semibold text-danger' : 'text-ink-soft'}`}
         >
           <span
             aria-hidden="true"
@@ -300,7 +300,7 @@ export function TillTakings({
         className={`flex flex-col gap-2.5 px-4 py-3 ${PANEL_CLASS}`}
       >
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-[15px] font-semibold text-ink">Today</h2>
+          <h2 className="text-body font-semibold text-ink">Today</h2>
           <Button variant="secondary" size="sm" aria-expanded={open} onClick={() => setOpen(!open)}>
             {open ? 'Hide details' : 'Details'}
           </Button>

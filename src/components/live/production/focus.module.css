@@ -16,15 +16,15 @@
   flex-wrap: wrap;
 }
 .header h1 {
-  font-size: 1.75rem;
+  font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.7px;
+  letter-spacing: -0.015em;
   line-height: 1.15;
   margin: 5px 0 0;
 }
 .eyebrow {
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 600;
   margin: 0;
 }
@@ -40,11 +40,11 @@
   min-width: 0;
 }
 .product strong {
-  font-size: 0.9375rem;
+  font-size: 16px;
 }
 .product p {
   margin: 4px 0 0;
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
 }
 .plan {
@@ -52,13 +52,12 @@
   flex-direction: column;
   text-align: right;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .plan b {
   color: var(--color-ink);
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 .content {
   display: flex;
@@ -71,16 +70,15 @@
   gap: 20px;
 }
 .fields input {
-  font-size: 1.75rem;
+  font-size: 24px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   min-width: 0;
 }
 .select {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-ink-soft);
 }
@@ -95,7 +93,7 @@
   font: inherit;
 }
 .details {
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .details summary {
   min-height: 44px;
@@ -123,12 +121,12 @@
 .chart figcaption {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8125rem;
+  font-size: 13px;
   font-weight: 600;
 }
 .chart figcaption span {
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 400;
 }
 .barRow {
@@ -141,8 +139,7 @@
   display: flex;
   justify-content: space-between;
   gap: 5px;
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
+  font-size: 13px;
 }
 .track {
   height: 12px;
@@ -175,7 +172,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .legend span {
   display: flex;
@@ -195,19 +192,18 @@
   row-gap: 5px;
 }
 .result > strong {
-  font-size: 2.75rem;
+  font-size: 32px;
   font-weight: 600;
-  letter-spacing: -1px;
+  letter-spacing: -0.015em;
   grid-row: span 2;
-  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 .result > span {
-  font-size: 0.9375rem;
+  font-size: 16px;
   font-weight: 600;
 }
 .result > small {
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
 }
 .dough {
@@ -215,16 +211,16 @@
   padding: 14px 16px;
   border-left: 3px solid var(--color-brand);
   background: var(--color-raise);
-  font-size: 0.8125rem;
+  font-size: 13px;
   line-height: 1.6;
 }
 .ingredients h2 {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
 }
 .ingredients > p {
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
   margin: 6px 0 10px;
 }
@@ -235,19 +231,18 @@
   gap: 10px;
   padding: 14px 0;
   border-bottom: 1px solid var(--color-line);
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .ingredient strong {
-  font-weight: 500;
+  font-weight: 400;
 }
 .ingredient small {
   display: block;
-  font-size: 0.6875rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
   margin-top: 3px;
 }
 .ingredient > b {
-  font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
 .ingredient .short {
@@ -281,12 +276,12 @@
   border-top: 1px solid var(--color-line);
 }
 .footer span {
-  font-size: 0.6875rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
 }
 .saving {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 13px;
   color: var(--color-ink-soft);
 }
 @media (max-width: 480px) {
@@ -295,7 +290,7 @@
     gap: 16px;
   }
   .header h1 {
-    font-size: 1.5rem;
+    font-size: 24px;
   }
   .header > button {
     padding-inline: 8px;

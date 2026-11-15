@@ -458,7 +458,8 @@ export function OwnerWorkspace({
                 <Icon path={v.ic.back} size={18} weight={1.7} />
               </button>
             ) : null}
-            <span>{active?.label ?? title}</span>
+            {/* The page's own title names it; the section is lit in the tab bar and the rail (Ethan, 15 November 2026). */}
+            <span className={styles.srOnly}>{active?.label ?? title}</span>
           </div>
           <div className={styles.accountActions}>
             {v.offline ? <span className={styles.connection}>Offline</span> : null}

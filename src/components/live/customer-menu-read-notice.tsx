@@ -16,7 +16,7 @@ export function CustomerMenuReadNotice({ read }: { read?: ShopMenuReadView | nul
   return (
     <div
       role="status"
-      className="mx-auto my-4 flex w-[calc(100%_-_2rem)] max-w-3xl flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-surface p-4 text-sm text-ink"
+      className="mx-auto my-4 flex w-[calc(100%_-_2rem)] max-w-3xl flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-surface p-4 text-label text-ink"
     >
       <span>
         {message}

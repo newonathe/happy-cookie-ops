@@ -17,17 +17,15 @@ function SaleLog({ row }: { row: OpsVals['salesLog']['rows'][number] }) {
               key={i}
               className="inline-flex max-w-full items-baseline gap-1 rounded-tag bg-owner-soft px-2 py-0.5 text-caption text-ink"
             >
-              <span className="font-semibold tabular-nums">{line.qty}×</span>{' '}
+              <span className="font-semibold">{line.qty}×</span>{' '}
               <span className="min-w-0">{line.name}</span>
             </span>
           ))
         ) : (
-          <span className="text-[14px] text-ink">{saleName(row.what)}</span>
+          <span className="text-label text-ink">{saleName(row.what)}</span>
         )}
       </span>
-      <span className="text-right text-[15px] font-semibold text-ink tabular-nums">
-        {row.amount}
-      </span>
+      <span className="text-right text-body font-semibold text-ink">{row.amount}</span>
       <span className="col-span-2 text-caption text-ink-mute">{row.when}</span>
     </li>
   );

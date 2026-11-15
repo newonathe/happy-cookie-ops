@@ -18,7 +18,7 @@ export function ShopOverrideNotice({ value }: { value?: ShopOverrideView | null 
     <section
       role="status"
       aria-label="Opening status change"
-      className="mb-4 flex flex-col gap-3 rounded-card border border-line bg-surface p-4 text-sm text-ink"
+      className="mb-4 flex flex-col gap-3 rounded-card border border-line bg-surface p-4 text-label text-ink"
     >
       <p className="font-semibold">{title}</p>
       {value.phase === 'unknown' || value.phase === 'unsent' ? (

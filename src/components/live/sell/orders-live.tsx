@@ -46,11 +46,9 @@ function OrderRow({ order }: { order: Row }) {
         className="flex min-h-16 min-w-0 flex-1 basis-56 flex-col gap-1 py-3 pl-4 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
       >
         <span className="flex flex-wrap items-baseline gap-x-2">
-          <span className="text-[15px] font-semibold text-ink">{order.name}</span>
+          <span className="text-body font-semibold text-ink">{order.name}</span>
           <span className="text-caption text-ink-mute">{order.id}</span>
-          <span className="ml-auto text-[15px] font-semibold text-ink tabular-nums">
-            {order.totalText}
-          </span>
+          <span className="ml-auto text-body font-semibold text-ink">{order.totalText}</span>
         </span>
         <span className="text-caption text-ink-mute">{order.summary}</span>
         <span className="flex flex-wrap items-center gap-2 text-caption text-ink-mute">
@@ -111,7 +109,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
           <Banner tone="warn" title={STAFF_COPY.ordersReadFailed} action={retry} />
         ) : (
           <Panel>
-            <p role="status" className="text-[15px] text-ink">
+            <p role="status" className="text-body text-ink">
               {STAFF_COPY.ordersNotRead}
             </p>
           </Panel>
@@ -159,7 +157,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
                 : 'border-line-strong bg-surface text-ink hover:bg-raise'
             )}
           >
-            {orderStatusWord(filter.label)} <span className="tabular-nums">{filter.n}</span>
+            {orderStatusWord(filter.label)} <span>{filter.n}</span>
           </button>
         ))}
       </div>
@@ -170,7 +168,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
           onChange={v.setOrderQ}
           aria-label="Search orders"
           placeholder="Search name, order number or reference"
-          className="h-12 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]"
+          className="h-12 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label"
         />
         {v.hasOrderQ ? (
           <Button variant="ghost" size="sm" onClick={v.clearOrderQ}>
@@ -182,7 +180,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
       <div className="mb-4 flex flex-col gap-4">
         {v.orderEmpty && read.dropped === 0 ? (
           <Panel>
-            <p className="text-[15px] font-semibold text-ink">No orders match this filter</p>
+            <p className="text-body font-semibold text-ink">No orders match this filter</p>
             <p className="text-caption text-ink-mute">Try another filter, or clear the search.</p>
           </Panel>
         ) : null}
@@ -204,7 +202,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
                 key={i}
                 className="rounded-full border border-line px-3 py-1 text-caption text-ink"
               >
-                <span className="font-semibold tabular-nums">{flavour.qtyText}</span> {flavour.name}
+                <span className="font-semibold">{flavour.qtyText}</span> {flavour.name}
               </li>
             ))}
           </ul>

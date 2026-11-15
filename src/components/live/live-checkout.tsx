@@ -29,11 +29,11 @@ const card: React.CSSProperties = {
   gap: '11px'
 };
 const cardTitle: React.CSSProperties = {
-  fontSize: '12px',
-  fontWeight: '700',
+  fontSize: '13px',
+  fontWeight: 600,
   color: 'var(--color-ink-soft)'
 };
-const fieldLabel: React.CSSProperties = { fontSize: '12px', fontWeight: '600' };
+const fieldLabel: React.CSSProperties = { fontSize: '13px', fontWeight: '600' };
 const field: React.CSSProperties = {
   height: '48px',
   border: '1px solid var(--color-line-strong)',
@@ -42,7 +42,7 @@ const field: React.CSSProperties = {
   fontSize: '14px',
   background: 'var(--color-surface)'
 };
-const errorText: React.CSSProperties = { fontSize: '11px', color: 'var(--color-danger)' };
+const errorText: React.CSSProperties = { fontSize: '13px', color: 'var(--color-danger)' };
 const optionCard: React.CSSProperties = {
   position: 'relative',
   display: 'flex',
@@ -149,7 +149,7 @@ const stepButton: React.CSSProperties = {
   borderRadius: '10px',
   background: 'var(--color-surface)',
   fontSize: '18px',
-  fontWeight: '700',
+  fontWeight: 600,
   color: 'var(--color-ink)'
 };
 
@@ -184,7 +184,7 @@ function Stepper({
         −
       </button>
       <span
-        style={{ minWidth: '20px', textAlign: 'center', fontSize: '14px', fontWeight: '700' }}
+        style={{ minWidth: '20px', textAlign: 'center', fontSize: '14px', fontWeight: 600 }}
         aria-live="polite"
       >
         {qty}
@@ -274,7 +274,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       <div style={{ ...card, gap: '9px' }}>
         <span style={cardTitle}>Pickup</span>
         {live.rulesState === 'loading' ? (
-          <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)' }}>
             Loading the pickup days…
           </span>
         ) : null}
@@ -305,14 +305,14 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
             hoverStyle={{ background: '#FFF8ED' }}
           >
             <Radio on={fields.pickupDate === d.value} />
-            <span style={{ position: 'relative', fontSize: '13px', fontWeight: '700' }}>
+            <span style={{ position: 'relative', fontSize: '13px', fontWeight: 600 }}>
               {d.label}
             </span>
           </Pressable>
         ))}
         {errors.date ? <span style={errorText}>{errors.date}</span> : null}
         {live.extras?.sameDayNotice ? (
-          <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
+          <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
             {live.extras.sameDayNotice}
           </span>
         ) : null}
@@ -338,7 +338,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       </div>
       {live.extrasState === 'loading' ? <p role="status">Checking order options…</p> : null}
       {live.extrasState === 'failed' ? (
-        <div role="status" className="flex flex-col gap-3 text-sm text-ink">
+        <div role="status" className="flex flex-col gap-3 text-label text-ink">
           <p>{ORDER_COPY.optionsUnavailable}</p>
           {live.extras ? (
             <p>Your last choices are kept. Check them again before placing a new order.</p>
@@ -356,7 +356,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       {live.extras && live.extras.boxes.length > 0 ? (
         <div style={{ ...card, gap: '9px' }}>
           <span style={cardTitle}>{ORDER_COPY.extras.boxesTitle}</span>
-          <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)' }}>
             {ORDER_COPY.extras.boxesHelp}
           </span>
           {live.extras.boxes.map((b) => (
@@ -377,7 +377,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           {live.extras.addOns.map((a) => (
             <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
               {a.rows.length > 1 ? (
-                <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)' }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)' }}>
                   {a.name} · {a.priceText}
                 </span>
               ) : null}
@@ -411,7 +411,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       ) : null}
       {errors.extras ? <span style={errorText}>{errors.extras}</span> : null}
       {live.totalNote ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
           {live.totalNote}
         </span>
       ) : null}
@@ -421,7 +421,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           <p role="status">Loading payment methods…</p>
         ) : null}
         {v.livePaymentRead?.state === 'failed' ? (
-          <div role="status" className="flex flex-col gap-3 text-sm text-ink">
+          <div role="status" className="flex flex-col gap-3 text-label text-ink">
             <p>Payment methods could not be read.</p>
             <button
               type="button"
@@ -459,12 +459,11 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
                 gap: '1px'
               }}
             >
-              <span style={{ fontSize: '13px', fontWeight: '700' }}>{m.label}</span>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>{m.label}</span>
               <span
                 style={{
-                  fontSize: '12px',
-                  color: 'var(--color-ink-soft)',
-                  fontVariantNumeric: 'tabular-nums'
+                  fontSize: '13px',
+                  color: 'var(--color-ink-soft)'
                 }}
               >
                 {[m.num, m.holder].filter(Boolean).join(' · ')}
@@ -486,14 +485,14 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
               padding: '14px'
             }}
           >
-            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-ink-soft)' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-ink-soft)' }}>
               {v.cust.qrTitle}
             </span>
             <span style={s(v.cust.qr)} />
             <span
               style={{
                 maxWidth: '34ch',
-                fontSize: '11px',
+                fontSize: '13px',
                 color: '#8A7062',
                 textAlign: 'center',
                 lineHeight: '1.5',
@@ -544,7 +543,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           background: 'var(--color-brand)',
           color: 'var(--color-surface)',
           fontSize: '16px',
-          fontWeight: '700',
+          fontWeight: 600,
           boxShadow: '0 4px 16px -5px rgba(231,95,35,.6)',
           opacity: canSubmit ? 1 : 0.6,
           transition: 'transform .16s cubic-bezier(.2,.8,.2,1), background-color .2s ease'
@@ -568,7 +567,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           style={{
             maxWidth: '40ch',
             alignSelf: 'center',
-            fontSize: '11px',
+            fontSize: '13px',
             color: 'var(--color-ink-mute)',
             textAlign: 'center',
             lineHeight: '1.5',
@@ -589,15 +588,14 @@ function Placed({
 }) {
   return (
     <div style={{ ...card, gap: '12px' }}>
-      <span style={{ fontSize: '20px', fontWeight: '700', letterSpacing: '-.4px' }}>
+      <span style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.015em' }}>
         {ORDER_COPY.placedTitle}
       </span>
       <span
         style={{
           alignSelf: 'flex-start',
           fontSize: '13px',
-          fontWeight: '700',
-          fontVariantNumeric: 'tabular-nums',
+          fontWeight: 600,
           background: 'var(--color-surface)',
           border: '1px solid var(--color-line)',
           borderRadius: '999px',
@@ -609,19 +607,19 @@ function Placed({
       <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
         {ORDER_COPY.placedBody}
       </span>
-      <span style={{ fontSize: '12px', fontWeight: '600' }}>
+      <span style={{ fontSize: '13px', fontWeight: '600' }}>
         {placed.pickupText ? ORDER_COPY.pickupLine(placed.pickupText) + ' · ' : ''}Total{' '}
         {placed.totalText}
       </span>
       {placed.extraLines.length ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
           {ORDER_COPY.extras.placedLines}: {placed.extraLines.join(' · ')}
         </span>
       ) : null}
       <a
         href={placed.statusUrl}
         style={{
-          fontSize: '11px',
+          fontSize: '13px',
           color: 'var(--color-brand)',
           overflowWrap: 'anywhere',
           lineHeight: '1.5'
@@ -682,12 +680,12 @@ export function LiveLookup({ v }: { v: OpsVals }) {
         {live.state === 'busy' ? 'Looking…' : 'Find it'}
       </button>
       {live.state === 'missed' ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
           {ORDER_COPY.lookupMiss}
         </span>
       ) : null}
       {live.state === 'error' ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
           {ORDER_COPY.lookupError}
         </span>
       ) : null}
@@ -772,7 +770,7 @@ export function LiveWaitlistForm({ v }: { v: OpsVals }) {
         {live.state === 'sending' ? 'Sending…' : frozen ? 'Try again' : 'Join the waiting list'}
       </button>
       {live.message ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
           {live.message}
         </span>
       ) : null}

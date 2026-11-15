@@ -43,7 +43,7 @@ function PrepareMessage({ customer, back }: { customer: CustomerRow; back: () =>
       <PageTitle title="Prepare message" subtitle={customer.name} />
       <Panel>
         <label htmlFor={fieldId} className="flex flex-col gap-1.5">
-          <span className="text-caption font-semibold text-ink-soft">Message</span>
+          <span className="text-label font-semibold text-ink-soft">Message</span>
           <textarea
             id={fieldId}
             rows={5}
@@ -52,7 +52,7 @@ function PrepareMessage({ customer, back }: { customer: CustomerRow; back: () =>
               setText(event.target.value);
               setNote(null);
             }}
-            className="w-full rounded-control border border-line-strong bg-surface p-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]"
+            className="w-full rounded-control border border-line-strong bg-surface p-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label"
           />
         </label>
         <p role="status" className="mt-2 text-caption text-ink-mute">
@@ -122,7 +122,7 @@ function RemoveContact({
           stay, without their contact details. Payment proofs and references are not removed. It
           cannot be undone.
         </p>
-        <label className="mt-3 flex min-h-11 items-center gap-2 text-[14px] text-ink">
+        <label className="mt-3 flex min-h-11 items-center gap-2 text-label text-ink">
           <input
             type="checkbox"
             checked={sure}
@@ -280,7 +280,7 @@ export function CustomersLive({ v }: { v: OpsVals }) {
                 className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-line py-2 last:border-b-0"
               >
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-[14px] font-semibold text-ink">{person.name}</span>
+                  <span className="truncate text-label font-semibold text-ink">{person.name}</span>
                   {person.want || person.when ? (
                     <span className="text-caption text-ink-mute">
                       {[person.want, person.when].filter(Boolean).join(' · ')}

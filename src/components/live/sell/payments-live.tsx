@@ -47,7 +47,7 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
           <Banner tone="warn" title={STAFF_COPY.ordersReadFailed} action={retry} />
         ) : (
           <Panel>
-            <p role="status" className="text-[15px] text-ink">
+            <p role="status" className="text-body text-ink">
               {STAFF_COPY.ordersNotRead}
             </p>
           </Panel>
@@ -75,7 +75,7 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
 
       <Panel tone="hero">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-[15px] font-semibold text-ink">
+          <span className="text-body font-semibold text-ink">
             {v.recAllDone && partial ? partial : v.recLeftText}
           </span>
           <span className="flex flex-wrap gap-2">
@@ -92,13 +92,9 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
             {(v.recMethods ?? []).map((method, i) => (
               <div key={i} className="flex flex-col gap-0.5">
                 <span className="text-caption text-ink-mute">{method.pay}</span>
-                <span className="text-[17px] font-semibold text-ink tabular-nums">
-                  {method.totalText}
-                </span>
+                <span className="text-heading font-semibold text-ink">{method.totalText}</span>
                 {method.done && !partial ? (
-                  <span className="text-caption font-semibold text-ok">
-                    All matched · {method.n}
-                  </span>
+                  <span className="text-label font-semibold text-ok">All matched · {method.n}</span>
                 ) : null}
                 {method.leftText ? (
                   <span className="text-caption text-ink-mute">{method.leftText} unticked</span>
@@ -131,27 +127,25 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
                   onClick={row.open}
                   className="flex min-w-0 flex-1 basis-40 flex-col text-left focus-visible:outline-2 focus-visible:outline-brand"
                 >
-                  <span className="text-[14px] font-semibold break-all text-ink">{row.ref}</span>
+                  <span className="text-label font-semibold break-all text-ink">{row.ref}</span>
                   <span className="text-caption text-ink-mute">
                     {row.id} · {row.name} · {row.pay}
                   </span>
                 </button>
                 {row.pending ? (
-                  <span className="text-caption font-semibold text-warn">Not confirmed</span>
+                  <span className="text-label font-semibold text-warn">Not confirmed</span>
                 ) : null}
                 {row.flagged ? (
-                  <span className="text-caption font-semibold text-danger">{row.flagText}</span>
+                  <span className="text-label font-semibold text-danger">{row.flagText}</span>
                 ) : null}
-                <span className="text-[14px] font-semibold text-ink tabular-nums">
-                  {row.amountText}
-                </span>
+                <span className="text-label font-semibold text-ink">{row.amountText}</span>
               </li>
             ))}
           </ul>
         )}
         <div className="mt-2 flex items-baseline justify-between border-t border-line pt-3">
-          <span className="text-[14px] font-semibold text-ink">Total in the book</span>
-          <span className="text-[17px] font-semibold text-ink tabular-nums">{v.recTotalText}</span>
+          <span className="text-label font-semibold text-ink">Total in the book</span>
+          <span className="text-heading font-semibold text-ink">{v.recTotalText}</span>
         </div>
       </Panel>
 

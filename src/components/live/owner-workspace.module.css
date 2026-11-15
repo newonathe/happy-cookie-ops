@@ -5,7 +5,7 @@
   min-height: 100dvh;
   color: var(--color-ink);
   background: var(--color-app);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
 }
 .workspace button {
@@ -33,7 +33,7 @@
   align-items: center;
   gap: 9px;
   padding: 0 4px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 }
 .brand img {
@@ -44,7 +44,7 @@
 .owner small {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 400;
 }
 .navigation {
@@ -64,8 +64,8 @@
   text-align: left;
   background: transparent;
   color: var(--color-ink-mute);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
 }
 .navigation button[aria-current],
 .dock button[aria-current] {
@@ -84,7 +84,7 @@
   border-radius: 999px;
   background: var(--color-brand);
   color: var(--color-surface);
-  font-size: 10px;
+  font-size: 12px;
 }
 .owner {
   display: flex;
@@ -92,7 +92,7 @@
   gap: 9px;
   margin-top: auto;
   padding: 22px 8px 0;
-  font-size: 12px;
+  font-size: 14px;
 }
 .avatar {
   display: grid;
@@ -103,7 +103,7 @@
   border-radius: 50%;
   background: var(--color-ink);
   color: var(--color-cust-bg);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 .work {
@@ -127,7 +127,7 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 .back {
@@ -153,7 +153,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  font-size: 11px;
+  font-size: 13px;
 }
 .quickAdd {
   display: flex;
@@ -164,11 +164,11 @@
   border: 0;
   background: transparent;
   color: var(--color-ink);
-  font-size: 11px;
+  font-size: 14px;
 }
 .connection {
   color: var(--color-ink-mute);
-  font-size: 11px;
+  font-size: 13px;
 }
 .notification {
   position: relative;
@@ -261,7 +261,7 @@
 .toastBox > span {
   flex: 1;
   min-width: 0;
-  font-size: 0.8125rem;
+  font-size: 14px;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -276,7 +276,7 @@
   border-radius: 9px;
   background: transparent;
   color: inherit;
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: 600;
 }
 @media (max-width: 1000px) {
@@ -288,7 +288,7 @@
     padding-inline: 9px;
   }
   .brand {
-    font-size: 11px;
+    font-size: 13px;
     gap: 7px;
   }
   .main {
@@ -345,7 +345,7 @@
     min-height: 51px;
     padding: 7px 0;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .dock svg {
     width: 18px;
@@ -413,4 +413,12 @@
     border: 0;
     border-radius: 0;
   }
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

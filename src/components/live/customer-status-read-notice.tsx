@@ -6,7 +6,7 @@ export function CustomerStatusReadNotice({ read }: { read?: OpsVals['liveStatusR
   return (
     <div
       role="status"
-      className="m-4 flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-surface p-4 text-sm text-ink"
+      className="m-4 flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-surface p-4 text-label text-ink"
     >
       <span>
         {read.state === 'loading' ? 'Refreshing your order.' : 'Your order could not be refreshed.'}

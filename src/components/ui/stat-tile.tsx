@@ -62,18 +62,16 @@ export function StatTile({
     written.length <= 5
       ? 'text-display'
       : written.length <= 7
-        ? 'text-[30px] leading-none font-bold tracking-tight'
+        ? 'text-display leading-none font-bold tracking-tight'
         : written.length <= 10
-          ? 'text-[24px] leading-none font-bold tracking-tight'
-          : 'text-[20px] leading-none font-bold tracking-tight';
+          ? 'text-title leading-none'
+          : 'text-heading leading-none font-semibold tracking-tight';
   const head = (
     <>
-      <span className={cx('text-caption font-semibold text-ink-soft', hasParts && 'pr-5')}>
+      <span className={cx('text-label font-semibold text-ink-soft', hasParts && 'pr-5')}>
         {label}
       </span>
-      <span
-        className={cx('flex items-baseline gap-1.5 whitespace-nowrap text-ink tabular-nums', size)}
-      >
+      <span className={cx('flex items-baseline gap-1.5 whitespace-nowrap text-ink', size)}>
         {pending ? (
           <span aria-label="Not known yet">—</span>
         ) : typeof value === 'number' ? (
@@ -84,7 +82,7 @@ export function StatTile({
         {unit ? <span className="text-body font-semibold text-ink-soft">{unit}</span> : null}
       </span>
       {detail ? (
-        <span className={cx('text-caption font-semibold', tone ? TONE[tone] : 'text-ink-mute')}>
+        <span className={cx('text-label font-semibold', tone ? TONE[tone] : 'text-ink-mute')}>
           {detail}
         </span>
       ) : null}
@@ -131,7 +129,7 @@ export function StatTile({
           {parts?.map((part) => (
             <div key={part.label} className="flex justify-between gap-3 text-caption">
               <dt className="text-ink-soft">{part.label}</dt>
-              <dd className="m-0 font-semibold text-ink tabular-nums">{part.value}</dd>
+              <dd className="m-0 font-semibold text-ink">{part.value}</dd>
             </div>
           ))}
         </dl>

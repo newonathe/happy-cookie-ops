@@ -26,7 +26,7 @@ export interface BakePlanUnread {
 }
 
 const selectClass =
-  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]';
+  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label';
 
 function Retention({ plan }: { plan: LiveBakePlan }) {
   const retention = plan.retention;
@@ -76,7 +76,7 @@ export function BakePlanPage({ plan, unread }: { plan: LiveBakePlan; unread?: Ba
             className="grid grid-cols-1 items-end gap-3 border-b border-line py-3 sm:grid-cols-[minmax(0,1fr)_160px_auto]"
           >
             <label className="flex min-w-0 flex-col gap-1.5">
-              <span className="text-caption font-semibold text-ink-soft">Product</span>
+              <span className="text-label font-semibold text-ink-soft">Product</span>
               <select
                 value={row.productId}
                 onChange={(event) => plan.setProduct(row.key, event.target.value)}
@@ -146,7 +146,7 @@ function NeedRow({ need }: { need: BakePlanNeed }) {
   return (
     <li className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
       <span className="flex min-w-0 flex-1 basis-52 flex-col gap-0.5">
-        <span className="text-[15px] font-semibold text-ink">{need.name}</span>
+        <span className="text-body font-semibold text-ink">{need.name}</span>
         <span className="text-caption text-ink-mute">
           {detail}
           {need.supplier && need.state === 'short' ? ` · ${need.supplier}` : ''}
@@ -154,7 +154,7 @@ function NeedRow({ need }: { need: BakePlanNeed }) {
       </span>
       <span className="flex flex-wrap items-center gap-2">
         {need.state === 'short' ? (
-          <span className="text-[14px] font-semibold text-ink tabular-nums">
+          <span className="text-label font-semibold text-ink">
             {need.costPesos === null ? 'Cost pending' : formatPesos(need.costPesos)}
           </span>
         ) : null}

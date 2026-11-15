@@ -15,25 +15,24 @@
 }
 .heading h1 {
   margin: 0;
-  font-size: 1.6875rem;
+  font-size: 24px;
   line-height: 1.2;
-  letter-spacing: -0.65px;
+  letter-spacing: -0.015em;
   font-weight: 600;
 }
 .work h2 {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 600;
 }
 .plan {
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
+  font-size: 13px;
 }
 .plan > strong {
-  font-size: 2.25rem;
+  font-size: 32px;
   font-weight: 600;
   line-height: 1;
 }
@@ -41,12 +40,12 @@
   display: block;
   margin-top: 5px;
   color: var(--color-ink-mute);
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .muted,
 .empty {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 13px;
   color: var(--color-ink-mute);
 }
 .work {
@@ -68,7 +67,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  font-size: 0.8125rem;
+  font-size: 13px;
 }
 .workName strong {
   flex: 1;
@@ -76,11 +75,11 @@
   overflow-wrap: anywhere;
 }
 .workName b {
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .done {
   color: var(--color-ok);
-  font-size: 0.6875rem;
+  font-size: 13px;
 }
 .actions {
   display: flex;
@@ -88,7 +87,7 @@
 }
 .work details {
   border-top: 1px solid var(--color-line);
-  font-size: 0.75rem;
+  font-size: 13px;
 }
 .work summary {
   cursor: pointer;

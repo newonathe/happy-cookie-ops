@@ -61,19 +61,14 @@ export function TillCard({
           />
         </span>
         <span className="flex min-w-0 flex-col gap-1.5 p-2.5 @lg:p-3">
-          <span className="min-h-[35px] text-[13px] leading-[1.4] font-semibold text-ink @lg:min-h-10 @lg:text-[14px]">
+          <span className="min-h-[35px] text-caption leading-[1.4] font-semibold text-ink @lg:min-h-10 @lg:text-label">
             {name}
           </span>
-          <span
-            className={cx(
-              'text-caption tabular-nums',
-              few ? 'font-semibold text-warn' : 'text-ink-mute'
-            )}
-          >
+          <span className={cx('text-caption', few ? 'font-semibold text-warn' : 'text-ink-mute')}>
             {soldOut ? 0 : left} left on the table
           </span>
           <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-            <span className="text-[15px] font-semibold text-ink tabular-nums">{price}</span>
+            <span className="text-body font-semibold text-ink">{price}</span>
             {minus ? (
               // Room for the − and the count, which sit over this corner as their own button.
               <span aria-hidden="true" className="h-10 w-[74px]" />
@@ -81,7 +76,7 @@ export function TillCard({
               <span
                 data-part="count"
                 className={cx(
-                  'rounded-tag px-2 py-1 text-[11px] leading-[1.3] font-semibold',
+                  'rounded-tag px-2 py-1 text-caption leading-[1.3] font-semibold',
                   count ? 'bg-brand text-surface' : 'bg-owner-soft text-ink-soft'
                 )}
               >
@@ -100,13 +95,11 @@ export function TillCard({
             type="button"
             onClick={onMinus}
             aria-label={`One less ${name} in this sale`}
-            className="motion-press grid h-10 w-11 place-items-center rounded-control text-[20px] leading-none font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+            className="motion-press grid h-10 w-11 place-items-center rounded-control text-heading leading-none font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             −
           </button>
-          <span className="min-w-[22px] pr-2.5 text-center text-[14px] font-bold tabular-nums">
-            {count}
-          </span>
+          <span className="min-w-[22px] pr-2.5 text-center text-label font-semibold">{count}</span>
         </span>
       ) : null}
     </div>

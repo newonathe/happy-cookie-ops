@@ -39,7 +39,7 @@ export function SellTools({ v }: { v: OpsVals }) {
       {tools.map((tool) => (
         <Button key={tool.id} variant="secondary" onClick={tool.go}>
           {tool.label}
-          {tool.badge ? <span className="ml-1 tabular-nums">{tool.badge}</span> : null}
+          {tool.badge ? <span className="ml-1">{tool.badge}</span> : null}
         </Button>
       ))}
     </>
