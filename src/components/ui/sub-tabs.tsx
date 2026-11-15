@@ -33,11 +33,10 @@ const badgeStyle: CSSProperties = {
   borderRadius: '999px',
   background: '#C24A15',
   color: '#FFFFFF',
-  fontSize: '11px',
-  fontWeight: 700,
+  fontSize: '12px',
+  fontWeight: 600,
   display: 'grid',
-  placeItems: 'center',
-  fontVariantNumeric: 'tabular-nums'
+  placeItems: 'center'
 };
 
 function tabStyle(active: boolean, quiet: boolean, refined: boolean): CSSProperties {
@@ -49,10 +48,10 @@ function tabStyle(active: boolean, quiet: boolean, refined: boolean): CSSPropert
   return {
     minHeight: quiet ? '36px' : '44px',
     padding: quiet ? '0 12px' : '0 14px',
-    fontSize: quiet ? '12px' : '13px',
+    fontSize: '14px',
     borderRadius: '12px',
     border: '0',
-    fontWeight: 600,
+    fontWeight: active ? 600 : 400,
     display: 'inline-flex',
     alignItems: 'center',
     gap: '7px',
@@ -65,13 +64,13 @@ function tabStyle(active: boolean, quiet: boolean, refined: boolean): CSSPropert
       ? {
           minHeight: '44px',
           padding: '10px 13px',
-          fontSize: '0.8125rem',
+          fontSize: '14px',
           borderRadius: '11px',
           border: '1px solid transparent',
           boxShadow: 'none',
           background: active ? 'var(--color-cust-bg)' : 'transparent',
           color: active ? 'var(--color-brand)' : 'var(--color-ink-mute)',
-          fontWeight: active ? 600 : 500
+          fontWeight: active ? 600 : 400
         }
       : {})
   };

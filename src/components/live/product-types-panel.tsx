@@ -24,7 +24,7 @@ const BEHAVIOURS: Array<{ value: 'cookie' | 'set' | 'item'; label: string }> = [
 export function ProductTypesPanel({ types }: { types: Types }) {
   return (
     <section aria-label="Product types" className="flex flex-col gap-3">
-      <h3 className="m-0 text-body font-bold text-ink">Product types</h3>
+      <h3 className="m-0 text-body font-semibold text-ink">Product types</h3>
       <p className="m-0 text-caption text-ink-mute">
         Cookies and sets count toward the cookie limit per order, the sampler and the drop’s cookie
         slots. A type sold by the piece, like ice cream or stickers, counts toward none of them.
@@ -125,7 +125,7 @@ function AddType({ add }: { add: Types['add'] }) {
         autoComplete="off"
         onChange={(e) => setLabel(e.target.value)}
       />
-      <label htmlFor={behaviourId} className="text-caption font-semibold text-ink-soft">
+      <label htmlFor={behaviourId} className="text-label font-semibold text-ink-soft">
         How it counts
       </label>
       <select

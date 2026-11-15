@@ -23,14 +23,14 @@ export function SellingCard({ till }: { till: LiveHomeTill }) {
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <StatusPill status="selling" />
-          <span className="min-w-0 truncate text-[15px] font-semibold text-ink">{till.name}</span>
+          <span className="min-w-0 [overflow-wrap:anywhere] text-body font-semibold text-ink">
+            {till.name}
+          </span>
         </div>
         {till.revenueText ? (
           <span className="text-caption text-ink-soft">
-            <span className="text-[20px] font-semibold text-ink tabular-nums">
-              {till.revenueText}
-            </span>{' '}
-            from {salesText(till.sales)}
+            <span className="text-heading font-semibold text-ink">{till.revenueText}</span> from{' '}
+            {salesText(till.sales)}
           </span>
         ) : (
           <span className="text-caption text-ink-soft">{salesText(till.sales)} so far</span>
@@ -77,7 +77,7 @@ export function TillBanner({ till }: { till: LiveHomeTill }) {
       className="mb-3 flex min-h-11 items-center gap-2 rounded-control border border-line bg-surface pr-1 pl-3"
     >
       <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-ok" />
-      <span className="min-w-0 flex-1 truncate text-caption text-ink-soft">
+      <span className="min-w-0 flex-1 [overflow-wrap:anywhere] text-caption text-ink-soft">
         {till.name} is selling
       </span>
       <Button variant="ghost" size="sm" onClick={till.back}>

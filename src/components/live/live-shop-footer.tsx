@@ -45,18 +45,18 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
         style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '3px' }}
       >
         {footer.tin ? (
-          <span style={{ fontSize: '11px', fontWeight: '600', color: '#6E574B' }}>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: '#6E574B' }}>
             {footer.tin}
           </span>
         ) : null}
         {note ? (
           <span
-            style={{ fontSize: '10px', lineHeight: '1.5', color: '#8A7062', textWrap: 'pretty' }}
+            style={{ fontSize: '13px', lineHeight: '1.5', color: '#8A7062', textWrap: 'pretty' }}
           >
             {note}
           </span>
         ) : null}
-        <span style={{ fontSize: '10px', lineHeight: '1.5', color: '#8A7062', textWrap: 'pretty' }}>
+        <span style={{ fontSize: '13px', lineHeight: '1.5', color: '#8A7062', textWrap: 'pretty' }}>
           Privacy: {v.shopName || 'This shop'} uses your name, phone number, optional Instagram
           handle and order details to fulfil orders and contact you. Supabase hosts the database.
           Customer name, phone, Instagram and add-on-note fields are cleared from orders older than
@@ -74,7 +74,7 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
             padding: '0',
             border: '0',
             background: 'transparent',
-            fontSize: '11px',
+            fontSize: '13px',
             fontWeight: '600',
             color: '#6E574B',
             transition: 'color .18s ease'
@@ -93,7 +93,7 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
               padding: '0',
               border: '0',
               background: 'transparent',
-              fontSize: '11px',
+              fontSize: '13px',
               fontWeight: '600',
               color: '#6E574B',
               transition: 'color .18s ease'

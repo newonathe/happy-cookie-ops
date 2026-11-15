@@ -36,7 +36,7 @@ export function ErrorSummary({ errors, focusKey = 0 }: ErrorSummaryProps) {
       aria-labelledby={titleId}
       className="motion-rise rounded-control border-[3px] border-danger bg-surface p-4"
     >
-      <h2 id={titleId} className="m-0 text-body font-bold text-ink">
+      <h2 id={titleId} className="m-0 text-body font-semibold text-ink">
         There is a problem
       </h2>
       <ul className="mt-2 mb-0 flex list-none flex-col gap-1.5 p-0">

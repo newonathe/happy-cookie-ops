@@ -14,7 +14,7 @@
 .note {
   margin: 0 0 14px;
   color: var(--color-ink-mute);
-  font-size: 12px;
+  font-size: 13px;
 }
 .grid {
   display: grid;
@@ -55,7 +55,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   color: var(--color-ink-soft);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
 }
 .body {
@@ -68,7 +68,7 @@
 .body h2 {
   margin: 0;
   color: var(--color-ink);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
 }
 .prices {
@@ -79,24 +79,23 @@
 }
 .prices strong {
   color: var(--color-ink);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 .prices span {
   color: var(--color-ink-mute);
-  font-size: 12px;
+  font-size: 13px;
 }
 .stock {
   margin: 0;
   color: var(--color-ink-soft);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 .state {
   margin: 0;
   color: var(--color-ink-mute);
-  font-size: 12px;
+  font-size: 13px;
 }
 .actions {
   display: flex;
@@ -109,7 +108,7 @@
 .visibilityAction {
   margin-left: auto;
   color: var(--color-ink-mute);
-  font-weight: 500;
+  font-weight: 400;
 }
 .readNotice {
   margin-bottom: 16px;

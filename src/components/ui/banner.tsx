@@ -21,7 +21,7 @@ export interface BannerProps {
 
 const TONE: Record<BannerTone, string> = {
   info: 'bg-info-fill border border-info-line text-ink',
-  warn: 'bg-warm-high border border-warm-line border-l-4 border-l-warn-dot text-warn-strong',
+  warn: 'bg-warm-high border border-warm-line border-l-4 border-l-warn-dot text-ink',
   danger: 'bg-surface border border-danger border-l-4 border-l-danger text-ink',
   till: 'bg-brand border border-brand-deep text-surface'
 };
@@ -46,8 +46,9 @@ export function Banner({
       className={cx('motion-drop flex items-center gap-3 rounded-control px-4 py-3', TONE[tone])}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-body font-bold">{title}</span>
-        {body ? <span className="text-caption">{body}</span> : null}
+        {/* A one-sentence message reads as text; a title is bold only when a line of detail follows it. */}
+        <span className={cx('text-body', body ? 'font-semibold' : null)}>{title}</span>
+        {body ? <span className="text-caption text-ink-soft">{body}</span> : null}
       </div>
       {action ? (
         <Button size="sm" variant={tone === 'till' ? 'secondary' : 'dark'} onClick={action.onPress}>

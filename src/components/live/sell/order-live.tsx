@@ -21,7 +21,7 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 last:border-b-0">
       <span className="text-caption text-ink-mute">{label}</span>
-      <span className="text-right text-[14px] font-semibold text-ink tabular-nums">{children}</span>
+      <span className="text-right text-label font-semibold text-ink">{children}</span>
     </div>
   );
 }
@@ -98,7 +98,7 @@ function PaymentReview({ od }: { od: Order }) {
           onClick={od.dup.go}
           className="mt-3 flex w-full flex-col gap-0.5 rounded-control border border-danger-line p-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
         >
-          <span className="text-[14px] font-semibold text-danger">
+          <span className="text-label font-semibold text-danger">
             This reference is already on {od.dup.id}
           </span>
           <span className="text-caption text-ink-mute">
@@ -140,17 +140,17 @@ function Lines({ od }: { od: Order }) {
             <span className="flex min-w-0 flex-1 basis-32 flex-col">
               <span
                 className={cx(
-                  'text-[14px] font-semibold',
+                  'text-label font-semibold',
                   line.out ? 'text-danger line-through' : 'text-ink'
                 )}
               >
                 {line.name}
               </span>
-              <span className="text-caption text-ink-mute tabular-nums">
+              <span className="text-caption text-ink-mute">
                 {line.qty} {line.price}
               </span>
             </span>
-            <span className="text-[14px] font-semibold text-ink tabular-nums">{line.line}</span>
+            <span className="text-label font-semibold text-ink">{line.line}</span>
             <Button variant="ghost" size="sm" onClick={line.flag}>
               {line.flagLabel}
             </Button>
@@ -164,7 +164,7 @@ function Lines({ od }: { od: Order }) {
       </ul>
       {od.hasSwaps ? (
         <div className="mt-2 border-t border-line pt-2">
-          <p className="text-caption font-semibold text-ink-soft">Replaced on this order</p>
+          <p className="text-label font-semibold text-ink-soft">Replaced on this order</p>
           {(od.swaps ?? []).map((swap, i) => (
             <p key={i} className="text-caption text-ink-mute">
               {swap.text}
@@ -173,8 +173,8 @@ function Lines({ od }: { od: Order }) {
         </div>
       ) : null}
       <div className="mt-2 flex items-baseline justify-between border-t border-line pt-3">
-        <span className="text-[14px] font-semibold text-ink">Total</span>
-        <span className="text-[20px] font-semibold text-ink tabular-nums">{od.totalText}</span>
+        <span className="text-label font-semibold text-ink">Total</span>
+        <span className="text-heading font-semibold text-ink">{od.totalText}</span>
       </div>
     </Panel>
   );
@@ -196,13 +196,13 @@ function Progress({ od }: { od: Order }) {
             />
             <span
               className={cx(
-                'min-w-0 flex-1 text-[14px]',
+                'min-w-0 flex-1 text-label',
                 step.todo ? 'text-ink-mute' : 'font-semibold text-ink'
               )}
             >
               {orderStepWords(step.what)}
             </span>
-            <span className="text-caption text-ink-mute tabular-nums">{step.when}</span>
+            <span className="text-caption text-ink-mute">{step.when}</span>
           </li>
         ))}
       </ol>
@@ -341,7 +341,7 @@ export function OrderLive({ v }: { v: OpsVals }) {
         <div className="flex flex-wrap items-center justify-between gap-3 py-2.5">
           <span className="flex min-w-0 flex-col">
             <span className="text-caption text-ink-mute">Private order link</span>
-            <span className="text-[14px] font-semibold break-all text-ink">{od.link}</span>
+            <span className="text-label font-semibold break-all text-ink">{od.link}</span>
             <span className="text-caption text-ink-mute">{od.linkSent}</span>
           </span>
           <Button variant="secondary" size="sm" onClick={od.copyLink}>

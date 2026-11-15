@@ -49,7 +49,7 @@ export class ScreenBoundary extends Component<Props, State> {
           alignItems: 'flex-start'
         }}
       >
-        <span style={{ fontSize: '15px', fontWeight: 600, color: '#3A1F14' }}>
+        <span style={{ fontSize: '16px', fontWeight: 600, color: '#3A1F14' }}>
           This screen stopped working
         </span>
         <p

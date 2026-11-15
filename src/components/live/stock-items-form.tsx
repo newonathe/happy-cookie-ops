@@ -41,7 +41,7 @@ export function readItemForm(form: HTMLFormElement, before: LiveStockItemEdit): 
 export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
   const editing = liveStock.editing;
   const offline = !liveStock.online ? (
-    <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+    <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
       Offline. Changes here will not save until this device is back online.
     </span>
   ) : null;
@@ -49,7 +49,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {offline}
-        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.itemsIntro}</span>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{C.itemsIntro}</span>
         <button type="button" onClick={liveStock.add} style={primaryButton}>
           {C.addItem}
         </button>
@@ -77,7 +77,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
                   style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}
                 >
                   <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+                  <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
                     {row.category} · {row.unit} · {row.supplierName}
                     {row.active ? '' : ' · switched off'}
                   </span>
@@ -86,7 +86,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
             ))}
           </div>
         ) : (
-          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.noItems}</span>
+          <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{C.noItems}</span>
         )}
         <button type="button" onClick={liveStock.close} style={secondaryButton}>
           Close
@@ -189,7 +189,7 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
           style={inputStyle}
         />
       </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
         <input name="itemActive" type="checkbox" defaultChecked={editing.active} />
         <span style={smallLabel}>In use</span>
       </label>

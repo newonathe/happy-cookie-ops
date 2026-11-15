@@ -129,7 +129,7 @@ export function SignOutControl({
     minHeight: '44px',
     padding: '0 16px',
     borderRadius: '12px',
-    fontSize: '15px',
+    fontSize: '16px',
     fontWeight: 600,
     cursor: 'pointer',
     border: primary ? 'none' : '1px solid var(--color-line-strong)',
@@ -182,7 +182,7 @@ export function SignOutControl({
           minHeight: '32px',
           padding: '0 12px',
           borderRadius: '16px',
-          fontSize: '12px',
+          fontSize: '13px',
           fontWeight: 600,
           border: '1px solid var(--color-line-strong)',
           background: 'var(--color-surface)',
@@ -222,7 +222,7 @@ export function SignOutControl({
           >
             <span
               id="sign-out-title"
-              style={{ fontSize: '17px', fontWeight: 600, color: 'var(--color-ink)' }}
+              style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-ink)' }}
             >
               {stage === 'confirm' ? SIGN_OUT_COPY.confirmTitle : SIGN_OUT_COPY.title}
             </span>

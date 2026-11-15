@@ -60,15 +60,15 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
       {!v.sheet?.isCloseDrop ? <ShopOverrideNotice value={v.liveShopOverride} /> : null}
       <Panel tone="hero">
         <span className="flex flex-wrap items-baseline gap-2">
-          <span className="text-[17px] font-semibold text-ink">{drop2.no}</span>
-          <span className="text-caption font-semibold text-ink-soft">
+          <span className="text-heading font-semibold text-ink">{drop2.no}</span>
+          <span className="text-label font-semibold text-ink-soft">
             {drop2.stateText}
             {drop2.extended ? ' · Extended' : ''}
           </span>
         </span>
-        <p className="mt-3 text-[15px] text-ink">
-          <span className="text-[26px] font-semibold tabular-nums">{drop2.capNum}</span> of{' '}
-          {drop2.capValue} cookies confirmed
+        <p className="mt-3 text-body text-ink">
+          <span className="text-title font-semibold">{drop2.capNum}</span> of {drop2.capValue}{' '}
+          cookies confirmed
         </p>
         <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-chip" aria-hidden="true">
           <span style={s(drop.barConfirmed)} />
@@ -79,7 +79,7 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
           <span className="flex items-center gap-2">
-            <span className="text-caption font-semibold text-ink-soft">Cookies per drop</span>
+            <span className="text-label font-semibold text-ink-soft">Cookies per drop</span>
             <Button
               variant="secondary"
               size="sm"
@@ -93,7 +93,7 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
               onChange={drop2.setCap}
               inputMode="numeric"
               aria-label="Weekly capacity in cookies"
-              className="h-11 w-16 rounded-control border border-line-strong bg-surface text-center text-[16px] font-semibold text-ink tabular-nums focus-visible:outline-2 focus-visible:outline-brand"
+              className="h-11 w-16 rounded-control border border-line-strong bg-surface text-center text-body font-semibold text-ink focus-visible:outline-2 focus-visible:outline-brand"
             />
             <Button variant="secondary" size="sm" onClick={drop2.capUp} aria-label="Raise capacity">
               +
@@ -133,13 +133,11 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
                 className="flex min-h-14 flex-wrap items-center gap-3 border-b border-line py-2 last:border-b-0"
               >
                 <span className="flex min-w-0 flex-1 basis-40 flex-col">
-                  <span className="text-[14px] font-semibold text-ink">{product.name}</span>
-                  <span className="text-caption text-ink-mute tabular-nums">
-                    {product.priceText}
-                  </span>
+                  <span className="text-label font-semibold text-ink">{product.name}</span>
+                  <span className="text-caption text-ink-mute">{product.priceText}</span>
                 </span>
                 {product.soldOut ? (
-                  <span className="text-caption font-semibold text-danger">Sold out</span>
+                  <span className="text-label font-semibold text-danger">Sold out</span>
                 ) : null}
                 <Button variant="secondary" size="sm" onClick={product.toggleSold}>
                   {product.soldLabel}
@@ -166,7 +164,7 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
             <ul className="flex flex-col">
               {(v.pastDrops ?? []).map((past, i) => (
                 <li key={i} className="flex flex-col border-b border-line py-2 last:border-b-0">
-                  <span className="text-[14px] font-semibold text-ink">
+                  <span className="text-label font-semibold text-ink">
                     {past.label} <span className="font-normal text-ink-mute">{past.when}</span>
                   </span>
                   <span className="text-caption text-ink-mute">{past.detail}</span>
@@ -262,7 +260,7 @@ export function ShopStatusLive({ v }: { v: OpsVals }) {
               onClick={option.go}
               className="flex min-h-14 flex-col justify-center rounded-control border border-line-strong p-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand aria-pressed:border-brand aria-pressed:bg-raise"
             >
-              <span className="text-[14px] font-semibold text-ink">{option.label}</span>
+              <span className="text-label font-semibold text-ink">{option.label}</span>
               <span className="text-caption text-ink-mute">{option.what}</span>
             </button>
           ))}

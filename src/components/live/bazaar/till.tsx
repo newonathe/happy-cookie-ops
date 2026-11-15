@@ -261,7 +261,7 @@ export function ConsolidatedTill({
           >
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-caption text-ink-soft">{v.bzCartCount} in this sale</span>
-              <span className="text-title tabular-nums">{till.cartTotalText}</span>
+              <span className="text-title">{till.cartTotalText}</span>
             </span>
             <Button variant="secondary" onClick={() => setReviewSale(true)}>
               Review sale
@@ -383,7 +383,7 @@ function SyncNotice({ v }: { v: OpsVals }) {
         />
       ) : null}
       <span
-        className={`flex-1 text-caption font-semibold ${v.syncPartial ? 'text-danger' : v.syncDone ? 'text-ok' : 'text-ink'}`}
+        className={`flex-1 text-label font-semibold ${v.syncPartial ? 'text-danger' : v.syncDone ? 'text-ok' : 'text-ink'}`}
       >
         {/* The engine's line always says "1 sale"; the count here is the real one. */}
         {v.syncPartial && Number(v.unsynced) > 1

@@ -44,7 +44,7 @@ function Shell({
     [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ') || undefined;
   return (
     <div className="flex flex-col gap-1.5" data-invalid={error ? 'true' : undefined}>
-      <label htmlFor={inputId} className="text-caption font-semibold text-ink-soft">
+      <label htmlFor={inputId} className="text-label font-semibold text-ink-soft">
         {label}
       </label>
       <div
@@ -66,7 +66,7 @@ function Shell({
         </span>
       ) : null}
       {error ? (
-        <span id={errorId} className="text-caption font-semibold text-danger">
+        <span id={errorId} className="text-label font-semibold text-danger">
           {error}
         </span>
       ) : null}
@@ -82,7 +82,7 @@ interface ControlProps {
 
 // 16 px on the control: below that, iOS zooms the page when it takes focus.
 const CONTROL =
-  'min-h-12 w-full min-w-0 rounded-control bg-transparent px-3 text-[16px] font-semibold text-ink outline-none';
+  'min-h-12 w-full min-w-0 rounded-control bg-transparent px-3 text-body font-semibold text-ink outline-none';
 
 /** A text, money (`decimal`), count (`numeric`) or date input. Validate on blur; the form validates on submit. */
 export function Field({
@@ -100,7 +100,7 @@ export function Field({
       {(aria) => (
         <>
           {prefix ? (
-            <span aria-hidden="true" className="pl-3 text-[16px] font-semibold text-ink-soft">
+            <span aria-hidden="true" className="pl-3 text-body font-semibold text-ink-soft">
               {prefix}
             </span>
           ) : null}

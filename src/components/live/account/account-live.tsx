@@ -104,7 +104,7 @@ export function HealthLive({ v }: { v: OpsVals }) {
                 )}
               />
               <span className="flex min-w-0 flex-1 basis-40 flex-col">
-                <span className="text-[14px] font-semibold text-ink">{row.label}</span>
+                <span className="text-label font-semibold text-ink">{row.label}</span>
                 <span className="text-caption text-ink-mute">{row.value}</span>
                 {row.hint ? <span className="text-caption text-ink-mute">{row.hint}</span> : null}
               </span>
@@ -129,12 +129,10 @@ export function HealthLive({ v }: { v: OpsVals }) {
                     className="flex items-baseline justify-between gap-3 border-b border-line py-2 last:border-b-0"
                   >
                     <span className="flex min-w-0 flex-col">
-                      <span className="text-[14px] text-ink">{row.what}</span>
+                      <span className="text-label text-ink">{row.what}</span>
                       <span className="text-caption text-ink-mute">{row.when}</span>
                     </span>
-                    <span className="text-[14px] font-semibold text-ink tabular-nums">
-                      {row.value}
-                    </span>
+                    <span className="text-label font-semibold text-ink">{row.value}</span>
                   </li>
                 ))}
               </ul>
@@ -184,7 +182,7 @@ export function NotificationsLive({ v }: { v: OpsVals }) {
       ) : null}
       {v.notifEmpty ? (
         <Panel>
-          <p className="text-[15px] font-semibold text-ink">Nothing waiting</p>
+          <p className="text-body font-semibold text-ink">Nothing waiting</p>
           <p className="text-caption text-ink-mute">You are caught up.</p>
         </Panel>
       ) : null}
@@ -201,7 +199,7 @@ export function NotificationsLive({ v }: { v: OpsVals }) {
                   onClick={note.go}
                   className="flex min-h-12 min-w-0 flex-1 flex-col justify-center text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
                 >
-                  <span className="text-[14px] font-semibold text-ink">{note.label}</span>
+                  <span className="text-label font-semibold text-ink">{note.label}</span>
                   <span className="text-caption text-ink-mute">
                     {note.sub} · {note.urgency}
                   </span>

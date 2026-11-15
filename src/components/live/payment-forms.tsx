@@ -56,7 +56,7 @@ export function UploadField({
         accept="image/png,image/jpeg,image/webp"
         onChange={(e) => void onChange(e)}
         disabled={busy}
-        style={{ fontSize: '13px', color: 'var(--color-ink)' }}
+        className="text-caption text-ink-soft file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-control file:border file:border-line-strong file:bg-surface file:px-4 file:text-label file:font-semibold file:text-ink"
       />
     </label>
   );
@@ -66,11 +66,11 @@ export function PayList({ livePay }: { livePay: LivePay }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {!livePay.online ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
-      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
         Customers pick from the methods marked shown. Turn a method off to stop offering it.
       </span>
       <button onClick={livePay.addNew} style={primaryButton}>
@@ -96,7 +96,7 @@ export function PayList({ livePay }: { livePay: LivePay }) {
             >
               <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.label}</span>
-                <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
                   {row.active ? 'Shown' : 'Not shown'} · {row.hasQr ? 'QR set' : 'no QR'}
                   {row.detail ? ' · ' + row.detail : ''}
                 </span>
@@ -105,7 +105,7 @@ export function PayList({ livePay }: { livePay: LivePay }) {
           ))}
         </div>
       ) : (
-        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
           No payment methods yet.
         </span>
       )}
@@ -187,7 +187,7 @@ export function PayEditForm({ editing }: { editing: NonNullable<LivePay['editing
           style={inputStyle}
         />
       </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '44px' }}>
         <input name="active" type="checkbox" defaultChecked={editing.active} />
         <span style={smallLabel}>Shown to customers</span>
       </label>
@@ -234,7 +234,7 @@ export function ShopTextsForm({ liveTexts }: { liveTexts: LiveTexts }) {
       <span style={smallLabel}>{label}</span>
       <input name={name} defaultValue={value} maxLength={max} style={inputStyle} />
       {value === '' ? (
-        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
           Not set: the app uses neutral wording.
         </span>
       ) : null}
@@ -249,7 +249,7 @@ export function ShopTextsForm({ liveTexts }: { liveTexts: LiveTexts }) {
         style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
       >
         <span style={{ fontSize: '13px', fontWeight: '600' }}>Shop details</span>
-        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
           How the shop names itself in the app and to customers. Nothing is filled in for you: an
           empty line means the app says it without a name.
         </span>
@@ -268,7 +268,7 @@ export function ShopTextsForm({ liveTexts }: { liveTexts: LiveTexts }) {
         )}
         {own('tagline', 'The line under the shop heading', liveTexts.identity.tagline, 120)}
         {!liveTexts.identityReady ? (
-          <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
             Shop details cannot be saved here yet.
           </span>
         ) : null}
@@ -293,11 +293,11 @@ function ShopFooterForm({
   return (
     <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {!liveTexts.online ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
-      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
         The shop footer says only what you write here. Leave a line empty to show nothing, and only
         write what is true for the business.
       </span>

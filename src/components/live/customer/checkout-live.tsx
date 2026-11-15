@@ -15,7 +15,7 @@ export function CustomerCheckoutLive({ v }: { v: OpsVals }) {
       className="flex min-h-dvh w-full min-w-0 flex-col gap-5 bg-raise p-4 text-ink sm:p-6 xl:p-8"
     >
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="m-0 text-3xl font-bold tracking-tight">Your order</h1>
+        <h1 className="m-0 text-title font-bold tracking-tight">Your order</h1>
         <Button onClick={v.backToShop}>Back to cookies</Button>
       </header>
       <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
@@ -23,7 +23,7 @@ export function CustomerCheckoutLive({ v }: { v: OpsVals }) {
           aria-label="Order summary"
           className="min-w-0 rounded-card border border-line bg-surface p-4 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-4"
         >
-          <h2 className="text-xl font-semibold">Order summary</h2>
+          <h2 className="text-heading font-semibold">Order summary</h2>
           <ul className="my-4 grid gap-3">
             {(v.cust.lines ?? []).map((line, index) => (
               <li key={index} className="flex min-w-0 items-center gap-3">
@@ -38,10 +38,10 @@ export function CustomerCheckoutLive({ v }: { v: OpsVals }) {
               </li>
             ))}
           </ul>
-          <p className="text-sm text-ink-soft">{v.cust.countText}</p>
-          <p className="mt-4 text-sm font-semibold">{placed ? 'Order total' : 'Subtotal'}</p>
-          <p className="my-2 text-2xl font-bold">{placed?.totalText ?? v.cust.totalText}</p>
-          <p className="text-sm text-ink-soft">{v.cust.priceNote}</p>
+          <p className="text-label text-ink-soft">{v.cust.countText}</p>
+          <p className="mt-4 text-label font-semibold">{placed ? 'Order total' : 'Subtotal'}</p>
+          <p className="my-2 text-title font-bold">{placed?.totalText ?? v.cust.totalText}</p>
+          <p className="text-label text-ink-soft">{v.cust.priceNote}</p>
         </aside>
         <div
           className={

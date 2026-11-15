@@ -21,7 +21,7 @@ function BuyRow({ row }: { row: GroceryRowView }) {
   return (
     <li className="flex flex-wrap items-start justify-between gap-3 border-b border-line py-3 last:border-b-0">
       <span className="flex min-w-0 flex-1 basis-52 flex-col gap-0.5">
-        <span className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-ink">
+        <span className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
           {row.name} <StatusWord status={row.status} />
         </span>
         <span className="text-caption text-ink-mute">
@@ -58,7 +58,7 @@ function BuyRow({ row }: { row: GroceryRowView }) {
         </span>
       </span>
       {nothing ? null : (
-        <span className="text-[14px] font-semibold text-ink tabular-nums">{row.lineCostText}</span>
+        <span className="text-label font-semibold text-ink">{row.lineCostText}</span>
       )}
     </li>
   );

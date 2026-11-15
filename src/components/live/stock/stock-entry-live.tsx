@@ -13,7 +13,7 @@ import { FooterActions, OwnerField, PageTitle, Panel } from '@/components/ui/own
 import { FactRow, ReviewPanel } from '@/components/ui/owner-patterns';
 
 const selectClass =
-  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]';
+  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label';
 
 function Select({
   label,
@@ -31,7 +31,7 @@ function Select({
   const id = useId();
   return (
     <label htmlFor={id} className="flex min-w-0 flex-col gap-1.5">
-      <span className="text-caption font-semibold text-ink-soft">{label}</span>
+      <span className="text-label font-semibold text-ink-soft">{label}</span>
       <select
         id={id}
         value={value}

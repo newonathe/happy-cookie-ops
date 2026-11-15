@@ -68,11 +68,11 @@ export function ScheduledEventsForm({ liveScheduled }: { liveScheduled: LiveSche
       style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
       {!liveScheduled.online ? (
-        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
-      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.intro}</span>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{C.intro}</span>
       {all.map((r, i) => (
         <div key={r?.id ?? 'new'} style={rowCard}>
           <label style={labelStyle}>
@@ -127,7 +127,7 @@ export function ScheduledEventsForm({ liveScheduled }: { liveScheduled: LiveSche
               style={inputStyle}
             />
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
             <input name={'evOn' + i} type="checkbox" defaultChecked={r?.active ?? true} />
             <span style={smallLabel}>{r?.started ? C.onStarted : C.on}</span>
           </label>

@@ -91,7 +91,7 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
                 className="flex flex-wrap justify-between gap-2 border-b border-line pb-3"
               >
                 <dt>{row.name}</dt>
-                <dd className="font-semibold tabular-nums">{row.amountText}</dd>
+                <dd className="font-semibold">{row.amountText}</dd>
               </div>
             ))}
           </dl>

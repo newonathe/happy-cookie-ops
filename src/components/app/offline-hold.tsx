@@ -56,7 +56,7 @@ export function OfflineHold({ kind, onAction }: { kind: HoldKind; onAction: () =
           background: 'var(--color-surface)'
         }}
       >
-        <span style={{ fontSize: '17px', fontWeight: 600, color: 'var(--color-ink)' }}>
+        <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-ink)' }}>
           {copy.title}
         </span>
         <p

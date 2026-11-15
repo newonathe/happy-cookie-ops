@@ -29,7 +29,7 @@ export function PageTitle({
         <h1
           id={headingId}
           tabIndex={-1}
-          className="text-[26px] leading-tight font-semibold tracking-[-0.01em] text-ink outline-none"
+          className="font-display text-page text-ink lowercase outline-none md:text-page-lg"
         >
           {title}
         </h1>
@@ -64,7 +64,7 @@ export function Panel({
     >
       {title || action ? (
         <div className="mb-2 flex items-center justify-between gap-3">
-          {title ? <h2 className="text-[17px] font-semibold text-ink">{title}</h2> : <span />}
+          {title ? <h2 className="text-heading font-semibold text-ink">{title}</h2> : <span />}
           {action}
         </div>
       ) : null}
@@ -81,7 +81,7 @@ export const PANEL_CLASS = 'overflow-hidden rounded-card border border-line bg-s
 export function PanelHead({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="flex min-h-[52px] flex-wrap items-center justify-between gap-x-3 border-b border-divide px-4 py-1">
-      <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+      <h2 className="text-body font-semibold text-ink">{title}</h2>
       {children}
     </div>
   );
@@ -110,7 +110,7 @@ export function HeadedPanel({
 export function SectionHeading({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mt-6 mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-[18px] font-semibold text-ink">{children}</h2>
+      <h2 className="text-heading font-semibold text-ink">{children}</h2>
       {action}
     </div>
   );
@@ -134,7 +134,7 @@ export function TaskRow({
 }) {
   const body = (
     <span className="flex min-w-0 flex-1 basis-44 flex-col gap-0.5">
-      <span className="text-[15px] font-semibold text-ink">{title}</span>
+      <span className="text-body font-semibold text-ink">{title}</span>
       {detail ? <span className="text-caption text-ink-mute">{detail}</span> : null}
     </span>
   );
@@ -192,15 +192,20 @@ export function InfoTip({ label, children }: { label: string; children: ReactNod
             setPinned(false);
           }
         }}
-        className="ml-1.5 flex size-6 cursor-pointer items-center justify-center rounded-full border border-line text-[12px] font-semibold text-ink-mute hover:border-ink-faint hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
+        className="group -my-2.5 flex size-11 cursor-pointer items-center justify-center focus-visible:outline-2 focus-visible:outline-brand"
       >
-        i
+        <span
+          aria-hidden="true"
+          className="flex size-6 items-center justify-center rounded-full border border-line text-caption font-semibold text-ink-mute group-hover:border-ink-faint group-hover:text-ink"
+        >
+          i
+        </span>
       </button>
       {shown ? (
         <span
           id={tipId}
           role="note"
-          className="absolute top-8 left-0 z-30 w-64 max-w-[calc(100vw-48px)] rounded-control border border-line p-3 text-caption font-normal text-ink shadow-lg"
+          className="absolute top-9 left-0 z-30 w-64 max-w-[calc(100vw-48px)] rounded-control border border-line p-3 text-caption font-normal text-ink shadow-lg"
           style={{
             background: 'var(--owner-popover-surface, var(--color-surface))',
             backdropFilter: 'var(--owner-popover-filter, none)',
@@ -236,7 +241,7 @@ export function SwitchRow({
   return (
     <div className="flex min-h-14 items-center justify-between gap-3.5 border-b border-line py-3 last:border-b-0">
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="flex items-center text-[14px] font-semibold text-ink">
+        <span className="flex items-center text-label font-semibold text-ink">
           <label htmlFor={id}>{label}</label>
           {info ? <InfoTip label={label}>{info}</InfoTip> : null}
         </span>
@@ -265,7 +270,7 @@ export function SwitchRow({
 }
 
 const fieldInput =
-  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] font-semibold text-ink sm:text-[14px] focus-visible:outline-2 focus-visible:outline-brand';
+  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body font-semibold text-ink sm:text-label focus-visible:outline-2 focus-visible:outline-brand';
 
 /** A labelled input. Uncontrolled unless `value` is given; extra props go to the input. */
 export function OwnerField({
@@ -277,7 +282,7 @@ export function OwnerField({
   const id = useId();
   return (
     <label htmlFor={id} className={cx('flex min-w-0 flex-col gap-1.5', className)}>
-      <span className="text-caption font-semibold text-ink-soft">{label}</span>
+      <span className="text-label font-semibold text-ink-soft">{label}</span>
       <input id={id} className={fieldInput} {...input} />
       {hint ? <span className="text-caption text-ink-mute">{hint}</span> : null}
     </label>
@@ -371,7 +376,7 @@ export function SignedMoney({
   const tone = value > 0 ? 'text-ok' : value < 0 ? 'text-danger' : 'text-ink';
   const sign = value > 0 ? (signed ? '+' : '') : value < 0 ? '−' : '';
   return (
-    <span className={cx('font-semibold tabular-nums', tone, className)}>
+    <span className={cx('font-semibold', tone, className)}>
       {sign}₱{pesos.format(Math.abs(value))}
     </span>
   );

@@ -77,7 +77,7 @@ export function Notices({ notices }: { notices: string[] }) {
         <p
           key={n}
           role="status"
-          style={{ ...textStyle, color: STATUS_COLOUR.Low, fontWeight: 700 }}
+          style={{ ...textStyle, color: STATUS_COLOUR.Low, fontWeight: 600 }}
         >
           {n}
         </p>

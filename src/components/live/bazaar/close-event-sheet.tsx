@@ -81,7 +81,7 @@ export function CloseEventSheet({
 
         {finalise.stranded.length > 0 ? (
           <section aria-labelledby="final-stranded" className="flex flex-col gap-3">
-            <h3 id="final-stranded" className="m-0 text-body font-bold text-ink">
+            <h3 id="final-stranded" className="m-0 text-body font-semibold text-ink">
               {`${cookiesText(finalise.stranded.reduce((n, s) => n + s.qty, 0))} were carried over${
                 finalise.strandedFor ? ` for ${finalise.strandedFor}, which has not started` : ''
               }. Where do they go?`}
@@ -95,14 +95,12 @@ export function CloseEventSheet({
                     key={s.productId}
                     className="flex flex-col gap-2 rounded-card border border-line bg-surface p-3"
                   >
-                    <span className="text-body font-bold text-ink">
+                    <span className="text-body font-semibold text-ink">
                       {`${s.name} · ${cookiesText(s.qty)}`}
                     </span>
                     <div className="flex flex-wrap gap-x-4 gap-y-2">
                       <div className="flex flex-col gap-1">
-                        <span className="text-caption font-semibold text-ink-soft">
-                          To the shop
-                        </span>
+                        <span className="text-label font-semibold text-ink-soft">To the shop</span>
                         <Stepper
                           size="sm"
                           id={formIds.finalShop(s.productId)}
@@ -118,9 +116,7 @@ export function CloseEventSheet({
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <span className="text-caption font-semibold text-ink-soft">
-                          Written off
-                        </span>
+                        <span className="text-label font-semibold text-ink-soft">Written off</span>
                         <Stepper
                           size="sm"
                           label={`${s.name}: written off`}
@@ -150,7 +146,7 @@ export function CloseEventSheet({
 
         {pending ? (
           <section aria-labelledby="final-costs" className="flex flex-col gap-3">
-            <h3 id="final-costs" className="m-0 text-body font-bold text-ink">
+            <h3 id="final-costs" className="m-0 text-body font-semibold text-ink">
               No cost per cookie yet
             </h3>
             <p className="m-0 text-caption text-ink-mute">

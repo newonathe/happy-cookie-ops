@@ -39,17 +39,15 @@ export function FilterChips({ label, options, value, onChange }: FilterChipsProp
               run(() => flushSync(() => onChange(option.id)));
             }}
             className={cx(
-              'motion-press inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-control px-3 text-caption font-semibold whitespace-nowrap',
+              'motion-press inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-control px-3 text-label whitespace-nowrap',
               selected
-                ? 'border-2 border-brand bg-warm-high text-brand-deep'
-                : 'border border-line-strong bg-surface text-ink hover:bg-inset'
+                ? 'border-2 border-brand bg-warm-high font-semibold text-brand-deep'
+                : 'border border-line-strong bg-surface font-normal text-ink hover:bg-inset'
             )}
           >
             {option.label}
             {option.count !== undefined ? (
-              <span className={cx('tabular-nums', selected ? 'text-brand-deep' : 'text-ink-mute')}>
-                {option.count}
-              </span>
+              <span className={selected ? 'text-brand-deep' : 'text-ink-mute'}>{option.count}</span>
             ) : null}
           </button>
         );

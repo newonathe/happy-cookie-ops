@@ -142,11 +142,11 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
         />
         {sampler && sets.length > 1 ? (
           <label className="flex flex-col gap-1.5 pt-3">
-            <span className="text-caption font-semibold text-ink-soft">Sampler item</span>
+            <span className="text-label font-semibold text-ink-soft">Sampler item</span>
             <select
               name="samplerProductId"
               defaultValue={samplerSet?.id}
-              className="h-12 rounded-control border border-line-strong bg-surface px-3 text-[14px] font-semibold"
+              className="h-12 rounded-control border border-line-strong bg-surface px-3 text-label font-semibold"
             >
               {sets.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -163,7 +163,7 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
         ) : null}
         {sampler && extras.samplerFlavours ? (
           <fieldset className="m-0 border-0 p-0 pt-3">
-            <legend className="pb-2 text-caption font-semibold text-ink-soft">
+            <legend className="pb-2 text-label font-semibold text-ink-soft">
               Flavours in the sampler box ({chosen.length} chosen)
             </legend>
             {cookies.length === 0 ? (
@@ -173,7 +173,7 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
                 {cookies.map((c) => (
                   <label
                     key={c.id}
-                    className="flex min-h-12 cursor-pointer items-center gap-3 border-b border-line text-[14px] font-semibold text-ink"
+                    className="flex min-h-12 cursor-pointer items-center gap-3 border-b border-line text-label font-semibold text-ink"
                   >
                     <input
                       type="checkbox"

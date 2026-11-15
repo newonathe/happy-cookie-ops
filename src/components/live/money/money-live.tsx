@@ -53,13 +53,13 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
         style={{ gridTemplateColumns: `repeat(${money.buckets.length}, minmax(0, 1fr))` }}
         aria-hidden="true"
       >
-        <span className="absolute left-0 top-0 text-[10px] tabular-nums text-ink-mute">
+        <span className="absolute left-0 top-0 text-caption text-ink-mute">
           +₱{pesos.format(max)}
         </span>
-        <span className="absolute left-0 top-16 -translate-y-1/2 text-[10px] text-ink-mute">
+        <span className="absolute left-0 top-16 -translate-y-1/2 text-caption text-ink-mute">
           ₱0
         </span>
-        <span className="absolute left-0 top-32 -translate-y-full text-[10px] tabular-nums text-ink-mute">
+        <span className="absolute left-0 top-32 -translate-y-full text-caption text-ink-mute">
           −₱{pesos.format(max)}
         </span>
         <span className="absolute left-20 right-0 top-16 border-t border-line-strong" />
@@ -88,7 +88,7 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
                 );
               })}
             </div>
-            <span className="truncate text-[11px] text-ink-mute">{b.label}</span>
+            <span className="truncate text-caption text-ink-mute">{b.label}</span>
           </div>
         ))}
       </div>
@@ -101,10 +101,10 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
         <p className="mt-2 text-caption text-ink-mute">Reversed expenses appear above zero.</p>
       ) : null}
       <details className="mt-3 text-caption">
-        <summary className="min-h-10 cursor-pointer py-2 font-semibold text-ink-soft">
+        <summary className="flex min-h-11 cursor-pointer items-center py-2 font-semibold text-ink-soft">
           Show amounts
         </summary>
-        <table className="w-full tabular-nums">
+        <table className="w-full">
           <caption className="sr-only">Income and expenses by {unit}</caption>
           <thead>
             <tr className="text-left text-ink-mute">
@@ -241,7 +241,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
   const catMax = Math.max(1, ...money.categories.map((c) => c.amount));
   const chip = (active: boolean) =>
     cx(
-      'min-h-10 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
+      'min-h-11 rounded-full border px-3.5 text-caption font-semibold transition-colors duration-[140ms] focus-visible:outline-2 focus-visible:outline-brand',
       active
         ? 'border-ink bg-ink text-surface'
         : 'border-line-strong bg-surface text-ink hover:bg-raise'
@@ -294,30 +294,28 @@ export function MoneyLive({ v }: { v: OpsVals }) {
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-1">
                 <span className="text-caption text-ink-mute">Income</span>
-                <SignedMoney pesos={money.revenue} className="text-[26px] leading-tight" />
+                <SignedMoney pesos={money.revenue} className="text-title leading-tight" />
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-caption text-ink-mute">Expenses</span>
-                <SignedMoney pesos={-money.expenses} className="text-[26px] leading-tight" />
+                <SignedMoney pesos={-money.expenses} className="text-title leading-tight" />
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-caption font-semibold text-ink">
+                <span className="text-label font-semibold text-ink">
                   {money.profit < 0 ? 'Loss' : 'Profit'}
                 </span>
-                <SignedMoney pesos={money.profit} className="text-[30px] leading-tight" />
+                <SignedMoney pesos={money.profit} className="text-display leading-tight" />
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 text-caption text-ink-mute">
               <span>
                 Set aside for tax ({money.taxRate}%):{' '}
-                <strong className="text-ink tabular-nums">
-                  ₱{pesos.format(money.taxSetAside)}
-                </strong>
+                <strong className="text-ink">₱{pesos.format(money.taxSetAside)}</strong>
               </span>
               {money.draw > 0 ? (
                 <span>
                   Taken out by you:{' '}
-                  <strong className="text-ink tabular-nums">₱{pesos.format(money.draw)}</strong>
+                  <strong className="text-ink">₱{pesos.format(money.draw)}</strong>
                 </span>
               ) : null}
               {money.refunded > 0 ? (
@@ -379,11 +377,11 @@ export function MoneyLive({ v }: { v: OpsVals }) {
                         className="flex w-full flex-col gap-1.5 border-b border-line py-2.5 text-left last:border-b-0 hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand aria-pressed:bg-raise"
                       >
                         <span className="flex flex-wrap items-baseline gap-x-2">
-                          <span className="text-[14px] font-semibold text-ink">{c.cat}</span>
+                          <span className="text-label font-semibold text-ink">{c.cat}</span>
                           <span className="text-caption text-ink-mute">
                             {c.n} {c.n === 1 ? 'entry' : 'entries'}
                           </span>
-                          <span className="ml-auto text-[14px] font-semibold text-ink tabular-nums">
+                          <span className="ml-auto text-label font-semibold text-ink">
                             ₱{pesos.format(c.amount)}
                           </span>
                         </span>
@@ -444,7 +442,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
                         className="flex min-h-14 w-full items-center justify-between gap-3 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
                       >
                         <span className="flex min-w-0 flex-col gap-0.5">
-                          <span className="truncate text-[14px] font-semibold text-ink">
+                          <span className="[overflow-wrap:anywhere] text-label font-semibold text-ink">
                             {t.label}
                           </span>
                           <span className="text-caption text-ink-mute">
@@ -452,7 +450,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
                           </span>
                         </span>
                         {t.kind === 'draw' ? (
-                          <span className="font-semibold text-ink tabular-nums">
+                          <span className="font-semibold text-ink">
                             −₱{pesos.format(Math.abs(t.signed))}
                           </span>
                         ) : (
@@ -477,13 +475,13 @@ export function MoneyLive({ v }: { v: OpsVals }) {
                       className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-line py-2.5 text-caption last:border-b-0"
                     >
                       <span className="flex min-w-0 flex-col">
-                        <span className="text-[14px] font-semibold text-ink">{m.name}</span>
-                        <span className="text-ink-mute tabular-nums">{m.soldText}</span>
+                        <span className="text-label font-semibold text-ink">{m.name}</span>
+                        <span className="text-ink-mute">{m.soldText}</span>
                       </span>
-                      <span className="text-right text-ink-mute tabular-nums">
+                      <span className="text-right text-ink-mute">
                         {m.eachText} each · {m.pctText}
                       </span>
-                      <span className="text-right text-[14px] font-semibold text-ink tabular-nums">
+                      <span className="text-right text-label font-semibold text-ink">
                         {m.madeText}
                       </span>
                     </li>

@@ -6,6 +6,9 @@
    ========================================================================== */
 @theme {
   --font-sans: var(--font-onest), 'SF Pro Text', -apple-system, system-ui, sans-serif;
+  --font-display:
+    var(--font-baloo), var(--font-onest), system-ui, sans-serif; /* page titles, lowercase */
+  --font-mono: var(--font-jbmono), ui-monospace, 'SF Mono', monospace; /* figures and captions */
 
   /* ink */
   --color-ink: #3a1f14; /* primary text */
@@ -85,12 +88,14 @@
   /* Behind a cookie photo: the cream every product photo is shot on, as the approved mockup draws it. */
   --color-photo-well: #fff8e9;
   --color-owner-app: #f4f5f7;
-  --color-owner-ink: #24262b;
-  --color-owner-muted: #61656d;
-  --color-owner-faint: #858a94;
-  --color-owner-raise: #f8f9fb;
-  --color-owner-line: #e3e6eb;
-  --color-owner-soft: #eceff3;
+  /* Espresso glass (Ethan, 16 Nov 2026): Dark Coffee ink and warm greys inside the owner area. */
+  --color-owner-ink: #3a1f14;
+  --color-owner-muted: #6b4a3c;
+  --color-owner-faint: #85695d;
+  --color-owner-raise: #faf8f7;
+  --color-owner-line: #ebe4e0;
+  --color-owner-soft: #f3efed;
+  --color-on-ground: #fff1e6; /* text that sits on the espresso ground */
   --color-owner-glass: rgb(255 255 255 / 0.8);
   --color-owner-glass-strong: rgb(255 255 255 / 0.94);
   --shadow-owner-glass: 0 8px 32px rgb(24 28 36 / 0.06);
@@ -114,20 +119,35 @@
   --space-5: 24px;
   --space-6: 32px;
 
-  /* type scale */
-  --text-display: 40px; /* the headline numeral */
-  --text-display--line-height: 1;
+  /* type scale (Ethan, 15 November 2026): six roles and nothing in between. Weights are 400, 600 and 700 only:
+     700 for display and title, 600 for headings, labels and one emphasised item per row, 400 for everything else.
+     Figures are proportional; tabular figures only in right-aligned amount columns. Nothing smaller than 13px
+     except the phone tab bar's labels. */
+  --text-display: 32px; /* one hero figure per screen: the charge total, the profit */
+  --text-display--line-height: 1.125;
   --text-display--font-weight: 700;
   --text-display--letter-spacing: -0.02em;
-  --text-title: 22px; /* screen and sheet titles */
-  --text-title--line-height: 1.2;
+  --text-page: 30px; /* owner page title on a phone (Baloo 2, lowercase); 36px from md */
+  --text-page--line-height: 1.1;
+  --text-page--font-weight: 600;
+  --text-page-lg: 36px;
+  --text-page-lg--line-height: 1.1;
+  --text-page-lg--font-weight: 600;
+  --text-title: 24px; /* the page and sheet title, once per screen */
+  --text-title--line-height: 1.25;
   --text-title--font-weight: 700;
-  --text-body: 15px;
-  --text-body--line-height: 1.45;
-  --text-body--font-weight: 500;
-  --text-caption: 12.5px; /* labels, hints, pill text */
-  --text-caption--line-height: 1.35;
-  --text-caption--font-weight: 500;
+  --text-title--letter-spacing: -0.015em;
+  --text-heading: 18px; /* card and section titles, empty-state titles */
+  --text-heading--line-height: 1.333;
+  --text-heading--font-weight: 600;
+  --text-body: 16px; /* row names, values, inputs, descriptions */
+  --text-body--line-height: 1.5;
+  --text-body--font-weight: 400;
+  --text-label: 14px; /* buttons, chips, tabs, form labels, pills; weight from the control */
+  --text-label--line-height: 1.43;
+  --text-caption: 13px; /* second lines, dates, helper text (muted) */
+  --text-caption--line-height: 1.385;
+  --text-caption--font-weight: 400;
 
   /* motion: fast = exits, base = most changes, slow = large entries */
   --dur-fast: 150ms;

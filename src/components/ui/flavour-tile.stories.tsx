@@ -40,7 +40,7 @@ export const WithCostAndMargin: Story = {
     onPress: () => undefined,
     meta: (
       <>
-        <span className="text-caption font-semibold text-ink-soft tabular-nums">Cost ₱31.25</span>
+        <span className="text-label font-semibold text-ink-soft">Cost ₱31.25</span>
         <span className="rounded-tag border border-ok-line bg-ok-fill px-1.5 py-0.5 text-caption font-semibold text-ok">
           ✓ 75% margin
         </span>

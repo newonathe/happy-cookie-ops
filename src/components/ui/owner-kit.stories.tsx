@@ -71,7 +71,7 @@ export const Settings: Story = { render: () => <SettingsPage /> };
 
 export const Money: Story = {
   render: () => (
-    <div className="flex flex-col gap-2 text-[20px]">
+    <div className="flex flex-col gap-2 text-heading">
       <SignedMoney pesos={17990} />
       <SignedMoney pesos={-9280} />
       <SignedMoney pesos={0} />

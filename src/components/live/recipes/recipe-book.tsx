@@ -39,7 +39,7 @@ function MarginBadge({ item }: { item: RecipeBookItem }) {
     <span
       data-tone={item.tone}
       className={cx(
-        'inline-flex items-center gap-1 rounded-tag border px-1.5 py-0.5 text-caption font-semibold tabular-nums',
+        'inline-flex items-center gap-1 rounded-tag border px-1.5 py-0.5 text-caption font-semibold',
         TONE[item.tone]
       )}
     >
@@ -263,7 +263,7 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
                 photoName={named === item.id ? PHOTO_TRANSITION : undefined}
                 meta={
                   <>
-                    <span className="text-caption font-semibold text-ink-soft tabular-nums">
+                    <span className="text-label font-semibold text-ink-soft">
                       {item.costSource === 'pending' ? item.costText : `Cost ${item.costText}`}
                     </span>
                     <MarginBadge item={item} />

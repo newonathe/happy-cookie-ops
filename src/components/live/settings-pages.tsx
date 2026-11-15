@@ -12,7 +12,7 @@ import { FactRow } from '@/components/ui/owner-patterns';
  */
 
 const stepper =
-  'size-11 shrink-0 rounded-control border border-line-strong bg-surface text-[18px] text-ink hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand';
+  'size-11 shrink-0 rounded-control border border-line-strong bg-surface text-heading text-ink hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand';
 
 function Choice({
   on,
@@ -35,7 +35,7 @@ function Choice({
         on ? 'border-brand bg-raise' : 'border-line-strong hover:bg-raise'
       )}
     >
-      <span className="text-[14px] font-semibold text-ink">{label}</span>
+      <span className="text-label font-semibold text-ink">{label}</span>
       {detail ? <span className="text-caption text-ink-mute">{detail}</span> : null}
     </button>
   );
@@ -62,7 +62,7 @@ export function RulesLive({ v }: { v: OpsVals }) {
         {(v.rules ?? []).map((rule, i) => (
           <div key={i} className="border-b border-line py-3 last:border-b-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="min-w-0 flex-1 basis-40 text-[14px] font-semibold text-ink">
+              <span className="min-w-0 flex-1 basis-40 text-label font-semibold text-ink">
                 {rule.label}
               </span>
               <button
@@ -78,7 +78,7 @@ export function RulesLive({ v }: { v: OpsVals }) {
                 onChange={rule.set}
                 inputMode="decimal"
                 aria-label={String(rule.label)}
-                className="h-11 w-20 rounded-control border border-line-strong bg-surface text-center text-[16px] font-semibold text-ink tabular-nums focus-visible:outline-2 focus-visible:outline-brand"
+                className="h-11 w-20 rounded-control border border-line-strong bg-surface text-center text-body font-semibold text-ink focus-visible:outline-2 focus-visible:outline-brand"
               />
               <button
                 type="button"
@@ -103,7 +103,7 @@ export function RulesLive({ v }: { v: OpsVals }) {
             className="flex flex-wrap items-center gap-2 border-b border-line py-2.5 last:border-b-0"
           >
             <span className="flex min-w-0 flex-1 basis-40 flex-col">
-              <span className="text-[14px] font-semibold text-ink">{row.label}</span>
+              <span className="text-label font-semibold text-ink">{row.label}</span>
               <span className="text-caption text-ink-mute">{row.value}</span>
             </span>
             <button
@@ -129,7 +129,7 @@ export function RulesLive({ v }: { v: OpsVals }) {
             key={i}
             className="flex flex-wrap items-center gap-2 border-b border-line py-2.5 last:border-b-0"
           >
-            <span className="min-w-0 flex-1 basis-40 text-[14px] font-semibold text-ink">
+            <span className="min-w-0 flex-1 basis-40 text-label font-semibold text-ink">
               {row.label}
             </span>
             <button
@@ -140,7 +140,7 @@ export function RulesLive({ v }: { v: OpsVals }) {
             >
               −
             </button>
-            <span className="w-20 text-center text-[14px] font-semibold text-ink tabular-nums">
+            <span className="w-20 text-center text-label font-semibold text-ink">
               {row.valueText}
             </span>
             <button
@@ -331,12 +331,10 @@ export function SwapLive({ v }: { v: OpsVals }) {
               className="flex min-h-14 items-center justify-between gap-3 rounded-control border border-line-strong p-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
             >
               <span className="flex min-w-0 flex-col">
-                <span className="text-[14px] font-semibold text-ink">{option.name}</span>
+                <span className="text-label font-semibold text-ink">{option.name}</span>
                 <span className="text-caption text-ink-mute">{option.stockText}</span>
               </span>
-              <span className="text-caption font-semibold text-ink-soft tabular-nums">
-                {option.deltaText}
-              </span>
+              <span className="text-label font-semibold text-ink-soft">{option.deltaText}</span>
             </button>
           ))}
         </div>

@@ -22,6 +22,27 @@ const onest = localFont({
   ]
 });
 
+// Owner-area display and figure faces (espresso glass, Ethan 16 Nov 2026), bundled like Onest (OFL, see ./fonts).
+const baloo = localFont({
+  src: [
+    { path: './fonts/baloo-2-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/baloo-2-latin-700-normal.woff2', weight: '700', style: 'normal' }
+  ],
+  display: 'swap',
+  variable: '--font-baloo',
+  adjustFontFallback: false
+});
+const jbMono = localFont({
+  src: [
+    { path: './fonts/jetbrains-mono-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/jetbrains-mono-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/jetbrains-mono-latin-700-normal.woff2', weight: '700', style: 'normal' }
+  ],
+  display: 'swap',
+  variable: '--font-jbmono',
+  adjustFontFallback: false
+});
+
 export const metadata: Metadata = {
   title: 'The Happy Cookie Ops',
   description: 'Production, ordering and bookkeeping for The Happy Cookie.',
@@ -42,7 +63,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={onest.variable}>
+    <html lang="en" className={`${onest.variable} ${baloo.variable} ${jbMono.variable}`}>
       {/* Extensions add attributes to this otherwise attribute-free wrapper before hydration.
           Limit compatibility to this element; child hydration checks remain enabled. */}
       <body suppressHydrationWarning>{children}</body>

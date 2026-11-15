@@ -16,7 +16,7 @@ import {
 import { FactRow, ReviewPanel } from '@/components/ui/owner-patterns';
 
 const selectClass =
-  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]';
+  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label';
 
 /** Record expense or Record owner draw: entry, then Review, then one save. */
 export function MoneyEntryLive({ entry }: { entry: MoneyEntryView }) {
@@ -86,7 +86,7 @@ export function MoneyEntryLive({ entry }: { entry: MoneyEntryView }) {
           />
           {expense ? (
             <label className="flex min-w-0 flex-col gap-1.5">
-              <span className="text-caption font-semibold text-ink-soft">Category</span>
+              <span className="text-label font-semibold text-ink-soft">Category</span>
               <select
                 value={entry.category}
                 onChange={(event) => entry.setCategory(event.target.value)}

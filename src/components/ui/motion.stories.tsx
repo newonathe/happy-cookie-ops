@@ -80,7 +80,7 @@ function CountDemo() {
 }
 function Count() {
   const n = useCountUp(144);
-  return <span className="text-display tabular-nums">{n}</span>;
+  return <span className="text-display">{n}</span>;
 }
 export const CountUp = { render: () => <CountDemo /> };
 

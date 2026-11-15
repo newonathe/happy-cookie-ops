@@ -24,7 +24,7 @@ function FreebieConfirm({ v, give, keep }: { v: OpsVals; give: () => void; keep:
       aria-label="Give as a freebie"
       className="flex flex-col gap-2.5 rounded-card border border-line bg-surface p-3.5"
     >
-      <p className="m-0 text-[15px] font-semibold text-ink">Give these {n} free?</p>
+      <p className="m-0 text-body font-semibold text-ink">Give these {n} free?</p>
       <p className="m-0 text-caption text-ink-soft">They leave the table and no money is taken.</p>
       <span className="flex flex-wrap gap-2">
         <Button variant="danger" onClick={give}>
@@ -79,24 +79,24 @@ function SaleContents({
               key={String(row.name)}
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-divide py-2.5 last:border-b-0"
             >
-              <span className="text-[14px] font-semibold text-ink">{row.name}</span>
+              <span className="text-label font-semibold text-ink">{row.name}</span>
               <span className="row-span-2 flex shrink-0 items-center gap-1 rounded-control border border-line px-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-[18px]! text-ink!"
+                  className="text-heading! text-ink!"
                   aria-label={`One less ${String(row.name)} in this sale`}
                   onClick={row.minus}
                 >
                   −
                 </Button>
-                <span className="w-5 text-center text-[14px] font-semibold text-ink tabular-nums">
+                <span className="w-5 text-center text-label font-semibold text-ink">
                   {String(row.inCart)}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-[18px]! text-ink!"
+                  className="text-heading! text-ink!"
                   aria-label={`One more ${String(row.name)} in this sale`}
                   onClick={row.tap}
                   disabled={!!row.soldOut}
@@ -104,7 +104,7 @@ function SaleContents({
                   +
                 </Button>
               </span>
-              <span className="text-caption text-ink-mute tabular-nums">
+              <span className="text-caption text-ink-mute">
                 {row.priceText} each
                 {lineOf[String(row.name)] ? (
                   <>
@@ -134,8 +134,8 @@ function SaleContents({
           />
         ) : null}
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-[15px] text-ink-soft">{saleCount(v)}</span>
-          <span className="text-title tabular-nums">{total}</span>
+          <span className="text-body text-ink-soft">{saleCount(v)}</span>
+          <span className="text-title">{total}</span>
         </div>
         <Button
           variant="primary"

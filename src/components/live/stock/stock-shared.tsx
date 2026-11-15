@@ -35,20 +35,21 @@ export const screenStyle: React.CSSProperties = {
 };
 export const h1Style: React.CSSProperties = {
   margin: 0,
-  fontSize: '1.375rem',
+  fontSize: '24px',
   fontWeight: 700,
+  letterSpacing: '-0.015em',
   color: INK,
   overflowWrap: 'anywhere'
 };
 export const h2Style: React.CSSProperties = {
   margin: 0,
-  fontSize: '1rem',
-  fontWeight: 700,
+  fontSize: '18px',
+  fontWeight: 600,
   color: INK
 };
 export const textStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '0.875rem',
+  fontSize: '14px',
   color: INK,
   overflowWrap: 'anywhere',
   minWidth: 0
@@ -56,7 +57,7 @@ export const textStyle: React.CSSProperties = {
 export const mutedStyle: React.CSSProperties = {
   ...textStyle,
   color: INK_SOFT,
-  fontSize: '0.8125rem'
+  fontSize: '13px'
 };
 export const listStyle: React.CSSProperties = {
   listStyle: 'none',
@@ -85,13 +86,13 @@ export const buttonBase: React.CSSProperties = {
   ...secondaryButton,
   minWidth: '44px',
   padding: '0 14px',
-  fontSize: '0.875rem',
+  fontSize: '14px',
   cursor: 'pointer'
 };
 export const primaryBase: React.CSSProperties = {
   ...primaryButton,
   padding: '0 16px',
-  fontSize: '0.875rem',
+  fontSize: '14px',
   cursor: 'pointer'
 };
 
@@ -119,7 +120,7 @@ export function OfflineLine({ online }: { online: boolean }) {
 /** The status in words, in its colour. The word carries the meaning; the colour does not. */
 export function StatusWord({ status }: { status: StockStatus }) {
   return (
-    <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: STATUS_COLOUR[status] }}>
+    <span style={{ fontSize: '13px', fontWeight: 600, color: STATUS_COLOUR[status] }}>
       {status}
     </span>
   );

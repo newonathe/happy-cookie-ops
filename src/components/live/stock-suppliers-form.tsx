@@ -102,7 +102,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
       )?.focus();
   }, [editing?.id, editing?.isNew, liveStock.version, focusPrice]);
   const offline = !liveStock.online ? (
-    <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+    <span style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
       Offline. Changes here will not save until this device is back online.
     </span>
   ) : null;
@@ -113,7 +113,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
         {liveStock.itemContextName ? (
           <p>Choose a supplier for {liveStock.itemContextName}.</p>
         ) : null}
-        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.suppliersIntro}</span>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{C.suppliersIntro}</span>
         <button type="button" onClick={liveStock.add} style={primaryButton}>
           {C.addSupplier}
         </button>
@@ -141,7 +141,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
                   style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}
                 >
                   <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+                  <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
                     {row.place ? row.place + ' · ' : ''}
                     {row.priceCount === 1 ? '1 price' : row.priceCount + ' prices'}
                     {row.active ? '' : ' · switched off'}
@@ -151,7 +151,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
             ))}
           </div>
         ) : (
-          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.noSuppliers}</span>
+          <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{C.noSuppliers}</span>
         )}
         <button type="button" onClick={liveStock.close} style={secondaryButton}>
           Close
@@ -201,14 +201,14 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
           style={{ ...inputStyle, height: 'auto', padding: '10px 13px' }}
         />
       </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
         <input name="supActive" type="checkbox" defaultChecked={editing.active} />
         <span style={smallLabel}>In use</span>
       </label>
       <span style={{ fontSize: '13px', fontWeight: 600 }}>Prices</span>
-      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.priceHint}</span>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{C.priceHint}</span>
       {editing.isNew ? (
-        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
           Save the supplier first, then add its prices.
         </span>
       ) : (
@@ -276,15 +276,15 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
               />
             </label>
             {r ? (
-              <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
+              <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
                 {r.previousText}
               </span>
             ) : null}
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
               <input name={'prPref' + i} type="checkbox" defaultChecked={r?.preferred ?? true} />
               <span style={smallLabel}>My preferred source</span>
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', minHeight: '44px' }}>
               <input name={'prOn' + i} type="checkbox" defaultChecked={r?.active ?? true} />
               <span style={smallLabel}>Price in use</span>
             </label>

@@ -5,7 +5,7 @@
   min-height: 100dvh;
   color: var(--color-ink);
   background: var(--color-app);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
 }
 .workspace button {
@@ -33,7 +33,7 @@
   align-items: center;
   gap: 9px;
   padding: 0 4px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 }
 .brand img {
@@ -44,7 +44,7 @@
 .owner small {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 400;
 }
 .navigation {
@@ -64,8 +64,8 @@
   text-align: left;
   background: transparent;
   color: var(--color-ink-mute);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
 }
 .navigation button[aria-current],
 .dock button[aria-current] {
@@ -84,7 +84,7 @@
   border-radius: 999px;
   background: var(--color-brand);
   color: var(--color-surface);
-  font-size: 10px;
+  font-size: 12px;
 }
 .owner {
   display: flex;
@@ -92,7 +92,7 @@
   gap: 9px;
   margin-top: auto;
   padding: 22px 8px 0;
-  font-size: 12px;
+  font-size: 14px;
 }
 .avatar {
   display: grid;
@@ -103,7 +103,7 @@
   border-radius: 50%;
   background: var(--color-ink);
   color: var(--color-cust-bg);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 .work {
@@ -127,14 +127,14 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 .back {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--color-line-strong);
   border-radius: 10px;
   background: var(--color-surface);
@@ -153,7 +153,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  font-size: 11px;
+  font-size: 13px;
 }
 .quickAdd {
   display: flex;
@@ -164,11 +164,11 @@
   border: 0;
   background: transparent;
   color: var(--color-ink);
-  font-size: 11px;
+  font-size: 14px;
 }
 .connection {
   color: var(--color-ink-mute);
-  font-size: 11px;
+  font-size: 13px;
 }
 .notification {
   position: relative;
@@ -210,6 +210,10 @@
 }
 .screenBody[hidden] {
   display: none;
+}
+/* A grid item's automatic minimum width let the All tools buttons push past a 320 px screen. */
+.screenBody [data-screen-label='All tools'] button {
+  min-width: 0;
 }
 .navigation button,
 .dock button,
@@ -261,7 +265,7 @@
 .toastBox > span {
   flex: 1;
   min-width: 0;
-  font-size: 0.8125rem;
+  font-size: 14px;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -276,7 +280,7 @@
   border-radius: 9px;
   background: transparent;
   color: inherit;
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: 600;
 }
 @media (max-width: 1000px) {
@@ -288,7 +292,7 @@
     padding-inline: 9px;
   }
   .brand {
-    font-size: 11px;
+    font-size: 13px;
     gap: 7px;
   }
   .main {
@@ -345,7 +349,7 @@
     min-height: 51px;
     padding: 7px 0;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .dock svg {
     width: 18px;
@@ -412,5 +416,389 @@
     padding: 0;
     border: 0;
     border-radius: 0;
+  }
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Espresso glass (Ethan, 16 Nov 2026; mockups and spec in the private design handoff). The ground is a warm coffee
+   gradient with slowly drifting light (gradients, not blur, so a phone stays smooth); the rail, header and dock are
+   frosted glass; page content sits on one frosted sheet until each page moves to floating cards. */
+.workspace {
+  --workspace-sidebar: 212px;
+  grid-template-columns: 212px minmax(0, 1fr);
+  isolation: isolate;
+  background: linear-gradient(150deg, #4a2617 0%, #2e170e 55%, #1e0f09 100%) fixed;
+}
+.workspace::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 35% at 85% 10%, rgb(231 95 35 / 0.55), transparent 70%),
+    radial-gradient(35% 30% at 10% 90%, rgb(214 140 70 / 0.4), transparent 70%),
+    radial-gradient(30% 30% at 20% 15%, rgb(255 170 110 / 0.22), transparent 70%);
+  animation: espressoDrift 34s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes espressoDrift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-4%, 3%, 0) scale(1.08);
+  }
+}
+.rail {
+  top: 16px;
+  height: calc(100dvh - 32px);
+  margin: 16px 0 16px 16px;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 0.8);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 8px 32px rgb(0 0 0 / 0.25);
+}
+.navigation button[aria-current] {
+  background: var(--color-ink);
+  color: #fff;
+  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.6);
+}
+.header {
+  top: 16px;
+  margin: 16px 16px 0;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.8);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 8px 24px rgb(0 0 0 / 0.2);
+}
+.main {
+  margin: 16px;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 0.93);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 12px 40px rgb(0 0 0 / 0.28);
+}
+@media (max-width: 1000px) {
+  .workspace {
+    --workspace-sidebar: 172px;
+    grid-template-columns: 172px minmax(0, 1fr);
+  }
+}
+@media (max-width: 650px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .header {
+    top: 8px;
+    margin: 8px 8px 0;
+  }
+  .main {
+    margin: 8px;
+    border-radius: 24px;
+  }
+  .dock {
+    bottom: 8px;
+    margin: 0 8px 8px;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    border-radius: 24px;
+    background: rgb(255 255 255 / 0.82);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 10px 30px rgb(0 0 0 / 0.3);
+  }
+  .dock button[aria-current] {
+    background: var(--color-ink);
+    color: #fff;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace::before {
+    animation: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .workspace::before {
+    display: none;
+  }
+  .rail,
+  .header,
+  .dock,
+  .main {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Brand rim on the glass (from the V31 reference, in her colours): a 1px gradient edge. */
+.rail,
+.header,
+.main,
+.dock {
+  border-color: transparent;
+}
+.rail,
+.header {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.8)) padding-box,
+    linear-gradient(
+        160deg,
+        rgb(255 200 155 / 0.9),
+        rgb(255 255 255 / 0.3) 50%,
+        rgb(231 95 35 / 0.5)
+      )
+      border-box;
+}
+.main {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.93), rgb(255 255 255 / 0.93)) padding-box,
+    linear-gradient(
+        135deg,
+        rgb(255 200 155 / 0.95),
+        rgb(255 255 255 / 0.35) 42%,
+        rgb(231 95 35 / 0.65)
+      )
+      border-box;
+}
+/* The rail's drop figure. */
+.dropCard {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  border: 0;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.55);
+  color: var(--color-ink);
+  text-align: left;
+  font-family: inherit;
+}
+.dropCard + .owner {
+  margin-top: 12px;
+}
+.dropTop {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--color-ink-mute);
+}
+.dropTop b {
+  font-size: 16px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.dropBar {
+  display: flex;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(58 31 20 / 0.08);
+}
+.dropPending {
+  opacity: 0.45;
+}
+.dropCard small {
+  font-size: 13px;
+  color: var(--color-ink-mute);
+}
+/* Pages enter like the reference: each block materialises in turn (shell, then its content), 40 ms apart. The rail
+   never moves. Navigation remounts `.main` (keyed by screen), which starts this. */
+.screenBody > * > * {
+  animation: blockIn 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.screenBody > * > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.screenBody > * > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.screenBody > * > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.screenBody > * > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.screenBody > * > *:nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+@keyframes blockIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+/* Cards lift 4 px under a mouse (the reference's whileHover y: -4); touch screens never get a stuck hover. */
+@media (hover: hover) and (pointer: fine) {
+  .screenBody section[class*='rounded'][class*='border'] {
+    transition:
+      transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 180ms ease;
+  }
+  .screenBody section[class*='rounded'][class*='border']:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgb(58 31 20 / 0.14);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screenBody > * > * {
+    animation: none;
+  }
+  .screenBody section[class*='rounded'][class*='border']:hover {
+    transform: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .rail,
+  .header,
+  .main,
+  .dock {
+    border-color: var(--color-line);
+    background: #fff;
+  }
+}
+
+/* The rail folds to icons (76 px panel). Labels stay in the DOM for screen readers and show as a tooltip on hover or
+   keyboard focus; badges sit on the icon; the drop card and the owner's name step aside. */
+.workspace {
+  transition: grid-template-columns 240ms cubic-bezier(0.3, 0, 0.1, 1);
+}
+.rail {
+  z-index: 45;
+}
+.railToggle {
+  position: absolute;
+  top: 18px;
+  right: -22px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+}
+.railToggle > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+  transition: transform 160ms ease;
+}
+.railToggle:hover > span {
+  transform: scale(1.08);
+}
+.navigation button {
+  position: relative;
+}
+.workspace[data-rail='collapsed'] {
+  --workspace-sidebar: 108px;
+  grid-template-columns: 108px minmax(0, 1fr);
+}
+.workspace[data-rail='collapsed'] .rail {
+  align-items: center;
+  padding-inline: 12px;
+}
+.workspace[data-rail='collapsed'] .brand {
+  justify-content: center;
+  padding: 0;
+}
+.workspace[data-rail='collapsed'] .brand > span,
+.workspace[data-rail='collapsed'] .owner > span:not(.avatar),
+.workspace[data-rail='collapsed'] .dropCard {
+  display: none;
+}
+.workspace[data-rail='collapsed'] .owner {
+  justify-content: center;
+  margin-top: auto;
+  padding-inline: 0;
+}
+.workspace[data-rail='collapsed'] .navigation button {
+  justify-content: center;
+  width: 52px;
+  padding: 0;
+}
+.workspace[data-rail='collapsed'] .navigation button > span:not(.badge) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.workspace[data-rail='collapsed'] .navigation .badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  margin: 0;
+}
+.workspace[data-rail='collapsed'] .navigation button:hover::after,
+.workspace[data-rail='collapsed'] .navigation button:focus-visible::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 14px);
+  z-index: 60;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.96);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: tipIn 140ms ease-out;
+}
+@keyframes tipIn {
+  from {
+    opacity: 0;
+    transform: translate(-4px, -50%);
+  }
+}
+@media (max-width: 650px) {
+  .railToggle {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace {
+    transition: none;
   }
 }

@@ -18,7 +18,7 @@ function StockTag({ status }: { status: string }) {
   return (
     <span
       className={cx(
-        'rounded-full border px-2 py-0.5 text-[11px] font-semibold',
+        'rounded-full border px-2 py-0.5 text-caption font-semibold',
         status === 'Out'
           ? 'border-danger-line text-danger'
           : status === 'Low'
@@ -51,7 +51,7 @@ function OrderCount({
     >
       <span
         className={cx(
-          'text-[24px] leading-none font-semibold tabular-nums',
+          'text-title leading-none',
           value === null ? 'text-ink-faint' : warn && value > 0 ? 'text-brand-deep' : 'text-ink'
         )}
       >
@@ -175,7 +175,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
           <ListRow
             title={v.system.label}
             detail={v.system.detail}
-            trailing={<span className="text-caption font-semibold text-brand">Review</span>}
+            trailing={<span className="text-label font-semibold text-brand">Review</span>}
             onOpen={v.system.go}
           />
         </HeadedPanel>
@@ -226,19 +226,19 @@ export function HomeLive({ v }: { v: OpsVals }) {
                 <dt className="order-2 text-caption text-ink-mute">
                   {home.month.profit < 0 ? 'Loss so far' : 'Profit so far'}
                 </dt>
-                <dd className="order-1 text-[20px] leading-tight font-semibold tabular-nums">
+                <dd className="order-1 text-heading leading-tight font-semibold">
                   <SignedMoney pesos={home.month.profit} />
                 </dd>
               </div>
               <div className="flex min-w-0 flex-col gap-1">
                 <dt className="order-2 text-caption text-ink-mute">Income</dt>
-                <dd className="order-1 text-[20px] leading-tight font-semibold tabular-nums">
+                <dd className="order-1 text-heading leading-tight font-semibold">
                   <SignedMoney pesos={home.month.revenue} />
                 </dd>
               </div>
               <div className="flex min-w-0 flex-col gap-1">
                 <dt className="order-2 text-caption text-ink-mute">Expenses</dt>
-                <dd className="order-1 text-[20px] leading-tight font-semibold tabular-nums">
+                <dd className="order-1 text-heading leading-tight font-semibold">
                   <SignedMoney pesos={-home.month.expenses} />
                 </dd>
               </div>
@@ -273,9 +273,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
                     key={work.id}
                     title={work.name}
                     detail={`${work.detail} · not recorded yet`}
-                    trailing={
-                      <span className="text-caption font-semibold text-brand">Continue</span>
-                    }
+                    trailing={<span className="text-label font-semibold text-brand">Continue</span>}
                     onOpen={work.open}
                   />
                 ))}

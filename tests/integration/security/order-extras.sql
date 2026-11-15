@@ -336,7 +336,7 @@ begin
   s := public.order_status(pg_temp.tok('place_addons'));
   perform pg_temp.assert_ok(a, 'status_keys_extras',
     (select array_agg(k order by k) from jsonb_object_keys(s) k)
-      = array['add_ons', 'boxes', 'hold_expires_at', 'items', 'order_no', 'pay_method', 'pay_state', 'pickup_date',
+      = array['add_ons', 'boxes', 'hold_expires_at', 'items', 'order_no', 'paid_cents', 'pay_method', 'pay_state', 'pickup_date',
               'pickup_window', 'placed_at', 'same_day', 'state', 'surcharge_cents', 'total_cents']);
   perform pg_temp.assert_ok(a, 'status_lists_addons',
     jsonb_array_length(s -> 'add_ons') = 2 and (s ->> 'surcharge_cents')::bigint = 0 and (s ->> 'total_cents')::bigint = 16000);

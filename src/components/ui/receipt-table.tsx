@@ -109,20 +109,20 @@ export function ReceiptTable({
             <tr>
               <th
                 scope="row"
-                className="pt-2.5 pr-3 text-left text-caption font-semibold text-ink-soft"
+                className="pt-2.5 pr-3 text-left text-label font-semibold text-ink-soft"
               >
                 Subtotal
               </th>
-              <td className="pt-2.5 text-right text-caption font-semibold text-ink-soft tabular-nums">
+              <td className="pt-2.5 text-right text-label font-semibold text-ink-soft tabular-nums">
                 {peso(subtotal)}
               </td>
             </tr>
           ) : null}
           <tr>
-            <th scope="row" className="pt-2 pr-3 text-left text-body font-bold text-ink">
+            <th scope="row" className="pt-2 pr-3 text-left text-body font-semibold text-ink">
               {totalLabel}
             </th>
-            <td className="pt-2 text-right text-body font-bold text-ink tabular-nums">
+            <td className="pt-2 text-right text-body font-semibold text-ink tabular-nums">
               {totalText ?? peso(total)}
             </td>
           </tr>

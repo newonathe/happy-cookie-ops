@@ -13,7 +13,7 @@ const summaryRow: React.CSSProperties = {
   cursor: 'pointer'
 };
 const plainRow: React.CSSProperties = { ...summaryRow, cursor: 'default' };
-const valueStyle: React.CSSProperties = { fontWeight: 700, textAlign: 'right', minWidth: 0 };
+const valueStyle: React.CSSProperties = { fontWeight: 600, textAlign: 'right', minWidth: 0 };
 
 /**
  * One figure of a review or an event: a label and a number in words. With parts it opens (a native details, so it works by

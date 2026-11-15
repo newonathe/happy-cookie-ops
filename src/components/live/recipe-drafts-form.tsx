@@ -30,14 +30,14 @@ export function RecipeDraftsForm({
   const catalogue = useCatalogueHeld(catalogueHeld);
   const unread = !catalogue.held && catalogue.started;
   const error = liveDrafts.error ? (
-    <span role="alert" style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+    <span role="alert" style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
       {liveDrafts.error}
     </span>
   ) : null;
   if (liveDrafts.loading && !liveDrafts.loaded)
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
           Loading saved recipe drafts…
         </span>
         <button type="button" onClick={liveDrafts.close} style={secondaryButton}>
@@ -49,7 +49,7 @@ export function RecipeDraftsForm({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {error ?? (
-          <span role="alert" style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
+          <span role="alert" style={{ fontSize: '13px', color: 'var(--color-danger)' }}>
             Recipe drafts could not be read.
           </span>
         )}
@@ -111,7 +111,7 @@ export function RecipeDraftsForm({
       <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-ink)' }}>
         {liveDrafts.selectedName}
       </span>
-      <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
         This draft keeps the original recipe quantities and notes. Costs and stock deductions use
         the production recipe separately.
       </span>
