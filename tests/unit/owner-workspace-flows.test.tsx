@@ -38,6 +38,20 @@ afterEach(() => {
   live = true;
 });
 
+it('keeps the frosted sheet under settings and released Customers over glass pages', () => {
+  const runtime = mount();
+  for (const page of ['today', 'pnl', 'inventory', 'orders'] as const) {
+    act(() => runtime.go(page));
+    expect(document.querySelector('main')?.getAttribute('data-screen')).toBe(page);
+    for (const form of ['dropState', 'customers']) {
+      act(() => runtime.sheet(form));
+      expect(document.querySelector('main')?.getAttribute('data-screen')).toBe('form');
+      act(() => runtime.closeSheet());
+      expect(document.querySelector('main')?.getAttribute('data-screen')).toBe(page);
+    }
+  }
+});
+
 it('preserves real stock sheets and the count draft when using the new header Back', async () => {
   registerLiveStockScreens();
   const runtime = mount();

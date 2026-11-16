@@ -182,6 +182,23 @@
   animation: weekGrow 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: calc(var(--i, 0) * 40ms + 100ms);
 }
+.weekSigned {
+  margin-bottom: 20px;
+  border-bottom: 0;
+  background: linear-gradient(var(--color-ink-mute), var(--color-ink-mute)) center / 100% 1px
+    no-repeat;
+}
+.weekSigned .weekBar {
+  position: absolute;
+  bottom: 50%;
+}
+.weekSigned .weekRefund {
+  top: 50%;
+  bottom: auto;
+  border-radius: 0 0 4px 4px;
+  background: var(--color-danger);
+  transform-origin: top;
+}
 .weekValue {
   position: absolute;
   left: 50%;

@@ -507,6 +507,8 @@ export function OwnerWorkspace({
     );
   const active = v.dockNav.find((item) => item.active);
   const pageForm = pageFormOf(v);
+  // Released forms, including Customers, need the frosted sheet over glass pages.
+  const ground = pageForm ? 'form' : screen;
   const back = pageForm
     ? pageForm.close
     : v.liveStock?.bakePlan?.open
@@ -608,7 +610,7 @@ export function OwnerWorkspace({
             </button>
           </div>
         </header>
-        <main key={screen} data-screen={screen} className={styles.main}>
+        <main key={screen} data-screen={ground} className={styles.main}>
           {pageForm ? <PageForm key={pageForm.title} v={v} page={pageForm} /> : null}
           {/* The page under a settings form stays mounted, so its selection and scroll survive the form. */}
           <div hidden={!!pageForm} className={styles.screenBody}>
