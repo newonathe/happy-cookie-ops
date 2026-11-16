@@ -427,14 +427,12 @@
   white-space: nowrap;
 }
 
-/* Espresso glass (Ethan, 16 Nov 2026; mockups and spec in the private design handoff). The ground is a warm coffee
-   gradient with slowly drifting light (gradients, not blur, so a phone stays smooth); the rail, header and dock are
-   frosted glass; page content sits on one frosted sheet until each page moves to floating cards. */
+/* Owner workspace surfaces use the neutral light palette; layout and motion remain unchanged. */
 .workspace {
   --workspace-sidebar: 212px;
   grid-template-columns: 212px minmax(0, 1fr);
   isolation: isolate;
-  background: linear-gradient(150deg, #4a2617 0%, #2e170e 55%, #1e0f09 100%) fixed;
+  background: var(--color-owner-app);
 }
 .workspace::before {
   content: '';
@@ -442,59 +440,40 @@
   inset: -20%;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(40% 35% at 85% 10%, rgb(231 95 35 / 0.55), transparent 70%),
-    radial-gradient(35% 30% at 10% 90%, rgb(214 140 70 / 0.4), transparent 70%),
-    radial-gradient(30% 30% at 20% 15%, rgb(255 170 110 / 0.22), transparent 70%);
-  animation: espressoDrift 34s ease-in-out infinite alternate;
-  will-change: transform;
-}
-@keyframes espressoDrift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(-4%, 3%, 0) scale(1.08);
-  }
+  display: none;
 }
 .rail {
   top: 16px;
   height: calc(100dvh - 32px);
   margin: 16px 0 16px 16px;
-  border: 1px solid rgb(255 255 255 / 0.6);
+  border: 1px solid var(--color-owner-line);
   border-radius: 28px;
-  background: rgb(255 255 255 / 0.8);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  backdrop-filter: blur(24px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.9),
-    0 8px 32px rgb(0 0 0 / 0.25);
+  background: var(--color-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: var(--shadow-owner-glass);
 }
 .navigation button[aria-current] {
-  background: var(--color-ink);
-  color: #fff;
-  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.6);
+  background: var(--color-surface);
+  color: var(--color-brand);
+  box-shadow: var(--shadow-owner-glass);
 }
 .header {
   top: 16px;
   margin: 16px 16px 0;
-  border: 1px solid rgb(255 255 255 / 0.6);
+  border: 1px solid var(--color-owner-line);
   border-radius: 20px;
-  background: rgb(255 255 255 / 0.8);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  backdrop-filter: blur(24px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.9),
-    0 8px 24px rgb(0 0 0 / 0.2);
+  background: var(--color-surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: var(--shadow-owner-glass);
 }
 .main {
   margin: 16px;
-  border: 1px solid rgb(255 255 255 / 0.7);
+  border: 1px solid var(--color-owner-line);
   border-radius: 28px;
-  background: rgb(255 255 255 / 0.93);
-  box-shadow:
-    inset 0 1px 0 #fff,
-    0 12px 40px rgb(0 0 0 / 0.28);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-owner-glass);
 }
 @media (max-width: 1000px) {
   .workspace {
@@ -517,18 +496,16 @@
   .dock {
     bottom: 8px;
     margin: 0 8px 8px;
-    border: 1px solid rgb(255 255 255 / 0.6);
+    border: 1px solid var(--color-owner-line);
     border-radius: 24px;
-    background: rgb(255 255 255 / 0.82);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    backdrop-filter: blur(24px) saturate(160%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.9),
-      0 10px 30px rgb(0 0 0 / 0.3);
+    background: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: var(--shadow-owner-glass);
   }
   .dock button[aria-current] {
-    background: var(--color-ink);
-    color: #fff;
+    background: var(--color-surface);
+    color: var(--color-brand);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -550,37 +527,21 @@
   }
 }
 
-/* Brand rim on the glass (from the V31 reference, in her colours): a 1px gradient edge. */
+/* Neutral surface edges keep the established shell geometry. */
 .rail,
 .header,
 .main,
 .dock {
-  border-color: transparent;
+  border-color: var(--color-owner-line);
 }
 .rail,
 .header {
-  background:
-    linear-gradient(rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.8)) padding-box,
-    linear-gradient(
-        160deg,
-        rgb(255 200 155 / 0.9),
-        rgb(255 255 255 / 0.3) 50%,
-        rgb(231 95 35 / 0.5)
-      )
-      border-box;
+  background: var(--color-surface);
 }
 .main {
-  background:
-    linear-gradient(rgb(255 255 255 / 0.93), rgb(255 255 255 / 0.93)) padding-box,
-    linear-gradient(
-        135deg,
-        rgb(255 200 155 / 0.95),
-        rgb(255 255 255 / 0.35) 42%,
-        rgb(231 95 35 / 0.65)
-      )
-      border-box;
+  background: var(--color-surface);
 }
-/* Home floats its glass cards straight on the espresso ground: the frosted sheet is dropped for this screen. The
+/* Home floats its cards on the app ground: the sheet is dropped for this screen. The
    sheet's 16 px margin stays, so the page edge is 24 px (8 px on a phone, plus 8 px of padding). Specificity beats
    every `.main` rule above, including the reduced-transparency one. */
 .main[data-screen='today'],
@@ -624,7 +585,7 @@
   padding: 12px;
   border: 0;
   border-radius: 16px;
-  background: rgb(255 255 255 / 0.55);
+  background: var(--color-owner-raise);
   color: var(--color-ink);
   text-align: left;
   font-family: inherit;
@@ -650,7 +611,7 @@
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgb(58 31 20 / 0.08);
+  background: color-mix(in srgb, var(--color-owner-ink) 8%, transparent);
 }
 .dropPending {
   opacity: 0.45;
@@ -700,7 +661,7 @@
   }
   .screenBody section[class*='rounded'][class*='border']:hover {
     transform: translateY(-4px);
-    box-shadow: 0 14px 34px rgb(58 31 20 / 0.14);
+    box-shadow: var(--shadow-owner-glass);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -750,7 +711,7 @@
   height: 28px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+  box-shadow: var(--shadow-owner-glass);
   transition: transform 160ms ease;
 }
 .railToggle:hover > span {
@@ -814,7 +775,7 @@
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  box-shadow: var(--shadow-owner-glass);
   transform: translateY(-50%);
   pointer-events: none;
   animation: tipIn 140ms ease-out;
@@ -835,9 +796,8 @@
     transition: none;
   }
 }
-/* Past the workspace's edge (a phone's overscroll, a long page's tail) the page shows the espresso's deepest shade,
-   never the light app ground. */
+/* Keep overscroll continuous with the light owner workspace. */
 :global(html):has(.workspace),
 :global(body):has(.workspace) {
-  background: #1e0f09;
+  background: var(--color-owner-app);
 }

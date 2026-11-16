@@ -54,8 +54,9 @@ const cases = [
         for (const screen of ['today', 'pnl', 'inventory', 'orders']) {
           for (const form of ['dropState', 'rules', 'users', 'customers']) {
             await page.evaluate(({ screen, form }) => { window.__hcOps.go(screen); window.__hcOps.sheet(form); }, { screen, form });
-            await page.locator('main[data-screen="form"]').waitFor();
-            assert(await page.locator('main').evaluate((el) => { const s = getComputedStyle(el); return s.backgroundImage !== 'none' || s.backgroundColor !== 'rgba(0, 0, 0, 0)'; }), 'form sheet missing');
+            await page.locator(`main[data-screen="${form === 'customers' ? 'customers' : 'form'}"]`).waitFor();
+            const surfaced = await page.locator('main').evaluate((el) => { const s = getComputedStyle(el); return s.backgroundImage !== 'none' || s.backgroundColor !== 'rgba(0, 0, 0, 0)'; });
+            assert.equal(surfaced, form !== 'customers', 'Customers ground or settings surface missing');
             await fits();
             if (screen === 'today') await page.screenshot({ path: `${out}/synthetic-${width}-${reducedMotion}-${form}.png`, fullPage: true });
             await page.evaluate(() => window.__hcOps.closeSheet());

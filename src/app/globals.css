@@ -88,14 +88,14 @@
   /* Behind a cookie photo: the cream every product photo is shot on, as the approved mockup draws it. */
   --color-photo-well: #fff8e9;
   --color-owner-app: #f4f5f7;
-  /* Espresso glass (Ethan, 16 Nov 2026): Dark Coffee ink and warm greys inside the owner area. */
-  --color-owner-ink: #3a1f14;
-  --color-owner-muted: #6b4a3c;
-  --color-owner-faint: #85695d;
-  --color-owner-raise: #faf8f7;
-  --color-owner-line: #ebe4e0;
-  --color-owner-soft: #f3efed;
-  --color-on-ground: #fff1e6; /* text that sits on the espresso ground */
+  /* Owner palette restored to the pre-espresso light neutrals (Ethan, 16 Nov 2026). */
+  --color-owner-ink: #24262b;
+  --color-owner-muted: #61656d;
+  --color-owner-faint: #858a94;
+  --color-owner-raise: #f8f9fb;
+  --color-owner-line: #e3e6eb;
+  --color-owner-soft: #eceff3;
+  --color-on-ground: #fff1e6; /* Owner workspace overrides this locally for its light ground. */
   --color-owner-glass: rgb(255 255 255 / 0.8);
   --color-owner-glass-strong: rgb(255 255 255 / 0.94);
   --shadow-owner-glass: 0 8px 32px rgb(24 28 36 / 0.06);
