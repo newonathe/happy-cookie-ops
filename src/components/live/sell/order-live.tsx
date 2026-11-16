@@ -12,6 +12,7 @@ import { cx } from '@/components/ui/cx';
 import { Sheet } from '@/components/ui/sheet';
 import { PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
 import { RecordUnavailable } from '@/components/ui/owner-patterns';
+import { SubPage } from '@/components/live/stock/stock-glass';
 import theme from '../owner-theme.module.css';
 import { OrderPill } from './sell-shared';
 
@@ -218,9 +219,14 @@ export function OrderLive({ v }: { v: OpsVals }) {
   const od = v.od;
   // HCB-006: this order's change was saved but the list could not be refreshed.
   const read = useSyncExternalStore(ordersRead.subscribe, ordersRead.get, ordersRead.getServer);
-  if (!od) return <RecordUnavailable backLabel="Back to orders" onBack={() => v.goBack()} />;
+  if (!od)
+    return (
+      <SubPage>
+        <RecordUnavailable backLabel="Back to orders" onBack={() => v.goBack()} />
+      </SubPage>
+    );
   return (
-    <div className="w-full max-w-[860px]">
+    <SubPage>
       <PageTitle
         title={`Order ${od.id}`}
         subtitle={
@@ -357,6 +363,6 @@ export function OrderLive({ v }: { v: OpsVals }) {
           </Button>
         </div>
       ) : null}
-    </div>
+    </SubPage>
   );
 }

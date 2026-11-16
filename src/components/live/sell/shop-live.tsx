@@ -4,9 +4,13 @@ import { useState } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
 import { Button } from '@/components/ui/button';
-import { PageTitle, Panel, SectionHeading, TaskRow } from '@/components/ui/owner-kit';
+import { cx } from '@/components/ui/cx';
+import { GlassCard, glassStyles } from '@/components/ui/glass';
+import { PageTitle, Panel, TaskRow } from '@/components/ui/owner-kit';
 import { OpenRow } from '@/components/ui/owner-patterns';
+import { SubPage, stockGlass } from '@/components/live/stock/stock-glass';
 import { SellTabs } from './sell-shared';
+import sg from './sell-glass.module.css';
 import { ShopOverrideNotice } from '@/components/live/shop-override-notice';
 import { CustomerStatusExample } from '@/components/live/customer/status-example';
 import { CatalogueNotice, useCatalogueHeld } from '@/components/live/bazaar/catalogue-notice';
@@ -55,29 +59,32 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
     .flatMap((group) => group.rows ?? [])
     .find((row) => row.label === 'Drop schedule');
   return (
-    <div className="w-full">
-      <PageTitle title="Opening schedule & drop" subtitle={String(drop2.scheduleLine)} />
-      {!v.sheet?.isCloseDrop ? <ShopOverrideNotice value={v.liveShopOverride} /> : null}
-      <Panel tone="hero">
-        <span className="flex flex-wrap items-baseline gap-2">
-          <span className="text-heading font-semibold text-ink">{drop2.no}</span>
-          <span className="text-label font-semibold text-ink-soft">
-            {drop2.stateText}
-            {drop2.extended ? ' · Extended' : ''}
-          </span>
+    <div className={cx(sg.page, sg.narrow)}>
+      <div className={sg.head}>
+        <PageTitle onGround title="Opening schedule & drop" subtitle={String(drop2.scheduleLine)} />
+      </div>
+      {!v.sheet?.isCloseDrop && v.liveShopOverride ? (
+        <div className={sg.flow}>
+          <ShopOverrideNotice value={v.liveShopOverride} />
+        </div>
+      ) : null}
+      <GlassCard title={String(drop2.no)}>
+        <span className="text-label font-semibold text-ink-soft">
+          {drop2.stateText}
+          {drop2.extended ? ' · Extended' : ''}
         </span>
-        <p className="mt-3 text-body text-ink">
-          <span className="text-title font-semibold">{drop2.capNum}</span> of {drop2.capValue}{' '}
-          cookies confirmed
+        <p className="text-body text-ink">
+          <span className="font-mono text-title font-semibold tabular-nums">{drop2.capNum}</span> of{' '}
+          {drop2.capValue} cookies confirmed
         </p>
-        <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-chip" aria-hidden="true">
+        <div className={sg.meter} aria-hidden="true">
           <span style={s(drop.barConfirmed)} />
           <span style={s(drop.barPending)} />
         </div>
-        <p className="mt-2 text-caption text-ink-mute">
+        <p className="text-caption text-ink-mute">
           {drop.pendingText} · {drop.leftText}
         </p>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
+        <div className={sg.well}>
           <span className="flex items-center gap-2">
             <span className="text-label font-semibold text-ink-soft">Cookies per drop</span>
             <Button
@@ -115,24 +122,22 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
             </Button>
           </span>
         </div>
-      </Panel>
+      </GlassCard>
 
       {week ? (
-        <Panel>
-          <OpenRow title="Ordering week" detail={week.value} onOpen={week.go} />
-        </Panel>
+        <GlassCard title="Ordering week">
+          <div className={cx(glassStyles.glassRows, stockGlass.taskRows)}>
+            <OpenRow title="Ordering week" detail={week.value} onOpen={week.go} />
+          </div>
+        </GlassCard>
       ) : null}
 
-      <SectionHeading>This drop&apos;s menu</SectionHeading>
       {catalogue.held ? (
-        <Panel>
-          <ul className="flex flex-col">
+        <GlassCard title="This drop's menu">
+          <ul className={sg.list}>
             {(v.dropProducts ?? []).map((product, i) => (
-              <li
-                key={i}
-                className="flex min-h-14 flex-wrap items-center gap-3 border-b border-line py-2 last:border-b-0"
-              >
-                <span className="flex min-w-0 flex-1 basis-40 flex-col">
+              <li key={i} className={sg.item}>
+                <span className={sg.itemBody}>
                   <span className="text-label font-semibold text-ink">{product.name}</span>
                   <span className="text-caption text-ink-mute">{product.priceText}</span>
                 </span>
@@ -145,38 +150,42 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
               </li>
             ))}
           </ul>
-        </Panel>
+        </GlassCard>
       ) : (
-        <CatalogueNotice
-          failed={catalogue.failed}
-          retry={catalogue.retry}
-          copy={{
-            notRead: STAFF_COPY.shopMenuCatalogueNotRead,
-            failed: STAFF_COPY.shopMenuCatalogueFailed
-          }}
-        />
+        <>
+          <h2 className="text-heading font-semibold text-on-ground">This drop&apos;s menu</h2>
+          <CatalogueNotice
+            failed={catalogue.failed}
+            retry={catalogue.retry}
+            copy={{
+              notRead: STAFF_COPY.shopMenuCatalogueNotRead,
+              failed: STAFF_COPY.shopMenuCatalogueFailed
+            }}
+          />
+        </>
       )}
 
       {(v.pastDrops ?? []).length ? (
-        <>
-          <SectionHeading>Past drops</SectionHeading>
-          <Panel>
-            <ul className="flex flex-col">
-              {(v.pastDrops ?? []).map((past, i) => (
-                <li key={i} className="flex flex-col border-b border-line py-2 last:border-b-0">
+        <GlassCard title="Past drops">
+          <ul className={sg.list}>
+            {(v.pastDrops ?? []).map((past, i) => (
+              <li key={i} className={sg.item}>
+                <span className={sg.itemBody}>
                   <span className="text-label font-semibold text-ink">
                     {past.label} <span className="font-normal text-ink-mute">{past.when}</span>
                   </span>
                   <span className="text-caption text-ink-mute">{past.detail}</span>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        </>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
       ) : null}
-      <Button variant="secondary" onClick={onBack}>
-        Back to Shop
-      </Button>
+      <div>
+        <Button variant="secondary" onClick={onBack}>
+          Back to Shop
+        </Button>
+      </div>
     </div>
   );
 }
@@ -188,7 +197,12 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
 export function ShopLive({ v }: { v: OpsVals }) {
   const [schedule, setSchedule] = useState(false);
   const [statusExample, setStatusExample] = useState(false);
-  if (statusExample) return <CustomerStatusExample v={v} back={() => setStatusExample(false)} />;
+  if (statusExample)
+    return (
+      <SubPage>
+        <CustomerStatusExample v={v} back={() => setStatusExample(false)} />
+      </SubPage>
+    );
   if (schedule) return <ScheduleAndDrop v={v} onBack={() => setSchedule(false)} />;
   const entries = (v.liveScreen?.tabs?.entries ?? []).filter((entry) => !entry.primary);
   const find = (label: string) => entries.find((entry) => entry.label === label);
@@ -198,50 +212,63 @@ export function ShopLive({ v }: { v: OpsVals }) {
   );
   const others = entries.filter((entry) => !KNOWN.has(String(entry.label)));
   return (
-    <div className="w-full">
-      <PageTitle title="Shop" subtitle="Your customer-facing shop settings." />
-      <SellTabs v={v} />
-      {!v.sheet?.isCloseDrop ? <ShopOverrideNotice value={v.liveShopOverride} /> : null}
-      <Panel>
-        {status ? (
-          <OpenRow title={status.label} detail={v.drop2.stateText} onOpen={status.go} />
-        ) : null}
-        {FIRST.map((label) => entryRow(find(label)))}
-      </Panel>
-      <SectionHeading>Payments, schedule &amp; appearance</SectionHeading>
-      <Panel>
-        {entryRow(find('Payment methods'))}
-        <OpenRow
-          title="Opening schedule & drop"
-          detail="Open window, capacity and sold-out state"
-          onOpen={() => setSchedule(true)}
-        />
-        {entryRow(find('Shop texts'))}
-        {others.map((entry) => entryRow(entry))}
-        {previews.length ? (
-          <TaskRow
-            title="Customer preview"
-            detail="Shop, checkout and order status"
-            action={
-              <span className="flex flex-wrap justify-end gap-2">
-                {previews.map(([entry, label]) => (
-                  <Button
-                    key={String(entry.id)}
-                    variant="secondary"
-                    onClick={
-                      String(entry.label) === 'Preview order status'
-                        ? () => setStatusExample(true)
-                        : entry.go
-                    }
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </span>
-            }
-          />
-        ) : null}
-      </Panel>
+    <div className={sg.page}>
+      <div className={sg.head}>
+        <PageTitle onGround title="Shop" subtitle="Your customer-facing shop settings." />
+        <SellTabs v={v} onGround />
+      </div>
+      {!v.sheet?.isCloseDrop && v.liveShopOverride ? (
+        <div className={sg.flow}>
+          <ShopOverrideNotice value={v.liveShopOverride} />
+        </div>
+      ) : null}
+      <div className={sg.group}>
+        <GlassCard title="Shop status & rules">
+          <div className={cx(glassStyles.glassRows, stockGlass.taskRows)}>
+            {status ? (
+              <OpenRow title={status.label} detail={v.drop2.stateText} onOpen={status.go} />
+            ) : null}
+            {FIRST.map((label) => entryRow(find(label)))}
+          </div>
+        </GlassCard>
+        <GlassCard title="Payments, schedule & appearance">
+          <div className={cx(glassStyles.glassRows, stockGlass.taskRows)}>
+            {entryRow(find('Payment methods'))}
+            <OpenRow
+              title="Opening schedule & drop"
+              detail="Open window, capacity and sold-out state"
+              onOpen={() => setSchedule(true)}
+            />
+            {entryRow(find('Shop texts'))}
+            {others.map((entry) => entryRow(entry))}
+          </div>
+          {previews.length ? (
+            <div className={sg.well}>
+              <TaskRow
+                title="Customer preview"
+                detail="Shop, checkout and order status"
+                action={
+                  <span className="flex flex-wrap justify-end gap-2">
+                    {previews.map(([entry, label]) => (
+                      <Button
+                        key={String(entry.id)}
+                        variant="secondary"
+                        onClick={
+                          String(entry.label) === 'Preview order status'
+                            ? () => setStatusExample(true)
+                            : entry.go
+                        }
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </span>
+                }
+              />
+            </div>
+          ) : null}
+        </GlassCard>
+      </div>
     </div>
   );
 }

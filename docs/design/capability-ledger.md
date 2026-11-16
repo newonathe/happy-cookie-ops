@@ -115,6 +115,8 @@ the local database only; applying it to the hosted database needs Ethan's separa
 
 ## Sell, Shop and Account (`src/components/live/sell/`, `src/components/live/account/`)
 
+16 November espresso-glass reconciliation: the existing controls below remain reachable; no capability was removed. Displayed-row stage/payment summaries were added without changing order/payment authority. Orders and customer detail/message/removal use light subpages, Customers has an explicit ground, and settings retain the frosted sheet. Synthetic CLI checks and focused regressions cover the new surface/copy boundary; full-cycle and owner acceptance remain separate.
+
 | Today's capability                                                                                                         | New home                                                                          | Evidence         |
 | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------- |
 | Orders: review banner, filters with counts, search, split preview, flavour tally, quick next action, Customer messages     | `OrdersLive`; groups follow the reference, each row keeps its status word         | test, screenshot |

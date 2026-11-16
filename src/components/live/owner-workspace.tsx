@@ -507,8 +507,7 @@ export function OwnerWorkspace({
     );
   const active = v.dockNav.find((item) => item.active);
   const pageForm = pageFormOf(v);
-  // Released forms, including Customers, need the frosted sheet over glass pages.
-  const ground = pageForm ? 'form' : screen;
+  const ground = pageForm?.body === CustomersLive ? 'customers' : pageForm ? 'form' : screen;
   const back = pageForm
     ? pageForm.close
     : v.liveStock?.bakePlan?.open

@@ -9,6 +9,8 @@ Status: **Done** matches the mockup's structure on real data. **Partial** works,
 ported prototype screen or sheet. **Missing** has no home yet. **Not a feature** is mockup tooling. Done means checked
 on the 4186 preview with synthetic data; it is not hosted, device or owner acceptance.
 
+**16 November Sell update:** Orders/detail, Payments, Shop and Customers keep the existing capability coverage while adopting the approved espresso glass treatment. Customers uses an explicit ground from every origin; other settings and customer subpages keep light surfaces. Synthetic CLI phone/wide and source tests are engineering evidence only; hosted transactions, physical-device and unaided-owner acceptance remain separate.
+
 ## How the mockup is organized
 
 - Frame: quiet left directory, thin top bar with location and Account, then the page.

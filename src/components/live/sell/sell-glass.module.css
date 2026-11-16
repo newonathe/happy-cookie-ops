@@ -1,0 +1,392 @@
+/*
+ * Sell on espresso glass. The card recipe, split bar and stat tiles are shared (`@/components/ui/glass`), and the ground
+ * chips, notices and tiles come from Stock's glass file; this file holds only the Sell page layout, the order rows and
+ * the pipeline board. Same washes as Money and Stock. Module rules beat Tailwind utilities (those sit in a layer), so
+ * anything the glass card or these rows set is set here, not with a utility class.
+ */
+.page {
+  display: flex;
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+.page > * {
+  min-width: 0;
+}
+.narrow {
+  max-width: 900px;
+}
+@media (min-width: 651px) {
+  .page {
+    gap: 24px;
+  }
+}
+@media (max-width: 650px) {
+  .page {
+    overflow-x: clip;
+  }
+}
+
+/* The header block (title, section tabs, chips) is one flow item with its own tight spacing. */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.head > div {
+  margin-bottom: 0;
+}
+.head :global(h1) {
+  margin: 0;
+}
+
+/* Banners and the shop-status notice sit on the ground as they are: light surfaces with dark text. */
+.flow {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+.flow:empty {
+  display: none;
+}
+.flow > * {
+  margin: 0;
+}
+
+/* Search row on the ground. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.search input {
+  min-width: 0;
+  flex: 1;
+}
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* A plain div that wears the glass card (the summary): not a labelled region, so a page keeps only its real regions. */
+.card {
+  width: 100%;
+}
+div.card:hover {
+  translate: none;
+}
+.cardHead {
+  display: flex;
+  min-height: 44px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.cardHead > h2 {
+  margin: 0;
+}
+
+/* Tiles: two across on a phone, up to four. */
+.tiles {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+}
+@media (min-width: 651px) {
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+.tileNote {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-ink-mute);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  line-height: 1.3;
+}
+.tileNote.ok {
+  color: var(--color-ok);
+  font-weight: 600;
+}
+
+/* ---- Orders: stage cards, one column on a phone, a pipeline board from lg ---------------------------------------- */
+.board {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+.stage {
+  min-width: 0;
+}
+/* An empty stage takes no room on a phone and stays a column on the board. */
+.stage.stageEmpty {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .board {
+    display: grid;
+    grid-auto-columns: minmax(260px, 1fr);
+    grid-auto-flow: column;
+    align-items: start;
+    gap: 24px;
+    overflow-x: auto;
+    padding: 4px 4px 36px;
+    margin: -4px -4px -36px;
+  }
+  .stage.stageEmpty {
+    display: flex;
+  }
+}
+.stageHead {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+}
+.stageHead > h2 {
+  margin: 0;
+}
+.stageDot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.stageRows {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+.none {
+  margin: 0;
+  color: var(--color-ink-mute);
+  font-size: var(--text-caption);
+}
+
+/* One order: white .65, radius 14, at least 56 px. The row opens it; a button stays only for a next step. */
+.order {
+  display: flex;
+  min-height: 56px;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding-right: 12px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+.order:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.open {
+  display: flex;
+  min-width: 0;
+  min-height: 56px;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0 10px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+}
+.open:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+}
+.total {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-ink-mute);
+  font-size: var(--text-caption);
+}
+.next {
+  margin: 0 0 8px 16px;
+}
+@media (min-width: 1024px) {
+  .order {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 0 12px;
+  }
+  .open {
+    flex: none;
+    padding: 12px 14px;
+  }
+  .next {
+    align-self: flex-end;
+    margin: 0 14px 0 0;
+    white-space: nowrap;
+  }
+}
+
+/* Tally chips: light chips on a light card. */
+.tally {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+}
+.tally > li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  font-size: var(--text-caption);
+}
+
+/* ---- Lists inside a card: references, the drop menu, past drops ------------------------------------------------- */
+.list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+.item {
+  display: flex;
+  min-height: 56px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+.itemBody {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 10rem;
+  flex-direction: column;
+}
+.itemOpen {
+  display: flex;
+  min-width: 0;
+  min-height: 44px;
+  flex: 1 1 10rem;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+}
+.itemOpen:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.tick {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+.figureText {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.foot {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+
+/* Shop: settings rows are glass rows; the drop meter is a thin bar inside a light well. */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rows > button,
+.well {
+  min-height: 56px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.65);
+  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+}
+.rows > button {
+  border: 0;
+  padding: 10px 16px;
+}
+.rows > button:hover {
+  background: rgb(255 255 255 / 0.95);
+}
+.rows > button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.well {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 16px;
+}
+.meter {
+  display: flex;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(58 31 20 / 0.08);
+}
+.group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+  gap: 12px;
+}
+@media (min-width: 651px) {
+  .group {
+    gap: 24px;
+  }
+}
