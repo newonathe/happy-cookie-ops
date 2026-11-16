@@ -587,7 +587,12 @@
 .main[data-screen='pnl'],
 .main[data-screen='inventory'],
 .main[data-screen='grocery'],
-.main[data-screen='suppliers'] {
+.main[data-screen='suppliers'],
+.main[data-screen='orders'],
+.main[data-screen='order'],
+.main[data-screen='reconcile'],
+.main[data-screen='customers'],
+.main[data-screen='drops'] {
   min-height: 0;
   padding: 8px 8px 24px;
   border-color: transparent;
@@ -599,7 +604,12 @@
   .main[data-screen='pnl'],
   .main[data-screen='inventory'],
   .main[data-screen='grocery'],
-  .main[data-screen='suppliers'] {
+  .main[data-screen='suppliers'],
+  .main[data-screen='orders'],
+  .main[data-screen='order'],
+  .main[data-screen='reconcile'],
+  .main[data-screen='customers'],
+  .main[data-screen='drops'] {
     padding: 8px 8px 96px;
   }
 }

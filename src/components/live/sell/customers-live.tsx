@@ -13,7 +13,11 @@ import {
   TaskRow
 } from '@/components/ui/owner-kit';
 import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
+import { cx } from '@/components/ui/cx';
+import { GlassCard, glassStyles } from '@/components/ui/glass';
+import { SubPage, stockGlass } from '@/components/live/stock/stock-glass';
 import { SellTabs } from './sell-shared';
+import sg from './sell-glass.module.css';
 
 function saveFile(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
@@ -39,7 +43,7 @@ function PrepareMessage({ customer, back }: { customer: CustomerRow; back: () =>
     }
   };
   return (
-    <div className="w-full">
+    <SubPage>
       <PageTitle title="Prepare message" subtitle={customer.name} />
       <Panel>
         <label htmlFor={fieldId} className="flex flex-col gap-1.5">
@@ -73,7 +77,7 @@ function PrepareMessage({ customer, back }: { customer: CustomerRow; back: () =>
           />
         </div>
       </Panel>
-    </div>
+    </SubPage>
   );
 }
 
@@ -108,7 +112,7 @@ function RemoveContact({
     else setProblem(REMOVE_WORDS[answer]);
   };
   return (
-    <div className="w-full">
+    <SubPage>
       <PageTitle title="Remove contact details" subtitle={customer.name} />
       {problem ? (
         <div className="mb-3">
@@ -153,7 +157,7 @@ function RemoveContact({
           />
         </div>
       </Panel>
-    </div>
+    </SubPage>
   );
 }
 
@@ -176,7 +180,7 @@ function CustomerDetail({
   if (page === 'remove')
     return <RemoveContact customer={customer} customers={customers} back={() => go('detail')} />;
   return (
-    <div className="w-full">
+    <SubPage>
       <PageTitle title={customer.name} subtitle={customer.orderCountText} />
       <Panel>
         <FactRow label="Mobile">{customer.mobile || 'Not given'}</FactRow>
@@ -219,7 +223,7 @@ function CustomerDetail({
           Back to customers
         </Button>
       </div>
-    </div>
+    </SubPage>
   );
 }
 
@@ -244,63 +248,65 @@ export function CustomersLive({ v }: { v: OpsVals }) {
       />
     );
   return (
-    <div className="w-full">
-      <PageTitle
-        title="Customers/Waitlist"
-        subtitle="Who has ordered, and who is waiting for the next drop."
-      />
-      <SellTabs v={v} active="customers" />
-      <SectionHeading>Customers</SectionHeading>
-      <Panel>
-        {!customers?.loaded ? (
-          <p className="text-caption text-ink-mute">Reading your orders…</p>
-        ) : customers.rows.length === 0 ? (
-          <p className="text-caption text-ink-mute">Nobody has ordered yet.</p>
-        ) : (
-          customers.rows.map((row) => (
-            <OpenRow
-              key={row.key}
-              title={row.name}
-              detail={`${row.orderCountText} · ${row.lastOrderText}`}
-              label="Open customer"
-              onOpen={() => setView({ key: row.key, page: 'detail' })}
-            />
-          ))
-        )}
-      </Panel>
-      <SectionHeading>Waiting for the next drop</SectionHeading>
-      <Panel>
-        {waitlist.length === 0 ? (
-          <p className="text-caption text-ink-mute">Nobody is waiting right now.</p>
-        ) : (
-          <ul className="flex flex-col">
-            {waitlist.map((person, i) => (
-              <li
-                key={i}
-                className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-line py-2 last:border-b-0"
-              >
-                <span className="flex min-w-0 flex-col">
-                  <span className="[overflow-wrap:anywhere] text-label font-semibold text-ink">
-                    {person.name}
-                  </span>
-                  {person.want || person.when ? (
-                    <span className="text-caption text-ink-mute">
-                      {[person.want, person.when].filter(Boolean).join(' · ')}
+    <div className={sg.page}>
+      <div className={sg.head}>
+        <PageTitle
+          onGround
+          title="Customers/Waitlist"
+          subtitle="Who has ordered, and who is waiting for the next drop."
+        />
+        <SellTabs v={v} active="customers" onGround />
+      </div>
+      <div className={sg.group}>
+        <GlassCard title="Customers">
+          {!customers?.loaded ? (
+            <p className={sg.none}>Reading your orders…</p>
+          ) : customers.rows.length === 0 ? (
+            <p className={sg.none}>Nobody has ordered yet.</p>
+          ) : (
+            <div className={cx(glassStyles.glassRows, stockGlass.taskRows)}>
+              {customers.rows.map((row) => (
+                <OpenRow
+                  key={row.key}
+                  title={row.name}
+                  detail={`${row.orderCountText} · ${row.lastOrderText}`}
+                  label="Open customer"
+                  onOpen={() => setView({ key: row.key, page: 'detail' })}
+                />
+              ))}
+            </div>
+          )}
+        </GlassCard>
+        <GlassCard title="Waiting for the next drop">
+          {waitlist.length === 0 ? (
+            <p className={sg.none}>Nobody is waiting right now.</p>
+          ) : (
+            <ul className={sg.list}>
+              {waitlist.map((person, i) => (
+                <li key={i} className={sg.item}>
+                  <span className={sg.itemBody}>
+                    <span className="[overflow-wrap:anywhere] text-label font-semibold text-ink">
+                      {person.name}
                     </span>
-                  ) : null}
-                </span>
-                <Button
-                  variant={person.contacted ? 'ghost' : 'secondary'}
-                  size="sm"
-                  onClick={person.go}
-                >
-                  {person.contacted ? 'Told · tap to clear' : 'Tell them'}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
+                    {person.want || person.when ? (
+                      <span className="text-caption text-ink-mute">
+                        {[person.want, person.when].filter(Boolean).join(' · ')}
+                      </span>
+                    ) : null}
+                  </span>
+                  <Button
+                    variant={person.contacted ? 'ghost' : 'secondary'}
+                    size="sm"
+                    onClick={person.go}
+                  >
+                    {person.contacted ? 'Told · tap to clear' : 'Tell them'}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </GlassCard>
+      </div>
     </div>
   );
 }

@@ -7,7 +7,16 @@ import { Button } from '@/components/ui/button';
 import { SubTabs } from '@/components/ui/sub-tabs';
 
 /** The one section row of Sell. Its Shop tab doubles as the section's settings. */
-export function SellTabs({ v, active }: { v: OpsVals; active?: string }) {
+export function SellTabs({
+  v,
+  active,
+  onGround = false
+}: {
+  v: OpsVals;
+  active?: string;
+  /** True on the espresso ground (the glass Sell pages). */
+  onGround?: boolean;
+}) {
   const tabs = v.liveScreen?.tabs;
   if (!tabs) return null;
   const places = active
@@ -15,7 +24,7 @@ export function SellTabs({ v, active }: { v: OpsVals; active?: string }) {
     : tabs.places;
   return (
     <div className="mb-4">
-      <SubTabs label={tabs.label} tabs={places} refined />
+      <SubTabs label={tabs.label} tabs={places} refined onGround={onGround} />
     </div>
   );
 }

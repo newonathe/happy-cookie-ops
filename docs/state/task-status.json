@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-16",
-    "source_checkpoint": "62392e86e51360908bde9d9cbc7fe48c8dc22bb0",
+    "source_checkpoint": "codex/sell-glass-release-20261116",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -334,11 +334,11 @@
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "Stabilize Home/settings, then deliberately review the separately preserved Sell package; do not repeat the released touch-target work."
+        "next_authorized_unblocked_task": "Preserve accepted Home/settings/Sell surfaces and continue the approved next bounded package."
       },
       "C5": {
         "title": "Sell/payments",
-        "local_status": "partial",
+        "local_status": "Sell glass acceptance in this commit; controls/read guards retained. Full business-cycle acceptance remains incomplete.",
         "full_cycle_accepted": false,
         "accepted_sha": [
           "9a8cf38cac379c10c533eb6d15a36c619a83517d",
@@ -354,7 +354,7 @@
           "C1 protected Orders overlap must be reconciled before overlapping stores change."
         ],
         "external_gates": ["OD-12 owner wording approval."],
-        "next_authorized_unblocked_task": "Use independent customer/payment or till defects; preserve unmerged Orders implementations."
+        "next_authorized_unblocked_task": "Preserve accepted Sell; continue linked customer/payment full-cycle and failure matrices without rebuilding this UI."
       },
       "C6": {
         "title": "Public Shop",
@@ -543,19 +543,19 @@
     },
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
-      "cycle": "C12/C14",
-      "requirement": "Stabilize released glass Home weekly net and settings backgrounds before redesign continues.",
-      "branch": "codex/owner-glass-stabilization-20261116",
-      "source_checkpoint": "62392e86",
-      "behavior": "Signed centavo total and below-zero refund bars; released Customers and settings retain frosted sheet. a4126ff3 adapted without its unaccepted Sell dependency; deploy workflow unchanged.",
-      "evidence": "Implementation85e75ebf: pinned full one-worker verify257files/4169tests+2existingTODO; focused19/offline4, live export29pages/demo build/format, synthetic390/1920 normal/reduced16weekly cases/64form roundtrips, demoE2E90passed/78skipped. Independent Sol/high review:no findings. PR82 checks all applicable jobs green.",
-      "sell_ownership": "Ethan: we own it now. Nine pending files preserved in urgent worktree on a4126ff3; separate and unaccepted.",
-      "released_checkpoint": "PR82 merged62392e86; exact-source guarded release record https://github.com/newonathe/happy-cookie-ops/actions/runs/43844809470. Read successful deployment/schema/Access/post-deploy steps and version there; merge alone is not deployment.",
-      "external_limits": "Synthetic checks do not prove physical-device, authenticated connected journeys or unaided-owner acceptance.",
-      "next": "Deliberate review of the preserved Sell package against accepted deploy.",
-      "status": "engineering accepted; deployment evidence separate; physical-device/owner acceptance incomplete"
+      "cycle": "C5/C12/C14",
+      "requirement": "Deliberately reconcile the preserved Sell glass package against accepted deploy and retain all existing controls and safeguards.",
+      "branch": "codex/sell-glass-release-20261116",
+      "source_checkpoint": "acceptance commit containing this handoff",
+      "base_checkpoint": "d063be4c07a78d2802bb0a95d9ba9cabd7721653",
+      "behavior": "Glass Orders/detail/Payments/Shop/Customers; displayed-row stage counts and guarded payment counts; explicit Customers ground from every origin, all other settings frosted; restored exact payment separators. No business/money-posting/auth/offline/SQL rule change.",
+      "evidence": "Regressions red2failed/9passed -> focused12/12green; CLI390/1920 normal/reduced with filters, ticks, origins, subpages and stale/dropped reads. Full verify/format/build/offline/E2E and independent review in acceptance commit and exact-source CI.",
+      "original_work": "Nine original urgent files remain byte-identical at a4126ff3; all prior worktrees and six stashes preserved. Do not integrate those pending bytes again after this acceptance.",
+      "deployment": "Separate guarded run for PR merge containing acceptance commit; require successful schema/Access/post-deploy checks and Worker version, not merely merge/push.",
+      "external_limits": "No physical-device, authenticated full-cycle or unaided-owner acceptance inferred. Full application remains incomplete.",
+      "next": "Approved Make workspace package, or a demonstrated higher-priority functional gap from existing reconciliation."
     },
     "publishing_authorization": "14–15November2026: release accepted changes through a PR into deploy while software is not in use, after fresh read-only today-open-day check; retain release hold/schema/Access/post-deploy gates. No arbitrary data edits, new resources, schedules or migrations authorized.",
-    "checkpoint_scope": "Accepted PR82 engineering source; deployment is independently evidenced by guarded run43844809470. Per-cycle legacy IDs/statuses below are historical, not replay instructions."
+    "checkpoint_scope": "Acceptance commit containing this file on named branch, based on released d063be4c; pin the actual commit/merge in GitHub before reuse. Deployment, device and owner evidence remain separate."
   }
 }

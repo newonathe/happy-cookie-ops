@@ -4,12 +4,16 @@ import { useSyncExternalStore } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
-import { PageTitle, Panel } from '@/components/ui/owner-kit';
+import { cx } from '@/components/ui/cx';
+import { GlassCard, SplitBar, type SplitPart } from '@/components/ui/glass';
+import { PageTitle } from '@/components/ui/owner-kit';
+import { Notice, Tile, stockGlass } from '@/components/live/stock/stock-glass';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { ordersRead } from '@/lib/orders/orders-read-state';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import { readAtText } from '@/lib/time/read-at-text';
 import { SellSettings, SellTabs } from './sell-shared';
+import sg from './sell-glass.module.css';
 
 /**
  * Payments (client v4): tick each reference you can see in your wallet app. A tick is the owner's
@@ -30,92 +34,113 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
     read.dropped > 0 ? STAFF_COPY.paymentsDropped : stale ? STAFF_COPY.paymentsStale : null;
   const retry = read.retry ? { label: 'Try again', onPress: read.retry } : undefined;
   const header = (
-    <>
+    <div className={sg.head}>
       <PageTitle
+        onGround
         title="Payments"
         subtitle="Open your wallet activity, then tick each reference you can see landing."
         actions={<SellSettings v={v} />}
       />
-      <SellTabs v={v} />
-    </>
+      <SellTabs v={v} onGround />
+    </div>
   );
   if (notRead || failedFirst)
     return (
-      <div className="w-full">
+      <div className={sg.page}>
         {header}
         {failedFirst ? (
           <Banner tone="warn" title={STAFF_COPY.ordersReadFailed} action={retry} />
         ) : (
-          <Panel>
+          <Notice>
             <p role="status" className="text-body text-ink">
               {STAFF_COPY.ordersNotRead}
             </p>
-          </Panel>
+          </Notice>
         )}
       </div>
     );
+  const rows = v.recRows ?? [];
+  const methods = v.recMethods ?? [];
+  // Counts of the rows listed below, nothing more. A list that is incomplete shows no bar and no counts.
+  const ticked = rows.filter((row) => !!row.ticked).length;
+  const parts: SplitPart[] = [
+    { id: 'ticked', label: 'Ticked', value: ticked, tone: 'bg-ok' },
+    { id: 'unticked', label: 'Not ticked', value: rows.length - ticked, tone: 'bg-warn-dot' }
+  ];
   return (
-    <div className="w-full">
+    <div className={sg.page}>
       {header}
-      {stale ? (
-        <div className="mb-4">
-          <Banner
-            tone="warn"
-            title={STAFF_COPY.ordersStale(readAtText(read.readAt as number))}
-            action={retry}
-          />
-        </div>
-      ) : null}
-      {read.dropped > 0 ? (
-        // As on Orders: a good read that had to leave an unreadable order out says so (review note, HCB-002d).
-        <div className="mb-4">
-          <Banner tone="warn" title={STAFF_COPY.ordersDropped(read.dropped)} />
+      {stale || read.dropped > 0 ? (
+        <div className={sg.flow}>
+          {stale ? (
+            <Banner
+              tone="warn"
+              title={STAFF_COPY.ordersStale(readAtText(read.readAt as number))}
+              action={retry}
+            />
+          ) : null}
+          {read.dropped > 0 ? (
+            // As on Orders: a good read that had to leave an unreadable order out says so (review note, HCB-002d).
+            <Banner tone="warn" title={STAFF_COPY.ordersDropped(read.dropped)} />
+          ) : null}
         </div>
       ) : null}
 
-      <Panel tone="hero">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-body font-semibold text-ink">
-            {v.recAllDone && partial ? partial : v.recLeftText}
-          </span>
-          <span className="flex flex-wrap gap-2">
+      <GlassCard
+        title="To check"
+        action={
+          <span className={stockGlass.headTools}>
             <Button variant="secondary" size="sm" onClick={v.recTickAll}>
               Tick all
             </Button>
-            <Button variant="ghost" size="sm" onClick={v.recClear}>
+            <Button variant="secondary" size="sm" onClick={v.recClear}>
               Start over
             </Button>
           </span>
-        </div>
-        {(v.recMethods ?? []).length ? (
-          <div className="mt-3 grid grid-cols-1 gap-2 border-t border-line pt-3 sm:grid-cols-3">
-            {(v.recMethods ?? []).map((method, i) => (
-              <div key={i} className="flex flex-col gap-0.5">
-                <span className="text-caption text-ink-mute">{method.pay}</span>
-                <span className="text-heading font-semibold text-ink">{method.totalText}</span>
+        }
+      >
+        <p className="text-body font-semibold text-ink">
+          {v.recAllDone && partial ? partial : v.recLeftText}
+        </p>
+        {rows.length && !partial ? <SplitBar parts={parts} /> : null}
+        {rows.length && !partial ? (
+          <div role="group" aria-label="References at a glance" className={sg.tiles}>
+            <Tile label="References" labelFirst>
+              {rows.length}
+            </Tile>
+            <Tile label="Ticked" tone="bg-ok" labelFirst>
+              {ticked}
+            </Tile>
+            <Tile label="Not ticked" tone="bg-warn-dot" labelFirst>
+              {rows.length - ticked}
+            </Tile>
+          </div>
+        ) : null}
+        {methods.length ? (
+          <div className={sg.tiles}>
+            {methods.map((method, i) => (
+              <Tile key={i} label={String(method.pay)} textual>
+                {method.totalText}
                 {method.done && !partial ? (
-                  <span className="text-label font-semibold text-ok">All matched · {method.n}</span>
+                  <span className={cx(sg.tileNote, sg.ok)}>All matched · {method.n}</span>
                 ) : null}
                 {method.leftText ? (
-                  <span className="text-caption text-ink-mute">{method.leftText} unticked</span>
+                  <span className={sg.tileNote}>{method.leftText} unticked</span>
                 ) : null}
-              </div>
+              </Tile>
             ))}
           </div>
         ) : null}
-      </Panel>
+      </GlassCard>
 
-      <Panel title="References">
-        {(v.recRows ?? []).length === 0 ? (
-          <p className="text-caption text-ink-mute">No payment references to check.</p>
+      <GlassCard title="References">
+        {rows.length === 0 ? (
+          <p className={sg.none}>No payment references to check.</p>
         ) : (
-          <ul className="flex flex-col">
-            {(v.recRows ?? []).map((row, i) => (
-              <li
-                key={i}
-                className="flex flex-wrap items-center gap-3 border-b border-line py-2.5 last:border-b-0"
-              >
-                <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center">
+          <ul className={sg.list}>
+            {rows.map((row, i) => (
+              <li key={i} className={sg.item}>
+                <label className={sg.tick}>
                   <input
                     type="checkbox"
                     checked={!!row.ticked}
@@ -124,11 +149,7 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
                     className="size-6 shrink-0 accent-[var(--color-brand)]"
                   />
                 </label>
-                <button
-                  type="button"
-                  onClick={row.open}
-                  className="flex min-h-11 min-w-0 flex-1 basis-40 flex-col justify-center text-left focus-visible:outline-2 focus-visible:outline-brand"
-                >
+                <button type="button" onClick={row.open} className={sg.itemOpen}>
                   <span className="text-label font-semibold break-all text-ink">{row.ref}</span>
                   <span className="text-caption text-ink-mute">
                     {row.id} · {row.name} · {row.pay}
@@ -140,16 +161,16 @@ export function PaymentsLive({ v }: { v: OpsVals }) {
                 {row.flagged ? (
                   <span className="text-label font-semibold text-danger">{row.flagText}</span>
                 ) : null}
-                <span className="text-label font-semibold text-ink">{row.amountText}</span>
+                <span className={cx(sg.figureText, 'text-ink')}>{row.amountText}</span>
               </li>
             ))}
           </ul>
         )}
-        <div className="mt-2 flex items-baseline justify-between border-t border-line pt-3">
+        <div className={sg.foot}>
           <span className="text-label font-semibold text-ink">Total in the book</span>
-          <span className="text-heading font-semibold text-ink">{v.recTotalText}</span>
+          <span className={cx(sg.figureText, 'text-heading text-ink')}>{v.recTotalText}</span>
         </div>
-      </Panel>
+      </GlassCard>
 
       {v.recAllDone && !stale && !(read.dropped > 0) ? (
         <Banner
