@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-16",
-    "source_checkpoint": "1605e5898eb24134b830fbed1cacc83a2f360d45",
+    "source_checkpoint": "62392e86e51360908bde9d9cbc7fe48c8dc22bb0",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -546,15 +546,16 @@
       "cycle": "C12/C14",
       "requirement": "Stabilize released glass Home weekly net and settings backgrounds before redesign continues.",
       "branch": "codex/owner-glass-stabilization-20261116",
-      "source_checkpoint": "1605e589",
+      "source_checkpoint": "62392e86",
       "behavior": "Signed centavo total and below-zero refund bars; released Customers and settings retain frosted sheet. a4126ff3 adapted without its unaccepted Sell dependency; deploy workflow unchanged.",
-      "evidence": "Focused regressions fail on released source and pass after; independent Sol/high source review clear. Full one-worker verify, format/build/offline and390/1920 synthetic CLI results recorded in acceptance commit.",
+      "evidence": "Implementation85e75ebf: pinned full one-worker verify257files/4169tests+2existingTODO; focused19/offline4, live export29pages/demo build/format, synthetic390/1920 normal/reduced16weekly cases/64form roundtrips, demoE2E90passed/78skipped. Independent Sol/high review:no findings. PR82 checks all applicable jobs green.",
       "sell_ownership": "Ethan: we own it now. Nine pending files preserved in urgent worktree on a4126ff3; separate and unaccepted.",
-      "released_checkpoint": "PR81 /1605e589, run43761884378, versiondf69670d-47db-48b2-86f7-cda034b44c8d; candidate publication/release tracked separately in GitHub.",
+      "released_checkpoint": "PR82 merged62392e86; exact-source guarded release record https://github.com/newonathe/happy-cookie-ops/actions/runs/43844809470. Read successful deployment/schema/Access/post-deploy steps and version there; merge alone is not deployment.",
       "external_limits": "Synthetic checks do not prove physical-device, authenticated connected journeys or unaided-owner acceptance.",
-      "next": "Deliberate review of the preserved Sell package against accepted deploy."
+      "next": "Deliberate review of the preserved Sell package against accepted deploy.",
+      "status": "engineering accepted; deployment evidence separate; physical-device/owner acceptance incomplete"
     },
     "publishing_authorization": "14–15November2026: release accepted changes through a PR into deploy while software is not in use, after fresh read-only today-open-day check; retain release hold/schema/Access/post-deploy gates. No arbitrary data edits, new resources, schedules or migrations authorized.",
-    "checkpoint_scope": "Released PR81 baseline; per-cycle legacy IDs/statuses below are historical and require current-source reconciliation, not automatic replay."
+    "checkpoint_scope": "Accepted PR82 engineering source; deployment is independently evidenced by guarded run43844809470. Per-cycle legacy IDs/statuses below are historical, not replay instructions."
   }
 }
