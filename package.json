@@ -52,7 +52,7 @@
     "test:live:smoke": "node scripts/test-live-smoke.mjs"
   },
   "dependencies": {
-    "next": "16.4.1",
+    "next": "16.4.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "@supabase/ssr": "0.7.0",
