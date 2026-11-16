@@ -2978,3 +2978,11 @@ Historical text below predates the accepted PR81 release and rewritten branch re
 - **Method:** Sonnet builder (high) for logic slices; independent review by the Sonnet `security-reviewer` (high), Opus only for SQL, RLS and money-posting diffs; one writer at a time; synthetic visual captures at 390 and 1440 px, labelled synthetic.
 
 Hosted, device and owner acceptance remain pending.
+
+## Owner glass stabilization —16November2026
+
+Accepted implementation85e75ebf, merged by PR82 as62392e86, based on released1605e589. Home keeps signed exact-cent weekly net and below-zero refund days; all released settings/Customers forms keep the frosted sheet. Local a4126ff3 reviewed and adapted without its unaccepted Customers glass dependency. Nine Sell files remain separate in urgent; Ethan confirmed ownership. No applied SQL, protected demo, workflow, real-data or memory changes.
+
+Failing regressions on deploy; focused19PASS; pinned full one-worker verify257files/4169tests+2TODO; format/live static export29pages/demo build/offline4PASS; CLI390/1920 normal+reduced:16money scenarios/64form roundtrips, captures inspected; demoE2E90PASS/78skipped; production audit all severities0; independent Sol/high source review clear. Initial hook stopped at one unused formatter lint warning; removed without assertion/timeout changes, full rerun passed. PR82 CI43842962439 all applicable jobs passed. Two read-only safe-use checks found no today-or-later open days; old open days untouched.
+
+Deployment evidence is separate: exact-source run43844809470 records schema, release hold, Access, post-deploy checks and Worker version. Starting release was PR81/versiondf69670d; physical-device/unaided-owner and full-product gates remain open. Do not infer them from synthetic or CI passes.

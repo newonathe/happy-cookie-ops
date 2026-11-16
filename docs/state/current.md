@@ -2,21 +2,21 @@
 
 **The complete application objective remains active and incomplete.** Read [full-goal.md](full-goal.md), then [next-goal.md](next-goal.md). A passing slice is not whole-product acceptance.
 
-## Released baseline and stabilization — 16 November 2026
+## Accepted stabilization — 16 November 2026
 
-The released source is `origin/agent/codex/MP-04-g1-feasibility` at `1605e589` (PR81, Stock glass). Release run `43761884378` passed all eight jobs; Worker version `df69670d-47db-48b2-86f7-cda034b44c8d`. Its read-only schema gate verified 88 migrations and 180 public functions. The old Gate16 blocker below is archived, not a current instruction to apply migrations. `origin/main` is `5734db41`, two Stock commits behind deploy. Recheck GitHub before integration.
+**Accepted source:** `62392e86e51360908bde9d9cbc7fe48c8dc22bb0`, PR82 merge into `agent/codex/MP-04-g1-feasibility`; implementation `85e75ebf`. This source supersedes PR81 as the engineering checkpoint. The PR checks passed: unit/types/lint/format, production build, browser flows, Docker visual regression, Storybook and performance. Local pinned full one-worker verify passed257files/4169tests+2existingTODO; focused19, offline4, live export29pages, demo build, format and synthetic390/1920 normal/reduced checks passed. Independent Sol/high review: no findings. Details are in the acceptance commit/history.
 
-Stabilization branch: `codex/owner-glass-stabilization-20261116`, in the separate `happy-cookie-owner-glass-stabilization` worktree based on deploy. It adapts unpublished `a4126ff3`: all released settings forms, including Customers, retain the frosted sheet. Customers is not glass on deploy; the pending Sell package must not be assumed. Home now sums signed centavos and draws refund-heavy days below zero. Focused regressions fail on deploy and pass after the fix; full gate and synthetic CLI evidence belong in the acceptance commit. The deploy workflow remains byte-identical, using secret-based email digests.
+**Deployment is a separate state.** The immutable guarded release record is [run43844809470](https://github.com/newonathe/happy-cookie-ops/actions/runs/43844809470), for exact source62392e86. Read its conclusion, schema/Access/post-deploy steps and Worker version before claiming deployment; merging or pushing alone is insufficient. Starting released baseline was PR81/1605e589, versiondf69670d-47db-48b2-86f7-cda034b44c8d, with88migrations/180publicfunctions. No migrations changed here. `origin/main` remains5734db41; use deploy, not main, as the product base.
 
-**Sell ownership:** Ethan confirmed “we own it now” on 16 November. Seven modified tracked files and two new Sell files remain in `happy-cookie-ops-bazaar-urgent` on `emergency/bazaar-20261114` at `a4126ff3`. They are preserved, separate, unaccepted and not part of this stabilization. No wholesale copy/reset onto deploy. Existing worktrees and six stashes remain intact.
+**Sell ownership:** Ethan confirmed “we own it now” on16November. Seven modified tracked files and two new Sell files remain in `happy-cookie-ops-bazaar-urgent` on `emergency/bazaar-20261114` at `a4126ff3`. They are separate, unaccepted and excluded from PR82. The settings fix was adapted without a4126ff3's Customers-glass assumption: released Customers still needs the frosted sheet. No wholesale copy/reset onto deploy. All existing worktrees and six stashes are preserved. The accepted handoff is in this stabilization worktree/deploy; urgent's pending checkout has not been overwritten.
 
-**Release authority:** the 14–15 November authorization permits accepted changes through a PR into deploy while the software is not in use, after a fresh read-only check of today's open bazaar days. Preserve release hold, schema, Access and post-deploy checks. No new resource, migration, data edit or schedule is authorized. Deployment evidence, physical-device evidence and unaided-owner acceptance remain separate. See next-goal.md for the next bounded package.
+**Next:** deliberately review the preserved Sell package against this accepted source; see next-goal.md. Full-application, physical-device and unaided-owner acceptance remain incomplete. The14–15November authorization allows accepted changes via PR into deploy while software is not in use, after a fresh read-only no-open-today check. Both checks before PR82 merge returned today_or_later0; old open days were left untouched. Preserve release hold/schema/Access/post-deploy gates and secret-based email digests. No new resource, migration, data edit, memory change or schedule is authorized.
 
 ## Historical engineering checkpoints
 
 The following records retain earlier, sometimes pre-rewrite IDs as historical evidence only. Do not select a branch or replay migrations from them. Current source and release authority are above; detailed accepted slices remain in current-history.md.
 
-## Accepted production and current Stock slice
+## Historical production and Stock evidence
 
 The connected P0 Make/Bazaar boundary is accepted locally through67a827b. Historical progression: Backend SQL74–78 is accepted as `938e9f0ef9dddbac03210a039f10ae5ec994199c`; exact transfer protocol as `dd616bdf8d4244a32985d6615719c04843c820e9`; scoped durable recovery/receipts as `08350552d5639ca993d48c29c90f79db3d3d8496`. All are pushed with full verification/formatting; latest full204files/3279tests+2TODO. Actual two-reset connected stock/Money, packaging, stranded-return, reversal, role and compatibility proof is preserved in Git/history. No hosted changes.
 
