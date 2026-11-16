@@ -195,6 +195,23 @@ describe('Home, espresso glass', () => {
     expect(loss.getByText('Loss this month')).toBeTruthy();
   });
 
+  it.each([
+    [[160.15, -420.42, 0, 0, 0, 0, 0], '−₱260.27'],
+    [[0, 0, 0, 0, 0, 0, -0.01], '−₱0.01'],
+    [[0.1, 0.2, -0.3, 0, 0, 0, 0], '₱0.00'],
+    [[12345678.91, 0, 0, 0, 0, 0, -0.01], '₱12,345,678.90']
+  ])('keeps the signed weekly net to the centavo: %s', (amounts, expected) => {
+    const week = amounts.map((income, i) => ({ label: `Day ${i}`, income, today: i === 6 }));
+    const view = render(<HomeLive v={build({ week }).v} />);
+    const region = view.getByRole('region', { name: 'Sales this week' });
+    const card = within(region);
+    // One animated visual and one stable screen-reader figure must agree.
+    expect(region.querySelector('span.font-mono')?.textContent).toBe(expected + expected);
+    expect(
+      card.getByText(`Day 0: ₱${amounts[0]!.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`)
+    ).toBeTruthy();
+  });
+
   it('draws sales this week as seven bars, today last, with the figures as a list', () => {
     const week = ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'].map((label, i) => ({
       label,
@@ -204,13 +221,15 @@ describe('Home, espresso glass', () => {
     const view = render(<HomeLive v={build({ week }).v} />);
     const card = within(view.getByRole('region', { name: 'Sales this week' }));
     expect(card.getAllByText('₱1,850.00').length).toBeGreaterThan(0);
-    expect(card.getByText('Today: ₱400')).toBeTruthy();
-    expect(card.getByText('Sun: ₱-50')).toBeTruthy();
+    expect(card.getByText('Today: ₱400.00')).toBeTruthy();
+    expect(card.getByText('Sun: −₱50.00')).toBeTruthy();
+    expect(card.getByText('Below the line: refunds exceed sales.')).toBeTruthy();
+    expect(view.container.querySelector('[data-net-cents="-5000"]')).not.toBeNull();
     const bars = view.container.querySelectorAll('[style*="--i"]');
     const heights = [...bars]
       .map((bar) => (bar as HTMLElement).style.height)
       .filter((height) => height.endsWith('%'));
-    expect(heights).toEqual(['25%', '100%', '33.33333333333333%']);
+    expect(heights).toEqual(['12.5%', '50%', '2.083333333333333%', '16.666666666666664%']);
     cleanup();
     const loading = render(<HomeLive v={build({ week: null }).v} />);
     expect(

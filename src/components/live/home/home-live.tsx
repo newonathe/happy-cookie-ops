@@ -15,56 +15,68 @@ import { ListRow, PanelLink } from '@/components/ui/owner-patterns';
 import styles from './home-live.module.css';
 
 const WORK_SHOWN = 3;
-const peso = (pesos: number) =>
-  `₱${Math.round(pesos).toLocaleString('en-PH', { maximumFractionDigits: 0 })}`;
+const weekPeso = (pesos: number) =>
+  `${pesos < 0 ? '−' : ''}₱${Math.abs(pesos).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /**
  * Sales this week: income on each of the last seven days as bars, today last and solid. One series, so no legend; the
  * busiest day and today carry their figure, every bar names its day and figure on hover, and a screen reader gets the
- * seven figures as a list. A day of refunds only draws no bar.
+ * seven exact figures as a list. Refund-heavy days extend below the zero line.
  */
 function WeekBars({ week }: { week: NonNullable<LiveHome['week']> }) {
-  const total = week.reduce((sum, day) => sum + day.income, 0);
-  const max = Math.max(0, ...week.map((day) => day.income));
-  const best = max > 0 ? week.findIndex((day) => day.income === max) : -1;
+  const totalCents = week.reduce((sum, day) => sum + Math.round(day.income * 100), 0);
+  const max = Math.max(0, ...week.map((day) => Math.abs(day.income)));
+  const refunds = week.some((day) => day.income < 0);
+  const best = max > 0 ? week.findIndex((day) => Math.abs(day.income) === max) : -1;
   return (
     <>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span className="font-mono text-[26px] leading-none font-semibold text-ink tabular-nums md:text-[32px]">
-          <CountMoney pesos={Math.max(0, total)} />
+          <CountMoney pesos={Math.abs(totalCents) / 100} sign={totalCents < 0 ? '−' : ''} />
         </span>
         <span className="text-caption text-ink-mute">taken in the last 7 days, less refunds</span>
       </div>
       <ul className="sr-only">
         {week.map((day, i) => (
           <li key={i}>
-            {day.today ? 'Today' : day.label}: {peso(day.income)}
+            {day.today ? 'Today' : day.label}: {weekPeso(day.income)}
           </li>
         ))}
       </ul>
       <div className={styles.weekChart} aria-hidden="true">
         {week.map((day, i) => {
-          const pct = max > 0 ? Math.max(0, day.income) / max : 0;
+          const pct = max > 0 ? (Math.abs(day.income) / max) * (refunds ? 0.5 : 1) : 0;
           // The busiest day's figure is left out beside today's, where the two would touch.
-          const labelled = day.income > 0 && (day.today || (i === best && best < week.length - 2));
+          const labelled =
+            day.income !== 0 && (day.today || (i === best && best < week.length - 2));
           return (
             <div
               key={i}
               className={styles.weekCol}
-              title={`${day.today ? 'Today' : day.label}: ${peso(day.income)}`}
+              title={`${day.today ? 'Today' : day.label}: ${weekPeso(day.income)}`}
             >
-              <div className={styles.weekPlot}>
+              <div className={cx(styles.weekPlot, refunds && styles.weekSigned)}>
                 {labelled ? (
                   <span
                     className={styles.weekValue}
-                    style={{ bottom: `calc(${pct * 100}% + 6px)` }}
+                    style={
+                      day.income < 0
+                        ? { top: `calc(50% + ${pct * 100}% + 2px)` }
+                        : { bottom: `calc(${(refunds ? 50 : 0) + pct * 100}% + 6px)` }
+                    }
                   >
-                    {peso(day.income)}
+                    {Math.abs(day.income) < 10000
+                      ? weekPeso(day.income)
+                      : `${day.income < 0 ? '−' : ''}₱${Math.abs(day.income).toLocaleString('en-PH', { notation: 'compact', maximumFractionDigits: 1 })}`}
                   </span>
                 ) : null}
                 {pct > 0 ? (
                   <span
-                    className={cx(styles.weekBar, day.today ? 'bg-ok' : 'bg-ok/45')}
+                    data-net-cents={Math.round(day.income * 100)}
+                    className={cx(
+                      styles.weekBar,
+                      day.income < 0 ? styles.weekRefund : day.today ? 'bg-ok' : 'bg-ok/45'
+                    )}
                     style={{ height: `${pct * 100}%`, '--i': i } as CSSProperties}
                   />
                 ) : null}
@@ -76,6 +88,9 @@ function WeekBars({ week }: { week: NonNullable<LiveHome['week']> }) {
           );
         })}
       </div>
+      {refunds ? (
+        <p className="text-caption text-ink-mute">Below the line: refunds exceed sales.</p>
+      ) : null}
     </>
   );
 }
