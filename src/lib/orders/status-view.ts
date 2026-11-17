@@ -52,7 +52,11 @@ function whenText(iso: string | null): string {
 }
 
 /** `2026-10-08` and `10:30` (or `campus`) as `Thu, Oct 8 · 10:30 AM`. */
-export function pickupLabel(date: string | null, window: string | null): string {
+export function pickupLabel(
+  date: string | null,
+  window: string | null,
+  savedLabel?: string
+): string {
   if (!date) return '';
   const [y, m, d] = date.split('-').map(Number) as [number, number, number];
   const day = new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
@@ -62,11 +66,11 @@ export function pickupLabel(date: string | null, window: string | null): string 
     day: 'numeric'
   });
   if (!window) return day;
-  return day + ' · ' + (window === 'campus' ? 'Campus pickup' : clockLabel(window));
+  return day + ' · ' + (window === 'campus' ? (savedLabel ?? 'Campus pickup') : clockLabel(window));
 }
 
 export function pickupText(order: OrderStatusView): string {
-  return pickupLabel(order.pickupDate, order.pickupWindow);
+  return pickupLabel(order.pickupDate, order.pickupWindow, order.pickupLabel);
 }
 
 function step(what: string, sub: string, done: boolean, now: boolean) {
@@ -144,7 +148,7 @@ export function statusCust(
           ),
           step(
             'Ready for pickup',
-            reached(2) ? S.stepReady : campus ? S.stepCampus : S.stepAddress,
+            reached(2) ? S.stepReady : campus ? (order.pickupLabel ?? S.stepCampus) : S.stepAddress,
             reached(2),
             reached(1) && !reached(2)
           ),

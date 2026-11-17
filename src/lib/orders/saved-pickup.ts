@@ -41,18 +41,19 @@ export function isSavedPickupWindow(value: unknown): value is string {
 export function savedPickupText(
   date: unknown,
   window: unknown,
-  form: 'short' | 'long' = 'short'
+  form: 'short' | 'long' = 'short',
+  savedLabel?: string
 ): string {
   if (!isSavedPickupDate(date))
     return form === 'long' ? STAFF_COPY.pickupMissingLong : STAFF_COPY.pickupMissing;
   // From here the text depends only on the validated date and time: both forms read the same, and
   // every missing or invalid time reads "time not saved". Validated values cannot contain '|'.
   const time = isSavedPickupWindow(window) ? window : '';
-  const key = date + '|' + time;
+  const key = JSON.stringify([date, time, savedLabel ?? null]);
   const cached = LABELS.get(key);
   if (cached !== undefined) return cached;
   const text = time
-    ? pickupLabel(date, time)
+    ? pickupLabel(date, time, savedLabel)
     : pickupLabel(date, null) + ' · ' + STAFF_COPY.pickupNoTime;
   if (LABELS.size >= LABEL_LIMIT) LABELS.delete(LABELS.keys().next().value as string);
   LABELS.set(key, text);

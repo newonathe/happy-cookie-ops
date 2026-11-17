@@ -67,6 +67,7 @@ export interface LiveOrderRulesFields {
   pickupCutoffHour: number;
   campusFrom: string;
   campusTo: string;
+  campusLabel?: string;
 }
 
 /** The boxes and add-ons form's fields (B4). Money is pesos here; the runtime converts to centavos. */

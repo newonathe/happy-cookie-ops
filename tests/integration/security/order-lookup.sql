@@ -1,6 +1,6 @@
 -- B2 lookup and pickup rules with real SQL roles; all data rolls back.
 --
--- get_shop_order_rules(): anon may read exactly the eight customer-facing rule values.
+-- get_shop_order_rules(): anon may read exactly the nine customer-facing rule values.
 -- find_order(): order number + phone in, status token or null out; every miss is the same null and
 -- the tries on one order are limited. The harness neutralises each rule line in turn
 -- (scripts/test-db-security.py, LOOKUP_MUTATIONS) and requires the matching case to fail.
@@ -81,12 +81,16 @@ declare r jsonb := public.get_shop_order_rules();
 begin
   perform pg_temp.assert_ok(a, 'rules_keys_are_the_customer_ones',
     (select array_agg(k order by k) from jsonb_object_keys(r) k)
-      = array['campus_from', 'campus_to', 'lead_max_days', 'lead_min_days', 'pickup_cutoff_hour',
+      = array['campus_from', 'campus_label', 'campus_to', 'lead_max_days', 'lead_min_days', 'pickup_cutoff_hour',
               'pickup_days', 'pickup_from_hour', 'unpaid_hold_hours']);
   perform pg_temp.assert_ok(a, 'rules_values_are_the_defaults',
     r -> 'pickup_days' = '[1, 4]'::jsonb and (r ->> 'lead_min_days')::integer = 1 and (r ->> 'lead_max_days')::integer = 14
     and (r ->> 'pickup_from_hour')::integer = 9 and (r ->> 'pickup_cutoff_hour')::integer = 17
-    and r ->> 'campus_from' = '14:00' and r ->> 'campus_to' = '15:30' and (r ->> 'unpaid_hold_hours')::integer = 24);
+    and r ->> 'campus_from' = '14:00' and r ->> 'campus_to' = '15:30'
+    and r ->> 'campus_label' = 'Campus' and (r ->> 'unpaid_hold_hours')::integer = 24);
+  perform pg_temp.assert_ok(a, 'rules_location_default_is_allowed',
+    char_length(r ->> 'campus_label') between 1 and 80 and r ->> 'campus_label' = btrim(r ->> 'campus_label')
+    and (r ->> 'campus_label') !~ '[[:cntrl:]]');
   perform pg_temp.assert_ok(a, 'rules_leak_no_abuse_limits', r::text not like '%max_unpaid%');
 end $$;
 

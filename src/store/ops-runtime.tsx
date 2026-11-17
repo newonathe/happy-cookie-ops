@@ -4453,7 +4453,8 @@ export class OpsRuntime extends OpsProvider {
         pickupFromHour: r.pickup_from_hour,
         pickupCutoffHour: r.pickup_cutoff_hour,
         campusFrom: r.campus_from,
-        campusTo: r.campus_to
+        campusTo: r.campus_to,
+        campusLabel: r.campus_label ?? 'Campus'
       },
       save: (f: LiveOrderRulesFields) => void this.saveOrderRulesForm(f, sh.updatedAt ?? null),
       close: () => this.closeSheet()
@@ -4473,7 +4474,8 @@ export class OpsRuntime extends OpsProvider {
       pickup_from_hour: f.pickupFromHour,
       pickup_cutoff_hour: f.pickupCutoffHour,
       campus_from: f.campusFrom.trim(),
-      campus_to: f.campusTo.trim()
+      campus_to: f.campusTo.trim(),
+      ...(f.campusLabel !== undefined ? { campus_label: f.campusLabel.trim() } : {})
     };
     const problem = orderRulesError(fields);
     if (problem) return void this.toast(problem, 'warn');
@@ -9570,7 +9572,10 @@ export class OpsRuntime extends OpsProvider {
     const sync = this.orderSync;
     return list.map((row) => {
       const order = sync.find(String(row.id));
-      return { ...row, pickup: savedPickupText(order?.pickupDate, order?.pickupWindow) };
+      return {
+        ...row,
+        pickup: savedPickupText(order?.pickupDate, order?.pickupWindow, 'short', order?.pickupLabel)
+      };
     });
   }
 
@@ -9601,7 +9606,7 @@ export class OpsRuntime extends OpsProvider {
     }));
     return {
       ...od,
-      pickup: savedPickupText(order.pickupDate, order.pickupWindow, 'long'),
+      pickup: savedPickupText(order.pickupDate, order.pickupWindow, 'long', order.pickupLabel),
       lines: [...(od.lines ?? []), ...extra],
       link: link ?? '',
       linkSent: link ? STAFF_COPY.linkHint : STAFF_COPY.linkErased,
