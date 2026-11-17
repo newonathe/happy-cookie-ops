@@ -596,6 +596,39 @@ describe('the sampler flavours (migration 20260101007000)', () => {
     close: vi.fn()
   });
 
+  it('hides the sampler item selector but keeps the saved product id with multiple sets', () => {
+    const p = {
+      ...props(['hc'], 'sampler-2'),
+      sets: [
+        { id: 'sampler-1', name: 'Six-cookie box' },
+        { id: 'sampler-2', name: 'Sampler box' }
+      ]
+    };
+    const view = render(<OrderExtrasForm liveOrderExtras={p} />);
+    expect(view.container.querySelector('select[name="samplerProductId"]')).toBeNull();
+    expect(
+      view.container.querySelector<HTMLInputElement>(
+        'input[type="hidden"][name="samplerProductId"]'
+      )?.value
+    ).toBe('sampler-2');
+    fireEvent.submit(view.container.querySelector('form')!);
+    expect((p.save.mock.calls[0]![0] as LiveOrderExtrasFields).samplerProductId).toBe('sampler-2');
+  });
+
+  it('keeps the existing first-set default when enabling a sampler with no saved item', () => {
+    const p = {
+      ...props(null, ''),
+      sets: [
+        { id: 'sampler-1', name: 'First box' },
+        { id: 'sampler-2', name: 'Second box' }
+      ]
+    };
+    const view = render(<OrderExtrasForm liveOrderExtras={p} />);
+    fireEvent.click(view.container.querySelector<HTMLInputElement>('[name="samplerOn"]')!);
+    fireEvent.submit(view.container.querySelector('form')!);
+    expect((p.save.mock.calls[0]![0] as LiveOrderExtrasFields).samplerProductId).toBe('sampler-1');
+  });
+
   it('shows every cookie with its own toggle and saves the ticked ones in menu order', () => {
     const p = props(['hc']);
     const view = render(<OrderExtrasForm liveOrderExtras={p} />);

@@ -257,3 +257,7 @@ Payment confirmation in the public summary/progress now follows saved pay_state 
 ## B17 — Owner status example, 10 November
 
 Shop’s Order status preview now shows a labelled read-only example beside the real private status flow. It preserves the owner’s Shop context and customer draft, exposes no actual order/bank data, offers no private lookup/reorder/payment action, and returns locally to Shop. The old broken private-route delegation is replaced; actual customer status and other preview entries remain. Failing-first regression,28focused tests and independent review pass. Final type/lint/two-reset SQL/browser/no-RPC/populated-cart/context/resize/Note-and-Back-bounds/visual checks pass; Live build passes; full verification is recorded by the acceptance commit; owner acceptance remains open.
+
+## Client settings controls — 17 November
+
+Products and prices closes its local settings before routing. Payment methods exposes the existing QR picker and prevents saving during upload. At Cine's explicit16November request, the visible sampler-item selector is removed; its exact saved/default product ID, sampler toggle, flavour selection, pricing and old orders are retained through the hidden field. No backend or business rule changes. Focused failing-first checks, synthetic phone/wide upload/navigation/toggle visuals and independent review passed; full gates belong to the acceptance commit.

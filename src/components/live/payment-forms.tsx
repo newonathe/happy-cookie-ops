@@ -17,40 +17,69 @@ function fieldValue(form: HTMLFormElement, name: string): string {
 }
 
 /**
- * A file picker that uploads straight to the shop-media bucket and drops the returned bucket
- * path into an optional uncontrolled sibling field. Controlled forms keep that path in state
- * through their upload callback instead. The file's own name never reaches the bucket (the runtime
+ * A file picker that uploads straight to the shop-media bucket and notifies the owning form
+ * when its path is ready. Controlled forms keep that path in state through their upload callback.
+ * The file's own name never reaches the bucket (the runtime
  * generates one); a refusal is toasted by the runtime and leaves the field as it was.
  */
 export function UploadField({
   upload,
-  target,
+  onUploaded,
   label,
-  hint = '(PNG, JPEG or WebP, up to 2 MB)'
+  hint = '(PNG, JPEG or WebP, up to 2 MB)',
+  onBusyChange
 }: {
   upload: (file: File) => Promise<string | null>;
-  target?: React.RefObject<HTMLInputElement | null>;
+  onUploaded?: (path: string) => void;
   label: string;
   /** The size note after the label; flavour photos are resized for her, so theirs differs. */
   hint?: string;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState<{
+    text: string;
+    failed: boolean;
+  } | null>(null);
   const onChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
     if (!file) return;
     setBusy(true);
+    onBusyChange?.(true);
+    setUploadMessage(null);
     try {
       const path = await upload(file);
-      if (path && target?.current) target.current.value = path;
+      if (path) {
+        onUploaded?.(path);
+        setUploadMessage({ text: 'Image uploaded. Save changes to keep it.', failed: false });
+      } else {
+        setUploadMessage({
+          text: 'Upload did not complete. The image path in this form is unchanged.',
+          failed: true
+        });
+      }
+    } catch {
+      setUploadMessage({
+        text: 'Upload failed. The image path in this form is unchanged; try again.',
+        failed: true
+      });
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
       input.value = '';
     }
   };
   return (
     <label style={labelStyle}>
-      <span style={smallLabel}>{busy ? 'Uploading…' : label + ' ' + hint}</span>
+      <span role={busy ? 'status' : undefined} style={smallLabel}>
+        {busy ? 'Uploading…' : label + ' ' + hint}
+      </span>
+      {uploadMessage ? (
+        <span role={uploadMessage.failed ? 'alert' : 'status'} style={smallLabel}>
+          {uploadMessage.text}
+        </span>
+      ) : null}
       <input
         type="file"
         accept="image/png,image/jpeg,image/webp"
@@ -71,7 +100,8 @@ export function PayList({ livePay }: { livePay: LivePay }) {
         </span>
       ) : null}
       <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
-        Customers pick from the methods marked shown. Turn a method off to stop offering it.
+        Select a method to edit its account details or upload or replace its QR image. Customers
+        pick from methods marked shown.
       </span>
       <button onClick={livePay.addNew} style={primaryButton}>
         Add a payment method
@@ -100,6 +130,9 @@ export function PayList({ livePay }: { livePay: LivePay }) {
                   {row.active ? 'Shown' : 'Not shown'} · {row.hasQr ? 'QR set' : 'no QR'}
                   {row.detail ? ' · ' + row.detail : ''}
                 </span>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-brand)' }}>
+                  {row.hasQr ? 'Replace QR' : 'Upload QR'}
+                </span>
               </span>
             </button>
           ))}
@@ -115,8 +148,10 @@ export function PayList({ livePay }: { livePay: LivePay }) {
 
 export function PayEditForm({ editing }: { editing: NonNullable<LivePay['editing']> }) {
   const qrRef = useRef<HTMLInputElement>(null);
+  const [uploadPending, setUploadPending] = useState(false);
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (uploadPending) return;
     const form = event.currentTarget;
     const order = fieldValue(form, 'sortOrder').trim();
     editing.save({
@@ -172,7 +207,14 @@ export function PayEditForm({ editing }: { editing: NonNullable<LivePay['editing
           style={inputStyle}
         />
       </label>
-      <UploadField upload={editing.upload} target={qrRef} label="Upload the QR image" />
+      <UploadField
+        upload={editing.upload}
+        onUploaded={(path) => {
+          if (qrRef.current) qrRef.current.value = path;
+        }}
+        label="Upload a QR image (optional)"
+        onBusyChange={setUploadPending}
+      />
       <label style={labelStyle}>
         <span style={smallLabel}>Order in the list (0-99)</span>
         <input
@@ -191,7 +233,7 @@ export function PayEditForm({ editing }: { editing: NonNullable<LivePay['editing
         <input name="active" type="checkbox" defaultChecked={editing.active} />
         <span style={smallLabel}>Shown to customers</span>
       </label>
-      <button type="submit" style={primaryButton}>
+      <button type="submit" style={primaryButton} disabled={uploadPending}>
         Save payment method
       </button>
       <button type="button" onClick={editing.cancel} style={secondaryButton}>

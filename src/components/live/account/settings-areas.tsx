@@ -80,9 +80,16 @@ export function SettingsAreaPage({
         <div key={i}>
           <SectionHeading>{group.title}</SectionHeading>
           <Panel>
-            {(group.rows ?? []).map((row, j) => (
-              <OpenRow key={j} title={row.label} detail={row.value} onOpen={row.go} />
-            ))}
+            {(group.rows ?? []).map((row, j) => {
+              const go =
+                area === 'make' && row.label === 'Products and prices'
+                  ? () => {
+                      onBack();
+                      row.go();
+                    }
+                  : row.go;
+              return <OpenRow key={j} title={row.label} detail={row.value} onOpen={go} />;
+            })}
           </Panel>
         </div>
       ))}

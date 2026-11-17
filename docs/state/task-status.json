@@ -216,8 +216,8 @@
     "S3 bazaar days, built 14 October 2026 (docs/state/bazaar-days.md, S3 as built; branch claude/bazaar-days-s3; local only, no new migration, the trial stays at 67 of 67): the day review (src/lib/bazaar/review.ts formats bazaar_summary only), losses, more stock, Close the day with the leftover split, carrying over, fees, target, typed cost per cookie, Close the event with the drop number, the books held line. Tests: bazaar-close, bazaar-review, bazaar-store, ops-runtime-bazaar-close, bazaar-screens; the live smoke suite runs the whole two-day event (14 steps). Ethan 14 October: no bake for bazaar cookies; all four small forms in S3."
   ],
   "full_application": {
-    "updated_client_date": "2026-11-16",
-    "source_checkpoint": "codex/restore-light-palette-20261116",
+    "updated_client_date": "2026-11-17",
+    "source_checkpoint": "codex/client-settings-controls-20261116",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -544,18 +544,18 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C5/C12/C14",
-      "requirement": "Restore confirmed pre-espresso light palette while preserving current structure, hierarchy, typography, controls and behaviour.",
-      "branch": "codex/restore-light-palette-20261116",
+      "requirement": "Restore reachable owner settings controls: Make products link, explicit QR upload with pending-save guard, and no unnecessary sampler selector.",
+      "branch": "codex/client-settings-controls-20261116",
       "source_checkpoint": "acceptance commit containing this handoff",
-      "base_checkpoint": "b4ae7d60cdf6f46ddc5f2ae775fb1b4281370cdb",
-      "behavior": "Owner light neutrals from d110109c; neutral ground/cards/edges/shadows and scoped dark text. Existing brand/status colours and all business behaviour retained.",
-      "evidence": "CLI390/1920 before/after13views retains content, geometry and fonts; screenshots inspected; normal/reduced Home negative/refund/large weeks and Sell/settings flow checks; independent static review clear. Full gates in acceptance commit/CI.",
+      "base_checkpoint": "d4fb741aa9f6f2badf6d70f33e246a16a8ab29e1",
+      "behavior": "Make settings closes before existing destination; existing QR upload feedback/discovery and save guard; exact saved/default sampler ID retained hidden. No backend/business rule change.",
+      "evidence": "Failing-first QR CTA/busy/programmatic-submit evidence ->87focused tests; CLI390/1920 reduced motion with synthetic PNG, native chooser, Make navigation, sampler retention and no overflow/errors; screenshots inspected; independent Sol/high review clear. Full gates in acceptance commit/CI.",
       "original_work": "Nine original urgent files remain byte-identical at a4126ff3; all prior worktrees and six stashes preserved. Do not integrate those pending bytes again after this acceptance.",
       "deployment": "Separate guarded run for PR merge containing acceptance commit; require successful schema/Access/post-deploy checks and Worker version, not merely merge/push.",
       "external_limits": "No physical-device, authenticated full-cycle or unaided-owner acceptance inferred. Full application remains incomplete.",
-      "next": "16November client settings/customer concerns, after palette reversal; owner-side QR upload confirmed."
+      "next": "Public customer Access app and coupled release checks (explicit17November requirement), isolated pickup migration-kit, then safe duplicate removal and sticker-choice images."
     },
     "publishing_authorization": "14–15November2026: release accepted changes through a PR into deploy while software is not in use, after fresh read-only today-open-day check; retain release hold/schema/Access/post-deploy gates. No arbitrary data edits, new resources, schedules or migrations authorized.",
-    "checkpoint_scope": "Acceptance commit containing this file on named branch, based on released deployb4ae7d60; pin actual commit/merge in GitHub. Deployment, device and owner evidence remain separate."
+    "checkpoint_scope": "Acceptance commit containing this note on named branch. Palette8fe6bced/PR86/deploydf330dfd is released in run44053269537, Worker51a6a2d1-de39-43e9-8065-afc9017a2690. Securityd4fb741a/PR87/mergefd6b3834 is also released in run44063373038, Worker d0685c79-7a89-4640-b224-a44cdcf043da. Settings controls/public ordering/pickup have separate acceptance/deploy gates."
   }
 }
