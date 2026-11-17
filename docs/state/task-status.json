@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-16",
-    "source_checkpoint": "codex/sell-glass-release-20261116",
+    "source_checkpoint": "codex/restore-light-palette-20261116",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -338,7 +338,7 @@
       },
       "C5": {
         "title": "Sell/payments",
-        "local_status": "Sell glass acceptance in this commit; controls/read guards retained. Full business-cycle acceptance remains incomplete.",
+        "local_status": "Sell48012c53 accepted via PR84/deployb4ae7d60; controls/read guards retained. Light-palette acceptance is the current active slice. Full business-cycle acceptance remains incomplete.",
         "full_cycle_accepted": false,
         "accepted_sha": [
           "9a8cf38cac379c10c533eb6d15a36c619a83517d",
@@ -538,24 +538,24 @@
         "external_gates": [
           "Compatible main merges and existing private-trial deployment authorized10November; exact target/Access/release-hold and read-only hosted schema checks remain gates. Hosted migrations/data edits/financial-policy changes and native-device/unaided-owner acceptance remain separately gated."
         ],
-        "next_authorized_unblocked_task": "Finish candidate full gate, run pinned CI and publish main/private trial only through existing release gates; continue independent engineering if external access/schema blocks deployment."
+        "next_authorized_unblocked_task": "Finish light-palette acceptance/release, then16November client settings/customer concerns. Release only through deploy PR and fresh safe-use gates; no main merge or hosted migration approval inferred."
       }
     },
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C5/C12/C14",
-      "requirement": "Deliberately reconcile the preserved Sell glass package against accepted deploy and retain all existing controls and safeguards.",
-      "branch": "codex/sell-glass-release-20261116",
+      "requirement": "Restore confirmed pre-espresso light palette while preserving current structure, hierarchy, typography, controls and behaviour.",
+      "branch": "codex/restore-light-palette-20261116",
       "source_checkpoint": "acceptance commit containing this handoff",
-      "base_checkpoint": "d063be4c07a78d2802bb0a95d9ba9cabd7721653",
-      "behavior": "Glass Orders/detail/Payments/Shop/Customers; displayed-row stage counts and guarded payment counts; explicit Customers ground from every origin, all other settings frosted; restored exact payment separators. No business/money-posting/auth/offline/SQL rule change.",
-      "evidence": "Regressions red2failed/9passed -> focused12/12green; CLI390/1920 normal/reduced with filters, ticks, origins, subpages and stale/dropped reads. Full verify/format/build/offline/E2E and independent review in acceptance commit and exact-source CI.",
+      "base_checkpoint": "b4ae7d60cdf6f46ddc5f2ae775fb1b4281370cdb",
+      "behavior": "Owner light neutrals from d110109c; neutral ground/cards/edges/shadows and scoped dark text. Existing brand/status colours and all business behaviour retained.",
+      "evidence": "CLI390/1920 before/after13views retains content, geometry and fonts; screenshots inspected; normal/reduced Home negative/refund/large weeks and Sell/settings flow checks; independent static review clear. Full gates in acceptance commit/CI.",
       "original_work": "Nine original urgent files remain byte-identical at a4126ff3; all prior worktrees and six stashes preserved. Do not integrate those pending bytes again after this acceptance.",
       "deployment": "Separate guarded run for PR merge containing acceptance commit; require successful schema/Access/post-deploy checks and Worker version, not merely merge/push.",
       "external_limits": "No physical-device, authenticated full-cycle or unaided-owner acceptance inferred. Full application remains incomplete.",
-      "next": "Approved Make workspace package, or a demonstrated higher-priority functional gap from existing reconciliation."
+      "next": "16November client settings/customer concerns, after palette reversal; owner-side QR upload confirmed."
     },
     "publishing_authorization": "14–15November2026: release accepted changes through a PR into deploy while software is not in use, after fresh read-only today-open-day check; retain release hold/schema/Access/post-deploy gates. No arbitrary data edits, new resources, schedules or migrations authorized.",
-    "checkpoint_scope": "Acceptance commit containing this file on named branch, based on released d063be4c; pin the actual commit/merge in GitHub before reuse. Deployment, device and owner evidence remain separate."
+    "checkpoint_scope": "Acceptance commit containing this file on named branch, based on released deployb4ae7d60; pin actual commit/merge in GitHub. Deployment, device and owner evidence remain separate."
   }
 }

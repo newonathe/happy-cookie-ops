@@ -23,8 +23,9 @@ async function capture(page, name) {
 async function sheet(page, value) {
   await page.waitForFunction(v => document.querySelector('main')?.getAttribute('data-screen') === v, value);
   assert.equal(await page.locator('main').getAttribute('data-screen'), value);
-  const background = await page.locator('main').evaluate(el => getComputedStyle(el).backgroundImage);
-  assert.equal(background === 'none', value !== 'form', `wrong ${value} surface`);
+  const background = await page.locator('main').evaluate(el => { const s = getComputedStyle(el); return { image: s.backgroundImage, color: s.backgroundColor }; });
+  const transparent = background.image === 'none' && background.color === 'rgba(0, 0, 0, 0)';
+  assert.equal(transparent, value !== 'form', `wrong ${value} surface`);
 }
 (async () => {
   mkdirSync(out, { recursive: true });
@@ -64,7 +65,7 @@ async function sheet(page, value) {
       // Customers has an explicit ground on every origin; every other form stays frosted.
       for (const screen of ['today', 'pnl', 'inventory', 'orders', 'reconcile', 'drops', 'bazaar', 'settings']) {
         await go(page, screen); await open(page, 'customers'); await sheet(page, 'customers');
-        assert.equal(await page.getByRole('heading', { name: 'Customers/Waitlist', exact: true }).evaluate(el => getComputedStyle(el).color), 'rgb(255, 241, 230)');
+        assert.equal(await page.getByRole('heading', { name: 'Customers/Waitlist', exact: true }).evaluate(el => getComputedStyle(el).color), 'rgb(36, 38, 43)');
         await fits(page); await close(page);
         for (const form of ['dropState', 'rules']) { await open(page, form); await sheet(page, 'form'); await fits(page); await close(page); }
       }

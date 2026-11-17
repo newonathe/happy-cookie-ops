@@ -1,7 +1,5 @@
 /*
- * Money on espresso glass. The card recipe, split bars, ring and count-ups are shared (`@/components/ui/glass`);
- * this file holds only the Money layout, the light chips and rows, and the chart and category bars.
- * Colours are tokens or the same white or coffee washes the glass recipe uses.
+ * Money page layout, light chips and rows, chart and category bars.
  */
 .money {
   display: grid;
@@ -53,7 +51,7 @@ section.subpage:hover {
   translate: none;
 }
 
-/* Period, filter and chip rows: a light chip that stays readable on the espresso and on a white card. */
+/* Period, filter and chip rows use neutral light surfaces. */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -62,9 +60,9 @@ section.subpage:hover {
 .chip {
   min-height: 44px;
   padding: 0 14px;
-  border: 1px solid rgb(58 31 20 / 0.15);
+  border: 1px solid var(--color-owner-line);
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.88);
+  background: var(--color-owner-raise);
   color: var(--color-ink);
   font-size: var(--text-caption);
   font-weight: 600;
@@ -86,28 +84,27 @@ section.subpage:hover {
   outline-offset: 2px;
 }
 
-/* The period chips sit on the espresso ground: closed ones are light glass with light text, the chosen one is solid
-   white with ink text (ink on the dark ground would vanish). */
+/* The period chips retain their selected state on the neutral app ground. */
 .groundChips .chip {
-  border-color: rgb(255 255 255 / 0.22);
-  background: rgb(255 255 255 / 0.12);
-  color: var(--color-on-ground);
+  border-color: var(--color-owner-line);
+  background: var(--color-owner-soft);
+  color: var(--color-owner-muted);
 }
 .groundChips .chip:hover {
-  background: rgb(255 255 255 / 0.2);
+  background: var(--color-owner-raise);
 }
 .groundChips .chip[aria-pressed='true'] {
-  border-color: rgb(255 255 255 / 1);
-  background: rgb(255 255 255 / 1);
+  border-color: var(--color-owner-line);
+  background: var(--color-surface);
   color: var(--color-ink);
 }
 
 /* Notices on the page flow: a light surface with dark text. */
 .notice {
-  border: 1px solid rgb(255 255 255 / 0.35);
+  border: 1px solid var(--color-owner-line);
   border-radius: 16px;
-  background: rgb(255 255 255 / 0.92);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-owner-glass);
   color: var(--color-ink);
 }
 .notice:empty {
@@ -127,8 +124,8 @@ section.subpage:hover {
 .statChip {
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
   color: var(--color-ink-mute);
   font-size: var(--text-caption);
 }
@@ -146,8 +143,8 @@ section.subpage:hover {
 .plainRow {
   min-height: 56px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
 }
 .rows > li > button {
   display: flex;
@@ -158,10 +155,10 @@ section.subpage:hover {
   text-align: left;
 }
 .rows > li > button:hover {
-  background: rgb(255 255 255 / 0.95);
+  background: var(--color-owner-soft);
 }
 .rows > li > button[aria-pressed='true'] {
-  background: rgb(255 255 255 / 0.95);
+  background: var(--color-owner-soft);
   box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 .plainRow {
@@ -199,7 +196,7 @@ section.subpage:hover {
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgb(58 31 20 / 0.08);
+  background: color-mix(in srgb, var(--color-owner-ink) 8%, transparent);
 }
 .catFill {
   display: block;
@@ -219,10 +216,10 @@ section.subpage:hover {
   display: flex;
   flex-direction: column;
   padding: 16px 24px;
-  border: 1px solid rgb(255 255 255 / 0.35);
+  border: 1px solid var(--color-owner-line);
   border-radius: 24px;
-  background: rgb(255 255 255 / 0.88);
-  box-shadow: 0 12px 32px rgb(0 0 0 / 0.28);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-owner-glass);
   color: var(--color-ink);
 }
 .footer > div {

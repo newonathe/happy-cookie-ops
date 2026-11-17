@@ -3,7 +3,7 @@
 .glassMore {
   min-height: 44px;
   border-radius: 14px;
-  background: rgb(58 31 20 / 0.06);
+  background: color-mix(in srgb, var(--color-owner-ink) 6%, transparent);
 }
 
 /* ---- Home layout: 12 columns, gap 24; one column and gap 12 on a phone ---------------------------------- */
@@ -81,13 +81,13 @@
   padding: 12px 16px 12px 12px;
   border: 0;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
   color: var(--color-ink);
   text-align: left;
 }
 .tile:hover {
-  background: rgb(255 255 255 / 0.95);
+  background: var(--color-owner-soft);
 }
 .tileIcon {
   display: grid;
@@ -171,7 +171,7 @@
   height: 120px;
   align-items: flex-end;
   justify-content: center;
-  border-bottom: 1px solid rgb(58 31 20 / 0.18);
+  border-bottom: 1px solid var(--color-owner-line);
 }
 .weekBar {
   display: block;

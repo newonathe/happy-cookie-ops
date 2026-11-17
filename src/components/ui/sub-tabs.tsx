@@ -16,7 +16,7 @@ export interface SubTabsProps {
   tabs: SubTab[];
   quiet?: boolean;
   refined?: boolean;
-  /** On the espresso ground: a closed tab is light glass with light text, so it stays readable on the dark page. */
+  /** Applies the light-surface tab treatment used on owner app backgrounds. */
   onGround?: boolean;
 }
 
@@ -81,7 +81,11 @@ function tabStyle(
         }
       : {}),
     ...(onGround && !active
-      ? { background: 'rgb(255 255 255 / 0.12)', color: 'var(--color-on-ground)' }
+      ? {
+          background: 'var(--color-owner-soft)',
+          color: 'var(--color-owner-muted)',
+          boxShadow: 'inset 0 0 0 1px var(--color-owner-line)'
+        }
       : {})
   };
 }
@@ -112,7 +116,7 @@ export function SubTabs({
             tab.active
               ? undefined
               : onGround
-                ? { background: 'rgb(255 255 255 / 0.2)' }
+                ? { background: 'var(--color-owner-raise)' }
                 : { background: refined ? 'var(--color-raise)' : '#F3EFEC' }
           }
           activeStyle={{ transform: 'scale(.98)' }}

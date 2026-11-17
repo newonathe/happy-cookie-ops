@@ -1,7 +1,6 @@
 /*
- * Sell on espresso glass. The card recipe, split bar and stat tiles are shared (`@/components/ui/glass`), and the ground
- * chips, notices and tiles come from Stock's glass file; this file holds only the Sell page layout, the order rows and
- * the pipeline board. Same washes as Money and Stock. Module rules beat Tailwind utilities (those sit in a layer), so
+ * Sell shares the neutral card recipe and stock chip styles; this file holds only the Sell page layout, the order rows and
+ * the pipeline board. Module rules beat Tailwind utilities (those sit in a layer), so
  * anything the glass card or these rows set is set here, not with a utility class.
  */
 .page {
@@ -186,11 +185,11 @@ div.card:hover {
   gap: 4px 12px;
   padding-right: 12px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
 }
 .order:hover {
-  background: rgb(255 255 255 / 0.95);
+  background: var(--color-owner-soft);
 }
 .open {
   display: flex;
@@ -265,8 +264,8 @@ div.card:hover {
 .tally > li {
   padding: 6px 14px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
   font-size: var(--text-caption);
 }
 
@@ -287,8 +286,8 @@ div.card:hover {
   gap: 4px 12px;
   padding: 8px 16px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
 }
 .itemBody {
   display: flex;
@@ -336,8 +335,8 @@ div.card:hover {
   gap: 12px;
   padding: 10px 16px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
 }
 
 /* Shop: settings rows are glass rows; the drop meter is a thin bar inside a light well. */
@@ -350,15 +349,15 @@ div.card:hover {
 .well {
   min-height: 56px;
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.65);
-  box-shadow: inset 0 0 0 1px rgb(58 31 20 / 0.05);
+  background: var(--color-owner-raise);
+  box-shadow: inset 0 0 0 1px var(--color-owner-line);
 }
 .rows > button {
   border: 0;
   padding: 10px 16px;
 }
 .rows > button:hover {
-  background: rgb(255 255 255 / 0.95);
+  background: var(--color-owner-soft);
 }
 .rows > button:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -377,7 +376,7 @@ div.card:hover {
   height: 12px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgb(58 31 20 / 0.08);
+  background: color-mix(in srgb, var(--color-owner-ink) 8%, transparent);
 }
 .group {
   display: grid;

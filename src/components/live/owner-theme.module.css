@@ -4,6 +4,7 @@
   --color-ink-soft: var(--color-owner-muted);
   --color-ink-mute: var(--color-owner-muted);
   --color-ink-faint: var(--color-owner-faint);
+  --color-on-ground: var(--color-owner-ink);
   --color-app: var(--color-owner-app);
   --color-raise: var(--color-owner-raise);
   --color-inset: var(--color-owner-raise);
