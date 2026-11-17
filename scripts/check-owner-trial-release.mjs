@@ -1,14 +1,27 @@
 import { createHash } from 'node:crypto';
-import { readFile, writeFile, unlink } from 'node:fs/promises';
+import { readFile, writeFile, unlink, readdir } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import {
+  CUSTOMER_ACCESS_HOSTNAME,
+  OWNER_ACCESS_APP_ID,
+  OWNER_DENIED_ROUTES,
+  PUBLIC_CUSTOMER_ROUTES,
+  assertOwnerRouteDenied,
+  assertPublicRoute,
+  buildCustomerAccessManifest,
+  emittedPublicResourcePaths,
+  emittedArtifactPath,
+  requireCustomerAccessAppId,
+  validateCustomerAccessGate
+} from './customer-access.mjs';
 
 export const TARGET = Object.freeze({
   account: '0cb53d2d20d41cf04207d2b78d39de2d',
-  app: 'fe0eb039-b3b5-4acc-b533-d33868810e89',
+  app: OWNER_ACCESS_APP_ID,
   worker: 'happy-cookie-owner-trial',
-  hostname: 'happy-cookie-owner-trial.admin-kethai.workers.dev',
+  hostname: CUSTOMER_ACCESS_HOSTNAME,
   accountSubdomain: 'admin-kethai',
   policy: 'cb34c3f9-1d8f-4ef7-8f69-6d3b5514a1d5',
   provider: '0337f851-5c16-4722-83a8-fda354c0818e',
@@ -138,17 +151,32 @@ async function snapshot(afterDeploy = false) {
   const accessToken = process.env.CLOUDFLARE_ACCESS_API_TOKEN;
   const workerToken = process.env.CLOUDFLARE_API_TOKEN;
   if (!accessToken || !workerToken) fail('Required Cloudflare tokens are missing');
+  const customerAppId = requireCustomerAccessAppId(
+    process.env.TRIAL_PUBLIC_CUSTOMER_ACCESS_APP_ID,
+    TARGET.app
+  );
   const base = `/accounts/${TARGET.account}`;
-  const [app, policies, providers, accountSubdomain, subdomain, routes, scripts] =
-    await Promise.all([
-      get(`${base}/access/apps/${TARGET.app}`, accessToken),
-      get(`${base}/access/apps/${TARGET.app}/policies`, accessToken),
-      get(`${base}/access/identity_providers`, accessToken),
-      get(`${base}/workers/subdomain`, workerToken),
-      get(`${base}/workers/scripts/${TARGET.worker}/subdomain`, workerToken),
-      get(`${base}/workers/scripts/${TARGET.worker}/routes`, workerToken),
-      get(`${base}/workers/scripts`, workerToken)
-    ]);
+  const [
+    app,
+    policies,
+    providers,
+    accountSubdomain,
+    subdomain,
+    routes,
+    scripts,
+    customerApp,
+    customerPolicies
+  ] = await Promise.all([
+    get(`${base}/access/apps/${TARGET.app}`, accessToken),
+    get(`${base}/access/apps/${TARGET.app}/policies`, accessToken),
+    get(`${base}/access/identity_providers`, accessToken),
+    get(`${base}/workers/subdomain`, workerToken),
+    get(`${base}/workers/scripts/${TARGET.worker}/subdomain`, workerToken),
+    get(`${base}/workers/scripts/${TARGET.worker}/routes`, workerToken),
+    get(`${base}/workers/scripts`, workerToken),
+    get(`${base}/access/apps/${customerAppId}`, accessToken),
+    get(`${base}/access/apps/${customerAppId}/policies`, accessToken)
+  ]);
   requireExistingWorker(scripts);
   validateGate({
     app,
@@ -159,6 +187,13 @@ async function snapshot(afterDeploy = false) {
     routes,
     emailHashes: process.env.TRIAL_ACCESS_EMAIL_SHA256,
     afterDeploy
+  });
+  validateCustomerAccessGate({
+    appId: customerAppId,
+    privateAppId: TARGET.app,
+    host: TARGET.hostname,
+    app: customerApp,
+    policies: customerPolicies
   });
 }
 
@@ -184,23 +219,29 @@ async function detachCanonicalDomain() {
     fail('Fail-closed Worker domain state could not be verified');
 }
 
-async function assertAnonymousDenied() {
-  const origin = `https://${TARGET.hostname}`;
-  const index = await readFile('build/pages-spike/public/index.html', 'utf8');
-  const jsPath = index.match(/src=["']([^"']+\.js(?:\?[^"']*)?)["']/)?.[1];
-  if (!jsPath) fail('Could not identify the emitted application JavaScript');
-  for (const route of ['/', '/pnl', jsPath, '/sw.js']) {
-    const response = await fetch(new URL(route, origin), {
-      redirect: 'manual',
-      signal: AbortSignal.timeout(15000)
-    });
-    const location = response.headers.get('location') ?? '';
-    if (
-      ![302, 401, 403].includes(response.status) ||
-      (response.status === 302 && !/cloudflareaccess\.com|\/cdn-cgi\/access\//i.test(location))
-    )
-      fail(`Anonymous request was not denied by Access (${route})`);
+async function listEmittedFiles(dir, prefix = '') {
+  const files = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const relative = path.posix.join(prefix, entry.name);
+    if (entry.isDirectory())
+      files.push(...(await listEmittedFiles(path.join(dir, entry.name), relative)));
+    else if (/\.(?:js|mjs|css|woff2?|ttf|otf|png|webmanifest)$/i.test(entry.name))
+      files.push(relative);
   }
+  return files;
+}
+
+async function assertAnonymousCustomerAccess() {
+  const origin = `https://${TARGET.hostname}`;
+  const publicDir = 'build/pages-spike/public';
+  const files = await listEmittedFiles(publicDir);
+  const resources = emittedPublicResourcePaths(files);
+  for (const route of [...PUBLIC_CUSTOMER_ROUTES, ...resources]) {
+    const artifact = emittedArtifactPath(route);
+    const emitted = await readFile(path.join(publicDir, artifact));
+    await assertPublicRoute(fetch, origin, route, emitted);
+  }
+  for (const route of OWNER_DENIED_ROUTES) await assertOwnerRouteDenied(fetch, origin, route);
 }
 
 async function deploy() {
@@ -246,7 +287,7 @@ async function deploy() {
     });
     if (result.status !== 0) fail(`Wrangler deploy failed (${result.status ?? 'spawn error'})`);
     await snapshot(true);
-    await assertAnonymousDenied();
+    await assertAnonymousCustomerAccess();
   } catch (error) {
     if (deployAttempted) {
       try {
@@ -262,14 +303,20 @@ async function deploy() {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  const manifest = process.argv.length === 3 && process.argv[2] === '--manifest';
   const checkOnly = process.argv.length === 3 && process.argv[2] === '--check-only';
   const run = async () => {
-    if (checkOnly) {
+    if (manifest) {
+      console.log(JSON.stringify(buildCustomerAccessManifest(TARGET.hostname), null, 2));
+    } else if (checkOnly) {
       await snapshot(true);
-      await assertAnonymousDenied();
-      console.log('Existing private trial release preflight PASS; no hosted writes.');
+      await assertAnonymousCustomerAccess();
+      console.log('Private owner and public customer release preflight PASS; no hosted writes.');
     } else if (process.argv.length === 2) await deploy();
-    else fail('Supported usage: no arguments to deploy, or --check-only for read-only preflight');
+    else
+      fail(
+        'Supported usage: --manifest, no arguments to deploy, or --check-only for read-only preflight'
+      );
   };
   run().catch((error) => {
     console.error(`Owner-trial release blocked: ${error.message}`);
