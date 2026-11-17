@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { OpsVals } from '@/view-models/vals';
 import {
@@ -11,13 +12,74 @@ import {
   SwapLive
 } from '@/components/live/settings-pages';
 import { MoneyCategoriesLive, TransactionLive } from '@/components/live/money/money-pages';
+import { SettingsAreaPage } from '@/components/live/account/settings-areas';
+import { OpsRuntime } from '@/store/ops-runtime';
+import { AppFrame } from '@/components/shell/app-frame';
+import { useOpsVals } from '@/store/use-ops';
+import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
 
-afterEach(cleanup);
+let live = true;
+vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
+
+afterEach(() => {
+  cleanup();
+  live = true;
+});
 const vals = (over: Record<string, unknown>) =>
   ({ closeSheet: vi.fn(), ...over }) as unknown as OpsVals;
 
 /** Each page calls the engine's own handler, as the locked sheet it replaces does. */
 describe('sheets shown as pages', () => {
+  it('closes Make settings before returning to the current Products destination', () => {
+    const events: string[] = [];
+    const back = vi.fn(() => events.push('back'));
+    const go = vi.fn(() => events.push('go'));
+    render(
+      <SettingsAreaPage
+        v={vals({
+          settingsGroups: [
+            {
+              title: 'Products & recipes',
+              rows: [{ label: 'Products and prices', value: '2 on the menu', go }]
+            }
+          ]
+        })}
+        area="make"
+        backLabel="Back to products"
+        onBack={back}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Products and prices/ }));
+    expect(back).toHaveBeenCalledOnce();
+    expect(go).toHaveBeenCalledOnce();
+    expect(events).toEqual(['back', 'go']);
+  });
+
+  it('returns from Make settings to Products when its row routes to the same screen', () => {
+    const unregister = registerLiveRecipeScreens();
+    const ref: { current: OpsRuntime | null } = { current: null };
+    function Frame() {
+      return <AppFrame v={useOpsVals()} />;
+    }
+    try {
+      render(
+        <OpsRuntime ref={(runtime) => void (ref.current = runtime)}>
+          <Frame />
+        </OpsRuntime>
+      );
+      act(() => {
+        ref.current!.setRole('owner');
+        ref.current!.go('products');
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+      expect(screen.getByRole('heading', { name: 'Make settings' })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: /Products and prices/ }));
+      expect(screen.getByRole('heading', { name: 'Products', level: 1 })).toBeTruthy();
+    } finally {
+      unregister();
+    }
+  });
+
   it('Rules: steppers, typing, ordering week and a way back', () => {
     const rule = {
       label: 'Tax',

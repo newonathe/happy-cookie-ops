@@ -130,9 +130,7 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
       ) : null}
 
       <Panel title={C.sampler}>
-        {sampler && sets.length > 1 ? null : (
-          <input type="hidden" name="samplerProductId" value={samplerSet?.id ?? ''} />
-        )}
+        <input type="hidden" name="samplerProductId" value={samplerSet?.id ?? ''} />
         <SwitchRow
           label="Offer sampler box"
           name="samplerOn"
@@ -140,22 +138,6 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
           onChange={setSampler}
           info="Customers can order a box with one of each chosen flavour. Turn this off to hide it from the shop."
         />
-        {sampler && sets.length > 1 ? (
-          <label className="flex flex-col gap-1.5 pt-3">
-            <span className="text-label font-semibold text-ink-soft">Sampler item</span>
-            <select
-              name="samplerProductId"
-              defaultValue={samplerSet?.id}
-              className="h-12 rounded-control border border-line-strong bg-surface px-3 text-label font-semibold"
-            >
-              {sets.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
         {sampler && !samplerSet ? (
           <p className="pt-3 text-caption text-danger">
             Add a sampler box item under Products first, then switch this on.
