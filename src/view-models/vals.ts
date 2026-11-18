@@ -67,6 +67,7 @@ export interface LiveOrderRulesFields {
   pickupCutoffHour: number;
   campusFrom: string;
   campusTo: string;
+  campusLabel?: string;
 }
 
 /** The boxes and add-ons form's fields (B4). Money is pesos here; the runtime converts to centavos. */
@@ -302,7 +303,15 @@ export interface OpsVals {
       priceText: React.ReactNode;
       published: boolean;
       active: boolean;
+      updatedAt: string;
       edit: (event?: unknown) => void;
+      archive: (updatedAt: string) => Promise<boolean>;
+    }>;
+    archivedRows: Array<{
+      id: string;
+      name: string;
+      updatedAt: string;
+      restore: (updatedAt: string) => Promise<boolean>;
     }>;
     addNew: (event?: unknown) => void;
     publish: (event?: unknown) => void;
@@ -494,6 +503,13 @@ export interface OpsVals {
   liveOrderExtras?: {
     online: boolean;
     extras: LiveOrderExtrasFields;
+    /** Separate from the unchanged add_ons JSON contract; keyed by stable add-on id and choice. */
+    choiceImages?: Record<string, Record<string, string>>;
+    uploadChoicePhoto?: (file: File) => Promise<string | null>;
+    saveWithChoiceImages?: (
+      fields: LiveOrderExtrasFields,
+      images: Record<string, Record<string, string>>
+    ) => Promise<void>;
     /** Items of kind `set` the owner can name as the sampler. */
     sets: Array<{ id: string; name: string }>;
     /** Cookies the owner can put in the sampler box, in menu order (switched-off ones marked). */
@@ -620,6 +636,7 @@ export interface OpsVals {
         rows: Array<{
           key: string;
           label: string;
+          photo: string;
           qty: number;
           max: number;
           text: string;
@@ -1500,6 +1517,8 @@ export interface OpsVals {
     /** Live owner only: from `MakeDesk.productFields`. */
     photo?: string;
     bakedText?: string | null;
+    /** Retained in the engine and history, but omitted from live management lists. */
+    archived?: boolean;
     hasRecipe?: boolean | null;
     /** Her type is sold by the piece (migration 84): not baked, and a recipe is optional. */
     soldByPiece?: boolean;

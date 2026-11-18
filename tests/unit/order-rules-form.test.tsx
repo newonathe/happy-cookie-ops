@@ -47,7 +47,8 @@ describe('the order rules page', () => {
       pickupFromHour: 10,
       pickupCutoffHour: 18,
       campusFrom: '14:00',
-      campusTo: '15:30'
+      campusTo: '15:30',
+      campusLabel: 'Campus'
     });
     // Mutation: sending a default instead of the saved limit would relax an anti-abuse rule.
   });
@@ -59,5 +60,21 @@ describe('the order rules page', () => {
     );
     expect(props.close).toHaveBeenCalledOnce();
     expect(props.save).not.toHaveBeenCalled();
+  });
+
+  it('lets the owner configure the pickup location and time together', () => {
+    const { props, view, input } = setup();
+    fireEvent.change(input('campusLabel'), { target: { value: 'JSEC Ateneo' } });
+    fireEvent.change(input('campusFrom'), { target: { value: '14:30' } });
+    fireEvent.change(input('campusTo'), { target: { value: '16:00' } });
+    fireEvent.submit(view.container.querySelector('form')!);
+    expect(props.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        campusLabel: 'JSEC Ateneo',
+        campusFrom: '14:30',
+        campusTo: '16:00',
+        maxUnpaidPerPhone: 2
+      })
+    );
   });
 });

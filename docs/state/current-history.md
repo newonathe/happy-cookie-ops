@@ -1,3 +1,55 @@
+# Moved from current.md on 2026-11-18: pickup source acceptance
+
+# Current state — Happy Cookie Ops
+
+**The full application remains incomplete.** Source, deployment, public availability, physical-device and unaided-owner acceptance are separate. Read next-goal.md next; older receipts are in current-history.md.
+
+## Accepted foundation — 17 November 2026
+
+Keep the released light palette and current structure/hierarchy. Home signed-cent negative/refund/large-week fix, explicit Customers ground and reviewed Sell48012c53 are retained. Palette8fe6bced released via PR86/df330dfd; Next/eslint16.4.5 security patchd4fb741a released via PR87/fd6b3834. Security release run44063373038 passed all8jobs; production audit0.
+
+Settingsb8ad3b34 fixes Make Products and prices navigation, makes owner QR upload/replace discoverable with pending-submit guard, and removes the visible sampler-item selector while preserving its saved/default ID and pricing. PR88 merged as05a5e73e; exact-merge run44106997415 passed all8jobs. Deployed Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2; schema88migrations/180exactpublicfunctions verified read-only, private Access post-deploy checks passed. Full259files/4185pass+2TODO,87focused, live29pages/demo builds, offline4, E2E90pass/78expected skips, format and CLI390/1920 screenshots passed; independent Sol/high review clear. No real payment account/QR was configured.
+
+Public-customer Access source candidate2dd13539 (held draft PR89) is isolated on codex/public-customer-access-20261117. It couples narrow public customer/asset destinations with strict release probes while preserving owner Access/provider/policy and secret email digests. No resources provisioned; public availability is unverified. Ethan explicitly approved the exact narrow app/policy cutover on17November. Authorized operator setup and the distinct app ID are still pending; local Cloudflare CLI is unauthenticated. Do not merge a missing-ID candidate into deploy.
+
+## Pickup settings — 18 November source acceptance
+
+Isolated codex/pickup-location-settings-20261116 adds owner-configurable special pickup location alongside existing time controls. New unapplied20260101008800 migration adds campus_label and snapshots order pickup labels without backfilling historical orders. Existing9-key owner saves preserve the label; new10-key saves validate it. Public rules expose exactly9customer fields, excluding owner anti-abuse settings. Owner/status/message views use saved labels, with legacy Campus fallback. Existing saved IDs, time/capacity/payment rules and private tokens remain.
+
+Failing-first label and status/message regressions then100focused tests passed. Independent Sol/high review cleared copy/grant/legacy concerns after fixes. Two owned-local SQL resets passed roles, stale/input refusal, snapshots/reschedule, the existing order-lookup nine-key proof and deterministic function inventory; owned cleanup passed. Synthetic CLI390/1920 reduced-motion form save/reopen and fresh checkout label/time checks passed; four screenshots inspected, no real order submitted. Typecheck, live29-page build, demo build retry, offline4 and E2E90passed/78expected skips passed. The interrupted first demo build is not counted as a pass. Full one-worker verify and format belong to this acceptance commit. Migration kit: docs/audits/pickup-location-migration-kit-draft.md. **No hosted migration/configuration change has been applied.** Cine can set JSEC Ateneo and14:00–15:30 after approved migration/deployment; root has not changed real settings.
+
+## Remaining work and preservation
+
+Next: safe reversible duplicate-flavour removal and per-sticker-choice photos, keeping history/prices/IDs and using existing media capabilities. Private concerns transcript/payment poster remain outside Git. No automatic real-record cleanup/payment configuration.
+
+Original urgent remains ata4126ff3 with all nine intake hashes, six stashes and prior worktrees preserved. Never reset/copy a whole worktree onto deploy or replay preserved input bytes. Accepted releases require fresh no-open-today safe-use and existing schema/Access/post-deploy gates. Hosted migrations require Ethan's backup/migration kit; new resources require explicit approval. No applied SQL/protected demo/real-data/memory edits. Physical iPhone, unaided Cine, connected full-cycle/recovery, backup custody/restore and full-product acceptance remain open.
+
+# Moved from current.md on 2026-11-17: client settings release checkpoint
+
+# Current state — Happy Cookie Ops
+
+**The full application remains incomplete.** Source, deployment, physical-device and unaided-owner acceptance are separate. Read next-goal.md next; older evidence is in current-history.md.
+
+## Released base — 17 November 2026
+
+Current deployed base: security sourced4fb741a / PR87 / mergefd6b3834, run44063373038, all8jobs passed. Worker d0685c79-7a89-4640-b224-a44cdcf043da; Next/eslint16.4.5, production audit0. Schema88/180 verified read-only. This includes the light-palette release below; deployment of the new settings controls is still a separate exact-source gate.
+
+Ethan confirmed the pre-espresso light palette while retaining current structure, hierarchy, fonts, geometry and controls. Source8fe6bced, PR86/merged deploydf330dfd, run44053269537: all8jobs passed. Published Worker51a6a2d1-de39-43e9-8065-afc9017a2690. Read-only schema check88migrations/180exactpublicfunctions; fresh safe-use check found0open today-or-later days, leaving2older days untouched. CLI13views at390/1920 retained layout/content/fonts; Home signed-cent negative/refund/large cases and Sell/settings checks passed. Full pinned one-worker verify258files/4177passed+2TODO; offline4; E2E90passed/78skipped; live29pages/demo builds and format passed. The owner trial remains Access-protected; this does not establish anonymous customer availability, physical-device or Cine acceptance.
+
+## Accepted settings controls — source in this commit
+
+The acceptance commit containing this note on `codex/client-settings-controls-20261116`, based on verified security foundationd4fb741a (Next/eslint16.4.5, production audit0) after palette deploydf330dfd, fixes Make's Products and prices row: it closes local settings before invoking its existing destination. Payment methods now explicitly offer Upload/Replace QR; the existing picker reports progress/result and blocks Save/programmatic submit during upload. Failure keeps the previous QR/account fields. The unnecessary visible sampler-item selector is removed at Cine's request; the hidden saved/default product ID and pricing path remain. No backend, schema, money-posting, auth, offline or actual configuration change.
+
+Failing-first QR discovery/pending-submit regressions then87focused tests passed. Synthetic CLI390/1920 reduced-motion checks cover Make navigation, native chooser and tiny fake PNG upload, sampler toggle/ID retention, no overflow/errors; screenshots inspected. Independent Sol/high review clear. Full verify/format/build/offline/E2E results belong to this acceptance commit/CI. Confirm its exact merge and guarded Worker version before calling these controls deployed.
+
+## Remaining client work and preservation
+
+Ethan's17November side-chat adds public customer access: shop/checkout/status/lookup without login or email codes, while owner routes remain protected and order details still require their private token. The new Access app/policy and coupled release assertions must be reviewed before provisioning; do not bypass the hostname or change owner email secrets.
+
+Pickup location/time candidate work is isolated in `happy-cookie-pickup-settings-20261116`: new unapplied migration, legacy-compatible settings and saved-order labels; focused tests and two owned-local SQL resets passed. It is not a hosted change. Still required: safe owner-controlled duplicate-flavour removal, per-sticker-choice photos, migration-kit approval and actual owner payment setup. Private screenshots/transcript/payment poster remain outside this public repository. No automatic real-record deletion or payment configuration write.
+
+Original urgent stays ata4126ff3 with nine files matching intake hashes; all prior worktrees and6stashes remain. Do not merge those historical input bytes again or reset/copy urgent onto deploy. Retain Home's signed net, explicit Customers ground and readable settings. Current release authorization permits deploy PRs only after fresh safe-use checks; new resources and hosted migrations still need explicit approval. Preserve release hold/schema/Access gates and secret-based email digests. Physical iPhone, unaided Cine, connected full-cycle/recovery, backup custody/restore and full-product acceptance remain open.
+
 # Moved from current.md on 2026-11-17
 
 # Current state — Happy Cookie Ops
@@ -3098,3 +3150,9 @@ PR reconciliation (9 November; #51 then #53, one read-state source, no force-pus
 On codex/sell-glass-release-20261116, based on accepted deployd063be4c. Original nine urgent files preserved and copied only by explicit file list into isolated review. Frozen rehearsal full258files/4176tests+2TODO passed, but CLI found two real regressions: Customers title/tabs on a light form (heading1.02:1 versus baseline13.93:1), and literal U+FFFD payment separators (10per fixture page versus baseline0). Long-name clipping also existed on baseline and was not attributed to this package.
 
 Luna/medium builder corrected explicit Customers ground and both CSS selectors, preserved other forms, restored middle dots, and strengthened existing tests. Red2testsfailed/9passed -> green11/11. Independent Sol/high behavior review and corrective re-review clear. CLI390/1920 normal/reduced checks filters/search, local ticks, order/customer/message/Shop navigation,8Customer origins/settings/stale/dropped reads. No auth/money-posting/offline/business/SQL change. Final pinned gate/build/offline/E2E/format results live in the acceptance commit; exact-source guarded release and version are separate GitHub evidence. All original worktrees/stashes/pending bytes are retained; no whole-tree deployment copy.
+
+## Flavour removal source acceptance — 18 November 2026
+
+Isolated codex/flavour-removal-20261118 starts from accepted pickup371df470, with released05a5e73e as its deploy ancestor. Add owner-controlled Remove/Restore in Menu & flavours and hide removed entries in normal Products management. Preserve all product IDs, internal catalogue rows, recipes, stock and order history. New migration only; server guards against stale/non-owner writes, old-client save/publish resurrection and breaking the configured sampler item. Restored flavours stay off-menu and unpublished. No automatic duplicate cleanup or actual record removal.
+
+Two failing-first UI cases reproduced removed rows in normal lists. Expanded focused3files/117tests pass; exact during-RPC stale-read regression also failed before its fix. Independent Sol/high recheck cleared archived edit/publish refusal, preserved sold_by_piece projection, strict acknowledgment validation and post-ack read barriers. Two owned-local SQL resets passed owner/helper/anonymous/missing-role, stale/legacy/publication/sampler/Restore/history checks, deterministic inventory and cleanup. Generated types/authority pins updated. Synthetic CLI390/1920 normal/reduced QA passed4combinations: offline/refusal/pending Remove, Removed/All-products filtering, Restore inactive/unpublished, preserved internal ID/name/price tuples, no page errors/overflow; screenshots inspected. Live29-page and demo builds, offline4 and final E2E90pass/78expected skips passed. An initial WebKit Cash-click timeout (89pass/1fail) passed unchanged in a focused rerun and then the full rerun; no test/timeouts were weakened. Type-only offline status and an existing test fixture were corrected before final builds. Full-suite preservation checks then found a Products count fallback regression and an outdated editor fixture. Restoring the kept/demo catalogue and original dropActive counting, while excluding only known archived IDs, passed six focused suites/220tests and independent recheck. Exact-source final builds/browser checks after this small preservation fix remain pending before PR; format and mandatory full one-worker verify belong to this acceptance commit. Root owns state/Git; the bounded Luna/medium worker owns the named source/test files in this worktree. Next client capability: per-sticker-choice photos through existing media upload/storage, preserving labels/prices and legacy saves. Its isolated new UI helper and3focused tests/lint pass in happy-cookie-sticker-photos-20261118; database/data/runtime integration waits for this DB slice. Private screenshot transcript/payment poster stay outside Git.

@@ -42,7 +42,9 @@ function pickupText(order: StaffOrder): string {
   if (!order.pickupDate) return '';
   const when =
     order.pickupWindow === 'campus'
-      ? 'at the campus pickup'
+      ? order.pickupLabel
+        ? 'at ' + order.pickupLabel
+        : 'at the campus pickup'
       : order.pickupWindow
         ? `at ${order.pickupWindow}`
         : '';

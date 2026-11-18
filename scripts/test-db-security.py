@@ -50,7 +50,10 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101006900_flavour_cost_closing_reversal.sql',
                     ROOT / 'supabase/migrations/20260101007000_sampler_flavours.sql',
                     ROOT / 'supabase/migrations/20260101008000_bazaar_book_labels.sql',
-                    ROOT / 'supabase/migrations/20260101008200_customer_payment_read.sql']
+                    ROOT / 'supabase/migrations/20260101008200_customer_payment_read.sql',
+                    # Later redefinitions of mutated functions (order_status, get_shop_order_rules: 088; shop extras: 090).
+                    ROOT / 'supabase/migrations/20260101008800_pickup_location.sql',
+                    ROOT / 'supabase/migrations/20260101009000_order_extra_choice_photos.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -1186,11 +1189,11 @@ SUITES = (
     ('order-placement.sql', ('get_order_rules()', 'save_order_rules(jsonb,timestamptz)',
                              'orders_rows_leak', 'waitlist_table_select', 'rules_table_select')
                             + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 175),
-    ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 24),
+    ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 25),
     ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 122),
     ('shop-state.sql', ('set_shop_override(text)',) + tuple(SHOP_MUTATIONS), 'forbidden shop state call succeeded', 29),
     ('order-extras.sql', ('get_order_extras()', 'save_order_extras(jsonb,timestamptz)')
-                         + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 155),
+                         + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 156),
     ('scheduled-events.sql', ('get_scheduled_events()', 'save_scheduled_event(jsonb,timestamptz)', 'link_scheduled_event(uuid,uuid)')
                              + tuple(SCHEDULED_MUTATIONS) + tuple(SCHEDULED_TABLE_MUTATIONS), 'forbidden scheduled call succeeded', 69),
     ('stock-catalogue.sql', ('get_stock_catalogue()', 'save_supplier(jsonb,timestamptz)', 'save_stock_item(jsonb,timestamptz)',
@@ -1589,7 +1592,7 @@ def main():
                 verify_functions(json.loads(h.psql(db_id, workdir, query))['functions'])
                 report['historical_production_runs'] = report.get('historical_production_runs', 0) + 1
             assert_empty()
-        if len(set(results)) != 3378:
+        if len(set(results)) != 3380:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         current_production_contracts()
         assert_functions()
@@ -1607,7 +1610,7 @@ def main():
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4
                 and report.get('current_production_contract_runs') == 12 and report.get('historical_production_runs') == 8):
-            report.update(status="passed", cases_per_reset=3378, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3380, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

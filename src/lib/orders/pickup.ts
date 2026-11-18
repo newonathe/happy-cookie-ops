@@ -8,6 +8,7 @@
  * `place_order` counts lead days from the shop's date.
  */
 import { manilaToday } from '@/lib/time/business-clock';
+import { z } from 'zod';
 
 export { manilaMinutes, manilaToday } from '@/lib/time/business-clock';
 
@@ -21,6 +22,7 @@ export interface ShopOrderRules {
   pickupCutoffHour: number;
   campusFrom: string;
   campusTo: string;
+  campusLabel?: string;
   unpaidHoldHours: number;
 }
 
@@ -39,6 +41,15 @@ export interface PickupTime {
 
 const HH_MM = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
 
+/** Shared owner-input/public-response boundary; the database enforces the same saved bounds. */
+export const pickupLocationLabelSchema = z
+  .string()
+  .min(1)
+  .max(80)
+  .regex(/^[^\u0000-\u001f\u007f]*$/)
+  .refine((label) => label.trim().length > 0)
+  .transform((label) => label.trim());
+
 const isInt = (value: unknown, min: number, max: number): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
 
@@ -47,6 +58,10 @@ export function parseShopOrderRules(json: unknown): ShopOrderRules | null {
   if (!json || typeof json !== 'object' || Array.isArray(json)) return null;
   const r = json as Record<string, unknown>;
   const days = r.pickup_days;
+  const location = pickupLocationLabelSchema.safeParse(
+    r.campus_label === undefined ? 'Campus' : r.campus_label
+  );
+  if (!location.success) return null;
   if (
     !Array.isArray(days) ||
     days.length < 1 ||
@@ -79,6 +94,7 @@ export function parseShopOrderRules(json: unknown): ShopOrderRules | null {
     pickupCutoffHour: r.pickup_cutoff_hour,
     campusFrom: r.campus_from,
     campusTo: r.campus_to,
+    campusLabel: location.data,
     unpaidHoldHours: r.unpaid_hold_hours
   };
 }
@@ -159,7 +175,12 @@ export function pickupTimes(
   if (afterMinute === null || campusStart > afterMinute)
     out.push({
       value: 'campus',
-      label: 'Campus · ' + clockLabel(rules.campusFrom) + ' – ' + clockLabel(rules.campusTo)
+      label:
+        (rules.campusLabel ?? 'Campus') +
+        ' · ' +
+        clockLabel(rules.campusFrom) +
+        ' – ' +
+        clockLabel(rules.campusTo)
     });
   return out;
 }

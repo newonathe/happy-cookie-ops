@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import { classifySaveError, type SaveOutcome } from '@/lib/data/payments';
+import { pickupLocationLabelSchema } from '@/lib/orders/pickup';
 
 /**
  * The owner's order rules (B3; `get_order_rules` / `save_order_rules`, migration 20260101003500):
@@ -9,7 +10,10 @@ import { classifySaveError, type SaveOutcome } from '@/lib/data/payments';
  * bound; `orderRulesError` mirrors them so a sure refusal is never sent.
  */
 export type OrderRulesClient = Pick<SupabaseClient<Database>, 'rpc'>;
-export type OrderRulesRow = Database['public']['Functions']['get_order_rules']['Returns'][number];
+export type OrderRulesRow = Omit<
+  Database['public']['Functions']['get_order_rules']['Returns'][number],
+  'campus_label'
+> & { campus_label?: string };
 export type OrderRulesFields = Omit<OrderRulesRow, 'updated_at'>;
 
 const HHMM = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
@@ -18,6 +22,8 @@ const whole = (v: unknown, min: number, max: number): boolean =>
 
 /** The same bounds `save_order_rules` enforces. Null means the rules are acceptable. */
 export function orderRulesError(f: OrderRulesFields): string | null {
+  if (f.campus_label !== undefined && !pickupLocationLabelSchema.safeParse(f.campus_label).success)
+    return 'Enter a pickup location of 1 to 80 characters, on one line.';
   if (!whole(f.unpaid_hold_hours, 1, 168))
     return 'Unpaid orders hold their slots for 1 to 168 hours.';
   if (!whole(f.max_unpaid_per_phone, 1, 20)) return 'Unpaid orders per number: 1 to 20.';
@@ -60,7 +66,8 @@ export async function saveOrderRules(
         pickup_from_hour: fields.pickup_from_hour,
         pickup_cutoff_hour: fields.pickup_cutoff_hour,
         campus_from: fields.campus_from,
-        campus_to: fields.campus_to
+        campus_to: fields.campus_to,
+        ...(fields.campus_label !== undefined ? { campus_label: fields.campus_label.trim() } : {})
       },
       p_expected_updated_at: expectedUpdatedAt
     });

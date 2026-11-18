@@ -41,7 +41,8 @@ export function OrderRulesForm({ liveOrderRules }: { liveOrderRules: LiveOrderRu
       pickupFromHour: num('pickupFromHour'),
       pickupCutoffHour: num('pickupCutoffHour'),
       campusFrom: fieldValue(form, 'campusFrom'),
-      campusTo: fieldValue(form, 'campusTo')
+      campusTo: fieldValue(form, 'campusTo'),
+      campusLabel: fieldValue(form, 'campusLabel')
     });
   };
   const number = (name: string, label: string, value: number, min: number, max: number) => (
@@ -92,7 +93,15 @@ export function OrderRulesForm({ liveOrderRules }: { liveOrderRules: LiveOrderRu
           {number('pickupCutoffHour', 'Pickup ends (hour, 1–24)', rules.pickupCutoffHour, 1, 24)}
         </div>
       </Panel>
-      <Panel title="Campus pickup">
+      <Panel title="Special pickup location and time">
+        <OwnerField
+          label="Pickup location"
+          name="campusLabel"
+          required
+          maxLength={80}
+          defaultValue={rules.campusLabel ?? 'Campus'}
+          placeholder="For example, JSEC Ateneo"
+        />
         <div className="grid gap-3 sm:grid-cols-2">
           <OwnerField
             label="From (like 14:00)"

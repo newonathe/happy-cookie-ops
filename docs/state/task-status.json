@@ -187,7 +187,7 @@
       "evidence": "docs/state/G2-plan.md \"Slice audit\" MP-09 a/b; docs/state/next-goal.md \"Next goal - MP-09 a\", \"MP-09 b1\" and \"MP-09 b2\"; pnpm verify 39 files/599 tests at b2 close; SQL role suite 508 cases/reset x2 this session; G0 validator 1196 checks/0 failures this session; independent Opus review this session for a, independent Opus review this session for b1, independent Sonnet reviews for b2, b3 and b4 (b4 after one P1 fix; all SAFE TO MERGE, no P0/P1)"
     }
   },
-  "release_acceptance": "FAIL: latest full CLI E2E 87 passed/3 failed/30 skipped; MP-18-21 durable offline queue, MP-06 remaining authority, MP-07 real bootstrap/selected IDs/public SSR, MP-08 signed-in hosted checks (refresh probe, auth.sessions, role bootstrap, idle sign-out) with an Ethan-created test account and provider-account MFA/recovery-code rehearsal, hosted Cloudflare/physical Apple acceptance and inherited CI formatting remain open",
+  "release_acceptance": "Partial engineering release through05a5e73e/PR88, Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2. Pickup371df470/PR90 and removal5e0a4b87/PR91 accepted/pushed,088/089 unapplied. Public Access PR89 approved narrow cutover; operator/app ID pending. Sticker source active; recovery/device/owner/full-product acceptance open.",
   "ops_notes": [
     "2026-10-05 (Claude): Ethan answered the eleven questions for Cine on her behalf (decision register; exact words and packaging costs kept privately). Plan updated: one-time set-up screen and handover reset added as a stage C slice; stock states and customer labels worked out by rule; recipes keep their packaging lines; nothing in the build waits on Cine.",
     "2026-10-05 (Claude): Final plan version 2 APPROVED by Ethan (docs/state/final-plan.md) after a re-audit, debate and wider research; his five answers are in the decision register. Order: A bazaar safety and access (A1 release check, A2 bounded offline open), B five tabs on the existing frame with one guarded screen slot, true numbers, her prices, weighted average cost, new Stock and Recipes, C the rest; Cine starts after everything. Documents only; hosted trial read twice, read-only. Next goals: A1 then A2 in docs/state/next-goal.md.",
@@ -216,8 +216,8 @@
     "S3 bazaar days, built 14 October 2026 (docs/state/bazaar-days.md, S3 as built; branch claude/bazaar-days-s3; local only, no new migration, the trial stays at 67 of 67): the day review (src/lib/bazaar/review.ts formats bazaar_summary only), losses, more stock, Close the day with the leftover split, carrying over, fees, target, typed cost per cookie, Close the event with the drop number, the books held line. Tests: bazaar-close, bazaar-review, bazaar-store, ops-runtime-bazaar-close, bazaar-screens; the live smoke suite runs the whole two-day event (14 steps). Ethan 14 October: no bake for bazaar cookies; all four small forms in S3."
   ],
   "full_application": {
-    "updated_client_date": "2026-11-17",
-    "source_checkpoint": "codex/client-settings-controls-20261116",
+    "updated_client_date": "2026-11-18",
+    "source_checkpoint": "codex/sticker-photos-20261118",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -338,7 +338,7 @@
       },
       "C5": {
         "title": "Sell/payments",
-        "local_status": "Sell48012c53 accepted via PR84/deployb4ae7d60; controls/read guards retained. Light-palette acceptance is the current active slice. Full business-cycle acceptance remains incomplete.",
+        "local_status": "Reviewed Sell/light palette/security/settings released via05a5e73e, Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2. Pickup371df470 accepted/pushed in held PR90; migration088 unapplied. Reversible flavour removal source active; public Access PR89 approved cutover awaiting operator/app ID. Full business cycle remains open.",
         "full_cycle_accepted": false,
         "accepted_sha": [
           "9a8cf38cac379c10c533eb6d15a36c619a83517d",
@@ -544,18 +544,18 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C5/C12/C14",
-      "requirement": "Restore reachable owner settings controls: Make products link, explicit QR upload with pending-save guard, and no unnecessary sampler selector.",
-      "branch": "codex/client-settings-controls-20261116",
-      "source_checkpoint": "acceptance commit containing this handoff",
-      "base_checkpoint": "d4fb741aa9f6f2badf6d70f33e246a16a8ab29e1",
-      "behavior": "Make settings closes before existing destination; existing QR upload feedback/discovery and save guard; exact saved/default sampler ID retained hidden. No backend/business rule change.",
-      "evidence": "Failing-first QR CTA/busy/programmatic-submit evidence ->87focused tests; CLI390/1920 reduced motion with synthetic PNG, native chooser, Make navigation, sampler retention and no overflow/errors; screenshots inspected; independent Sol/high review clear. Full gates in acceptance commit/CI.",
-      "original_work": "Nine original urgent files remain byte-identical at a4126ff3; all prior worktrees and six stashes preserved. Do not integrate those pending bytes again after this acceptance.",
-      "deployment": "Separate guarded run for PR merge containing acceptance commit; require successful schema/Access/post-deploy checks and Worker version, not merely merge/push.",
-      "external_limits": "No physical-device, authenticated full-cycle or unaided-owner acceptance inferred. Full application remains incomplete.",
-      "next": "Public customer Access app and coupled release checks (explicit17November requirement), isolated pickup migration-kit, then safe duplicate removal and sticker-choice images."
+      "requirement": "Per-sticker-choice photos through existing media upload/storage preserving labels/prices/order payloads/legacy saves.",
+      "branch": "codex/sticker-photos-20261118",
+      "source_checkpoint": "uncommitted candidate from5e0a4b87",
+      "base_checkpoint": "5e0a4b87dc3ba830e74071bf2a1a422ee8c00236",
+      "behavior": "Owner choice images/pending/error/stale lifecycle protection; customer thumbnails; new090 and JSEC default correction to still-unapplied088. No operational asset/configuration writes.",
+      "evidence": "Removal5e0a4b87 full260files4210pass+2TODO and exact-source builds/offline4/E2E90+78skip/SQL2resets/CLI4combinations/independent review passed. Sticker4focused108pass; SQL/typegen/review/final gates active.",
+      "deployment": "Latest actual deployed05a5e73e, Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2, run44106997415 all8jobs passed, schema88/180. Pickup371df470 draftPR90 remains unapplied source.",
+      "original_work": "All9 urgent intake hashes, all worktrees and6stashes preserved; no whole-tree integration.",
+      "external_limits": "Hosted migration needs backup/explicit apply approval. PR89 narrow resource cutover already approved17November; operator setup/app ID pending. Public/device/owner/full-cycle/recovery not accepted.",
+      "next": "Finish/review/verify/push sticker source and exact migration release kit. Recoverable backup/custody and public app ID pending. After release comprehensive audited public-repo Cloud handoff; supplied assets approved, secrets/customer records excluded, preserved WIP separate. Codex only."
     },
-    "publishing_authorization": "14–15November2026: release accepted changes through a PR into deploy while software is not in use, after fresh read-only today-open-day check; retain release hold/schema/Access/post-deploy gates. No arbitrary data edits, new resources, schedules or migrations authorized.",
-    "checkpoint_scope": "Acceptance commit containing this note on named branch. Palette8fe6bced/PR86/deploydf330dfd is released in run44053269537, Worker51a6a2d1-de39-43e9-8065-afc9017a2690. Securityd4fb741a/PR87/mergefd6b3834 is also released in run44063373038, Worker d0685c79-7a89-4640-b224-a44cdcf043da. Settings controls/public ordering/pickup have separate acceptance/deploy gates."
+    "publishing_authorization": "14–15November accepted trial release via PR into deploy while not in use after fresh safe-use check;18November push/release requested. Exact public Access cutover approved17November, operator/app ID pending. SQL exact kit/recovery prerequisites remain. Supplied assets/private project context approved in existing public repo for post-release Cloud handoff; credentials/customer records excluded. No main merge/arbitrary data edits/schedules.",
+    "checkpoint_scope": "Latest actual deploy05a5e73e/PR88/run44106997415 all8/Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2; includes light palette/Home/Customers/reviewed Sell/security/settings. Pickup371df470 and removal5e0a4b87 are source-only held PRs. No hosted088/089/090 or public/device/owner acceptance."
   }
 }

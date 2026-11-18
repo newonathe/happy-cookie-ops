@@ -275,6 +275,7 @@ export interface OrderStatusView {
   paidCents?: number | null;
   pickupDate: string | null;
   pickupWindow: string | null;
+  pickupLabel?: string;
   placedAt: string;
   holdExpiresAt: string | null;
   items: StatusItem[];
@@ -314,6 +315,15 @@ export function parseOrderStatus(json: unknown): OrderStatusView | null {
   )
     return null;
   const items: StatusItem[] = [];
+  if (
+    o.pickup_label !== undefined &&
+    o.pickup_label !== null &&
+    (typeof o.pickup_label !== 'string' ||
+      !o.pickup_label.trim() ||
+      o.pickup_label.length > 140 ||
+      /[\u0000-\u001f\u007f]/.test(o.pickup_label))
+  )
+    return null;
   for (const raw of o.items) {
     const i = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
     if (
@@ -341,6 +351,7 @@ export function parseOrderStatus(json: unknown): OrderStatusView | null {
     ...(o.paid_cents !== undefined ? { paidCents: o.paid_cents as number | null } : {}),
     pickupDate: typeof o.pickup_date === 'string' ? o.pickup_date : null,
     pickupWindow: typeof o.pickup_window === 'string' ? o.pickup_window : null,
+    ...(typeof o.pickup_label === 'string' ? { pickupLabel: o.pickup_label } : {}),
     placedAt: o.placed_at,
     holdExpiresAt: typeof o.hold_expires_at === 'string' ? o.hold_expires_at : null,
     items

@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 
 let live = true;
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
 import { AppFrame } from '@/components/shell/app-frame';
+import { LiveFormHost } from '@/components/live/live-form-host';
 import { ALLERGENS, PRODUCTS, replaceFlavours } from '@/store/engine/ops-engine';
 import type { Role } from '@/store/engine/ops-engine';
 import { FLAVOUR_TOASTS, type FlavoursClient, type FlavourRow } from '@/lib/data/flavours';
@@ -33,6 +34,7 @@ function rowsFor(active: (id: string) => boolean): FlavourRow[] {
     allergens: PORTED.allergens[p.id] ?? 'milk, eggs, wheat',
     active: active(p.id),
     published: true,
+    archived_at: null,
     sort_order: i,
     updated_at: '2026-09-28T01:00:00.000Z'
   }));
@@ -42,6 +44,15 @@ function fakeClient(rows: FlavourRow[], save?: (args: Record<string, unknown>) =
   const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_flavours') return { data: rows, error: null };
     if (name === 'publish_flavours') return { data: [], error: null };
+    if (name === 'archive_flavour' || name === 'restore_flavour') {
+      const row = rows.find((item) => item.id === args?.p_id);
+      if (!row) return { data: [], error: null };
+      row.archived_at = name === 'archive_flavour' ? '2026-11-18T02:00:00.000Z' : null;
+      row.active = false;
+      row.published = false;
+      row.updated_at = '2026-11-18T02:01:00.000Z';
+      return { data: [row], error: null };
+    }
     // Product types (migration 84) are read beside the flavours; a database without them answers that it has none.
     if (name === 'get_product_types') return { data: null, error: { code: 'PGRST202' } };
     return save
@@ -112,6 +123,53 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
         .toolGroups.flatMap((g) => g.items)
         .find((i) => i.label === 'Menu & flavours')
     ).toBeUndefined();
+  });
+
+  it('keeps archived flavours out of the working list and exposes an explicit restore action', async () => {
+    const rows = rowsFor((id) => id !== 'nch').map((row) =>
+      row.id === 'wcb' ? { ...row, archived_at: '2026-11-18T02:00:00.000Z' } : row
+    );
+    const { runtime } = await mounted('owner', rows as FlavourRow[]);
+    act(() =>
+      menuItems(runtime)
+        .find((item) => item.label === 'Menu & flavours')!
+        .go()
+    );
+    const form = runtime.renderVals().liveForm!;
+    expect(form.rows.map((row) => row.id)).not.toContain('wcb');
+    expect(form.archivedRows?.map((row) => row.id)).toContain('wcb');
+    expect(PRODUCTS.map((row) => row.id)).toContain('wcb');
+    expect(form.archivedRows?.find((row) => row.id === 'wcb')?.restore).toEqual(
+      expect.any(Function)
+    );
+  });
+
+  it('requires a named confirmation and sends the stamp shown when Remove was chosen', async () => {
+    const rows = rowsFor((id) => id !== 'nch');
+    const { runtime, rpc } = await mounted('owner', rows);
+    act(() =>
+      menuItems(runtime)
+        .find((item) => item.label === 'Menu & flavours')!
+        .go()
+    );
+    const displayedStamp = runtime
+      .renderVals()
+      .liveForm!.rows.find((row) => row.id === 'wcb')!.updatedAt;
+    render(<LiveFormHost v={runtime.renderVals()} />);
+    fireEvent.click(screen.getByRole('button', { name: `Remove ${WCB.name}` }));
+    expect(
+      screen.getByRole('alertdialog', { name: /Remove white chocolate biscoff/i })
+    ).toBeTruthy();
+    expect(rpc.mock.calls.some(([name]) => name === 'archive_flavour')).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Remove flavour' }));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(rpc).toHaveBeenCalledWith('archive_flavour', {
+      p_id: 'wcb',
+      p_expected_updated_at: displayedStamp
+    });
   });
 
   it('keeps all four legacy tools addressable and recipes inside Products in the daily navigation', async () => {

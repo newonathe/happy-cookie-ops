@@ -69,6 +69,7 @@ export interface StaffOrder {
   refundRef: string;
   pickupDate: string | null;
   pickupWindow: string | null;
+  pickupLabel?: string;
   placedAt: number;
   updatedAt: string;
   statusToken: string | null;
@@ -184,6 +185,11 @@ export function readStaffOrders(json: unknown): { orders: StaffOrder[]; dropped:
       refundRef: text(raw.refund_ref) ? raw.refund_ref : '',
       pickupDate: text(raw.pickup_date) ? raw.pickup_date : null,
       pickupWindow: text(raw.pickup_window) ? raw.pickup_window : null,
+      ...(text(raw.pickup_label) &&
+      raw.pickup_label.length <= 140 &&
+      !/[\u0000-\u001f\u007f]/.test(raw.pickup_label)
+        ? { pickupLabel: raw.pickup_label }
+        : {}),
       placedAt: placed,
       updatedAt: raw.updated_at,
       statusToken: text(raw.status_token) ? raw.status_token : null,
