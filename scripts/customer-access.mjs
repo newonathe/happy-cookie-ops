@@ -194,6 +194,35 @@ export async function assertPublicRoute(fetcher, origin, route, expectedBody) {
   }
 }
 
+/**
+ * Right after a deploy the edge can still serve the previous build for a short while (each build has a new build id, so
+ * its HTML differs). Poll one public route until it serves the emitted bytes, then let the full check run. Gives up after
+ * `attempts` with the last real reason (19 November 2026: a release was switched off over a few seconds of rollout).
+ */
+export async function waitForPublicRoute(
+  fetcher,
+  origin,
+  route,
+  expectedBody,
+  {
+    attempts = 24,
+    delayMs = 5000,
+    sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+  } = {}
+) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await assertPublicRoute(fetcher, origin, route, expectedBody);
+      return attempt;
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) await sleep(delayMs);
+    }
+  }
+  throw lastError;
+}
+
 export async function assertOwnerRouteDenied(fetcher, origin, route) {
   const base = new URL(origin);
   const url = new URL(route, base);

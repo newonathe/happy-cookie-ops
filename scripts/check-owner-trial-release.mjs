@@ -10,6 +10,7 @@ import {
   PUBLIC_CUSTOMER_ROUTES,
   assertOwnerRouteDenied,
   assertPublicRoute,
+  waitForPublicRoute,
   buildCustomerAccessManifest,
   emittedPublicResourcePaths,
   emittedArtifactPath,
@@ -287,8 +288,18 @@ async function deploy() {
     });
     if (result.status !== 0) fail(`Wrangler deploy failed (${result.status ?? 'spawn error'})`);
     await snapshot(true);
+    await waitForPublicRoute(
+      fetch,
+      `https://${TARGET.hostname}`,
+      '/shop',
+      await readFile(path.join('build/pages-spike/public', emittedArtifactPath('/shop')))
+    );
     await assertAnonymousCustomerAccess();
   } catch (error) {
+    // The reason is our own message (a route, a status, a check name), never a token: print it before failing closed.
+    console.error(
+      `Post-deploy gate failed: ${error instanceof Error ? error.message : String(error)}`
+    );
     if (deployAttempted) {
       try {
         await detachCanonicalDomain();
