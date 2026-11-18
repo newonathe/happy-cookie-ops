@@ -44,6 +44,31 @@
     background: var(--color-surface);
   }
 }
+/* Option A (19 Nov 2026): inside the owner workspace the cards are translucent glass over the marble waves. */
+:global([data-glass='on']) .glassCard,
+:global([data-glass='on']) .glassSlot > section {
+  border-color: var(--color-owner-card-line);
+  background: var(--color-owner-card);
+  box-shadow: var(--shadow-owner-card);
+  -webkit-backdrop-filter: var(--blur-owner-card);
+  backdrop-filter: var(--blur-owner-card);
+}
+@media (max-width: 650px) {
+  :global([data-glass='on']) .glassCard,
+  :global([data-glass='on']) .glassSlot > section {
+    -webkit-backdrop-filter: var(--blur-owner-card-phone);
+    backdrop-filter: var(--blur-owner-card-phone);
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :global([data-glass='on']) .glassCard,
+  :global([data-glass='on']) .glassSlot > section {
+    border-color: var(--color-line);
+    background: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
 /* Inner rows and wells: a lighter white inside the card, radius 14. */
 .glassRows {
   display: flex;
