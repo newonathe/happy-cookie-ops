@@ -32,6 +32,9 @@ export const SIGN_OUT_COPY = {
  */
 export const SIGN_OUT_SLOT_ID = 'hc-sign-out-slot';
 
+/** The sidebar card's place for Sign out on a wide screen (Ethan, 19 November 2026: the floating button hung off the card). */
+export const SIGN_OUT_RAIL_SLOT_ID = 'hc-sign-out-rail';
+
 type Stage = 'idle' | 'checking' | 'confirm' | 'warning' | 'sending' | 'leaving';
 
 /**
@@ -70,9 +73,13 @@ export function SignOutControl({
   const [stall, setStall] = useState(false);
   const epoch = useRef(0);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const [railSlot, setRailSlot] = useState<HTMLElement | null>(null);
   // Looked for after the screen has been drawn (the Account page draws the slot in the same commit).
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setSlot(document.getElementById(SIGN_OUT_SLOT_ID)));
+    const frame = requestAnimationFrame(() => {
+      setSlot(document.getElementById(SIGN_OUT_SLOT_ID));
+      setRailSlot(document.getElementById(SIGN_OUT_RAIL_SLOT_ID));
+    });
     return () => cancelAnimationFrame(frame);
   }, [slotKey]);
   // A count or a send that is still out when this unmounts must not sign anyone out afterwards.
@@ -169,29 +176,75 @@ export function SignOutControl({
             slot
           )
         : null}
-      <button
-        type="button"
-        onClick={() => void begin()}
-        disabled={stage !== 'idle'}
-        className="max-[650px]:hidden"
-        style={{
-          position: 'fixed',
-          left: '12px',
-          bottom: 'calc(env(safe-area-inset-bottom) + 84px)',
-          zIndex: 40,
-          minHeight: '32px',
-          padding: '0 12px',
-          borderRadius: '16px',
-          fontSize: '13px',
-          fontWeight: 600,
-          border: '1px solid var(--color-line-strong)',
-          background: 'var(--color-surface)',
-          color: 'var(--color-ink-soft)',
-          cursor: 'pointer'
-        }}
-      >
-        {SIGN_OUT_COPY.button}
-      </button>
+      {railSlot
+        ? createPortal(
+            <button
+              type="button"
+              onClick={() => void begin()}
+              disabled={stage !== 'idle'}
+              className="max-[650px]:hidden"
+              aria-label={SIGN_OUT_COPY.button}
+              title={SIGN_OUT_COPY.button}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                minHeight: '44px',
+                minWidth: '44px',
+                padding: '0 12px',
+                borderRadius: '12px',
+                fontSize: '13px',
+                fontWeight: 600,
+                border: '1px solid var(--color-line-strong)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-ink-soft)',
+                cursor: 'pointer'
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M16 17l5-5-5-5M21 12H9" />
+              </svg>
+              <span data-sign-out-label="">{SIGN_OUT_COPY.button}</span>
+            </button>,
+            railSlot
+          )
+        : null}
+      {railSlot ? null : (
+        <button
+          type="button"
+          onClick={() => void begin()}
+          disabled={stage !== 'idle'}
+          className="max-[650px]:hidden"
+          style={{
+            position: 'fixed',
+            left: '12px',
+            bottom: 'calc(env(safe-area-inset-bottom) + 84px)',
+            zIndex: 40,
+            minHeight: '32px',
+            padding: '0 12px',
+            borderRadius: '16px',
+            fontSize: '13px',
+            fontWeight: 600,
+            border: '1px solid var(--color-line-strong)',
+            background: 'var(--color-surface)',
+            color: 'var(--color-ink-soft)',
+            cursor: 'pointer'
+          }}
+        >
+          {SIGN_OUT_COPY.button}
+        </button>
+      )}
       {open && (
         <div
           style={{

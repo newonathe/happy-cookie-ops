@@ -88,11 +88,28 @@
 }
 .owner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 9px;
   margin-top: auto;
   padding: 22px 8px 0;
   font-size: 14px;
+}
+.ownerName {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Sign out sits on its own line inside the card, the width of the card (19 November 2026). */
+.signOutSlot {
+  display: flex;
+  flex-basis: 100%;
+}
+.signOutSlot:empty {
+  display: none;
+}
+.signOutSlot > button {
+  flex: 1;
 }
 .avatar {
   display: grid;
@@ -733,14 +750,25 @@
   padding: 0;
 }
 .workspace[data-rail='collapsed'] .brand > span,
-.workspace[data-rail='collapsed'] .owner > span:not(.avatar),
+.workspace[data-rail='collapsed'] .owner > .ownerName,
+.workspace[data-rail='collapsed'] .signOutSlot [data-sign-out-label],
 .workspace[data-rail='collapsed'] .dropCard {
   display: none;
 }
 .workspace[data-rail='collapsed'] .owner {
+  flex-direction: column;
   justify-content: center;
   margin-top: auto;
   padding-inline: 0;
+}
+.workspace[data-rail='collapsed'] .signOutSlot {
+  flex-basis: auto;
+  justify-content: center;
+}
+.workspace[data-rail='collapsed'] .signOutSlot > button {
+  flex: 0 0 auto;
+  width: 44px;
+  padding: 0;
 }
 .workspace[data-rail='collapsed'] .navigation button {
   justify-content: center;

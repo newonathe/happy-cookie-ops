@@ -206,6 +206,12 @@ describe('Account', () => {
     expect(screen.getByRole('button', { name: 'Open Other settings' })).toBeTruthy();
   });
 
+  it('names a named owner once: "Ethan · Owner", never "Ethan · owner · Owner" (19 November 2026)', () => {
+    render(<AccountLive v={vals({ roleWho: 'Ethan · owner', settingsGroups: groups })} />);
+    expect(screen.getByText('Ethan · Owner')).toBeTruthy();
+    expect(screen.queryByText(/owner · Owner/)).toBeNull();
+  });
+
   it('does not repeat the word Owner for an owner with no display name', () => {
     render(<AccountLive v={v} />);
     expect(screen.queryByText('Owner · Owner')).toBeNull();

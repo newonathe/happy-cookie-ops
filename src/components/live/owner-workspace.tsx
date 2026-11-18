@@ -5,6 +5,10 @@ import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { isLiveMode } from '@/lib/config/app-mode';
+import { SIGN_OUT_RAIL_SLOT_ID } from '@/components/app/sign-out-control';
+import { railIdentity } from '@/lib/people/role-identity';
+
+export { railIdentity };
 import { s } from '@/lib/css';
 import { AppFrame } from '@/components/shell/app-frame';
 import { CustomerMenuReadNotice } from './customer-menu-read-notice';
@@ -465,6 +469,7 @@ export function OwnerWorkspace({
 }) {
   const title = !v.denied && typeof v.pageTitle === 'string' ? v.pageTitle : 'The Happy Cookie';
   const [railCollapsed, toggleRail] = useRailCollapsed();
+  const identity = railIdentity(v.roleWho);
   useEffect(() => {
     if (isLiveMode())
       document.title = title === 'The Happy Cookie' ? title : `${title} · The Happy Cookie`;
@@ -566,10 +571,12 @@ export function OwnerWorkspace({
         <DropProgress v={v} />
         <div className={styles.owner}>
           <span className={styles.avatar}>{v.roleInitial}</span>
-          <span>
-            {v.roleWho}
-            {v.roleWho !== 'Owner' ? <small>Owner</small> : null}
+          <span className={styles.ownerName}>
+            {identity.name}
+            {identity.role ? <small>{identity.role}</small> : null}
           </span>
+          {/* SignOutControl places the wide-screen Sign out here, inside the card (Ethan, 19 November 2026). */}
+          <span id={SIGN_OUT_RAIL_SLOT_ID} className={styles.signOutSlot} />
         </div>
       </aside>
       <div className={styles.work}>
