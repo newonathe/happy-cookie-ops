@@ -87,7 +87,7 @@ begin
     r -> 'pickup_days' = '[1, 4]'::jsonb and (r ->> 'lead_min_days')::integer = 1 and (r ->> 'lead_max_days')::integer = 14
     and (r ->> 'pickup_from_hour')::integer = 9 and (r ->> 'pickup_cutoff_hour')::integer = 17
     and r ->> 'campus_from' = '14:00' and r ->> 'campus_to' = '15:30'
-    and r ->> 'campus_label' = 'Campus' and (r ->> 'unpaid_hold_hours')::integer = 24);
+    and r ->> 'campus_label' = 'JSEC Ateneo' and (r ->> 'unpaid_hold_hours')::integer = 24);
   perform pg_temp.assert_ok(a, 'rules_location_default_is_allowed',
     char_length(r ->> 'campus_label') between 1 and 80 and r ->> 'campus_label' = btrim(r ->> 'campus_label')
     and (r ->> 'campus_label') !~ '[[:cntrl:]]');

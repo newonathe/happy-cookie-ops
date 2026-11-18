@@ -36,7 +36,7 @@ create function pg_temp.restore_product(product_id text) returns void language s
 create function pg_temp.save_extras_sampler(product_id text) returns void language plpgsql as $$
 declare x jsonb := public.get_order_extras();
 begin
-  perform public.save_order_extras((x - 'updated_at') || jsonb_build_object('sampler_product_id', product_id),
+  perform public.save_order_extras((x - 'updated_at' - 'choice_images') || jsonb_build_object('sampler_product_id', product_id),
     (x->>'updated_at')::timestamptz);
 end $$;
 create function pg_temp.legacy_reactivate(product_id text) returns void language plpgsql as $$

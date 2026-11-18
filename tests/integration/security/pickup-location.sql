@@ -22,7 +22,7 @@ begin
 end $$;
 grant execute on function pg_temp.check_it(boolean), pg_temp.expect_error(text,text), pg_temp.rules(), pg_temp.save_location(jsonb,boolean) to anon, authenticated;
 set local role anon;
-select pg_temp.check_it(public.get_shop_order_rules()->>'campus_label' = 'Campus');
+select pg_temp.check_it(public.get_shop_order_rules()->>'campus_label' = 'JSEC Ateneo');
 select pg_temp.check_it(not (public.get_shop_order_rules() ? 'max_unpaid_per_phone'));
 select pg_temp.expect_error('select public.get_order_rules()', '42501');
 select pg_temp.expect_error('select public.save_order_rules(null,null)', '42501');
