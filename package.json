@@ -37,6 +37,7 @@
     "test:visual": "playwright test --project=visual --project=visual-tablet --project=visual-desktop",
     "test:visual:update": "playwright test --project=visual --project=visual-tablet --project=visual-desktop --update-snapshots",
     "test:load": "k6 run tests/load/drop-open.js",
+    "test:scenario-a": "node scripts/test-scenario-a.mjs",
     "lighthouse": "lhci autorun",
     "verify:engine": "node scripts/check-engine-contract.mjs",
     "test:port-gates": "node scripts/test-port-gates.mjs",
