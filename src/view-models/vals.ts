@@ -503,6 +503,13 @@ export interface OpsVals {
   liveOrderExtras?: {
     online: boolean;
     extras: LiveOrderExtrasFields;
+    /** Separate from the unchanged add_ons JSON contract; keyed by stable add-on id and choice. */
+    choiceImages?: Record<string, Record<string, string>>;
+    uploadChoicePhoto?: (file: File) => Promise<string | null>;
+    saveWithChoiceImages?: (
+      fields: LiveOrderExtrasFields,
+      images: Record<string, Record<string, string>>
+    ) => Promise<void>;
     /** Items of kind `set` the owner can name as the sampler. */
     sets: Array<{ id: string; name: string }>;
     /** Cookies the owner can put in the sampler box, in menu order (switched-off ones marked). */
@@ -629,6 +636,7 @@ export interface OpsVals {
         rows: Array<{
           key: string;
           label: string;
+          photo: string;
           qty: number;
           max: number;
           text: string;

@@ -48,6 +48,19 @@ describe('parseShopExtras', () => {
       { size: 8, chargeCents: 2500 }
     ]);
     expect(x.addOns[1]).toMatchObject({ id: 'note-card', textLabel: 'Message', textMax: 10 });
+    expect(x.addOns[0]!.choiceImages).toEqual({});
+    expect(
+      parseShopExtras(
+        wire({
+          add_ons: [
+            {
+              ...wire().add_ons[0],
+              choice_images: { '1': `flavours/${'c'.repeat(32)}.webp` }
+            }
+          ]
+        })
+      )!.addOns[0]!.choiceImages
+    ).toEqual({ '1': `flavours/${'c'.repeat(32)}.webp` });
     expect(
       parseShopExtras(wire({ sampler: { product_id: null, max_qty: 3 } }))!.sampler.productId
     ).toBeNull();
@@ -74,7 +87,8 @@ describe('parseShopExtras', () => {
       wire({ add_ons: [{ ...wire().add_ons[0], text_label: 5 }] }),
       wire({ add_ons: [{ ...wire().add_ons[0], price_cents: 1.5 }] }),
       wire({ add_ons: [{ ...wire().add_ons[0], max_qty: 0 }] }),
-      wire({ add_ons: [{ ...wire().add_ons[0], text_max: 301 }] })
+      wire({ add_ons: [{ ...wire().add_ons[0], text_max: 301 }] }),
+      wire({ add_ons: [{ ...wire().add_ons[0], choice_images: { '1': 'flavours/nope.png' } }] })
     ];
     for (const b of bad) expect(parseShopExtras(b)).toBeNull();
   });

@@ -29,6 +29,9 @@ export interface AddOn {
   max_qty: number;
 }
 
+/** Paths are kept beside add-ons, keyed by add-on id and exact customer choice. */
+export type ChoiceImageMap = Record<string, Record<string, string>>;
+
 export interface OrderExtrasFields {
   same_day_enabled: boolean;
   same_day_percent: number;
@@ -47,10 +50,13 @@ export interface OrderExtrasFields {
 
 export interface OrderExtras extends OrderExtrasFields {
   updated_at: string;
+  /** Missing only when reading a database that predates choice photos. */
+  choice_images: ChoiceImageMap;
 }
 
 const ADD_ON_ID = /^[a-z0-9][a-z0-9-]{0,31}$/;
 const CONTROL = /[\u0000-\u001f\u007f-\u009f]/;
+const CHOICE_IMAGE_PATH = /^flavours\/[0-9a-f]{32}\.(?:webp|jpg)$/;
 
 const whole = (v: unknown, min: number, max: number): v is number =>
   typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max;
@@ -110,6 +116,8 @@ export function parseOrderExtras(json: Json | null | undefined): OrderExtras | n
       max_qty: a.max_qty
     });
   }
+  const choiceImages = parseChoiceImages(r.choice_images, addOns);
+  if (choiceImages === null) return null;
   return {
     same_day_enabled: r.same_day_enabled,
     same_day_percent: r.same_day_percent,
@@ -119,8 +127,31 @@ export function parseOrderExtras(json: Json | null | undefined): OrderExtras | n
     sampler_flavours: flavours === undefined ? null : (flavours as string[]),
     box_sizes: boxes,
     add_ons: addOns,
+    choice_images: choiceImages,
     updated_at: r.updated_at
   };
+}
+
+/** Old installations have no image column; obsolete choice associations are safely ignored. */
+function parseChoiceImages(
+  value: unknown,
+  addOns: Array<{ id: string; variants: string[] }>
+): ChoiceImageMap | null {
+  if (value === undefined) return {};
+  if (!isObject(value)) return null;
+  const out: ChoiceImageMap = {};
+  for (const [id, choices] of Object.entries(value)) {
+    if (!isObject(choices)) return null;
+    const addon = addOns.find((item) => item.id === id);
+    const current: Record<string, string> = {};
+    for (const [variant, path] of Object.entries(choices)) {
+      if (!addon?.variants.includes(variant)) continue;
+      if (typeof path !== 'string' || !CHOICE_IMAGE_PATH.test(path)) return null;
+      current[variant] = path;
+    }
+    if (addon && Object.keys(current).length) out[id] = current;
+  }
+  return out;
 }
 
 /** The same bounds `save_order_extras` enforces. Null means the configuration is acceptable. */
@@ -235,6 +266,49 @@ export async function saveOrderExtras(
   }
 }
 
+/** New clients save choices and their separate image associations atomically. Legacy saves above stay seven/eight-key. */
+export async function saveOrderExtrasWithImages(
+  client: OrderExtrasClient,
+  fields: OrderExtrasFields,
+  choiceImages: ChoiceImageMap,
+  expectedUpdatedAt: string
+): Promise<SaveOutcome> {
+  try {
+    const { error } = await client.rpc('save_order_extras_with_images', {
+      p_extras: buildOrderExtrasPayload(fields),
+      p_choice_images: choiceImages,
+      p_expected_updated_at: expectedUpdatedAt
+    });
+    return classifySaveError(error);
+  } catch {
+    return 'offline';
+  }
+}
+
+function buildOrderExtrasPayload(fields: OrderExtrasFields): Json {
+  return {
+    same_day_enabled: fields.same_day_enabled,
+    same_day_percent: fields.same_day_percent,
+    same_day_on_extras: fields.same_day_on_extras,
+    sampler_product_id: fields.sampler_product_id,
+    sampler_max_qty: fields.sampler_max_qty,
+    ...(Array.isArray(fields.sampler_flavours)
+      ? { sampler_flavours: [...fields.sampler_flavours] }
+      : {}),
+    box_sizes: fields.box_sizes.map((b) => ({ size: b.size, charge_cents: b.charge_cents, active: b.active })),
+    add_ons: fields.add_ons.map((a) => ({
+      id: a.id,
+      name: a.name.trim(),
+      price_cents: a.price_cents,
+      active: a.active,
+      variants: a.variants.map((v) => v.trim()),
+      text_label: a.text_label === null ? null : a.text_label.trim(),
+      text_max: a.text_max,
+      max_qty: a.max_qty
+    }))
+  };
+}
+
 // ---------------------------------------------------------------- the customer's side (B4b)
 
 /** What a customer's checkout builds its pickers from (`get_shop_extras()`: active items only). */
@@ -251,6 +325,7 @@ export interface ShopExtras {
     textLabel: string | null;
     textMax: number;
     maxQty: number;
+    choiceImages: Record<string, string>;
   }>;
 }
 
@@ -290,6 +365,10 @@ export function parseShopExtras(json: unknown): ShopExtras | null {
       !a.variants.every((v) => typeof v === 'string')
     )
       return null;
+    const choiceImages = parseChoiceImages({ [a.id]: a.choice_images === undefined ? {} : a.choice_images }, [
+      { id: a.id, variants: a.variants as string[] }
+    ]);
+    if (!choiceImages) return null;
     outAddOns.push({
       id: a.id,
       name: a.name,
@@ -297,7 +376,8 @@ export function parseShopExtras(json: unknown): ShopExtras | null {
       variants: a.variants as string[],
       textLabel: a.text_label as string | null,
       textMax: a.text_max,
-      maxQty: a.max_qty
+      maxQty: a.max_qty,
+      choiceImages: choiceImages[a.id] ?? {}
     });
   }
   return {

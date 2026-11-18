@@ -1300,6 +1300,7 @@ export type Database = {
         Row: {
           add_ons: Json
           box_sizes: Json
+          choice_images: Json
           id: boolean
           same_day_enabled: boolean
           same_day_on_extras: boolean
@@ -1312,6 +1313,7 @@ export type Database = {
         Insert: {
           add_ons?: Json
           box_sizes?: Json
+          choice_images?: Json
           id?: boolean
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
@@ -1324,6 +1326,7 @@ export type Database = {
         Update: {
           add_ons?: Json
           box_sizes?: Json
+          choice_images?: Json
           id?: boolean
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
@@ -3356,6 +3359,16 @@ export type Database = {
       }
       save_order_extras: {
         Args: { p_expected_updated_at: string; p_extras: Json }
+        Returns: {
+          updated_at: string
+        }[]
+      }
+      save_order_extras_with_images: {
+        Args: {
+          p_choice_images: Json
+          p_expected_updated_at: string
+          p_extras: Json
+        }
         Returns: {
           updated_at: string
         }[]

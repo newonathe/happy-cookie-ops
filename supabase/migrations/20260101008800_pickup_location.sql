@@ -1,6 +1,6 @@
 -- Configurable special pickup location; historical orders are not backfilled.
 -- Legacy owner clients may save their original exact keys without overwriting the location.
-alter table public.order_rules add column campus_label text not null default 'Campus'
+alter table public.order_rules add column campus_label text not null default 'JSEC Ateneo'
   check (campus_label = btrim(campus_label) and char_length(campus_label) between 1 and 80
     and campus_label !~ '[[:cntrl:]]');
 alter table public.orders add column pickup_label text

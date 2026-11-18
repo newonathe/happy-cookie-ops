@@ -109,6 +109,7 @@ If a task seems to require one of these, stop and say so before writing code.
 
 ## Known traps
 
+- `apply_patch` paths ignore exec workdir; use absolute worktree paths.
 - `localStorage` in a field initialiser breaks hydration. State restores in
   `componentDidMount`. Do not move it.
 - Navigation uses `history.replaceState`, not the router. A router navigation remounts the
@@ -123,8 +124,6 @@ If a task seems to require one of these, stop and say so before writing code.
   Widen a type only alongside the engine change that produces it.
 
 ## Token efficiency
-
-Every session pays for what it loads. Same quality, less reading:
 
 1. **Load order:** `docs/state/current.md`, then `docs/state/next-goal.md`, then only the files the goal names.
    Never open `final-plan.md`, `decision-register.md` or `current-history.md` whole: search for the section.

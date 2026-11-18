@@ -2,8 +2,10 @@
 
 **Status: unapplied candidate. This draft does not authorize a hosted change.**
 
-Candidate: `supabase/migrations/20260101008800_pickup_location.sql`  
-SHA-256: `88c9574264212da3d835e9de5391c813a2e4ff7ebec39b458cb3716d90035ff2`  
+Candidate: `supabase/migrations/20260101008800_pickup_location.sql`
+
+SHA-256: `73820e7b8204d41f66146efd75e1750803938d11b349d361ac663254dab270d0`
+
 Scope: add configurable `order_rules.campus_label`, snapshot a pickup label on new/changed orders, and replace the existing order-rules and customer/status/staff read functions while retaining their role checks and grants.
 
 ## Before any hosted apply
@@ -16,7 +18,7 @@ Scope: add configurable `order_rules.campus_label`, snapshot a pickup label on n
 
 ## Expected data behavior
 
-- Existing shops receive `Campus`; valid labels are trimmed, one line and 1–80 characters.
+- Existing shops receive Cine's requested `JSEC Ateneo`; valid labels are trimmed, one line and 1–80 characters. This corrects only the still-unapplied candidate's default, confirmed absent from hosted history18November. Existing configured14:00–15:30 hours stay unchanged.
 - Existing orders are not backfilled. Their pickup snapshot stays null/legacy-compatible; new or changed special pickups record the then-current label and time.
 - The anonymous shop-rules projection has exactly nine customer-facing keys, including `campus_label`; it must continue excluding `max_unpaid_per_phone` and all owner-only fields.
 
