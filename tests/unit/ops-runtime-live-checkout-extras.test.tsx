@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 
 let live = true;
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
@@ -159,6 +159,7 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.unstubAllEnvs();
     replacePayAccounts(PORTED.map((m) => ({ ...m })));
     window.history.replaceState(null, '', '/');
   });
@@ -618,6 +619,39 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
     await submit(runtime);
     expect(placed(calls)).toHaveLength(1);
     // Mutation: without the check the server adds 40% to an order whose form never said so.
+  });
+
+  it('shows the current choice thumbnail without changing the sticker order line', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://shop.example');
+    const path = `flavours/${'9'.repeat(32)}.webp`;
+    const { runtime, calls } = await mounted({
+      get_shop_extras: () => ({
+        data: EXTRAS({
+          add_ons: [
+            {
+              id: 'sticker',
+              name: 'Sticker',
+              price_cents: 1500,
+              variants: ['1', '2'],
+              text_label: null,
+              text_max: 150,
+              max_qty: 4,
+              choice_images: { '1': path }
+            }
+          ]
+        }),
+        error: null
+      })
+    });
+    expect(live1(runtime).extras!.addOns[0]!.rows[0]!.photo).toBe(
+      'https://shop.example/storage/v1/object/public/shop-media/' + path
+    );
+    render(<LiveCheckout v={runtime.renderVals()} />);
+    expect(screen.getByRole('img', { name: 'Sticker 1' }).getAttribute('src')).toContain(path);
+    fill(runtime);
+    act(() => live1(runtime).extras!.addOns[0]!.rows[0]!.setQty(1));
+    await submit(runtime);
+    expect(placed(calls)[0]!.add_ons).toEqual([{ id: 'sticker', qty: 1, variant: '1' }]);
   });
 
   it('the ported "no extra charge" line is replaced in live mode', async () => {

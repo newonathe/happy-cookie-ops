@@ -159,6 +159,8 @@ import {
   fetchOrderExtras,
   orderExtrasError,
   saveOrderExtras,
+  saveOrderExtrasWithImages,
+  type ChoiceImageMap,
   type OrderExtras,
   type OrderExtrasFields
 } from '@/lib/data/order-extras';
@@ -896,6 +898,8 @@ export class OpsRuntime extends OpsProvider {
   private shopClientEpoch = 0;
   private rulesRow: OrderRulesRow | null = null;
   private extrasRow: OrderExtras | null = null;
+  private orderExtrasSave: { scope: number; promise: Promise<void> } | null = null;
+  private orderExtrasSheetScope = 0;
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
@@ -4535,6 +4539,7 @@ export class OpsRuntime extends OpsProvider {
   /** Read fresh first, so the stamp the form saves against is the current one. */
   private openOrderExtras = async (): Promise<boolean> => {
     if (!(await this.loadOrderExtras()) || !this.extrasRow) return false;
+    this.orderExtrasSheetScope += 1;
     this.sheet('orderextras', { updatedAt: this.extrasRow.updated_at });
     return true;
   };
@@ -4543,6 +4548,7 @@ export class OpsRuntime extends OpsProvider {
     const sh = this.state.sheet as FlavourSheetState | null;
     const x = this.extrasRow;
     if (this.state.role !== 'owner' || sh?.kind !== 'orderextras' || !x) return null;
+    const scope = this.orderExtrasSheetScope;
     const flavourRows = this.flavourSync?.current() ?? [];
     const sets = flavourRows
       .filter((r) => r.item_type === 'set' && !r.archived_at)
@@ -4587,14 +4593,40 @@ export class OpsRuntime extends OpsProvider {
       },
       sets,
       cookies,
-      save: (f: LiveOrderExtrasFields) => void this.saveOrderExtrasForm(f, sh.updatedAt ?? null),
+      choiceImages: x.choice_images,
+      uploadChoicePhoto: (file: File) =>
+        this.paymentSync?.upload('flavours', file) ?? Promise.resolve(null),
+      saveWithChoiceImages: (f: LiveOrderExtrasFields, images: ChoiceImageMap) =>
+        this.saveOrderExtrasForm(f, scope, sh.updatedAt ?? null, images),
+      save: (f: LiveOrderExtrasFields) =>
+        void this.saveOrderExtrasForm(f, scope, sh.updatedAt ?? null),
       close: () => this.closeSheet()
     };
   }
 
-  private async saveOrderExtrasForm(
+  private saveOrderExtrasForm(
     f: LiveOrderExtrasFields,
-    expectedUpdatedAt: string | null
+    scope: number,
+    expectedUpdatedAt: string | null,
+    choiceImages?: ChoiceImageMap
+  ): Promise<void> {
+    if (scope !== this.orderExtrasSheetScope || (this.state.sheet as FlavourSheetState | null)?.kind !== 'orderextras')
+      return Promise.resolve();
+    if (this.orderExtrasSave?.scope === scope) return this.orderExtrasSave.promise;
+    const promise = this.performOrderExtrasSave(f, scope, expectedUpdatedAt, choiceImages).finally(
+      () => {
+        if (this.orderExtrasSave?.promise === promise) this.orderExtrasSave = null;
+      }
+    );
+    this.orderExtrasSave = { scope, promise };
+    return promise;
+  }
+
+  private async performOrderExtrasSave(
+    f: LiveOrderExtrasFields,
+    scope: number,
+    expectedUpdatedAt: string | null,
+    choiceImages?: ChoiceImageMap
   ): Promise<void> {
     const numbers = [
       f.sameDayPercent,
@@ -4635,7 +4667,17 @@ export class OpsRuntime extends OpsProvider {
     const problem = orderExtrasError(fields);
     if (problem) return void this.toast(problem, 'warn');
     if (!this.shopClient || !expectedUpdatedAt) return void this.toast(STAFF_COPY.offline, 'warn');
-    const outcome = await saveOrderExtras(this.shopClient, fields, expectedUpdatedAt);
+    const outcome =
+      choiceImages === undefined
+        ? await saveOrderExtras(this.shopClient, fields, expectedUpdatedAt)
+        : await saveOrderExtrasWithImages(this.shopClient, fields, choiceImages, expectedUpdatedAt);
+    // A closed or replaced sheet owns the request that started it. Its late response must not
+    // close a newer form, show stale conflict UI, or refresh over that form's working values.
+    if (
+      scope !== this.orderExtrasSheetScope ||
+      (this.state.sheet as FlavourSheetState | null)?.kind !== 'orderextras'
+    )
+      return;
     if (outcome === 'saved') {
       this.toast(EXTRAS_COPY.saved);
       this.closeSheet();
@@ -11284,6 +11326,7 @@ export class OpsRuntime extends OpsProvider {
                 return {
                   key,
                   label: v ? a.name + ' ' + v : a.name,
+                  photo: v ? resolveImagePath(a.choiceImages[v] ?? '') : '',
                   qty,
                   max: a.textLabel !== null ? 1 : qty + Math.max(0, a.maxQty - used),
                   text: line?.text ?? '',

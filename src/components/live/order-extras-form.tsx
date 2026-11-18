@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type * as React from 'react';
 import type { OpsVals, LiveOrderExtrasFields } from '@/view-models/vals';
 import { EXTRAS_COPY as C } from '@/lib/orders/staff-copy';
 import { Button } from '@/components/ui/button';
+import { ChoicePhotoFields } from '@/components/live/choice-photo-fields';
 import {
   ChoiceRows,
   FooterActions,
@@ -113,12 +114,73 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
       messageLabel: a.textLabel || 'Message'
     }))
   );
+  const rowsRef = useRef(rows);
+  const imagesRef = useRef(liveOrderExtras.choiceImages ?? {});
+  const [images, setImages] = useState(liveOrderExtras.choiceImages ?? {});
+  const busyUploads = useRef(new Set<string>());
+  const [uploadsBusy, setUploadsBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [uploadWarning, setUploadWarning] = useState(false);
   const [nextKey, setNextKey] = useState(0);
+  const setCurrentRows = (next: Row[]) => {
+    rowsRef.current = next;
+    setRows(next);
+  };
   const update = (key: string, patch: Partial<Row>) =>
-    setRows((all) => all.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+    setCurrentRows(rowsRef.current.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+  const updateChoiceImage = (id: string, variant: string, path: string | null) => {
+    const row = rowsRef.current.find((candidate) => candidate.saved?.id === id);
+    const current = row?.choices
+      ? [...new Set(row.options.map((choice) => choice.trim()).filter(Boolean))]
+      : [];
+    if (!current.includes(variant)) return;
+    const next = { ...imagesRef.current };
+    const byVariant = { ...(next[id] ?? {}) };
+    if (path) byVariant[variant] = path;
+    else delete byVariant[variant];
+    if (Object.keys(byVariant).length) next[id] = byVariant;
+    else delete next[id];
+    imagesRef.current = next;
+    setImages(next);
+  };
+  const uploadBusy = (id: string, busy: boolean) => {
+    if (busy) busyUploads.current.add(id);
+    else busyUploads.current.delete(id);
+    const next = busyUploads.current.size > 0;
+    setUploadsBusy(next);
+    if (!next) setUploadWarning(false);
+  };
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    liveOrderExtras.save(readExtrasForm(event.currentTarget, extras));
+    if (savingRef.current) return;
+    if (busyUploads.current.size > 0) {
+      setUploadWarning(true);
+      return;
+    }
+    const fields = readExtrasForm(event.currentTarget, extras);
+    savingRef.current = true;
+    setSaving(true);
+    const result = liveOrderExtras.saveWithChoiceImages
+      ? (() => {
+      const currentImages: Record<string, Record<string, string>> = {};
+      for (const addOn of fields.addOns) {
+        if (!addOn.id) continue;
+        const saved = imagesRef.current[addOn.id];
+        const choices = Object.fromEntries(
+          addOn.variants
+            .filter((variant) => typeof saved?.[variant] === 'string')
+            .map((variant) => [variant, saved![variant]!])
+        );
+        if (Object.keys(choices).length) currentImages[addOn.id] = choices;
+      }
+      return liveOrderExtras.saveWithChoiceImages(fields, currentImages);
+      })()
+      : liveOrderExtras.save(fields);
+    void Promise.resolve(result).finally(() => {
+      savingRef.current = false;
+      setSaving(false);
+    });
   };
   const samplerSet = sets.find((s) => s.id === extras.samplerProductId) ?? sets[0];
   return (
@@ -126,6 +188,11 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
       {!liveOrderExtras.online ? (
         <p role="status" className="mb-4 rounded-control bg-warm-high p-3 text-caption text-danger">
           Offline. Changes here will not save until this device is back online.
+        </p>
+      ) : null}
+      {uploadWarning ? (
+        <p role="alert" className="mb-4 rounded-control bg-warm-high p-3 text-caption text-danger">
+          Wait for photo uploads to finish before saving.
         </p>
       ) : null}
 
@@ -234,8 +301,8 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
             variant="secondary"
             size="sm"
             onClick={() => {
-              setRows((all) => [
-                ...all,
+              setCurrentRows([
+                ...rowsRef.current,
                 {
                   key: `new:${nextKey}`,
                   saved: null,
@@ -267,7 +334,13 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
             row.saved ? null : (
               <button
                 type="button"
-                onClick={() => setRows((all) => all.filter((r) => r.key !== row.key))}
+                onClick={() => {
+                  setCurrentRows(rowsRef.current.filter((r) => r.key !== row.key));
+                  const next = { ...imagesRef.current };
+                  delete next[row.key];
+                  imagesRef.current = next;
+                  setImages(next);
+                }}
                 className="min-h-11 rounded-control px-3 text-caption font-semibold text-brand-deep hover:bg-chip"
               >
                 Remove
@@ -315,6 +388,18 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
               values={row.options}
               onChange={(options) => update(row.key, { options })}
             />
+          ) : null}
+          {row.saved && row.choices && liveOrderExtras.uploadChoicePhoto ? (
+            <ChoicePhotoFields
+              label={row.saved.name}
+              variants={row.options}
+              imagePaths={images[row.saved.id] ?? {}}
+              upload={liveOrderExtras.uploadChoicePhoto}
+              onChange={(variant, path) => updateChoiceImage(row.saved!.id, variant, path)}
+              onUploadsBusyChange={(busy) => uploadBusy(row.saved!.id, busy)}
+            />
+          ) : row.choices && !row.saved ? (
+            <p className="text-caption text-ink-mute">Save this add-on before adding photos.</p>
           ) : null}
           <SwitchRow
             label="Customer writes a message"
@@ -371,7 +456,7 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
           </Button>
         }
         forward={
-          <Button type="submit" variant="primary">
+          <Button type="submit" variant="primary" disabled={uploadsBusy || saving}>
             {C.save}
           </Button>
         }

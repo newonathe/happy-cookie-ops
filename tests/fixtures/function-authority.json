@@ -1029,7 +1029,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "cc46bbef1a539f6fae9bab581d405905",
+      "body_md5": "586516c341dc1eb65c48a6675143f7d1",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1044,7 +1044,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "526afe5292d390ac17ea71cbcb834ba6",
+      "body_md5": "6ba3f392cda04b3a5b7d871ad630de81",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -2760,6 +2760,21 @@
       "security_definer": true,
       "execute_service_role": false,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_order_extras_with_images",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "f13d07638c3d619d88d8665543e7fa22",
+      "identity": "p_extras jsonb, p_choice_images jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     }
   ]
 }
