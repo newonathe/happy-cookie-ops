@@ -73,6 +73,11 @@ jobs:
     name: Browser flows
     runs-on: ubuntu-latest
     needs: verify
+    # The Playwright image already holds Chromium, WebKit and their system libraries. Installing them on the bare
+    # runner (`playwright install --with-deps`) fetched 140 MB from a slow Ubuntu mirror and took 36 minutes of a
+    # 40-minute job on 19 November 2026; the tests themselves take about a minute. Same image as the visual job.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -83,7 +88,6 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm build
       # No Supabase variables here. src/middleware.ts redirects every staff route to
       # /sign-in when they exist at runtime, and these tests drive the demo build.
