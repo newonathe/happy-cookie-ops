@@ -4,6 +4,7 @@ import {
   CUSTOMER_PUBLIC_PATHS,
   assertOwnerRouteDenied,
   assertPublicRoute,
+  waitForPublicRoute,
   buildCustomerAccessManifest,
   emittedPublicResourcePaths,
   emittedArtifactPath,
@@ -211,5 +212,36 @@ describe('public emitted artifacts', () => {
   );
   it('retains emitted asset filenames', () => {
     expect(emittedArtifactPath('/_next/static/chunks/app.js')).toBe('_next/static/chunks/app.js');
+  });
+});
+
+describe('waiting for a new release to reach the edge (19 November 2026)', () => {
+  const origin = `https://${host}`;
+  const fresh = Buffer.from('<main>new build</main>');
+  const page = (text: string) =>
+    new Response(text, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
+
+  it('polls until the edge serves the emitted bytes, then passes', async () => {
+    let calls = 0;
+    const waits: number[] = [];
+    const attempts = await waitForPublicRoute(
+      async () => page(++calls < 3 ? '<main>old build</main>' : '<main>new build</main>'),
+      origin,
+      '/shop',
+      fresh,
+      { attempts: 5, delayMs: 10, sleep: async (ms: number) => void waits.push(ms) }
+    );
+    expect(attempts).toBe(3);
+    expect(waits).toEqual([10, 10]);
+  });
+
+  it('gives up after the last attempt with the real reason', async () => {
+    await expect(
+      waitForPublicRoute(async () => page('<main>old build</main>'), origin, '/shop', fresh, {
+        attempts: 3,
+        delayMs: 0,
+        sleep: async () => {}
+      })
+    ).rejects.toThrow('Public route body mismatch (/shop)');
   });
 });
