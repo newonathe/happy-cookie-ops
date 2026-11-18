@@ -6,7 +6,8 @@ vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
 import { OpsRuntime } from '@/store/ops-runtime';
 import { PRODUCTS } from '@/store/engine/ops-engine';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
-import { OwnerWorkspace } from '@/components/live/owner-workspace';
+import { OwnerWorkspace, railIdentity } from '@/components/live/owner-workspace';
+import { SIGN_OUT_RAIL_SLOT_ID } from '@/components/app/sign-out-control';
 import { registerLiveStockScreens } from '@/components/live/stock/register';
 
 function Frame() {
@@ -146,4 +147,14 @@ it('keeps an active production focus on its existing frame', () => {
   );
   expect(runtime.renderVals().showTopBar).toBe(false);
   expect(document.querySelector('[data-refined-frame]')).toBeNull();
+});
+
+it('shows the owner once in the sidebar and keeps a place for Sign out inside its card (19 November 2026)', () => {
+  expect(railIdentity('Ethan · owner')).toEqual({ name: 'Ethan', role: 'Owner' });
+  expect(railIdentity('Kristian · helper')).toEqual({ name: 'Kristian', role: 'Helper' });
+  expect(railIdentity('Owner')).toEqual({ name: 'Owner', role: null });
+  mount();
+  const slot = document.getElementById(SIGN_OUT_RAIL_SLOT_ID);
+  expect(slot).toBeTruthy();
+  expect(slot?.closest('aside')).toBeTruthy();
 });

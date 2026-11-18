@@ -18,7 +18,12 @@ vi.mock('@/lib/auth/sign-out-guard', () => ({
   queuedBeforeSignOut: (local?: unknown) => queuedBeforeSignOut(local)
 }));
 
-import { SignOutControl, SIGN_OUT_COPY, SIGN_OUT_SLOT_ID } from '@/components/app/sign-out-control';
+import {
+  SignOutControl,
+  SIGN_OUT_COPY,
+  SIGN_OUT_RAIL_SLOT_ID,
+  SIGN_OUT_SLOT_ID
+} from '@/components/app/sign-out-control';
 
 describe('SignOutControl', () => {
   const flush = vi.fn(async () => undefined);
@@ -216,6 +221,26 @@ describe('SignOutControl', () => {
       finish();
     });
     expect(onSignOut).not.toHaveBeenCalled();
+  });
+
+  it('sits inside the sidebar card on a wide screen when the sidebar is there (Ethan, 19 November 2026)', async () => {
+    const rail = document.createElement('div');
+    rail.id = SIGN_OUT_RAIL_SLOT_ID;
+    document.body.appendChild(rail);
+    try {
+      view();
+      await waitFor(() => expect(rail.querySelector('button')).toBeTruthy());
+      const buttons = screen.getAllByRole('button', { name: SIGN_OUT_COPY.button });
+      expect(buttons).toHaveLength(1);
+      const inRail = buttons[0]!;
+      expect(rail.contains(inRail)).toBe(true);
+      expect(inRail.style.position).toBe('');
+      expect(inRail.className).toContain('max-[650px]:hidden');
+      fireEvent.click(inRail);
+      expect(await screen.findByRole('alertdialog')).toBeTruthy();
+    } finally {
+      rail.remove();
+    }
   });
 
   it('floats only on a wide screen, and sits in the Account page slot on a phone (14 November 2026)', async () => {

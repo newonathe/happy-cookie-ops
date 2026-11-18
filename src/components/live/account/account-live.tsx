@@ -8,6 +8,13 @@ import { cx } from '@/components/ui/cx';
 import { PageTitle, Panel, SectionHeading, SwitchRow } from '@/components/ui/owner-kit';
 import { OpenRow } from '@/components/ui/owner-patterns';
 import { AREA_TEXT, SettingsAreaPage, groupsOf, type SettingsArea } from './settings-areas';
+import { railIdentity } from '@/lib/people/role-identity';
+
+/** "Ethan · Owner", or "Owner" alone; the role is never said twice (19 November 2026). */
+function accountSubtitle(who: unknown): string {
+  const { name, role } = railIdentity(who);
+  return role ? `${name} · ${role}` : name;
+}
 
 /** Account (client v4): one row per area, each opening that area's settings. Every engine row stays reachable. */
 export function AccountLive({ v }: { v: OpsVals }) {
@@ -28,10 +35,7 @@ export function AccountLive({ v }: { v: OpsVals }) {
   const present = (name: SettingsArea) => groupsOf(v, name).length > 0;
   return (
     <div className="w-full">
-      <PageTitle
-        title="Account"
-        subtitle={v.roleWho === 'Owner' ? 'Owner' : `${String(v.roleWho)} · Owner`}
-      />
+      <PageTitle title="Account" subtitle={accountSubtitle(v.roleWho)} />
       <Panel>
         {present('people') ? (
           <OpenRow

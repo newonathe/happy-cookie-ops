@@ -7,6 +7,7 @@ import { screenForPath } from '@/lib/screens';
 import { LiveOrderRoute } from '@/components/app/live-order-route';
 import bazaarAnswer from '@/../tests/fixtures/bazaar-example.json';
 import { OwnerWorkspace } from '@/components/live/owner-workspace';
+import { SignOutControl } from '@/components/app/sign-out-control';
 import { useOpsVals, useOpsEngine } from '@/store/use-ops';
 import { registerLiveStockScreens } from '@/components/live/stock/register';
 import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
@@ -155,7 +156,7 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
 
 function Frame({ navigationReady = false }: {navigationReady?: boolean}) {
   const v=useOpsVals(); const engine=useOpsEngine();
-  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}{routeSyncPreview && navigationReady ? <RouteSync initialScreen={screenForPath(window.location.pathname)} /> : null}<LiveOrderRoute /><OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /></>;
+  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}{routeSyncPreview && navigationReady ? <RouteSync initialScreen={screenForPath(window.location.pathname)} /> : null}<LiveOrderRoute /><OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /><SignOutControl flush={async()=>{}} onSignOut={()=>{(window as unknown as {qaSignedOut?:boolean}).qaSignedOut=true;}} local={()=>[]} offline={false} eventOpen={()=>false} slotKey={engine.state.screen} /></>;
 }
 function App() {
   const ref = useRef<OpsRuntime | null>(null);
