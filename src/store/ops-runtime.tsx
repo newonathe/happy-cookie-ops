@@ -3398,6 +3398,20 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
+  private async setFlavourArchived(
+    id: string,
+    expectedUpdatedAt: string,
+    restore: boolean
+  ): Promise<boolean> {
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return false;
+    const sync = this.flavourSync;
+    if (!sync?.current().some((row) => row.id === id)) return false;
+    const status = restore
+      ? await sync.restore(id, expectedUpdatedAt)
+      : await sync.archive(id, expectedUpdatedAt);
+    return status === 'changed' && this.flavourSync === sync && this.state.role === 'owner';
+  }
+
   /**
    * The prototype read localStorage in a field initialiser and restores the saved books
    * one commit after mount (see `OpsEngine.componentDidMount`, protected). Live mode never
@@ -3830,6 +3844,11 @@ export class OpsRuntime extends OpsProvider {
         )
       : super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
+    const catalogueRows = this.flavourSync?.current() ?? [];
+    const archivedIds = new Set(
+      catalogueRows.filter((row) => row.archived_at).map((row) => row.id)
+    );
+    const workingCatalogue = PRODUCTS.filter((product) => !archivedIds.has(product.id));
     const counting =
       isLiveMode() &&
       this.state.role === 'owner' &&
@@ -3962,11 +3981,12 @@ export class OpsRuntime extends OpsProvider {
         ? {
             pageSub: this.catalogueUnread()
               ? STAFF_COPY.homeProductsNotRead
-              : PRODUCTS.length +
+              : workingCatalogue.length +
                 ' flavours · ' +
-                PRODUCTS.filter(
-                  (p) =>
-                    (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+                workingCatalogue.filter(
+                  (product) =>
+                    (this.state.dropActive as Record<string, boolean> | undefined)?.[product.id] !==
+                    false
                 ).length +
                 ' on menu'
           }
@@ -4523,14 +4543,19 @@ export class OpsRuntime extends OpsProvider {
     const sh = this.state.sheet as FlavourSheetState | null;
     const x = this.extrasRow;
     if (this.state.role !== 'owner' || sh?.kind !== 'orderextras' || !x) return null;
-    const sets = (this.flavourSync?.current() ?? [])
-      .filter((r) => r.item_type === 'set')
-      .map((r) => ({ id: r.id, name: r.name }));
-    if (x.sampler_product_id && !sets.some((s) => s.id === x.sampler_product_id))
-      sets.push({ id: x.sampler_product_id, name: x.sampler_product_id });
     const flavourRows = this.flavourSync?.current() ?? [];
+    const sets = flavourRows
+      .filter((r) => r.item_type === 'set' && !r.archived_at)
+      .map((r) => ({ id: r.id, name: r.name }));
+    const archivedSampler = flavourRows.find((row) => row.id === x.sampler_product_id)?.archived_at;
+    if (
+      x.sampler_product_id &&
+      !archivedSampler &&
+      !sets.some((s) => s.id === x.sampler_product_id)
+    )
+      sets.push({ id: x.sampler_product_id, name: x.sampler_product_id });
     const cookies = flavourRows
-      .filter((r) => r.item_type === 'cookie')
+      .filter((r) => r.item_type === 'cookie' && !r.archived_at)
       .map((r) => ({ id: r.id, name: r.short_name || r.name, active: r.active }));
     // A saved flavour that is no longer listed stays visible, so a save never drops it unseen.
     for (const id of x.sampler_flavours ?? [])
@@ -10244,6 +10269,8 @@ export class OpsRuntime extends OpsProvider {
       return pid
         ? {
             ...row,
+            archived: !!this.flavourSync?.current().find((flavour) => flavour.id === pid)
+              ?.archived_at,
             ...this.makeDesk.productFields(pid),
             edit: () => this.openFlavourEditor(pid, true),
             returnRecipeFocus: this.state.liveProductReturnId === pid,
@@ -10829,11 +10856,13 @@ export class OpsRuntime extends OpsProvider {
   private liveFormVals(): OpsVals['liveForm'] {
     const sh = this.state.sheet as FlavourSheetState | null;
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours') return null;
-    const rows = [...(this.flavourSync?.current() ?? [])].sort(
+    const allRows = [...(this.flavourSync?.current() ?? [])].sort(
       (a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id)
     );
+    const rows = allRows.filter((row) => !row.archived_at);
+    const archivedRows = allRows.filter((row) => !!row.archived_at);
     const online = this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
-    const target = sh.pid ? rows.find((r) => r.id === sh.pid) : undefined;
+    const target = sh.pid ? allRows.find((r) => r.id === sh.pid) : undefined;
     // Frozen at open time (openFlavourEditor), not re-read here: see that method's comment.
     const expectedUpdatedAt = sh.isNew ? null : (sh.updatedAt ?? target?.updated_at ?? null);
     const editing =
@@ -10855,7 +10884,7 @@ export class OpsRuntime extends OpsProvider {
             capacityWeight: target?.capacity_weight ?? 1,
             sortOrder:
               target?.sort_order ??
-              (rows.length ? Math.max(...rows.map((r) => r.sort_order)) + 1 : 0),
+              (allRows.length ? Math.max(...allRows.map((r) => r.sort_order)) + 1 : 0),
             price: target ? centavosToPesos(centavosFromDb(target.price_cents)) : 0,
             active: target?.active ?? true,
             save: (fields: LiveFlavourFormFields) =>
@@ -10877,7 +10906,15 @@ export class OpsRuntime extends OpsProvider {
         priceText: PESO(centavosToPesos(centavosFromDb(r.price_cents))),
         published: r.published,
         active: r.active,
-        edit: () => this.openFlavourEditor(r.id)
+        updatedAt: r.updated_at,
+        edit: () => this.openFlavourEditor(r.id),
+        archive: (updatedAt) => this.setFlavourArchived(r.id, updatedAt, false)
+      })),
+      archivedRows: archivedRows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        updatedAt: r.updated_at,
+        restore: (updatedAt) => this.setFlavourArchived(r.id, updatedAt, true)
       })),
       addNew: () => this.openNewFlavour(),
       publish: () => void this.publishMenu(),

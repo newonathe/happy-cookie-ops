@@ -303,7 +303,15 @@ export interface OpsVals {
       priceText: React.ReactNode;
       published: boolean;
       active: boolean;
+      updatedAt: string;
       edit: (event?: unknown) => void;
+      archive: (updatedAt: string) => Promise<boolean>;
+    }>;
+    archivedRows: Array<{
+      id: string;
+      name: string;
+      updatedAt: string;
+      restore: (updatedAt: string) => Promise<boolean>;
     }>;
     addNew: (event?: unknown) => void;
     publish: (event?: unknown) => void;
@@ -1501,6 +1509,8 @@ export interface OpsVals {
     /** Live owner only: from `MakeDesk.productFields`. */
     photo?: string;
     bakedText?: string | null;
+    /** Retained in the engine and history, but omitted from live management lists. */
+    archived?: boolean;
     hasRecipe?: boolean | null;
     /** Her type is sold by the piece (migration 84): not baked, and a recipe is optional. */
     soldByPiece?: boolean;

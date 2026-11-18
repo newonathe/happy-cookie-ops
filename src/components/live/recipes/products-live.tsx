@@ -93,7 +93,8 @@ export function ProductsLive({ v }: { v: OpsVals }) {
   if (v.liveScreen?.tabs?.label !== 'Make') return <ProductsScreen v={v} />;
   if (settings.page) return settings.page;
   const all = v.productRows ?? [];
-  const rows = all.filter((row) =>
+  const visible = all.filter((row) => !row.archived);
+  const rows = visible.filter((row) =>
     filter === 'menu'
       ? !row.offForm
       : filter === 'recipe'
@@ -189,7 +190,7 @@ export function ProductsLive({ v }: { v: OpsVals }) {
         <p className={styles.empty}>
           {read.empty
             ? STAFF_COPY.productsEmpty
-            : all.length
+            : visible.length
               ? filter === 'recipe'
                 ? 'Every product has a recipe.'
                 : 'No products on the menu. Choose All products to see the rest.'

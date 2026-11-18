@@ -1856,6 +1856,7 @@ export type Database = {
         Row: {
           active: boolean
           allergens: string
+          archived_at: string | null
           capacity_weight: number
           description: string
           id: string
@@ -1874,6 +1875,7 @@ export type Database = {
         Insert: {
           active?: boolean
           allergens?: string
+          archived_at?: string | null
           capacity_weight?: number
           description?: string
           id: string
@@ -1892,6 +1894,7 @@ export type Database = {
         Update: {
           active?: boolean
           allergens?: string
+          archived_at?: string | null
           capacity_weight?: number
           description?: string
           id?: string
@@ -2687,6 +2690,14 @@ export type Database = {
         Returns: Json
       }
       apply_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
+      archive_flavour: {
+        Args: { p_expected_updated_at: string; p_id: string }
+        Returns: {
+          archived_at: string
+          id: string
+          updated_at: string
+        }[]
+      }
       bazaar_held_ledger: {
         Args: never
         Returns: {
@@ -2952,6 +2963,7 @@ export type Database = {
         Returns: {
           active: boolean
           allergens: string
+          archived_at: string
           capacity_weight: number
           description: string
           id: string
@@ -3269,6 +3281,14 @@ export type Database = {
           duplicate: boolean
           item_id: string
           on_hand: number
+        }[]
+      }
+      restore_flavour: {
+        Args: { p_expected_updated_at: string; p_id: string }
+        Returns: {
+          archived_at: string
+          id: string
+          updated_at: string
         }[]
       }
       reverse_bazaar_test: {

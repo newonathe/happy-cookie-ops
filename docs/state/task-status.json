@@ -187,7 +187,7 @@
       "evidence": "docs/state/G2-plan.md \"Slice audit\" MP-09 a/b; docs/state/next-goal.md \"Next goal - MP-09 a\", \"MP-09 b1\" and \"MP-09 b2\"; pnpm verify 39 files/599 tests at b2 close; SQL role suite 508 cases/reset x2 this session; G0 validator 1196 checks/0 failures this session; independent Opus review this session for a, independent Opus review this session for b1, independent Sonnet reviews for b2, b3 and b4 (b4 after one P1 fix; all SAFE TO MERGE, no P0/P1)"
     }
   },
-  "release_acceptance": "Partial engineering releases accepted: Home/Customers/Sell/light palette/security/settings deployed; latest PR88/05a5e73e run44106997415 all8jobs passed, Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2. Pickup and public Access source candidates remain separate from hosted/public/device/owner/full-product acceptance.",
+  "release_acceptance": "Partial engineering release through05a5e73e/PR88, Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2. Pickup371df470/PR90 source accepted and SQL-rehearsed, not applied/deployed. Public Access PR89 source green, exact narrow cutover approved, operator/app ID pending. Flavour removal source in progress; full-product/device/owner/recovery acceptance open.",
   "ops_notes": [
     "2026-10-05 (Claude): Ethan answered the eleven questions for Cine on her behalf (decision register; exact words and packaging costs kept privately). Plan updated: one-time set-up screen and handover reset added as a stage C slice; stock states and customer labels worked out by rule; recipes keep their packaging lines; nothing in the build waits on Cine.",
     "2026-10-05 (Claude): Final plan version 2 APPROVED by Ethan (docs/state/final-plan.md) after a re-audit, debate and wider research; his five answers are in the decision register. Order: A bazaar safety and access (A1 release check, A2 bounded offline open), B five tabs on the existing frame with one guarded screen slot, true numbers, her prices, weighted average cost, new Stock and Recipes, C the rest; Cine starts after everything. Documents only; hosted trial read twice, read-only. Next goals: A1 then A2 in docs/state/next-goal.md.",
@@ -217,7 +217,7 @@
   ],
   "full_application": {
     "updated_client_date": "2026-11-18",
-    "source_checkpoint": "codex/pickup-location-settings-20261116",
+    "source_checkpoint": "codex/flavour-removal-20261118",
     "objective": "docs/state/full-goal.md",
     "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
     "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
@@ -338,7 +338,7 @@
       },
       "C5": {
         "title": "Sell/payments",
-        "local_status": "Reviewed Sell/light palette/security and settingsb8ad3b34 released. PR88/05a5e73e run44106997415 all8jobs passed; Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2. Pickup source acceptance active; public Access isolated; full business-cycle acceptance remains open.",
+        "local_status": "Reviewed Sell/light palette/security/settings released via05a5e73e, Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2. Pickup371df470 accepted/pushed in held PR90; migration088 unapplied. Reversible flavour removal source active; public Access PR89 approved cutover awaiting operator/app ID. Full business cycle remains open.",
         "full_cycle_accepted": false,
         "accepted_sha": [
           "9a8cf38cac379c10c533eb6d15a36c619a83517d",
@@ -544,16 +544,16 @@
     "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
     "active_slice": {
       "cycle": "C5/C12/C14",
-      "requirement": "Owner-configurable pickup location/time with saved historical order labels and legacy client compatibility.",
-      "branch": "codex/pickup-location-settings-20261116",
+      "requirement": "Owner-controlled reversible duplicate-flavour removal preserving product/order/recipe/stock history.",
+      "branch": "codex/flavour-removal-20261118",
       "source_checkpoint": "acceptance commit containing this handoff",
-      "base_checkpoint": "05a5e73ea9e453b558e042b90a99966b7aa6279e",
-      "behavior": "New unapplied migration20260101008800; owner validation/optimistic save, exact public projection, server-owned order label snapshots and owner/status/message display. No hosted apply or real configuration write.",
-      "evidence": "Failing-first then100focused; independent Sol/high review; two owned-local SQL resets with pickup/legacy order-lookup proofs and cleanup; CLI390/1920 reduced-motion form/checkout screenshots; typecheck/live29-page/demo-retry builds, offline4, E2E90pass/78expected skips. Full one-worker verify/format in acceptance commit.",
-      "original_work": "Original nine urgent intake hashes, all worktrees and six stashes preserved.",
-      "deployment": "Pickup source candidate only. Settings merge05a5e73e run44106997415 passed all8jobs, deployed Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2, read-only schema88/180 and private Access verified.",
-      "external_limits": "Hosted migration requires backup/explicit apply approval. Public Access PR89/source2dd13539 exact narrow app/policy cutover is explicitly approved17November; operator setup/app ID and public/private checks still pending, no local Cloudflare CLI authentication. Physical-device/unaided-owner/full-cycle/recovery acceptance open.",
-      "next": "Safe reversible flavour removal; per-sticker-choice photos; approved public Access cutover and migration kits."
+      "base_checkpoint": "371df470b9d916598fb981a95bf9dd6601350a07",
+      "behavior": "Remove/Restore normal management lists; full internal catalogue retained. New owner/stamp/archive/legacy-publish/sampler invariants; restore off-menu/unpublished. No real cleanup.",
+      "evidence": "Focused6files220pass after preserving kept/demo catalogue counts and correcting old fixture shape; independent Sol/high preservation recheck clear. Previous117focused/archive async/SQL recheck, owned SQL2resets/inventory/cleanup, CLI390/1920 normal/reduced4combinations pass. Earlier live/demo/offline4/E2E90+78skip passed; exact-source final build/browser after count fix pending before PR. Full-format/one-worker hook enforced by acceptance commit; first full suite failed3 and remains recorded.",
+      "deployment": "Latest actual deployed05a5e73e, Worker f6c46eca-7fb5-4ef9-a2c7-9fd1d5cefcc2, run44106997415 all8jobs passed, schema88/180. Pickup371df470 draftPR90 remains unapplied source.",
+      "original_work": "All9 urgent intake hashes, all worktrees and6stashes preserved; no whole-tree integration.",
+      "external_limits": "Hosted migration needs backup/explicit apply approval. PR89 narrow resource cutover already approved17November; operator setup/app ID pending. Public/device/owner/full-cycle/recovery not accepted.",
+      "next": "Push accepted removal source after full hook; exact-source builds/offline/E2E before held PR. Then sticker photo integration. After release, comprehensive public-repo Cloud handoff with supplied assets approved, manifest/preserved WIP/portable commands; credentials/customer records excluded. Codex only."
     },
     "publishing_authorization": "14–15November2026: release accepted changes through a PR into deploy while software is not in use, after fresh read-only today-open-day check; retain release hold/schema/Access/post-deploy gates. No arbitrary data edits, new resources, schedules or migrations authorized.",
     "checkpoint_scope": "Acceptance commit containing this note on named branch. Palette8fe6bced/PR86/deploydf330dfd is released in run44053269537, Worker51a6a2d1-de39-43e9-8065-afc9017a2690. Securityd4fb741a/PR87/mergefd6b3834 is also released in run44063373038, Worker d0685c79-7a89-4640-b224-a44cdcf043da. Settings controls/public ordering/pickup have separate acceptance/deploy gates."

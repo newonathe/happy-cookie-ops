@@ -189,11 +189,21 @@ describe('visual plain-language product editor', () => {
       priceText: '₱100',
       published,
       active: true,
+      updatedAt: '2026-11-18T00:00:00.000Z',
+      archive: vi.fn(async () => true),
       edit: vi.fn()
     });
     const list = (rows: ReturnType<typeof row>[], publish = vi.fn()) =>
       ({
-        liveForm: { kind: 'flavours', online: true, rows, addNew: vi.fn(), publish, editing: null }
+        liveForm: {
+          kind: 'flavours',
+          online: true,
+          rows,
+          archivedRows: [],
+          addNew: vi.fn(),
+          publish,
+          editing: null
+        }
       }) as unknown as OpsVals;
     const publish = vi.fn();
     const { unmount } = render(

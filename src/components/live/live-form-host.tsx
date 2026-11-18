@@ -74,7 +74,17 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   return null;
 }
 
+type FlavourConfirmation = {
+  id: string;
+  name: string;
+  updatedAt: string;
+  action: 'remove' | 'restore';
+  run: (updatedAt: string) => Promise<boolean>;
+};
+
 function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> }) {
+  const [confirming, setConfirming] = useState<FlavourConfirmation | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const drafts = liveForm.rows.filter((row) => !row.published).length;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -118,41 +128,170 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
       <button onClick={liveForm.addNew} style={secondaryButton}>
         Add a flavour
       </button>
-      {liveForm.rows.length ? (
+      {liveForm.rows.length || liveForm.archivedRows.length ? (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {liveForm.rows.map((row) => (
-            <button
-              key={row.id}
-              onClick={row.edit}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                minHeight: '54px',
-                border: '0',
-                borderBottom: '1px solid var(--color-divide)',
-                background: 'transparent',
-                padding: '8px 2px',
-                textAlign: 'left'
-              }}
-            >
-              <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
-                  {/* Published is the usual state: only a draft is worth a word. */}
-                  {row.published ? '' : 'Draft, not published · '}
-                  {row.active ? 'On the order form' : 'Off the order form'}
-                </span>
-              </span>
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.priceText}</span>
-            </button>
+            <div key={row.id} style={{ borderBottom: '1px solid var(--color-divide)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={row.edit}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    flex: '1',
+                    minWidth: '0',
+                    minHeight: '54px',
+                    border: '0',
+                    background: 'transparent',
+                    padding: '8px 2px',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span
+                    style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}
+                  >
+                    <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
+                    <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
+                      {row.published ? '' : 'Draft, not published · '}
+                      {row.active ? 'On the order form' : 'Off the order form'}
+                    </span>
+                  </span>
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.priceText}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Remove ${row.name}`}
+                  disabled={!liveForm.online || busy !== null}
+                  onClick={() =>
+                    setConfirming({
+                      id: row.id,
+                      name: String(row.name),
+                      updatedAt: row.updatedAt,
+                      action: 'remove',
+                      run: row.archive
+                    })
+                  }
+                  style={secondaryButton}
+                >
+                  Remove
+                </button>
+              </div>
+              {confirming?.id === row.id && confirming.action === 'remove' ? (
+                <div
+                  role="alertdialog"
+                  aria-label={`Remove ${confirming.name}`}
+                  style={{ padding: '8px 2px 12px' }}
+                >
+                  <p style={{ fontSize: '13px', color: 'var(--color-ink)' }}>
+                    Remove {confirming.name} from the working lists? Existing orders, recipes and
+                    stock records stay saved. You can restore this flavour later.
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      disabled={!liveForm.online || busy !== null}
+                      onClick={() => {
+                        void (async () => {
+                          setBusy(row.id);
+                          if (await confirming.run(confirming.updatedAt)) setConfirming(null);
+                          setBusy(null);
+                        })();
+                      }}
+                      style={primaryButton}
+                    >
+                      {busy === row.id ? 'Removing…' : 'Remove flavour'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => setConfirming(null)}
+                      style={secondaryButton}
+                    >
+                      Keep flavour
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           ))}
         </div>
       ) : (
         <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
-          No flavours loaded yet.
+          No active flavours. See Removed flavours below.
         </span>
       )}
+      {liveForm.archivedRows.length ? (
+        <section
+          aria-label="Removed flavours"
+          style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+        >
+          <h3 style={{ fontSize: '14px', fontWeight: 600 }}>Removed flavours</h3>
+          <p style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>
+            These flavours stay in old orders, recipes and stock records.
+          </p>
+          {liveForm.archivedRows.map((row) => (
+            <div key={row.id}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ flex: '1', fontSize: '13px' }}>{row.name}</span>
+                <button
+                  type="button"
+                  aria-label={`Restore ${row.name}`}
+                  disabled={!liveForm.online || busy !== null}
+                  onClick={() =>
+                    setConfirming({
+                      id: row.id,
+                      name: row.name,
+                      updatedAt: row.updatedAt,
+                      action: 'restore',
+                      run: row.restore
+                    })
+                  }
+                  style={secondaryButton}
+                >
+                  Restore
+                </button>
+              </div>
+              {confirming?.id === row.id && confirming.action === 'restore' ? (
+                <div
+                  role="alertdialog"
+                  aria-label={`Restore ${confirming.name}`}
+                  style={{ padding: '8px 2px 12px' }}
+                >
+                  <p style={{ fontSize: '13px', color: 'var(--color-ink)' }}>
+                    Restore {confirming.name}? It will stay off the order form and unpublished until
+                    you edit and publish it.
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      disabled={!liveForm.online || busy !== null}
+                      onClick={() => {
+                        void (async () => {
+                          setBusy(row.id);
+                          if (await confirming.run(confirming.updatedAt)) setConfirming(null);
+                          setBusy(null);
+                        })();
+                      }}
+                      style={primaryButton}
+                    >
+                      {busy === row.id ? 'Restoring…' : 'Restore flavour'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy !== null}
+                      onClick={() => setConfirming(null)}
+                      style={secondaryButton}
+                    >
+                      Keep removed
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </section>
+      ) : null}
       {/* Her product types are set up once, so they follow the list she works in every day. */}
       {liveForm.types ? <ProductTypesPanel types={liveForm.types} /> : null}
     </div>
