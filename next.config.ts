@@ -12,7 +12,23 @@ const config: NextConfig = {
   // module that registers them is swapped for an empty one, so ~80 live-only modules stay out of
   // the demo bundle (Lighthouse budget). The live build (scripts/build-pages-spike.mjs) writes
   // its own next.config and never reads this file, so it still gets the real register-all.
-  webpack(webpackConfig, { webpack }) {
+  webpack(webpackConfig, { webpack, isServer }) {
+    // A demo build with no backend never creates a Supabase client (every caller checks live mode or
+    // hasSupabaseConfig() first), so its browser bundle swaps the two SDK entry points for stubs: the SDK was ~860 KB of
+    // unused source on every page and the main cause of /bazaar's blocking time (HCB-083). Server code, the live build
+    // and any demo build with Supabase configured (the Vercel demo) keep the real client.
+    const noBackend =
+      !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    if (process.env.NEXT_PUBLIC_APP_MODE !== 'live' && !isServer && noBackend) {
+      webpackConfig.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /lib[\\/]supabase[\\/](client|auth-errors)$/,
+          (resource: { request: string }) => {
+            resource.request = resource.request.replace(/(client|auth-errors)$/, '$1-none');
+          }
+        )
+      );
+    }
     if (process.env.NEXT_PUBLIC_APP_MODE !== 'live') {
       webpackConfig.plugins.push(
         new webpack.NormalModuleReplacementPlugin(

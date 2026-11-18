@@ -1,4 +1,5 @@
-import { isAuthRetryableFetchError, type SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { isAuthRetryableFetchError } from '@/lib/supabase/auth-errors';
 import type { Database } from '@/lib/types/database';
 import type { Role } from '@/store/engine/ops-engine';
 import { clearStoredBooks } from '@/lib/data/live-state';
