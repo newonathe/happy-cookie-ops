@@ -1,11 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
+import { act } from 'react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
   addOnId,
   fetchOrderExtras,
   orderExtrasError,
   parseOrderExtras,
   saveOrderExtras,
+  saveOrderExtrasWithImages,
   type OrderExtrasClient,
   type OrderExtrasFields
 } from '@/lib/data/order-extras';
@@ -73,6 +75,12 @@ describe('parseOrderExtras', () => {
     });
     expect(parseOrderExtras(wire({ sampler_product_id: 's1' }))!.sampler_product_id).toBe('s1');
     expect(parseOrderExtras(wire())!.add_ons[1]!.text_label).toBe('Message');
+    expect(parseOrderExtras(wire())!.choice_images).toEqual({});
+    expect(
+      parseOrderExtras(
+        wire({ choice_images: { sticker: { '1': `flavours/${'a'.repeat(32)}.webp`, old: 'bad' } } })
+      )!.choice_images
+    ).toEqual({ sticker: { '1': `flavours/${'a'.repeat(32)}.webp` } });
   });
 
   it('refuses anything unexpected, so the form does not open on a guess', () => {
@@ -100,7 +108,10 @@ describe('parseOrderExtras', () => {
       wire({ add_ons: [{ ...wire().add_ons[0], max_qty: 0 }] }),
       wire({ add_ons: [{ ...wire().add_ons[0], text_max: 301 }] }),
       wire({ add_ons: [{ ...wire().add_ons[0], id: 4 }] }),
-      wire({ add_ons: [{ ...wire().add_ons[0], active: 1 }] })
+      wire({ add_ons: [{ ...wire().add_ons[0], active: 1 }] }),
+      wire({ choice_images: [] }),
+      wire({ choice_images: { sticker: 'not a map' } }),
+      wire({ choice_images: { sticker: { '1': 'flavours/ABC.webp' } } })
     ])
       expect(parseOrderExtras(bad as never)).toBeNull();
     // Mutation: accepting any object turns a changed function shape into a form that saves nonsense.
@@ -273,6 +284,32 @@ describe('the rpc wrappers', () => {
     } as unknown as OrderExtrasClient;
     expect(await saveOrderExtras(throwing, fields(), STAMP)).toBe('offline');
   });
+
+  it('uses the image-aware RPC while leaving image keys out of the established add_ons payload', async () => {
+    const f = client({ data: null, error: null });
+    expect(
+      await saveOrderExtrasWithImages(
+        f.client,
+        fields(),
+        { sticker: { '1': `flavours/${'b'.repeat(32)}.jpg` } },
+        STAMP
+      )
+    ).toBe('saved');
+    const [name, args] = f.rpc.mock.calls[0] as unknown as [string, Record<string, unknown>];
+    expect(name).toBe('save_order_extras_with_images');
+    expect(args.p_expected_updated_at).toBe(STAMP);
+    expect(args.p_choice_images).toEqual({ sticker: { '1': `flavours/${'b'.repeat(32)}.jpg` } });
+    const body = args.p_extras as Record<string, unknown>;
+    expect(Object.keys(body).sort()).toEqual([
+      'add_ons',
+      'box_sizes',
+      'same_day_enabled',
+      'same_day_on_extras',
+      'same_day_percent',
+      'sampler_max_qty',
+      'sampler_product_id'
+    ]);
+  });
 });
 
 describe('the form reads itself back', () => {
@@ -302,14 +339,19 @@ describe('the form reads itself back', () => {
     ],
     ...over
   });
-  const setup = (over: Partial<LiveOrderExtrasFields> = {}, online = true) => {
+  const setup = (
+    over: Partial<LiveOrderExtrasFields> = {},
+    online = true,
+    extra: Partial<NonNullable<OpsVals['liveOrderExtras']>> = {}
+  ) => {
     const save = vi.fn();
     const props: NonNullable<OpsVals['liveOrderExtras']> = {
       online,
       extras: before(over),
       sets: [{ id: 'sampler-1', name: 'Sampler box' }],
       save,
-      close: vi.fn()
+      close: vi.fn(),
+      ...extra
     };
     const view = render(<OrderExtrasForm liveOrderExtras={props} />);
     const input = (name: string) =>
@@ -345,6 +387,93 @@ describe('the form reads itself back', () => {
         }
       ]
     });
+  });
+
+  it('saves a choice photo beside the unchanged add-on configuration', async () => {
+    const saveWithChoiceImages = vi.fn();
+    const path = `flavours/${'d'.repeat(32)}.webp`;
+    const { view } = setup({}, true, {
+      uploadChoicePhoto: vi.fn(async () => path),
+      saveWithChoiceImages
+    });
+    fireEvent.change(screen.getByLabelText(/Upload photo.*Sticker.*1/), {
+      target: { files: [new File(['image'], 'sticker.png', { type: 'image/png' })] }
+    });
+    await waitFor(() => expect(screen.getByLabelText(/Replace photo.*Sticker.*1/)).toBeTruthy());
+    fireEvent.submit(view.container.querySelector('form')!);
+    expect(saveWithChoiceImages).toHaveBeenCalledWith(expect.any(Object), {
+      sticker: { '1': path }
+    });
+    expect(saveWithChoiceImages.mock.calls[0]![0].addOns[0]).toMatchObject({
+      id: 'sticker',
+      pricePesos: 15,
+      variants: ['1', '2']
+    });
+  });
+
+  it('blocks programmatic submission while any choice photo upload is pending', async () => {
+    let finish!: (path: string) => void;
+    const saveWithChoiceImages = vi.fn();
+    const { view } = setup({}, true, {
+      uploadChoicePhoto: () => new Promise<string>((resolve) => (finish = resolve)),
+      saveWithChoiceImages
+    });
+    fireEvent.change(screen.getByLabelText(/Upload photo.*Sticker.*1/), {
+      target: { files: [new File(['image'], 'sticker.png', { type: 'image/png' })] }
+    });
+    fireEvent.submit(view.container.querySelector('form')!);
+    expect(saveWithChoiceImages).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert').textContent).toMatch(/Wait for photo uploads/);
+    await act(async () => finish(`flavours/${'e'.repeat(32)}.jpg`));
+  });
+
+  it('locks choice photo and choice edits while the save is pending', async () => {
+    // A bucket photo draws only when a Supabase origin is configured; give the test one.
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://example.supabase.co');
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+    });
+    let finishSave!: () => void;
+    const uploadChoicePhoto = vi.fn(async () => `flavours/${'a'.repeat(32)}.webp`);
+    const saveWithChoiceImages = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishSave = resolve;
+        })
+    );
+    const { input, view } = setup({}, true, {
+      choiceImages: { sticker: { '1': `flavours/${'b'.repeat(32)}.webp` } },
+      uploadChoicePhoto,
+      saveWithChoiceImages
+    });
+
+    fireEvent.submit(view.container.querySelector('form')!);
+    fireEvent.change(screen.getByLabelText(/Replace photo.*Sticker.*1/), {
+      target: { files: [new File(['image'], 'replacement.png', { type: 'image/png' })] }
+    });
+    fireEvent.change(input('aoChoice0_0'), { target: { value: 'renamed' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Remove photo for Sticker: 1' }));
+
+    expect(uploadChoicePhoto).not.toHaveBeenCalled();
+    expect(input('aoChoice0_0').value).toBe('1');
+    expect(screen.getByRole('img', { name: 'Sticker 1' })).toBeTruthy();
+    await act(async () => finishSave());
+  });
+
+  it('drops a pending photo result after its choice is renamed', async () => {
+    let finish!: (path: string) => void;
+    const saveWithChoiceImages = vi.fn();
+    const { input, submit } = setup({}, true, {
+      uploadChoicePhoto: () => new Promise<string>((resolve) => (finish = resolve)),
+      saveWithChoiceImages
+    });
+    fireEvent.change(screen.getByLabelText(/Upload photo.*Sticker.*1/), {
+      target: { files: [new File(['image'], 'sticker.png', { type: 'image/png' })] }
+    });
+    fireEvent.change(input('aoChoice0_0'), { target: { value: 'one' } });
+    await act(async () => finish(`flavours/${'f'.repeat(32)}.webp`));
+    submit();
+    expect(saveWithChoiceImages).toHaveBeenCalledWith(expect.any(Object), {});
   });
 
   it('no longer asks for the limits the owner does not tune, and keeps their saved values', () => {

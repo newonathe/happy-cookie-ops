@@ -27,7 +27,8 @@ export function UploadField({
   onUploaded,
   label,
   hint = '(PNG, JPEG or WebP, up to 2 MB)',
-  onBusyChange
+  onBusyChange,
+  disabled = false
 }: {
   upload: (file: File) => Promise<string | null>;
   onUploaded?: (path: string) => void;
@@ -35,6 +36,8 @@ export function UploadField({
   /** The size note after the label; flavour photos are resized for her, so theirs differs. */
   hint?: string;
   onBusyChange?: (busy: boolean) => void;
+  /** Refuses new uploads, for example while the form that owns the photo is saving. */
+  disabled?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<{
@@ -43,6 +46,10 @@ export function UploadField({
   } | null>(null);
   const onChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
+    if (disabled) {
+      input.value = '';
+      return;
+    }
     const file = input.files?.[0];
     if (!file) return;
     setBusy(true);
@@ -84,7 +91,7 @@ export function UploadField({
         type="file"
         accept="image/png,image/jpeg,image/webp"
         onChange={(e) => void onChange(e)}
-        disabled={busy}
+        disabled={busy || disabled}
         className="text-caption text-ink-soft file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-control file:border file:border-line-strong file:bg-surface file:px-4 file:text-label file:font-semibold file:text-ink"
       />
     </label>

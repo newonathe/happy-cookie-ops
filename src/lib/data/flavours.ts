@@ -14,7 +14,10 @@ import { centavosFromDb, centavosToPesos, pesosToCentavos, type Pesos } from '@/
  * `publish_flavours()` (MP-09 c1b, migration 20260101003100). The public shop reads only
  * the `shop_products` view (published and on the menu, no cost, no weight).
  */
-export type FlavourRow = Database['public']['Functions']['get_flavours']['Returns'][number];
+export type FlavourRow = Omit<
+  Database['public']['Functions']['get_flavours']['Returns'][number],
+  'archived_at'
+> & { archived_at?: string | null };
 export type ShopFlavourRow = Database['public']['Views']['shop_products']['Row'];
 export type FlavoursClient = Pick<SupabaseClient<Database>, 'rpc'>;
 export type ShopClient = Pick<SupabaseClient<Database>, 'from'>;
@@ -94,6 +97,8 @@ const staffMenu = z
       item_type: z.string(),
       active: z.boolean(),
       published: z.boolean(),
+      // Older clients/test fixtures may still answer before migration 89.
+      archived_at: z.string().nullable().optional(),
       updated_at: z.string()
     })
   )
@@ -107,7 +112,7 @@ export async function fetchFlavours(client: FlavoursClient): Promise<FlavourRow[
   const parsed = staffMenu.safeParse(data);
   // No row values in the message: a failed read reports that it failed, not what it held.
   if (!parsed.success) throw new Error('flavour load failed: malformed answer');
-  return parsed.data;
+  return parsed.data.map((row) => ({ ...row, archived_at: row.archived_at ?? null }));
 }
 
 const publicMenu = z
@@ -271,7 +276,13 @@ export function priceCents(price: Pesos): number | null {
 export const FLAVOUR_TOASTS = {
   conflict: 'Someone else changed this flavour just now. Showing their version.',
   offline: 'Offline. That change did not save, so it is back to what it was.',
-  rejected: 'That change could not be saved, so it is back to what it was.'
+  rejected: 'That change could not be saved, so it is back to what it was.',
+  archived: 'Flavour removed from the working lists. Its history is still saved.',
+  restored: 'Flavour restored off the order form and unpublished.',
+  sampler: 'Turn off the sampler box in Shop settings before removing this flavour.',
+  unknown:
+    'The connection ended before this change was confirmed. Refresh the list before trying again.',
+  savedRefresh: 'Flavour saved, but the list could not refresh. The saved change is shown.'
 } as const;
 
 /** Every key the flavour editor may set, exactly what `save_flavour` accepts. */
@@ -279,9 +290,53 @@ export const FLAVOUR_TOASTS = {
  * `type_id` (migration 84) is sent only when the editor chose her product type; a save without it keeps the product's type on
  * the server (or the built-in type item_type names).
  */
-export type FlavourFields = Omit<FlavourRow, 'id' | 'published' | 'updated_at'> & {
+export type FlavourFields = Omit<FlavourRow, 'id' | 'published' | 'updated_at' | 'archived_at'> & {
   type_id?: string;
 };
+
+export type ArchiveResult =
+  | { status: 'changed'; archivedAt: string | null; updatedAt: string }
+  | { status: 'offline' }
+  | { status: 'conflict' }
+  | { status: 'sampler' }
+  | { status: 'rejected' }
+  | { status: 'unknown' };
+
+async function setFlavourArchived(
+  client: FlavoursClient,
+  id: string,
+  expectedUpdatedAt: string,
+  restore: boolean
+): Promise<ArchiveResult> {
+  try {
+    const { data, error } = await client.rpc(restore ? 'restore_flavour' : 'archive_flavour', {
+      p_id: id,
+      p_expected_updated_at: expectedUpdatedAt
+    });
+    if (error) {
+      if (error.code === 'P0002') return { status: 'conflict' };
+      if (error.code === '23514' && error.message.includes('sampler')) return { status: 'sampler' };
+      return error.code ? { status: 'rejected' } : { status: 'unknown' };
+    }
+    if (!Array.isArray(data) || data.length !== 1) return { status: 'unknown' };
+    const changed = data[0];
+    const expectedArchived = !restore;
+    const archivedAt = changed.archived_at;
+    const validStamp =
+      typeof changed.updated_at === 'string' &&
+      changed.updated_at.trim() !== '' &&
+      Number.isFinite(Date.parse(changed.updated_at));
+    const validArchive = expectedArchived
+      ? typeof archivedAt === 'string' &&
+        archivedAt.trim() !== '' &&
+        Number.isFinite(Date.parse(archivedAt))
+      : archivedAt === null;
+    if (changed.id !== id || !validStamp || !validArchive) return { status: 'unknown' };
+    return { status: 'changed', archivedAt, updatedAt: changed.updated_at };
+  } catch {
+    return { status: 'unknown' };
+  }
+}
 
 /**
  * The same bounds `save_flavour` enforces (migration 20260101003000), checked here so a
@@ -470,6 +525,12 @@ export class FlavourSync {
     });
   }
 
+  /** Retire reads that began before a pending archive/restore decision. */
+  private invalidatePendingReads(): void {
+    this.shownRead = Math.max(this.shownRead, ++this.started);
+    this.report();
+  }
+
   /**
    * Called by the engine's `toggleDropProduct`/`setPrice` wrappers with the flavour as it
    * was before the action (`before`) and what the action set (`change`): the engine's own
@@ -477,7 +538,7 @@ export class FlavourSync {
    */
   async save(id: string, change: Partial<FlavourEdit>, before: FlavourEdit): Promise<void> {
     const last = this.rows.get(id);
-    if (!last) {
+    if (!last || last.archived_at) {
       // No row read for it (the list failed to load): nothing to save against, so the
       // flavour goes back rather than showing a change that was never sent.
       this.host.restore(id, before);
@@ -560,6 +621,7 @@ export class FlavourSync {
       short_name: fields.short_name.trim(),
       allergens: fields.allergens.trim(),
       published: prior?.published ?? false,
+      archived_at: prior?.archived_at ?? null,
       updated_at: expectedUpdatedAt ?? ''
     };
     const result = await saveFlavour(this.client, row, expectedUpdatedAt);
@@ -594,7 +656,10 @@ export class FlavourSync {
   async publish(ids?: string[]): Promise<PublishResult['status']> {
     if (!ids && !this.loaded && !(await this.load())) return 'offline';
     if (!this.host.online()) return 'offline';
-    const result = await publishFlavours(this.client, ids ?? [...this.rows.keys()]);
+    const result = await publishFlavours(
+      this.client,
+      ids ?? [...this.rows.values()].filter((row) => !row.archived_at).map((row) => row.id)
+    );
     if (result.status !== 'published') return result.status;
     for (const changed of result.rows) {
       const last = this.rows.get(changed.id);
@@ -606,6 +671,74 @@ export class FlavourSync {
         });
     }
     return 'published';
+  }
+
+  async archive(id: string, expectedUpdatedAt: string): Promise<ArchiveResult['status']> {
+    return this.setArchived(id, expectedUpdatedAt, false);
+  }
+
+  async restore(id: string, expectedUpdatedAt: string): Promise<ArchiveResult['status']> {
+    return this.setArchived(id, expectedUpdatedAt, true);
+  }
+
+  private async setArchived(
+    id: string,
+    expectedUpdatedAt: string,
+    restoring: boolean
+  ): Promise<ArchiveResult['status']> {
+    const last = this.rows.get(id);
+    if (
+      !last ||
+      !expectedUpdatedAt ||
+      (restoring ? !last.archived_at : !!last.archived_at) ||
+      this.inFlight.has(id)
+    )
+      return 'rejected';
+    if (!this.host.online()) {
+      this.host.toast(FLAVOUR_TOASTS.offline, 'warn');
+      return 'offline';
+    }
+    this.invalidatePendingReads();
+    this.inFlight.add(id);
+    const result = await setFlavourArchived(this.client, id, expectedUpdatedAt, restoring);
+    this.inFlight.delete(id);
+    if (!this.isCurrent()) return 'rejected';
+    if (result.status === 'conflict') {
+      if (await this.load()) this.host.toast(FLAVOUR_TOASTS.conflict, 'warn');
+      else this.host.toast(FLAVOUR_TOASTS.offline, 'warn');
+      return 'conflict';
+    }
+    if (result.status === 'unknown') {
+      await this.load();
+      this.host.toast(FLAVOUR_TOASTS.unknown, 'warn');
+      return 'unknown';
+    }
+    if (result.status !== 'changed') {
+      this.host.toast(
+        result.status === 'sampler'
+          ? FLAVOUR_TOASTS.sampler
+          : result.status === 'offline'
+            ? FLAVOUR_TOASTS.offline
+            : FLAVOUR_TOASTS.rejected,
+        'warn'
+      );
+      return result.status;
+    }
+    // Also retire reads that began while the mutation RPC was in flight.
+    this.invalidatePendingReads();
+    const acknowledged = this.rows.get(id) ?? last;
+    this.rows.set(id, {
+      ...acknowledged,
+      archived_at: result.archivedAt,
+      active: false,
+      published: false,
+      updated_at: result.updatedAt
+    });
+    this.host.apply(this.current());
+    if (await this.load())
+      this.host.toast(restoring ? FLAVOUR_TOASTS.restored : FLAVOUR_TOASTS.archived);
+    else this.host.toast(FLAVOUR_TOASTS.savedRefresh, 'warn');
+    return 'changed';
   }
 
   private fail(id: string, why: 'offline' | 'rejected'): void {

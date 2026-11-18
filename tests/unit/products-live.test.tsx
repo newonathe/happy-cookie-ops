@@ -83,6 +83,15 @@ describe('product-centered Make library', () => {
     ).toContain('Show');
   });
 
+  it('keeps archived products out of every normal product filter', () => {
+    const removed = Object.assign(product({ name: 'Removed cookie' }), { archived: true });
+    render(<ProductsLive v={vals([product(), removed])} />);
+    expect(screen.getByRole('article', { name: 'QA cookie' })).toBeTruthy();
+    expect(screen.queryByRole('article', { name: 'Removed cookie' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'All products' }));
+    expect(screen.queryByRole('article', { name: 'Removed cookie' })).toBeNull();
+  });
+
   it('shows an item sold by the piece with no baked count and no recipe nag, and keeps its Recipe link', () => {
     render(
       <ProductsLive

@@ -273,6 +273,39 @@ describe('B4a: the boxes and add-ons form', () => {
     expect(toasts(runtime)).not.toContain('Offline');
   });
 
+  it('shares one image save per sheet and keeps a reopened sheet open when the old save settles', async () => {
+    let finishSave: ((value: unknown) => void) | undefined;
+    const f = fake({
+      save: new Promise((resolve) => {
+        finishSave = resolve;
+      })
+    });
+    const runtime = await mounted('owner', f);
+    const oldForm = await open(runtime);
+    const images = { sticker: { '1': 'flavours/0123456789abcdef0123456789abcdef.webp' } };
+
+    act(() => {
+      oldForm.saveWithChoiceImages?.(oldForm.extras, images);
+      oldForm.saveWithChoiceImages?.(oldForm.extras, images);
+    });
+    await settle();
+    expect(called(f.rpc, 'save_order_extras_with_images')).toHaveLength(1);
+
+    act(() => runtime.closeSheet());
+    const newForm = await open(runtime);
+    const newSheetToasts = toasts(runtime);
+    await act(async () => {
+      finishSave?.({ data: [{ updated_at: STAMP }], error: null });
+      await Promise.resolve();
+    });
+    await settle();
+
+    expect(runtime.renderVals().liveOrderExtras).not.toBeNull();
+    expect(runtime.renderVals().sheet).toMatchObject({ title: 'Boxes & add-ons' });
+    expect(newForm.extras).toEqual(oldForm.extras);
+    expect(toasts(runtime)).toBe(newSheetToasts);
+  });
+
   it('a read that fails after a save says it could not be refreshed, never that it did not save', async () => {
     const f = fake();
     const runtime = await mounted('owner', f);

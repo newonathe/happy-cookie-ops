@@ -159,6 +159,8 @@ import {
   fetchOrderExtras,
   orderExtrasError,
   saveOrderExtras,
+  saveOrderExtrasWithImages,
+  type ChoiceImageMap,
   type OrderExtras,
   type OrderExtrasFields
 } from '@/lib/data/order-extras';
@@ -896,6 +898,8 @@ export class OpsRuntime extends OpsProvider {
   private shopClientEpoch = 0;
   private rulesRow: OrderRulesRow | null = null;
   private extrasRow: OrderExtras | null = null;
+  private orderExtrasSave: { scope: number; promise: Promise<void> } | null = null;
+  private orderExtrasSheetScope = 0;
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
@@ -3398,6 +3402,20 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
+  private async setFlavourArchived(
+    id: string,
+    expectedUpdatedAt: string,
+    restore: boolean
+  ): Promise<boolean> {
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return false;
+    const sync = this.flavourSync;
+    if (!sync?.current().some((row) => row.id === id)) return false;
+    const status = restore
+      ? await sync.restore(id, expectedUpdatedAt)
+      : await sync.archive(id, expectedUpdatedAt);
+    return status === 'changed' && this.flavourSync === sync && this.state.role === 'owner';
+  }
+
   /**
    * The prototype read localStorage in a field initialiser and restores the saved books
    * one commit after mount (see `OpsEngine.componentDidMount`, protected). Live mode never
@@ -3830,6 +3848,11 @@ export class OpsRuntime extends OpsProvider {
         )
       : super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
+    const catalogueRows = this.flavourSync?.current() ?? [];
+    const archivedIds = new Set(
+      catalogueRows.filter((row) => row.archived_at).map((row) => row.id)
+    );
+    const workingCatalogue = PRODUCTS.filter((product) => !archivedIds.has(product.id));
     const counting =
       isLiveMode() &&
       this.state.role === 'owner' &&
@@ -3962,11 +3985,12 @@ export class OpsRuntime extends OpsProvider {
         ? {
             pageSub: this.catalogueUnread()
               ? STAFF_COPY.homeProductsNotRead
-              : PRODUCTS.length +
+              : workingCatalogue.length +
                 ' flavours · ' +
-                PRODUCTS.filter(
-                  (p) =>
-                    (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+                workingCatalogue.filter(
+                  (product) =>
+                    (this.state.dropActive as Record<string, boolean> | undefined)?.[product.id] !==
+                    false
                 ).length +
                 ' on menu'
           }
@@ -4453,7 +4477,8 @@ export class OpsRuntime extends OpsProvider {
         pickupFromHour: r.pickup_from_hour,
         pickupCutoffHour: r.pickup_cutoff_hour,
         campusFrom: r.campus_from,
-        campusTo: r.campus_to
+        campusTo: r.campus_to,
+        campusLabel: r.campus_label ?? 'Campus'
       },
       save: (f: LiveOrderRulesFields) => void this.saveOrderRulesForm(f, sh.updatedAt ?? null),
       close: () => this.closeSheet()
@@ -4473,7 +4498,8 @@ export class OpsRuntime extends OpsProvider {
       pickup_from_hour: f.pickupFromHour,
       pickup_cutoff_hour: f.pickupCutoffHour,
       campus_from: f.campusFrom.trim(),
-      campus_to: f.campusTo.trim()
+      campus_to: f.campusTo.trim(),
+      ...(f.campusLabel !== undefined ? { campus_label: f.campusLabel.trim() } : {})
     };
     const problem = orderRulesError(fields);
     if (problem) return void this.toast(problem, 'warn');
@@ -4513,6 +4539,7 @@ export class OpsRuntime extends OpsProvider {
   /** Read fresh first, so the stamp the form saves against is the current one. */
   private openOrderExtras = async (): Promise<boolean> => {
     if (!(await this.loadOrderExtras()) || !this.extrasRow) return false;
+    this.orderExtrasSheetScope += 1;
     this.sheet('orderextras', { updatedAt: this.extrasRow.updated_at });
     return true;
   };
@@ -4521,14 +4548,20 @@ export class OpsRuntime extends OpsProvider {
     const sh = this.state.sheet as FlavourSheetState | null;
     const x = this.extrasRow;
     if (this.state.role !== 'owner' || sh?.kind !== 'orderextras' || !x) return null;
-    const sets = (this.flavourSync?.current() ?? [])
-      .filter((r) => r.item_type === 'set')
-      .map((r) => ({ id: r.id, name: r.name }));
-    if (x.sampler_product_id && !sets.some((s) => s.id === x.sampler_product_id))
-      sets.push({ id: x.sampler_product_id, name: x.sampler_product_id });
+    const scope = this.orderExtrasSheetScope;
     const flavourRows = this.flavourSync?.current() ?? [];
+    const sets = flavourRows
+      .filter((r) => r.item_type === 'set' && !r.archived_at)
+      .map((r) => ({ id: r.id, name: r.name }));
+    const archivedSampler = flavourRows.find((row) => row.id === x.sampler_product_id)?.archived_at;
+    if (
+      x.sampler_product_id &&
+      !archivedSampler &&
+      !sets.some((s) => s.id === x.sampler_product_id)
+    )
+      sets.push({ id: x.sampler_product_id, name: x.sampler_product_id });
     const cookies = flavourRows
-      .filter((r) => r.item_type === 'cookie')
+      .filter((r) => r.item_type === 'cookie' && !r.archived_at)
       .map((r) => ({ id: r.id, name: r.short_name || r.name, active: r.active }));
     // A saved flavour that is no longer listed stays visible, so a save never drops it unseen.
     for (const id of x.sampler_flavours ?? [])
@@ -4560,14 +4593,43 @@ export class OpsRuntime extends OpsProvider {
       },
       sets,
       cookies,
-      save: (f: LiveOrderExtrasFields) => void this.saveOrderExtrasForm(f, sh.updatedAt ?? null),
+      choiceImages: x.choice_images,
+      uploadChoicePhoto: (file: File) =>
+        this.paymentSync?.upload('flavours', file) ?? Promise.resolve(null),
+      saveWithChoiceImages: (f: LiveOrderExtrasFields, images: ChoiceImageMap) =>
+        this.saveOrderExtrasForm(f, scope, sh.updatedAt ?? null, images),
+      save: (f: LiveOrderExtrasFields) =>
+        void this.saveOrderExtrasForm(f, scope, sh.updatedAt ?? null),
       close: () => this.closeSheet()
     };
   }
 
-  private async saveOrderExtrasForm(
+  private saveOrderExtrasForm(
     f: LiveOrderExtrasFields,
-    expectedUpdatedAt: string | null
+    scope: number,
+    expectedUpdatedAt: string | null,
+    choiceImages?: ChoiceImageMap
+  ): Promise<void> {
+    if (
+      scope !== this.orderExtrasSheetScope ||
+      (this.state.sheet as FlavourSheetState | null)?.kind !== 'orderextras'
+    )
+      return Promise.resolve();
+    if (this.orderExtrasSave?.scope === scope) return this.orderExtrasSave.promise;
+    const promise = this.performOrderExtrasSave(f, scope, expectedUpdatedAt, choiceImages).finally(
+      () => {
+        if (this.orderExtrasSave?.promise === promise) this.orderExtrasSave = null;
+      }
+    );
+    this.orderExtrasSave = { scope, promise };
+    return promise;
+  }
+
+  private async performOrderExtrasSave(
+    f: LiveOrderExtrasFields,
+    scope: number,
+    expectedUpdatedAt: string | null,
+    choiceImages?: ChoiceImageMap
   ): Promise<void> {
     const numbers = [
       f.sameDayPercent,
@@ -4608,7 +4670,17 @@ export class OpsRuntime extends OpsProvider {
     const problem = orderExtrasError(fields);
     if (problem) return void this.toast(problem, 'warn');
     if (!this.shopClient || !expectedUpdatedAt) return void this.toast(STAFF_COPY.offline, 'warn');
-    const outcome = await saveOrderExtras(this.shopClient, fields, expectedUpdatedAt);
+    const outcome =
+      choiceImages === undefined
+        ? await saveOrderExtras(this.shopClient, fields, expectedUpdatedAt)
+        : await saveOrderExtrasWithImages(this.shopClient, fields, choiceImages, expectedUpdatedAt);
+    // A closed or replaced sheet owns the request that started it. Its late response must not
+    // close a newer form, show stale conflict UI, or refresh over that form's working values.
+    if (
+      scope !== this.orderExtrasSheetScope ||
+      (this.state.sheet as FlavourSheetState | null)?.kind !== 'orderextras'
+    )
+      return;
     if (outcome === 'saved') {
       this.toast(EXTRAS_COPY.saved);
       this.closeSheet();
@@ -9570,7 +9642,10 @@ export class OpsRuntime extends OpsProvider {
     const sync = this.orderSync;
     return list.map((row) => {
       const order = sync.find(String(row.id));
-      return { ...row, pickup: savedPickupText(order?.pickupDate, order?.pickupWindow) };
+      return {
+        ...row,
+        pickup: savedPickupText(order?.pickupDate, order?.pickupWindow, 'short', order?.pickupLabel)
+      };
     });
   }
 
@@ -9601,7 +9676,7 @@ export class OpsRuntime extends OpsProvider {
     }));
     return {
       ...od,
-      pickup: savedPickupText(order.pickupDate, order.pickupWindow, 'long'),
+      pickup: savedPickupText(order.pickupDate, order.pickupWindow, 'long', order.pickupLabel),
       lines: [...(od.lines ?? []), ...extra],
       link: link ?? '',
       linkSent: link ? STAFF_COPY.linkHint : STAFF_COPY.linkErased,
@@ -10239,6 +10314,8 @@ export class OpsRuntime extends OpsProvider {
       return pid
         ? {
             ...row,
+            archived: !!this.flavourSync?.current().find((flavour) => flavour.id === pid)
+              ?.archived_at,
             ...this.makeDesk.productFields(pid),
             edit: () => this.openFlavourEditor(pid, true),
             returnRecipeFocus: this.state.liveProductReturnId === pid,
@@ -10824,11 +10901,13 @@ export class OpsRuntime extends OpsProvider {
   private liveFormVals(): OpsVals['liveForm'] {
     const sh = this.state.sheet as FlavourSheetState | null;
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours') return null;
-    const rows = [...(this.flavourSync?.current() ?? [])].sort(
+    const allRows = [...(this.flavourSync?.current() ?? [])].sort(
       (a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id)
     );
+    const rows = allRows.filter((row) => !row.archived_at);
+    const archivedRows = allRows.filter((row) => !!row.archived_at);
     const online = this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
-    const target = sh.pid ? rows.find((r) => r.id === sh.pid) : undefined;
+    const target = sh.pid ? allRows.find((r) => r.id === sh.pid) : undefined;
     // Frozen at open time (openFlavourEditor), not re-read here: see that method's comment.
     const expectedUpdatedAt = sh.isNew ? null : (sh.updatedAt ?? target?.updated_at ?? null);
     const editing =
@@ -10850,7 +10929,7 @@ export class OpsRuntime extends OpsProvider {
             capacityWeight: target?.capacity_weight ?? 1,
             sortOrder:
               target?.sort_order ??
-              (rows.length ? Math.max(...rows.map((r) => r.sort_order)) + 1 : 0),
+              (allRows.length ? Math.max(...allRows.map((r) => r.sort_order)) + 1 : 0),
             price: target ? centavosToPesos(centavosFromDb(target.price_cents)) : 0,
             active: target?.active ?? true,
             save: (fields: LiveFlavourFormFields) =>
@@ -10872,7 +10951,15 @@ export class OpsRuntime extends OpsProvider {
         priceText: PESO(centavosToPesos(centavosFromDb(r.price_cents))),
         published: r.published,
         active: r.active,
-        edit: () => this.openFlavourEditor(r.id)
+        updatedAt: r.updated_at,
+        edit: () => this.openFlavourEditor(r.id),
+        archive: (updatedAt) => this.setFlavourArchived(r.id, updatedAt, false)
+      })),
+      archivedRows: archivedRows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        updatedAt: r.updated_at,
+        restore: (updatedAt) => this.setFlavourArchived(r.id, updatedAt, true)
       })),
       addNew: () => this.openNewFlavour(),
       publish: () => void this.publishMenu(),
@@ -11242,6 +11329,7 @@ export class OpsRuntime extends OpsProvider {
                 return {
                   key,
                   label: v ? a.name + ' ' + v : a.name,
+                  photo: v ? resolveImagePath(a.choiceImages[v] ?? '') : '',
                   qty,
                   max: a.textLabel !== null ? 1 : qty + Math.max(0, a.maxQty - used),
                   text: line?.text ?? '',

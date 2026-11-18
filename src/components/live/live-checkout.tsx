@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
@@ -383,6 +384,21 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
               ) : null}
               {a.rows.map((row) => (
                 <div key={row.key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {row.photo ? (
+                    <Image
+                      src={row.photo}
+                      alt={row.label}
+                      width={80}
+                      height={80}
+                      unoptimized
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '10px',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : null}
                   <Stepper
                     label={a.rows.length > 1 ? row.label : row.label + ' · ' + a.priceText}
                     name={row.label}

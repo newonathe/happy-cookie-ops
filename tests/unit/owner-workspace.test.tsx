@@ -51,6 +51,7 @@ it('opens the product form as a page in the frame, with the existing form and cl
           kind: 'flavours',
           online: true,
           rows: [],
+          archivedRows: [],
           addNew: vi.fn(),
           publish: vi.fn(),
           close,

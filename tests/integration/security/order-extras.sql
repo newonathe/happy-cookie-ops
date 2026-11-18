@@ -337,7 +337,7 @@ begin
   perform pg_temp.assert_ok(a, 'status_keys_extras',
     (select array_agg(k order by k) from jsonb_object_keys(s) k)
       = array['add_ons', 'boxes', 'hold_expires_at', 'items', 'order_no', 'paid_cents', 'pay_method', 'pay_state', 'pickup_date',
-              'pickup_window', 'placed_at', 'same_day', 'state', 'surcharge_cents', 'total_cents']);
+              'pickup_label', 'pickup_window', 'placed_at', 'same_day', 'state', 'surcharge_cents', 'total_cents']);
   perform pg_temp.assert_ok(a, 'status_lists_addons',
     jsonb_array_length(s -> 'add_ons') = 2 and (s ->> 'surcharge_cents')::bigint = 0 and (s ->> 'total_cents')::bigint = 16000);
   perform pg_temp.assert_ok(a, 'status_hides_note', position('Mika' in s::text) = 0);
@@ -354,7 +354,8 @@ end $$;
 create function pg_temp.ex_stamp() returns timestamptz language sql stable as $$
   select (public.get_order_extras() ->> 'updated_at')::timestamptz $$;
 create function pg_temp.ex_json() returns jsonb language sql stable as $$
-  select public.get_order_extras() - 'updated_at' $$;
+  -- The legacy save takes exactly the editable keys; choice photos save through their own wrapper (090).
+  select public.get_order_extras() - 'updated_at' - 'choice_images' $$;
 create function pg_temp.save(a text, op text, body jsonb, stamp timestamptz, wanted text) returns void
 language plpgsql security invoker as $$
 begin
@@ -372,6 +373,7 @@ begin
     (select array_agg(k order by k) from jsonb_object_keys(base) k)
       = array['add_ons', 'box_sizes', 'same_day_enabled', 'same_day_on_extras', 'same_day_percent',
               'sampler_flavours', 'sampler_max_qty', 'sampler_product_id']);
+  perform pg_temp.assert_ok(a, 'get_extras_choice_images_empty', public.get_order_extras() -> 'choice_images' = '{}'::jsonb);
   perform pg_temp.assert_ok(a, 'get_extras_flavours_empty', base -> 'sampler_flavours' = '[]'::jsonb);
   perform pg_temp.save(a, 'save_extras_keys_missing', base - 'add_ons', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_keys_extra', base || '{"price": 1}', stamp, '22023');

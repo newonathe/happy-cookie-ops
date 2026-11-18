@@ -384,7 +384,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "420a57a6e66a1f068a4adb5df09443b1",
+      "body_md5": "975308e36cc55b10651fcc5911fc1e66",
       "identity": "p_token text",
       "execute_anon": true,
       "security_definer": true,
@@ -759,7 +759,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "c6f4b749ad37a0c1de5c057faf0bf0b4",
+      "body_md5": "84fffe78f677359817b183e0eb6f5fb7",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -803,8 +803,8 @@
       "config": [
         "search_path=\"\""
       ],
-      "returns": "TABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
-      "body_md5": "b3c2d9ee522cf9943656d8b78341bc8d",
+      "returns": "TABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, campus_label text, updated_at timestamp with time zone)",
+      "body_md5": "c50e7fa847c954e14cb2f6d1e454411d",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -833,8 +833,8 @@
       "config": [
         "search_path=\"\""
       ],
-      "returns": "TABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone)",
-      "body_md5": "d8f3be86aa9536d1b666284af6998ccd",
+      "returns": "TABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone, archived_at timestamp with time zone)",
+      "body_md5": "48633feae01c2c63a68f30226af793e3",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -864,7 +864,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(updated_at timestamp with time zone)",
-      "body_md5": "866796d7ec6430e87d8111170faa4b18",
+      "body_md5": "a8edd0e2e8e4178e68d8bc3532ff6e0b",
       "identity": "p_rules jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -894,7 +894,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, published boolean, updated_at timestamp with time zone)",
-      "body_md5": "49c9ae83f04fa8e28167338c541e6617",
+      "body_md5": "203138532ad7aa6923488b5c2c3985d2",
       "identity": "p_ids text[]",
       "execute_anon": false,
       "security_definer": true,
@@ -984,7 +984,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "3725d5c06cc0e31e39075655b22d2cfd",
+      "body_md5": "22d0111d2195336d73a1a721ff9760b3",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1029,7 +1029,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "cc46bbef1a539f6fae9bab581d405905",
+      "body_md5": "586516c341dc1eb65c48a6675143f7d1",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1044,7 +1044,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "526afe5292d390ac17ea71cbcb834ba6",
+      "body_md5": "6ba3f392cda04b3a5b7d871ad630de81",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -2681,6 +2681,96 @@
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
       "body_md5": "b42007587b07abea1b27798d6b812461",
       "identity": "p_type jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "snapshot_order_pickup",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "e5e9d76da790d27fc05179d30cb2b2f0",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "archive_flavour",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, archived_at timestamp with time zone, updated_at timestamp with time zone)",
+      "body_md5": "2baf698799d1515f20fbc863c312152a",
+      "identity": "p_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "guard_order_extras_sampler_archive",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "791797fe97fd8b3dc524321bf932e930",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "restore_flavour",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, archived_at timestamp with time zone, updated_at timestamp with time zone)",
+      "body_md5": "72a4b7ff1005a7d072302ba1be4ccd51",
+      "identity": "p_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "touch_product_updated_at",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "3690e3511bb279b050c512498e9c5d80",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_order_extras_with_images",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "f13d07638c3d619d88d8665543e7fa22",
+      "identity": "p_extras jsonb, p_choice_images jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

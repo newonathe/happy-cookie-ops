@@ -919,15 +919,30 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
     handlers: {
       save?: (args: Record<string, unknown>) => unknown;
       publish?: (args: Record<string, unknown>) => unknown;
+      archive?: (name: string, args: Record<string, unknown>) => unknown;
+      readFailure?: boolean;
     } = {},
     online = true
   ) {
     const restored: Array<[string, FlavourEdit]> = [];
     const editValues = new Map<string, FlavourEdit>();
+    const serverRows = liveRows();
     const rpc: Rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
-      if (name === 'get_flavours') return { data: liveRows(), error: null };
+      if (name === 'get_flavours')
+        return handlers.readFailure
+          ? { data: null, error: { code: '', message: 'offline' } }
+          : { data: serverRows, error: null };
       if (name === 'publish_flavours')
         return handlers.publish ? handlers.publish(args ?? {}) : { data: [], error: null };
+      if (name === 'archive_flavour' || name === 'restore_flavour') {
+        if (handlers.archive) return handlers.archive(name, args ?? {});
+        const row = serverRows.find((entry) => entry.id === args?.p_id)!;
+        row.archived_at = name === 'archive_flavour' ? '2026-11-18T03:00:00.000Z' : null;
+        row.active = false;
+        row.published = false;
+        row.updated_at = '2026-11-18T03:00:01.000Z';
+        return { data: [row], error: null };
+      }
       return handlers.save ? handlers.save(args ?? {}) : saved(args ?? {});
     });
     const host = {
@@ -944,6 +959,159 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
       editValues
     };
   }
+
+  describe('reversible flavour removal', () => {
+    it('archives and restores with the displayed stamp while keeping the engine catalogue ids', async () => {
+      const { sync, rpc } = customSync();
+      await sync.load();
+      const row = sync.current().find((item) => item.id === 'wcb')!;
+      expect(await sync.archive(row.id, row.updated_at)).toBe('changed');
+      expect(rpc).toHaveBeenCalledWith('archive_flavour', {
+        p_id: row.id,
+        p_expected_updated_at: row.updated_at
+      });
+      const archived = sync.current().find((item) => item.id === row.id)!;
+      expect(archived).toMatchObject({
+        archived_at: '2026-11-18T03:00:00.000Z',
+        active: false,
+        published: false
+      });
+      expect(PRODUCTS.map((item) => item.id)).toContain(row.id);
+      expect(await sync.restore(row.id, archived.updated_at)).toBe('changed');
+      expect(rpc).toHaveBeenLastCalledWith('get_flavours');
+      expect(sync.current().find((item) => item.id === row.id)).toMatchObject({
+        archived_at: null,
+        active: false,
+        published: false
+      });
+    });
+
+    it('reloads on a stale stamp and leaves a declined archive unchanged', async () => {
+      const { sync, rpc } = customSync({
+        archive: () => ({ data: null, error: { code: 'P0002', message: 'stale' } })
+      });
+      await sync.load();
+      const row = sync.current().find((item) => item.id === 'wcb')!;
+      expect(await sync.archive(row.id, '2026-11-17T00:00:00.000Z')).toBe('conflict');
+      expect(rpc.mock.calls.map(([name]) => name)).toEqual([
+        'get_flavours',
+        'archive_flavour',
+        'get_flavours'
+      ]);
+      expect(sync.current().find((item) => item.id === row.id)).toMatchObject({
+        archived_at: null,
+        active: true,
+        published: false
+      });
+    });
+
+    it.each([
+      [
+        'wrong id',
+        [
+          {
+            id: 'wrong',
+            archived_at: '2026-11-18T03:00:00.000Z',
+            updated_at: '2026-11-18T03:00:01.000Z'
+          }
+        ]
+      ],
+      [
+        'wrong archive state',
+        [{ id: 'wcb', archived_at: null, updated_at: '2026-11-18T03:00:01.000Z' }]
+      ],
+      [
+        'multiple rows',
+        [
+          {
+            id: 'wcb',
+            archived_at: '2026-11-18T03:00:00.000Z',
+            updated_at: '2026-11-18T03:00:01.000Z'
+          },
+          {
+            id: 'wcb',
+            archived_at: '2026-11-18T03:00:00.000Z',
+            updated_at: '2026-11-18T03:00:01.000Z'
+          }
+        ]
+      ],
+      ['invalid stamp', [{ id: 'wcb', archived_at: '2026-11-18T03:00:00.000Z', updated_at: '' }]]
+    ])(
+      're-reads and reports an unknown acknowledgement with %s',
+      async (_label, acknowledgement) => {
+        const { sync, rpc } = customSync({
+          archive: () => ({ data: acknowledgement, error: null })
+        });
+        await sync.load();
+        const before = sync.current().find((item) => item.id === 'wcb')!;
+        expect(await sync.archive('wcb', before.updated_at)).toBe('unknown');
+        expect(rpc.mock.calls.map(([name]) => name)).toEqual([
+          'get_flavours',
+          'archive_flavour',
+          'get_flavours'
+        ]);
+        expect(sync.current().find((item) => item.id === 'wcb')?.archived_at).toBeNull();
+      }
+    );
+
+    it('does not let a pre-ack read overwrite the acknowledged archive when refresh fails', async () => {
+      let reads = 0;
+      let resolveStale: ((value: { data: FlavourRow[]; error: null }) => void) | undefined;
+      let resolveArchive: ((value: { data: FlavourRow[]; error: null }) => void) | undefined;
+      const serverRows = liveRows();
+      const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
+        if (name === 'get_flavours') {
+          reads += 1;
+          if (reads === 1) return { data: serverRows, error: null };
+          if (reads === 2)
+            return await new Promise<{ data: FlavourRow[]; error: null }>((resolve) => {
+              resolveStale = resolve;
+            });
+          return { data: null, error: { code: '', message: 'offline' } };
+        }
+        const row = serverRows.find((item) => item.id === args?.p_id)!;
+        row.archived_at = '2026-11-18T03:00:00.000Z';
+        row.active = false;
+        row.published = false;
+        row.updated_at = '2026-11-18T03:00:01.000Z';
+        return await new Promise<{ data: FlavourRow[]; error: null }>((resolve) => {
+          resolveArchive = resolve;
+        });
+      });
+      const host = {
+        apply: vi.fn(),
+        edit: () => ({ onMenu: true, price: 0 }),
+        restore: vi.fn(),
+        online: () => true,
+        toast: vi.fn()
+      };
+      const sync = new FlavourSync({ rpc } as unknown as FlavoursClient, host);
+      await sync.load();
+      const before = sync.current().find((item) => item.id === 'wcb')!;
+      const archive = sync.archive('wcb', before.updated_at);
+      await Promise.resolve();
+      const stale = sync.load();
+      await Promise.resolve();
+      resolveArchive?.({ data: [serverRows.find((item) => item.id === 'wcb')!], error: null });
+      expect(await archive).toBe('changed');
+      expect(host.toast).toHaveBeenCalledWith(FLAVOUR_TOASTS.savedRefresh, 'warn');
+      resolveStale?.({ data: liveRows(), error: null });
+      await stale;
+      expect(sync.current().find((item) => item.id === 'wcb')?.archived_at).toBe(
+        '2026-11-18T03:00:00.000Z'
+      );
+    });
+
+    it('normalizes old get_flavours answers without archive metadata', async () => {
+      const row = liveRows()[0]!;
+      const legacy = { ...row } as Record<string, unknown>;
+      delete legacy.archived_at;
+      const client = {
+        rpc: vi.fn(async () => ({ data: [legacy], error: null }))
+      } as unknown as FlavoursClient;
+      expect(await fetchFlavours(client)).toEqual([{ ...row, archived_at: null }]);
+    });
+  });
 
   describe('MP-09 c1c: the flavour editor saves whole through save_flavour', () => {
     it('creates a new flavour as an unpublished draft', async () => {

@@ -354,6 +354,103 @@ export type Database = {
           },
         ]
       }
+      bazaar_kitchen_moves: {
+        Row: {
+          acknowledgement: Json
+          at: string
+          created_by: string
+          day_id: string
+          id: string
+          kind: string
+          product_id: string
+          qty_delta: number
+          request: Json
+          scheduled_id: string
+          source_records: Json
+        }
+        Insert: {
+          acknowledgement: Json
+          at: string
+          created_by: string
+          day_id: string
+          id: string
+          kind: string
+          product_id: string
+          qty_delta: number
+          request: Json
+          scheduled_id: string
+          source_records: Json
+        }
+        Update: {
+          acknowledgement?: Json
+          at?: string
+          created_by?: string
+          day_id?: string
+          id?: string
+          kind?: string
+          product_id?: string
+          qty_delta?: number
+          request?: Json
+          scheduled_id?: string
+          source_records?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_kitchen_moves_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "bazaar_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_kitchen_moves_scheduled_id_product_id_fkey"
+            columns: ["scheduled_id", "product_id"]
+            isOneToOne: false
+            referencedRelation: "bazaar_kitchen_sources"
+            referencedColumns: ["scheduled_id", "product_id"]
+          },
+        ]
+      }
+      bazaar_kitchen_sources: {
+        Row: {
+          product_id: string
+          scheduled_id: string
+          source_drop: number
+        }
+        Insert: {
+          product_id: string
+          scheduled_id: string
+          source_drop: number
+        }
+        Update: {
+          product_id?: string
+          scheduled_id?: string
+          source_drop?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_kitchen_sources_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_kitchen_sources_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_kitchen_sources_scheduled_id_fkey"
+            columns: ["scheduled_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bazaar_losses: {
         Row: {
           at: string
@@ -638,6 +735,54 @@ export type Database = {
             columns: ["ledger_id"]
             isOneToOne: false
             referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_price_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          effective_at: string
+          event_id: string
+          payload_hash: string | null
+          prices: Json
+          request_id: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          effective_at: string
+          event_id: string
+          payload_hash?: string | null
+          prices: Json
+          request_id?: string | null
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          effective_at?: string
+          event_id?: string
+          payload_hash?: string | null
+          prices?: Json
+          request_id?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_price_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_price_versions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -1155,6 +1300,7 @@ export type Database = {
         Row: {
           add_ons: Json
           box_sizes: Json
+          choice_images: Json
           id: boolean
           same_day_enabled: boolean
           same_day_on_extras: boolean
@@ -1167,6 +1313,7 @@ export type Database = {
         Insert: {
           add_ons?: Json
           box_sizes?: Json
+          choice_images?: Json
           id?: boolean
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
@@ -1179,6 +1326,7 @@ export type Database = {
         Update: {
           add_ons?: Json
           box_sizes?: Json
+          choice_images?: Json
           id?: boolean
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
@@ -1263,6 +1411,7 @@ export type Database = {
       order_rules: {
         Row: {
           campus_from: string
+          campus_label: string
           campus_to: string
           id: boolean
           lead_max_days: number
@@ -1276,6 +1425,7 @@ export type Database = {
         }
         Insert: {
           campus_from?: string
+          campus_label?: string
           campus_to?: string
           id?: boolean
           lead_max_days?: number
@@ -1289,6 +1439,7 @@ export type Database = {
         }
         Update: {
           campus_from?: string
+          campus_label?: string
           campus_to?: string
           id?: boolean
           lead_max_days?: number
@@ -1391,6 +1542,7 @@ export type Database = {
           payload_hash: string | null
           phone: string
           pickup_date: string | null
+          pickup_label: string | null
           pickup_window: string | null
           placed_at: string
           refund_ref: string | null
@@ -1421,6 +1573,7 @@ export type Database = {
           payload_hash?: string | null
           phone: string
           pickup_date?: string | null
+          pickup_label?: string | null
           pickup_window?: string | null
           placed_at?: string
           refund_ref?: string | null
@@ -1451,6 +1604,7 @@ export type Database = {
           payload_hash?: string | null
           phone?: string
           pickup_date?: string | null
+          pickup_label?: string | null
           pickup_window?: string | null
           placed_at?: string
           refund_ref?: string | null
@@ -1558,6 +1712,36 @@ export type Database = {
           id?: string
           label?: string
           qr_path?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_types: {
+        Row: {
+          active: boolean
+          behaves_as: string
+          built_in: boolean
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          behaves_as: string
+          built_in?: boolean
+          id: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          behaves_as?: string
+          built_in?: boolean
+          id?: string
+          label?: string
           sort_order?: number
           updated_at?: string
         }
@@ -1675,6 +1859,7 @@ export type Database = {
         Row: {
           active: boolean
           allergens: string
+          archived_at: string | null
           capacity_weight: number
           description: string
           id: string
@@ -1687,11 +1872,13 @@ export type Database = {
           short_name: string
           sort_order: number
           tag: string
+          type_id: string
           updated_at: string
         }
         Insert: {
           active?: boolean
           allergens?: string
+          archived_at?: string | null
           capacity_weight?: number
           description?: string
           id: string
@@ -1704,11 +1891,13 @@ export type Database = {
           short_name: string
           sort_order?: number
           tag?: string
+          type_id?: string
           updated_at?: string
         }
         Update: {
           active?: boolean
           allergens?: string
+          archived_at?: string | null
           capacity_weight?: number
           description?: string
           id?: string
@@ -1721,9 +1910,18 @@ export type Database = {
           short_name?: string
           sort_order?: number
           tag?: string
+          type_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "product_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -2424,7 +2622,7 @@ export type Database = {
           name?: string | null
           price_cents?: number | null
           short_name?: string | null
-          sold_by_piece?: boolean | null
+          sold_by_piece?: never
           sort_order?: number | null
           tag?: string | null
         }
@@ -2437,7 +2635,7 @@ export type Database = {
           name?: string | null
           price_cents?: number | null
           short_name?: string | null
-          sold_by_piece?: boolean | null
+          sold_by_piece?: never
           sort_order?: number | null
           tag?: string | null
         }
@@ -2495,6 +2693,14 @@ export type Database = {
         Returns: Json
       }
       apply_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
+      archive_flavour: {
+        Args: { p_expected_updated_at: string; p_id: string }
+        Returns: {
+          archived_at: string
+          id: string
+          updated_at: string
+        }[]
+      }
       bazaar_held_ledger: {
         Args: never
         Returns: {
@@ -2669,6 +2875,17 @@ export type Database = {
           reset_at: string
         }[]
       }
+      credit_bazaar_kitchen: {
+        Args: {
+          p_at: string
+          p_booking: string
+          p_day: string
+          p_id: string
+          p_product: string
+          p_qty: number
+        }
+        Returns: undefined
+      }
       current_role_name: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
@@ -2709,6 +2926,26 @@ export type Database = {
         }
         Returns: Json
       }
+      finalise_bazaar_stock: {
+        Args: {
+          p_at: string
+          p_booking: string
+          p_drop: number
+          p_name: string
+          p_summary: Json
+        }
+        Returns: undefined
+      }
+      finalise_bazaar_stock_before_transfers: {
+        Args: {
+          p_at: string
+          p_booking: string
+          p_drop: number
+          p_name: string
+          p_summary: Json
+        }
+        Returns: undefined
+      }
       find_order: {
         Args: { p_order_no: string; p_phone: string }
         Returns: string
@@ -2716,7 +2953,10 @@ export type Database = {
       get_bazaar: { Args: { p_booking: string }; Returns: Json }
       get_bazaar_kitchen_sources: {
         Args: { p_booking: string }
-        Returns: { product_id: string; source_drop: number }[]
+        Returns: {
+          product_id: string
+          source_drop: number
+        }[]
       }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
       get_event_prices: { Args: { p_event: string }; Returns: Json }
@@ -2726,6 +2966,7 @@ export type Database = {
         Returns: {
           active: boolean
           allergens: string
+          archived_at: string
           capacity_weight: number
           description: string
           id: string
@@ -2765,6 +3006,7 @@ export type Database = {
         Args: never
         Returns: {
           campus_from: string
+          campus_label: string
           campus_to: string
           lead_max_days: number
           lead_min_days: number
@@ -2790,8 +3032,12 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_production: { Args: { p_drop: number }; Returns: Json }
       get_product_types: { Args: never; Returns: Json }
+      get_production: { Args: { p_drop: number }; Returns: Json }
+      get_production_before_transfers: {
+        Args: { p_drop: number }
+        Returns: Json
+      }
       get_recipe_costs: { Args: never; Returns: Json }
       get_recipe_drafts: { Args: never; Returns: Json }
       get_recipes: { Args: never; Returns: Json }
@@ -2847,6 +3093,17 @@ export type Database = {
         Returns: {
           replayed: boolean
           waitlist_id: string
+        }[]
+      }
+      kitchen_cookie_balance: {
+        Args: { p_drop: number; p_product: string }
+        Returns: number
+      }
+      kitchen_cookie_timeline: {
+        Args: { p_drop: number; p_product: string }
+        Returns: {
+          at: string
+          qty: number
         }[]
       }
       link_scheduled_event: {
@@ -2925,10 +3182,6 @@ export type Database = {
           p_kind: string
           p_product: string
         }
-        Returns: Json
-      }
-      transfer_bazaar_stock: {
-        Args: { p_transfer: Json }
         Returns: Json
       }
       record_bake: {
@@ -3033,6 +3286,14 @@ export type Database = {
           on_hand: number
         }[]
       }
+      restore_flavour: {
+        Args: { p_expected_updated_at: string; p_id: string }
+        Returns: {
+          archived_at: string
+          id: string
+          updated_at: string
+        }[]
+      }
       reverse_bazaar_test: {
         Args: { p_booking: string; p_confirm_name: string }
         Returns: Json
@@ -3098,6 +3359,16 @@ export type Database = {
       }
       save_order_extras: {
         Args: { p_expected_updated_at: string; p_extras: Json }
+        Returns: {
+          updated_at: string
+        }[]
+      }
+      save_order_extras_with_images: {
+        Args: {
+          p_choice_images: Json
+          p_expected_updated_at: string
+          p_extras: Json
+        }
         Returns: {
           updated_at: string
         }[]
@@ -3373,6 +3644,7 @@ export type Database = {
           sale_id: string
         }[]
       }
+      transfer_bazaar_stock: { Args: { p_transfer: Json }; Returns: Json }
       update_order_state: {
         Args: {
           p_order_id: string
