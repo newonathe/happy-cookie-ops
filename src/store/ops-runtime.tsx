@@ -4610,7 +4610,10 @@ export class OpsRuntime extends OpsProvider {
     expectedUpdatedAt: string | null,
     choiceImages?: ChoiceImageMap
   ): Promise<void> {
-    if (scope !== this.orderExtrasSheetScope || (this.state.sheet as FlavourSheetState | null)?.kind !== 'orderextras')
+    if (
+      scope !== this.orderExtrasSheetScope ||
+      (this.state.sheet as FlavourSheetState | null)?.kind !== 'orderextras'
+    )
       return Promise.resolve();
     if (this.orderExtrasSave?.scope === scope) return this.orderExtrasSave.promise;
     const promise = this.performOrderExtrasSave(f, scope, expectedUpdatedAt, choiceImages).finally(

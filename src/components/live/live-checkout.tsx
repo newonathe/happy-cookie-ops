@@ -391,7 +391,12 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
                       width={80}
                       height={80}
                       unoptimized
-                      style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'cover' }}
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '10px',
+                        objectFit: 'cover'
+                      }}
                     />
                   ) : null}
                   <Stepper

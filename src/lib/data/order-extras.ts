@@ -295,7 +295,11 @@ function buildOrderExtrasPayload(fields: OrderExtrasFields): Json {
     ...(Array.isArray(fields.sampler_flavours)
       ? { sampler_flavours: [...fields.sampler_flavours] }
       : {}),
-    box_sizes: fields.box_sizes.map((b) => ({ size: b.size, charge_cents: b.charge_cents, active: b.active })),
+    box_sizes: fields.box_sizes.map((b) => ({
+      size: b.size,
+      charge_cents: b.charge_cents,
+      active: b.active
+    })),
     add_ons: fields.add_ons.map((a) => ({
       id: a.id,
       name: a.name.trim(),
@@ -365,9 +369,10 @@ export function parseShopExtras(json: unknown): ShopExtras | null {
       !a.variants.every((v) => typeof v === 'string')
     )
       return null;
-    const choiceImages = parseChoiceImages({ [a.id]: a.choice_images === undefined ? {} : a.choice_images }, [
-      { id: a.id, variants: a.variants as string[] }
-    ]);
+    const choiceImages = parseChoiceImages(
+      { [a.id]: a.choice_images === undefined ? {} : a.choice_images },
+      [{ id: a.id, variants: a.variants as string[] }]
+    );
     if (!choiceImages) return null;
     outAddOns.push({
       id: a.id,
