@@ -67,7 +67,7 @@ export function Panel({
   return (
     <section
       className={cx(
-        'mb-4 rounded-[18px] border border-line bg-surface p-4 sm:p-5',
+        'hc-surface mb-4 rounded-[18px] border border-line bg-surface p-4 sm:p-5',
         tone === 'hero' && 'border-l-[3px] border-l-accent',
         className
       )}
@@ -85,7 +85,7 @@ export function Panel({
 
 /** A heading between panels. */
 /** The look every headed panel shares: a section with edge-to-edge rows inside. */
-export const PANEL_CLASS = 'overflow-hidden rounded-card border border-line bg-surface';
+export const PANEL_CLASS = 'hc-surface overflow-hidden rounded-card border border-line bg-surface';
 
 /** The heading every panel shares, with room for one thing on the right. */
 export function PanelHead({ title, children }: { title: string; children?: ReactNode }) {

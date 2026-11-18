@@ -456,6 +456,87 @@ function useRailCollapsed(): [boolean, () => void] {
   return [collapsed, () => writeRail(!readRail())];
 }
 
+/** One vein: a soft line, then a wider haze along the same wave (Option A mockup, 19 November 2026). */
+const VEINS: ReadonlyArray<{ d: string; width: number; opacity: number; tone: 'vein' | 'soft' }> = [
+  {
+    d: 'M-60 160 C 200 60, 420 280, 700 170 S 1150 90, 1360 210',
+    width: 2.4,
+    opacity: 0.65,
+    tone: 'vein'
+  },
+  {
+    d: 'M-60 200 C 220 100, 440 320, 720 210 S 1150 130, 1360 260',
+    width: 12,
+    opacity: 0.5,
+    tone: 'soft'
+  },
+  {
+    d: 'M-60 520 C 240 420, 480 650, 780 530 S 1160 450, 1360 560',
+    width: 1.8,
+    opacity: 0.6,
+    tone: 'vein'
+  },
+  {
+    d: 'M-60 570 C 250 470, 500 700, 800 580 S 1160 500, 1360 620',
+    width: 16,
+    opacity: 0.45,
+    tone: 'soft'
+  }
+];
+const SHEEN: ReadonlyArray<{ d: string; width: number; opacity: number }> = [
+  { d: 'M-40 360 C 260 280, 520 460, 820 360 S 1180 300, 1360 380', width: 22, opacity: 0.7 },
+  { d: 'M-40 720 C 260 650, 560 800, 860 710 S 1180 660, 1360 730', width: 18, opacity: 0.6 }
+];
+
+/**
+ * The owner workspace's ground (Option A, Ethan 19 November 2026): white marble with two slowly drifting wave layers
+ * behind the translucent glass. Decorative only; it stops for reduced motion and hides for reduced transparency.
+ */
+function MarbleWaves() {
+  return (
+    <div className={styles.marble} data-marble aria-hidden="true">
+      <div className={styles.marbleBase} />
+      <svg
+        className={styles.marbleVeins}
+        viewBox="0 0 1280 800"
+        preserveAspectRatio="none"
+        focusable="false"
+      >
+        {VEINS.map((vein) => (
+          <path
+            key={vein.d}
+            d={vein.d}
+            fill="none"
+            strokeWidth={vein.width}
+            opacity={vein.opacity}
+            style={{
+              stroke:
+                vein.tone === 'vein' ? 'var(--color-marble-vein)' : 'var(--color-marble-vein-soft)'
+            }}
+          />
+        ))}
+      </svg>
+      <svg
+        className={styles.marbleSheen}
+        viewBox="0 0 1280 800"
+        preserveAspectRatio="none"
+        focusable="false"
+      >
+        {SHEEN.map((wave) => (
+          <path
+            key={wave.d}
+            d={wave.d}
+            fill="none"
+            stroke="white"
+            strokeWidth={wave.width}
+            opacity={wave.opacity}
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 export function OwnerWorkspace({
   v,
   screen,
@@ -535,8 +616,10 @@ export function OwnerWorkspace({
       className={`${styles.workspace} ${theme.theme}`}
       data-refined-frame
       data-owner-theme="neutral-glass"
+      data-glass="on"
       data-rail={railCollapsed ? 'collapsed' : 'open'}
     >
+      <MarbleWaves />
       <aside className={styles.rail}>
         <button
           type="button"

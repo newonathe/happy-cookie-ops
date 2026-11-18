@@ -829,3 +829,215 @@
 :global(body):has(.workspace) {
   background: var(--color-owner-app);
 }
+
+/* ==========================================================================
+   Option A (Ethan, 19 November 2026): animated white marble waves behind translucent glass, the approved mockup's
+   motion (700 ms rise 70 ms apart, press to 0.96). Scoped to data-glass="on" so it switches off in one place.
+   ========================================================================== */
+.workspace[data-glass='on'] {
+  background: var(--color-marble-base);
+}
+.marble {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.marbleBase {
+  position: absolute;
+  inset: -80px;
+  background:
+    radial-gradient(45% 45% at 15% 10%, rgb(255 255 255) 0%, rgb(255 255 255 / 0) 70%),
+    radial-gradient(40% 40% at 85% 25%, var(--color-marble-shade) 0%, transparent 70%),
+    radial-gradient(55% 50% at 60% 100%, rgb(255 255 255) 0%, rgb(255 255 255 / 0) 70%),
+    linear-gradient(150deg, var(--color-marble-light) 0%, var(--color-marble-shade) 100%);
+}
+.marble svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+.marbleVeins {
+  animation: marbleDrift 22s ease-in-out infinite;
+}
+.marbleSheen {
+  animation: marbleDrift2 28s ease-in-out infinite;
+}
+@keyframes marbleDrift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-40px, 18px) scale(1.03);
+  }
+}
+@keyframes marbleDrift2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(36px, -22px);
+  }
+}
+.workspace[data-glass='on'] .rail,
+.workspace[data-glass='on'] .header,
+.workspace[data-glass='on'] .main,
+.workspace[data-glass='on'] .dock {
+  border-color: var(--color-owner-card-line);
+  background: var(--color-owner-card);
+  box-shadow: var(--shadow-owner-card);
+  -webkit-backdrop-filter: var(--blur-owner-card);
+  backdrop-filter: var(--blur-owner-card);
+}
+.workspace[data-glass='on'] .rail {
+  border-radius: 30px;
+}
+.workspace[data-glass='on'] .header {
+  background: var(--color-owner-bar);
+}
+.workspace[data-glass='on'] .navigation button[aria-current] {
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 6px 16px rgb(60 45 30 / 0.1);
+}
+/* Pages that float their cards drop the sheet: the cards are the glass. */
+.workspace[data-glass='on']
+  .main:is(
+    [data-screen='today'],
+    [data-screen='pnl'],
+    [data-screen='inventory'],
+    [data-screen='grocery'],
+    [data-screen='suppliers'],
+    [data-screen='orders'],
+    [data-screen='order'],
+    [data-screen='reconcile'],
+    [data-screen='customers'],
+    [data-screen='drops']
+  ) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Cards on a glass sheet do not blur a second time. */
+.workspace[data-glass='on']
+  .main:not(
+    :is(
+      [data-screen='today'],
+      [data-screen='pnl'],
+      [data-screen='inventory'],
+      [data-screen='grocery'],
+      [data-screen='suppliers'],
+      [data-screen='orders'],
+      [data-screen='order'],
+      [data-screen='reconcile'],
+      [data-screen='customers'],
+      [data-screen='drops']
+    )
+  )
+  :global(.hc-surface) {
+  background: var(--color-owner-card-inner);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.workspace[data-glass='on'] .screenBody > * > * {
+  animation: optionRise 700ms var(--ease-owner-spring) both;
+}
+.workspace[data-glass='on'] .screenBody > * > *:nth-child(2) {
+  animation-delay: 70ms;
+}
+.workspace[data-glass='on'] .screenBody > * > *:nth-child(3) {
+  animation-delay: 140ms;
+}
+.workspace[data-glass='on'] .screenBody > * > *:nth-child(4) {
+  animation-delay: 210ms;
+}
+.workspace[data-glass='on'] .screenBody > * > *:nth-child(5) {
+  animation-delay: 280ms;
+}
+.workspace[data-glass='on'] .screenBody > * > *:nth-child(n + 6) {
+  animation-delay: 350ms;
+}
+@keyframes optionRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.workspace[data-glass='on'] button:not(:disabled) {
+  transition:
+    transform 250ms var(--ease-owner-spring),
+    background-color 250ms ease,
+    box-shadow 250ms ease;
+}
+.workspace[data-glass='on'] button:not(:disabled):active {
+  transform: scale(0.96);
+}
+@media (max-width: 650px) {
+  .workspace[data-glass='on'] .header,
+  .workspace[data-glass='on'] .main {
+    -webkit-backdrop-filter: var(--blur-owner-card-phone);
+    backdrop-filter: var(--blur-owner-card-phone);
+  }
+  /* The phone tab bar floats as a frosted pill, as in the mockup. */
+  .workspace[data-glass='on'] .dock {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    margin: 0;
+    padding: 6px;
+    border-radius: 26px;
+    background: var(--color-owner-bar);
+    box-shadow: var(--shadow-owner-bar);
+    -webkit-backdrop-filter: blur(30px) saturate(1.8);
+    backdrop-filter: blur(30px) saturate(1.8);
+  }
+  .workspace[data-glass='on'] .dock button[aria-current] {
+    border-radius: 18px;
+    background: rgb(255 255 255 / 0.9);
+    box-shadow: 0 4px 12px rgb(60 45 30 / 0.1);
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .workspace[data-glass='on'] .rail,
+  .workspace[data-glass='on'] .header,
+  .workspace[data-glass='on'] .dock {
+    background: var(--color-owner-glass-strong);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marble svg,
+  .workspace[data-glass='on'] .screenBody > * > * {
+    animation: none;
+  }
+  .workspace[data-glass='on'] button:not(:disabled):active {
+    transform: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .marble {
+    display: none;
+  }
+  .workspace[data-glass='on'] {
+    background: var(--color-owner-app);
+  }
+  .workspace[data-glass='on'] .rail,
+  .workspace[data-glass='on'] .header,
+  .workspace[data-glass='on'] .dock {
+    border-color: var(--color-owner-line);
+    background: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

@@ -99,6 +99,21 @@
   --color-owner-glass: rgb(255 255 255 / 0.8);
   --color-owner-glass-strong: rgb(255 255 255 / 0.94);
   --shadow-owner-glass: 0 8px 32px rgb(24 28 36 / 0.06);
+  /* Option A (Ethan, 19 Nov 2026): translucent containers over animated white marble waves. One recipe, below. */
+  --color-owner-card: rgb(255 255 255 / 0.5);
+  --color-owner-card-line: rgb(255 255 255 / 0.85);
+  --color-owner-card-inner: rgb(255 255 255 / 0.55);
+  --color-owner-bar: rgb(255 255 255 / 0.55);
+  --shadow-owner-card: 0 18px 40px rgb(70 55 40 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --shadow-owner-bar: 0 16px 40px rgb(60 45 30 / 0.14);
+  --blur-owner-card: blur(28px) saturate(1.6);
+  --blur-owner-card-phone: blur(18px) saturate(1.5);
+  --color-marble-base: #f3f1ee;
+  --color-marble-light: #f8f6f3;
+  --color-marble-shade: #e9e6e1;
+  --color-marble-vein: #d8d2ca;
+  --color-marble-vein-soft: #e6e1da;
+  --ease-owner-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-owner: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-owner-fast: 140ms;
   --dur-owner-base: 220ms;
@@ -524,5 +539,42 @@
   }
   .motion-shimmer {
     animation: none;
+  }
+}
+
+/* ==========================================================================
+   Option A glass surface (Ethan, 19 Nov 2026). Every owner container opts in with `hc-surface` (PANEL_CLASS) or the
+   card modules; the owner workspace turns it on with data-glass="on". Nested surfaces never blur twice.
+   ========================================================================== */
+[data-glass='on'] .hc-surface {
+  border-color: var(--color-owner-card-line);
+  background: var(--color-owner-card);
+  box-shadow: var(--shadow-owner-card);
+  -webkit-backdrop-filter: var(--blur-owner-card);
+  backdrop-filter: var(--blur-owner-card);
+}
+[data-glass='on'] .hc-surface .hc-surface {
+  background: var(--color-owner-card-inner);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+@media (max-width: 650px) {
+  [data-glass='on'] .hc-surface {
+    -webkit-backdrop-filter: var(--blur-owner-card-phone);
+    backdrop-filter: var(--blur-owner-card-phone);
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  [data-glass='on'] .hc-surface {
+    background: var(--color-owner-glass-strong);
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  [data-glass='on'] .hc-surface {
+    border-color: var(--color-owner-line);
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
