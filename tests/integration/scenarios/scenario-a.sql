@@ -278,6 +278,7 @@ select pg_temp.ok('packing again is a duplicate and takes nothing more',
 -- ---------------------------------------------------------------- pickup
 select pg_temp.ok('Ready', (select r.state = 'Ready' from public.staff_set_status(pg_temp.get('order_no'), 'Ready', pg_temp.stamp(pg_temp.get('order_no'))) r));
 select pg_temp.save_location('Other place');
+select pg_temp.ok('the owner changed the place for later orders', (select x.campus_label from public.get_order_rules() x) = 'Other place');
 select pg_temp.ok('Completed (collected)', (select r.state = 'Completed' and not r.replayed
   from public.staff_set_status(pg_temp.get('order_no'), 'Completed', pg_temp.stamp(pg_temp.get('order_no'))) r));
 select pg_temp.ok('Completed again replays', (select r.replayed from public.staff_set_status(pg_temp.get('order_no'), 'Completed', '2000-01-01'::timestamptz) r));
@@ -313,8 +314,11 @@ select pg_temp.ok('replaying every write again changes no money and no stock',
   and (select r.duplicate from public.record_pack(pg_temp.get('order_no'), 5) r)
   and (select r.duplicate from public.record_stock_movement(jsonb_build_object('id', pg_temp.pid(9), 'item_id', 'sa-flour',
      'kind', 'receipt', 'qty', 1000, 'cost_cents', 8000, 'supplier', 'SA Mill', 'reason', '', 'at', pg_temp.ms())) r)
-  and (select r.replayed from public.staff_set_status(pg_temp.get('order_no'), 'Completed', '2000-01-01'::timestamptz) r)
-  and pg_temp.sumk(pg_temp.books(), 'revenue') = 78000 and pg_temp.sumk(pg_temp.books(), 'expense') = 8000
+  and (select r.replayed from public.staff_set_status(pg_temp.get('order_no'), 'Completed', '2000-01-01'::timestamptz) r));
+-- A separate statement: a stable read (the books) sees only what was written before its own statement began.
+select pg_temp.ok('after those replays the books and the shelves are exactly as before',
+  pg_temp.sumk(pg_temp.books(), 'revenue') = 78000 and pg_temp.sumk(pg_temp.books(), 'expense') = 8000
+  and pg_temp.q('select paid_cents from public.orders') = '78000'
   and pg_temp.on_hand('sa-flour') = 1600 and pg_temp.on_hand('sa-butter') = 400 and pg_temp.on_hand('sa-egg') = 19
   and pg_temp.on_hand('sa-cocoa') = 150 and pg_temp.on_hand('sa-box') = 9 and pg_temp.on_hand('sa-sticker') = 19 and pg_temp.on_hand('sa-card') = 9);
 reset role;
