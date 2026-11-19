@@ -208,3 +208,16 @@ describe('savedPickupText label cache', () => {
     expect(oldest).toBe(uncached(day(0), '10:00', 'short'));
   });
 });
+
+describe('pickupLabel with a malformed date (HCB-036)', () => {
+  it.each(['2026-02-30', 'not-a-date', '2026-13-01', '2026-10'])(
+    'never shows "Invalid Date" for %s',
+    (bad) => {
+      expect(pickupLabel(bad, '10:00')).not.toContain('Invalid Date');
+      expect(pickupLabel(bad, null)).not.toContain('Invalid Date');
+    }
+  );
+  it('falls back to empty text, like a missing date', () => {
+    expect(pickupLabel('2026-02-30', '10:00')).toBe('');
+  });
+});

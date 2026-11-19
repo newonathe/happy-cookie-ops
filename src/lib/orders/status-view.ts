@@ -58,8 +58,17 @@ export function pickupLabel(
   savedLabel?: string
 ): string {
   if (!date) return '';
-  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
-  const day = new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!parts) return '';
+  const [y, m, d] = [Number(parts[1]), Number(parts[2]), Number(parts[3])] as [
+    number,
+    number,
+    number
+  ];
+  const at = new Date(Date.UTC(y, m - 1, d));
+  // A date that rolls over (30 February) is malformed, not March 2.
+  if (at.getUTCFullYear() !== y || at.getUTCMonth() !== m - 1 || at.getUTCDate() !== d) return '';
+  const day = at.toLocaleDateString('en-US', {
     timeZone: 'UTC',
     weekday: 'short',
     month: 'short',
