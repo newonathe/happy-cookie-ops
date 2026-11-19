@@ -144,6 +144,7 @@ export function SuppliersLive({ v }: { v: OpsVals }) {
             <label className={`${styles.filter} min-h-11`}>
               <input
                 type="checkbox"
+                className="size-6 accent-brand"
                 checked={showInactive}
                 onChange={(e) => setShowInactive(e.target.checked)}
               />

@@ -38,8 +38,8 @@
   cursor: pointer;
 }
 .identity input {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   accent-color: var(--color-brand);
   flex-shrink: 0;
 }

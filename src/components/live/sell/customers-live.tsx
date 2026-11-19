@@ -131,7 +131,7 @@ function RemoveContact({
             type="checkbox"
             checked={sure}
             onChange={(event) => setSure(event.target.checked)}
-            className="size-[18px] accent-brand"
+            className="size-6 accent-brand"
           />
           Remove this customer&apos;s saved contact details
         </label>

@@ -227,6 +227,7 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
                   >
                     <input
                       type="checkbox"
+                      className="size-6 shrink-0 accent-[var(--color-brand)]"
                       name={'sf_' + c.id}
                       checked={chosen.includes(c.id)}
                       onChange={(event) => {
@@ -239,7 +240,6 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
                             : all.filter((id) => id !== c.id)
                         );
                       }}
-                      className="size-5 accent-[var(--color-brand)]"
                     />
                     <span>
                       {c.name}

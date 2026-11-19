@@ -134,7 +134,7 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
                 <label className="flex min-h-11 items-center gap-2 text-caption text-ink-soft">
                   <input
                     type="checkbox"
-                    className="h-5 w-5 accent-brand"
+                    className="size-6 accent-brand"
                     aria-label={`${f.name}: use recorded kitchen cookies`}
                     checked={priceOnlyIds.includes(id)}
                     onChange={(e) => {
