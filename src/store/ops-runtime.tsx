@@ -124,6 +124,7 @@ import { requestPersistentStorage } from '@/lib/offline/persist';
 import { isEventUuid, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
+import { singularCookies } from '@/lib/display/singular-cookies';
 import type {
   LiveFlavourFormFields,
   LiveOrderExtrasFields,
@@ -3999,8 +4000,13 @@ export class OpsRuntime extends OpsProvider {
           }
         : starved.recipe,
       pl: this.livePnl(starved.pl),
-      bzCloseout: this.liveCloseout(starved.bzCloseout),
+      bzCloseout: this.singularCloseout(this.liveCloseout(starved.bzCloseout)),
+      customers: (starved.customers ?? []).map((c) => ({
+        ...c,
+        count: singularCookies(String(c.count))
+      })),
       invRows: (starved.invRows ?? []).map((row) => {
+        row = { ...row, qtyText: singularCookies(String(row.qtyText)) };
         const item = this.stockCatalogue?.items.find((i) => i.name === row.name);
         return ['Ingredients', 'Packaging'].includes(String(this.state.invTab)) &&
           !item?.lastCounted
@@ -9641,7 +9647,7 @@ export class OpsRuntime extends OpsProvider {
       return {
         ...row,
         // The engine writes "1 cookies"; the count is the number it already printed.
-        count: String(row.count).replace(/^1 cookies$/, '1 cookie'),
+        count: singularCookies(String(row.count)),
         pickup: savedPickupText(order?.pickupDate, order?.pickupWindow, 'short', order?.pickupLabel)
       };
     });
@@ -10356,7 +10362,7 @@ export class OpsRuntime extends OpsProvider {
         name: item.name,
         photo: item.photo,
         state: this.recipeReaderState,
-        yieldText: hasLines ? `Makes ${recipe.yield} cookies` : null,
+        yieldText: hasLines ? singularCookies(`Makes ${recipe.yield} cookies`) : null,
         versionText: hasLines ? `Version ${recipe.version}` : null,
         savedYield: hasLines ? recipe.yield : 0,
         createRecipe:
@@ -10444,6 +10450,18 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** The bazaar close-out: cost of goods and profit read "Cost pending" when any flavour sold has no cost, and that is not a loss. */
+  /** The engine's "1 cookies" in the close-out summary (see `singularCookies`). */
+  private singularCloseout(c: OpsVals['bzCloseout']): OpsVals['bzCloseout'] {
+    return c
+      ? {
+          ...c,
+          opening: singularCookies(String(c.opening)),
+          sold: singularCookies(String(c.sold)),
+          returned: singularCookies(String(c.returned))
+        }
+      : c;
+  }
+
   private liveCloseout(closeout: OpsVals['bzCloseout']): OpsVals['bzCloseout'] {
     if (!closeout || this.state.role !== 'owner') return closeout;
     const unknown = (this.state.sales as EventSale[]).some((sale) =>

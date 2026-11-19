@@ -217,3 +217,29 @@ describe('HCB-016: the orders list counts cookies in the singular', () => {
     expect(counts['HC-1101']).toBe('2 cookies');
   });
 });
+
+describe('HCB-016: other engine cookie counts are singular for one', () => {
+  beforeEach(() => {
+    live = true;
+  });
+  afterEach(() => cleanup());
+  it('baked stock, the drop customers and the till close-out say "1 cookie"', async () => {
+    const one = raw('HC-1103', 'Ana Cruz', {
+      items: [{ product_id: 'dcf', qty: 1, unit_price_cents: 13000, unavailable: false }]
+    });
+    const runtime = await mounted(fake([one]));
+    act(() =>
+      runtime.setState({
+        invTab: 'Baked stock',
+        baked: { dcf: 1 },
+        eventLoaded: { dcf: 1 },
+        eventStock: { dcf: 1 },
+        sales: []
+      } as never)
+    );
+    const v = runtime.renderVals();
+    const text = JSON.stringify([v.invRows, v.bzCloseout, v.customers]);
+    expect(text).not.toMatch(/\b1 cookies\b/);
+    expect(text).toMatch(/1 cookie\b/);
+  });
+});
