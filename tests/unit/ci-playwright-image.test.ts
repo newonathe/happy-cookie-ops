@@ -22,6 +22,16 @@ describe('CI Playwright image', () => {
     for (const tag of tags) expect(tag).toBe(pinned);
   });
 
+  it('pins the release workflow image too, and no release job installs browsers', () => {
+    const release = readFileSync('.github/workflows/owner-trial.yml', 'utf8');
+    const tags = [...release.matchAll(/mcr\.microsoft\.com\/playwright:v([0-9.]+)-noble/g)].map(
+      (m) => m[1]
+    );
+    expect(tags).toHaveLength(2);
+    for (const tag of tags) expect(tag).toBe(pinned);
+    expect(release).not.toMatch(/playwright install/);
+  });
+
   it('never installs browsers on the bare runner in the browser job', () => {
     const e2e = ci.slice(ci.indexOf('  e2e:'), ci.indexOf('  storybook:'));
     expect(e2e).toContain('container:');

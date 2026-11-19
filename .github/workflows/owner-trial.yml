@@ -73,10 +73,17 @@ jobs:
     if: github.ref == 'refs/heads/agent/codex/MP-04-g1-feasibility'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # The same pinned image as the quality job: Chromium and its system libraries are already in it, so the QR step needs
+    # nothing from Ubuntu's package servers (19 November 2026: a mirror outage failed a release before it deployed).
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+      # Root inside the container, runner-owned checkout: scripts/build-pages-spike.mjs lists tracked files with Git.
+      - name: Trust the checked-out workspace inside the container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       # The release hold (slice A3): Ethan sets the repository variable RELEASE_HOLD to stop
       # deploys, for example between the phone rehearsal and the bazaar. While it is on, the
       # quality job above still builds and tests; every step below is skipped and the run says why.
@@ -111,10 +118,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_HARNESS: '0'
           NEXT_PUBLIC_APP_MODE: live
-      # The QR step draws its placeholders in Chromium, which the quality job has from its Playwright container.
-      - name: Install Chromium for the QR placeholders
-        if: steps.hold.outputs.deploy == 'true'
-        run: pnpm exec playwright install --with-deps chromium
+      # The QR step draws its placeholders in Chromium, which this job has from its Playwright container.
       - name: Remove real payment QR images from closed trial assets
         if: steps.hold.outputs.deploy == 'true'
         run: node scripts/preview-placeholder-qr.mjs
