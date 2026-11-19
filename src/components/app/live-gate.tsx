@@ -29,6 +29,7 @@ import { OpsRuntime } from '@/store/ops-runtime';
 import { flavoursRead as catalogueRead } from '@/lib/data/flavours-read-state';
 import type { Role } from '@/store/engine/ops-engine';
 import { registerAllLiveScreens } from '@/components/live/register-all';
+import { SESSION_REJECTED_EVENT } from '@/lib/auth/session-rejected';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
 
@@ -60,8 +61,9 @@ function showsBazaarAlone(screen: ScreenKey, state: Readonly<Record<string, unkn
  * bazaar    the server could not be reached and `offlineBazaarRole()` allows it: Bazaar Mode only.
  * waiting   the server could not be reached and this phone may not open offline: a notice.
  * signin    signed out with the sign-in page out of reach: a notice, no redirect.
+ * ended     HCB-030: a session that was open ended (the server refused it); a notice while the sign-in page opens.
  */
-type Access = 'closed' | 'verified' | 'bazaar' | 'waiting' | 'signin';
+type Access = 'closed' | 'verified' | 'bazaar' | 'waiting' | 'signin' | 'ended';
 
 /** `landing`: the screen this page load opens on. `hold`: shown in place of the frame, or null. */
 export interface GateView {
@@ -273,7 +275,7 @@ export function LiveGate({
      * redirect would only load this shell again and deny again, without end: the notice is
      * shown in place and the redirect waits for the phone to come back online.
      */
-    function lockOut() {
+    function lockOut(refused = false) {
       if (cancelled) return;
       cancelled = true;
       if (engine instanceof OpsRuntime) engine.bindStaffIdentity(null);
@@ -285,7 +287,9 @@ export function LiveGate({
         void signOutLocal(supabase);
         return;
       }
-      setAccess('closed');
+      // HCB-030: a session the server refused says so while the redirect loads. A first check that
+      // finds nobody, her own sign-out and an idle sign-out the server did not refuse stay as they were.
+      setAccess(refused && accessRef.current !== 'closed' ? 'ended' : 'closed');
       void signOutAndRedirect(supabase, path);
     }
 
@@ -407,7 +411,7 @@ export function LiveGate({
       narrow();
       void limited(probe()).then((result) => {
         if (cancelled || !result || epoch !== identityEpoch) return;
-        if (result.status === 'denied') lockOut();
+        if (result.status === 'denied') lockOut(true);
         else if (result.status === 'ok') signOutAfterFlush();
       });
     }
@@ -501,7 +505,7 @@ export function LiveGate({
         return;
       }
       if (result.status === 'denied') {
-        lockOut();
+        lockOut(true);
         return;
       }
       const role = result.role;
@@ -717,7 +721,7 @@ export function LiveGate({
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         identityEpoch += 1;
-        lockOut();
+        lockOut(true);
       } else if (
         event === 'SIGNED_IN' &&
         (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey) || verifiedUserId)
@@ -758,6 +762,20 @@ export function LiveGate({
     }
     document.addEventListener('visibilitychange', onVisible);
 
+    // HCB-030: the server turned a data request down for her sign-in (a save on a page that still
+    // looks usable). Ask who is signed in: a refused answer ends the session, a stale token that
+    // refreshes carries on, and no signal changes nothing (`unknown`). One check at a time.
+    function onRejected() {
+      if (cancelled || outstanding) return;
+      if (
+        accessRef.current === 'closed' &&
+        CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+      )
+        return;
+      void verify();
+    }
+    window.addEventListener(SESSION_REJECTED_EVENT, onRejected);
+
     // Back online: the full check runs at once, whatever this page load had decided.
     function onOnline() {
       if (accessRef.current === 'signin') window.location.replace(signInPath());
@@ -773,6 +791,7 @@ export function LiveGate({
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('online', onOnline);
+      window.removeEventListener(SESSION_REJECTED_EVENT, onRejected);
       ACTIVITY_EVENTS.forEach((name) => window.removeEventListener(name, active));
       stopRecheck();
       stopIdle();
@@ -847,5 +866,7 @@ export function LiveGate({
     );
   if (access === 'signin')
     return <OfflineHold kind="signin" onAction={() => actions.current.signIn()} />;
+  if (access === 'ended')
+    return <OfflineHold kind="ended" onAction={() => actions.current.signIn()} />;
   return null;
 }

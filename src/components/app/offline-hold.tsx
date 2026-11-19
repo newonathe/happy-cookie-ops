@@ -7,8 +7,9 @@
  *   elsewhere  Bazaar Mode is open without signal and she moved to another screen or sheet.
  *   waiting    The sign-in could not be checked and this phone may not open offline.
  *   signin     She is signed out and the sign-in page cannot be reached yet.
+ *   ended      HCB-030: her sign-in ran out while she was working; the sign-in page is opening.
  */
-export type HoldKind = 'elsewhere' | 'waiting' | 'signin';
+export type HoldKind = 'elsewhere' | 'waiting' | 'signin' | 'ended';
 
 export const HOLD_COPY: Record<HoldKind, { title: string; body: string; action: string }> = {
   elsewhere: {
@@ -25,6 +26,12 @@ export const HOLD_COPY: Record<HoldKind, { title: string; body: string; action: 
     title: 'Sign in when you have signal',
     body: 'You are signed out on this phone. Sales already recorded are kept on this phone and are sent after you sign in.',
     action: 'Go to sign-in'
+  },
+  // Wording for the owner to confirm (HCB-030 placeholder, written in the style of the notices above).
+  ended: {
+    title: 'You were signed out',
+    body: 'Your sign-in ended, so anything you changed just now may not have been saved. Sales already recorded are kept on this phone and are sent after you sign in again.',
+    action: 'Sign in again'
   }
 };
 

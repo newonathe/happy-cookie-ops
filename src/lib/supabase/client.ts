@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/lib/types/database';
+import { fetchReportingRejection } from '@/lib/auth/session-rejected';
 
 /**
  * Browser client. Carries the publishable key only; every read is filtered by RLS.
@@ -17,7 +18,9 @@ export function createClient() {
     requireEnv(
       'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    )
+    ),
+    // HCB-030: a data request the server turns down for its sign-in tells the live gate.
+    { global: { fetch: fetchReportingRejection() } }
   );
 }
 
