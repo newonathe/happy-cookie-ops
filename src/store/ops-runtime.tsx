@@ -2871,6 +2871,42 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  /**
+   * "Order a box!" on the shop: the owner's active box sizes, the cookies in the cart (the sampler is a set, not a
+   * boxed cookie) and the sampler's row. Boxes are an extra at checkout, so this adds no price or server call:
+   * Continue chooses one box of the size in the checkout's own box rows and opens the normal checkout.
+   */
+  private shopBoxVals(): OpsVals['shopBox'] {
+    const x = this.orderFlow?.extras;
+    const engine = this as unknown as {
+      shopOpen: (s: unknown) => boolean;
+      custToCheckout: () => void;
+    };
+    if (!isLiveMode() || !x || x.boxes.length === 0 || !engine.shopOpen(this.state)) return null;
+    const box = (this.state.cust as { box?: Record<string, number> } | undefined)?.box ?? {};
+    const samplerId = x.sampler.productId;
+    const cookies = Object.entries(box)
+      .filter(([id]) => id !== samplerId)
+      .reduce((n, [, qty]) => n + Math.max(0, qty), 0);
+    const dropActive = (this.state.dropActive ?? {}) as Record<string, boolean>;
+    const samplerRow = samplerId
+      ? PRODUCTS.filter((p) => dropActive[p.id] !== false).findIndex((p) => p.id === samplerId)
+      : -1;
+    return {
+      sizes: x.boxes.map((b) => b.size),
+      cookies,
+      samplerRow: samplerRow >= 0 ? samplerRow : null,
+      pick: (size: number) => {
+        const flow = this.orderFlow;
+        if (!flow || cookies !== size || !x.boxes.some((b) => b.size === size)) return;
+        if (flow.locked) return;
+        for (const other of Object.keys(flow.boxQty)) flow.setBox(Number(other), 0);
+        flow.setBox(size, 1);
+        engine.custToCheckout();
+      }
+    };
+  }
+
   private liveShopSampler(rows: OpsVals['shopFlavours']): OpsVals['shopFlavours'] {
     const sampler = this.orderFlow?.extras?.sampler;
     const flavours = sampler?.flavours ?? [];
@@ -4161,6 +4197,7 @@ export class OpsRuntime extends OpsProvider {
         if (customerAction()) this.openWaitlist();
       },
       liveCheckout: this.liveCheckoutVals(),
+      shopBox: this.shopBoxVals(),
       livePaymentRead: this.paymentReadVals(),
       liveLookup: this.liveLookupVals(),
       liveWaitlist: this.liveWaitlistVals(),

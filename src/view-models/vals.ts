@@ -566,6 +566,13 @@ export interface OpsVals {
   liveShopMenuRead?: ShopMenuReadView | null;
   /** HCB-004: whether the engine's products are hers (owner, live mode only); false shows the built-in six, which no owner screen may. */
   catalogueHeld?: boolean;
+  /** Live shop only: the "Order a box!" view. Null/absent when orders are shut or the owner offers no box. */
+  shopBox?: {
+    sizes: number[];
+    cookies: number;
+    samplerRow: number | null;
+    pick: (size: number) => void;
+  } | null;
   liveShopAvailability?: ShopAvailabilityView | null;
   liveShopOverride?: ShopOverrideView | null;
   livePaymentRead?: {

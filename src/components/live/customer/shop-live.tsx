@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
 import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Banner } from '@/components/ui/banner';
 import { LiveShopFooter } from '@/components/live/live-shop-footer';
 import { CatalogueNotice, useCatalogueHeld } from '@/components/live/bazaar/catalogue-notice';
+import { BoxOrderView } from '@/components/live/customer/box-order-view';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
 
 const SHOP_MENU_COPY = {
@@ -21,6 +22,23 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
   // HCB-004: the owner's preview shows no cookie until her own products are in hand. The public shop is given no
   // `catalogueHeld`, so it is unchanged and keeps its own menu notice.
   const catalogue = useCatalogueHeld(v.catalogueHeld);
+  const [boxView, setBoxView] = useState(false);
+  const box = v.shopBox ?? null;
+  // The Box orders view is one more history entry, so the browser Back button returns to the shop.
+  useEffect(() => {
+    if (!boxView) return;
+    const onPop = () => setBoxView(false);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [boxView]);
+  const openBox = () => {
+    window.history.pushState({ hcBox: true }, '');
+    setBoxView(true);
+  };
+  const closeBox = () => {
+    if ((window.history.state as { hcBox?: boolean } | null)?.hcBox) window.history.back();
+    else setBoxView(false);
+  };
   const checkout = (className: string) => (
     <Button
       className={className}
@@ -31,6 +49,7 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
       {v.boxCta}
     </Button>
   );
+  if (boxView && box) return <BoxOrderView v={v} box={box} onBack={closeBox} />;
   return (
     <section
       data-screen-label="Customer shop"
@@ -141,7 +160,14 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
           aria-label="Your cookies"
           className="min-w-0 rounded-card border border-line bg-surface p-4 lg:sticky lg:top-4"
         >
-          <h2 className="text-heading font-semibold">{v.boxTitle}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-heading font-semibold">{v.boxTitle}</h2>
+            {box ? (
+              <Button variant="secondary" onClick={openBox}>
+                Order a box!
+              </Button>
+            ) : null}
+          </div>
           {/* Picked, the title already carries the count ("Your order · 2 cookies"): the line under it is for an empty cart. */}
           {v.pickedItems.length === 0 ? (
             <p className="mt-2 text-label text-ink-soft">{v.boxCountText}</p>
