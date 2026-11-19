@@ -93,10 +93,11 @@ describe('fluid client Shop', () => {
     expect(within(card).queryByRole('list')).toBeNull();
     expect(ui.getAllByText('Nothing picked yet')).toHaveLength(1);
   });
-  it('keeps the flavour line under the picked items once something is picked', () => {
+  it('once something is picked, the title carries the count and the flavour line stays', () => {
     const ui = render(<CustomerShopLive v={fixture().v} />);
     const card = ui.getByRole('complementary', { name: 'Your cookies' });
-    expect(within(card).getByText('2 cookies picked')).toBeTruthy();
+    expect(within(card).getByRole('heading', { name: 'Your cookies' })).toBeTruthy();
+    expect(within(card).queryByText('2 cookies picked')).toBeNull();
     expect(within(card).getByText('1 flavour')).toBeTruthy();
     const bar = ui.getByLabelText('Continue your order');
     expect(within(bar).getByText('2 cookies picked')).toBeTruthy();
