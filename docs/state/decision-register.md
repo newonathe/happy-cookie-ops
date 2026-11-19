@@ -573,3 +573,24 @@ in the books only when the event ends. Design: [bazaar-days.md](bazaar-days.md).
 **Defaults, not decisions** (the builder's, his or hers to change): one cost per flavour per event; planning, starting a day,
 review and close need signal while selling does not; a line's cost is rounded half up to the centavo per flavour; fees paid
 before the event are dated the day they were paid and count when the event is finalised.
+
+### Cine's review, 19 November 2026
+
+Cine reviewed the trial on 19 November (messages to Ethan, with screenshots and a drawing). What she decided, and what is
+still open with her:
+
+| Question                        | Decision                                                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Waiting list on the shop        | Shown only while orders are closed: "they're not waiting for anything" while the form is open (#121).                          |
+| Instagram on the waiting list   | Required, not optional (#121). Checkout: still optional until she says otherwise.                                              |
+| Price note under the cart total | Removed: she did not understand it (#121).                                                                                     |
+| Owner dashboard look            | No wavy line background and no colour change; Ethan: keep the glass and everything else (#120).                                |
+| Recipe editing                  | Ingredients and quantities editable on the recipe page itself, without "Cost, history & edit" (#122).                          |
+| Box ordering                    | An "Order a box!" button beside "Your order", opening Box of 6 / 8 / 12 tabs over the cookie cards with a side panel of picks. |
+| Cookie pictures on the box page | A cookie picture inside a circle.                                                                                              |
+| Wholesale (cafés, events)       | She needs a lower price for cafés and events that does not change the order form.                                              |
+
+**Open with her:** the shop's closed hours (she said Sunday 9 am to Monday 9 am; the banner reads Thursday 9 PM), a box's price
+(fixed per size, or the cookies plus the box size's charge), whether a flavour may repeat in a box, cut-out cookie images, and
+for cafés whether she enters each order with its prices or keeps a price list per café (bazaar days already have their own
+prices). Ethan's own call the same day: Home's greeting is set formally (#123).
