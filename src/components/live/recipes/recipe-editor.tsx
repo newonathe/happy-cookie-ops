@@ -18,6 +18,70 @@ import { KeptEditBanner } from './kept-edit-banner';
 const selectClass =
   'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label';
 
+/** The editable lines of a recipe (name, type, quantity, unit, remove) and "Add ingredient": shared by the editor and the recipe page. */
+export function RecipeLines({ recipe }: { recipe: OpsVals['recipe'] }) {
+  const rows = recipe.rows ?? [];
+  return (
+    <>
+      <ul aria-label="Recipe lines" className="flex flex-col">
+        {rows.map((row, i) => (
+          <li key={i} className="border-b border-line py-3 last:border-b-0">
+            <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_140px_120px_100px_auto]">
+              <OwnerField
+                className="col-span-2 sm:col-span-1"
+                label="Ingredient"
+                value={row.name}
+                onChange={row.setName}
+              />
+              {row.setKind ? (
+                <label className="flex min-w-0 flex-col gap-1.5">
+                  <span className="text-label font-semibold text-ink-soft">Type</span>
+                  <select
+                    value={row.kind === undefined ? 'ingredient' : (row.kind ?? '')}
+                    onChange={(event) =>
+                      row.setKind?.(event.target.value as 'ingredient' | 'packaging')
+                    }
+                    className={selectClass}
+                  >
+                    {row.kind === null ? <option value="">Choose</option> : null}
+                    <option value="ingredient">Ingredient</option>
+                    <option value="packaging">Packaging</option>
+                  </select>
+                </label>
+              ) : null}
+              <OwnerField
+                label="Quantity"
+                inputMode="decimal"
+                value={row.qty}
+                onChange={row.setQty}
+              />
+              <label className="flex min-w-0 flex-col gap-1.5">
+                <span className="text-label font-semibold text-ink-soft">Unit</span>
+                <select value={row.unit} onChange={row.setUnit} className={selectClass}>
+                  {(recipe.units ?? []).map((unit) => (
+                    <option key={String(unit)} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Button variant="ghost" onClick={row.remove}>
+                Remove<span className="sr-only"> {row.name}</span>
+              </Button>
+            </div>
+            {row.warn ? <p className="mt-1 text-caption text-warn">{row.warn}</p> : null}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3">
+        <Button variant="secondary" onClick={recipe.addRow}>
+          Add ingredient
+        </Button>
+      </div>
+    </>
+  );
+}
+
 /**
  * Edit recipe (client v4): the engine's own rows and handlers, with a Review before saving. Saving
  * makes a new version, as it always did; what has been baked keeps its version. It leaves Review
@@ -127,61 +191,7 @@ export function RecipeEditor({
             </Button>
           </span>
         </div>
-        <ul aria-label="Recipe lines" className="flex flex-col">
-          {rows.map((row, i) => (
-            <li key={i} className="border-b border-line py-3 last:border-b-0">
-              <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_140px_120px_100px_auto]">
-                <OwnerField
-                  className="col-span-2 sm:col-span-1"
-                  label="Ingredient"
-                  value={row.name}
-                  onChange={row.setName}
-                />
-                {row.setKind ? (
-                  <label className="flex min-w-0 flex-col gap-1.5">
-                    <span className="text-label font-semibold text-ink-soft">Type</span>
-                    <select
-                      value={row.kind === undefined ? 'ingredient' : (row.kind ?? '')}
-                      onChange={(event) =>
-                        row.setKind?.(event.target.value as 'ingredient' | 'packaging')
-                      }
-                      className={selectClass}
-                    >
-                      {row.kind === null ? <option value="">Choose</option> : null}
-                      <option value="ingredient">Ingredient</option>
-                      <option value="packaging">Packaging</option>
-                    </select>
-                  </label>
-                ) : null}
-                <OwnerField
-                  label="Quantity"
-                  inputMode="decimal"
-                  value={row.qty}
-                  onChange={row.setQty}
-                />
-                <label className="flex min-w-0 flex-col gap-1.5">
-                  <span className="text-label font-semibold text-ink-soft">Unit</span>
-                  <select value={row.unit} onChange={row.setUnit} className={selectClass}>
-                    {(recipe.units ?? []).map((unit) => (
-                      <option key={String(unit)} value={unit}>
-                        {unit}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <Button variant="ghost" onClick={row.remove}>
-                  Remove<span className="sr-only"> {row.name}</span>
-                </Button>
-              </div>
-              {row.warn ? <p className="mt-1 text-caption text-warn">{row.warn}</p> : null}
-            </li>
-          ))}
-        </ul>
-        <div className="mt-3">
-          <Button variant="secondary" onClick={recipe.addRow}>
-            Add ingredient
-          </Button>
-        </div>
+        <RecipeLines recipe={recipe} />
         <div className="mt-4">
           <FooterActions
             forward={

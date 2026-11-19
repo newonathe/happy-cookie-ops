@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { OpsVals } from '@/view-models/vals';
 import type { KeptRecipeEditView, LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
 import { batchStock, scaleQty, type BatchStockRow } from '@/lib/recipes/batch';
 import { formatQuantity } from '@/lib/stock/stock-status';
@@ -10,6 +11,7 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { OwnerField, Panel, TaskRow } from '@/components/ui/owner-kit';
 import { KeptEditBanner } from './kept-edit-banner';
+import { RecipeLines } from './recipe-editor';
 import styles from './recipe-reader.module.css';
 
 type Page = NonNullable<LiveRecipesVals['recipePage']>;
@@ -57,9 +59,12 @@ export function RecipeReader({
   page,
   onCosts,
   onCreate,
-  kept
+  kept,
+  inline
 }: {
   page: Page;
+  /** The owner's way to edit the lines on this page: the engine's open recipe, and how to open it. */
+  inline?: { recipe: OpsVals['recipe']; begin: () => void; dirtyHere: boolean };
   onCosts: () => void;
   onCreate?: () => void;
   /** HCB-038: an unsaved edit kept across a reload, offered back or explained. */
@@ -70,6 +75,17 @@ export function RecipeReader({
     heading.current?.focus();
   }, []);
   const [cookies, setCookies] = useState(page.savedYield ? String(page.savedYield) : '');
+  const [editing, setEditing] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const asked = useRef(false);
+  const open = !!inline && (editing || inline.dirtyHere);
+  const dirty = !!inline?.recipe.dirty;
+  useEffect(() => {
+    if (asked.current && !dirty) {
+      asked.current = false;
+      setEditing(false);
+    }
+  }, [dirty]);
   const photo = cookiePicture(resolveImagePath(page.photo), page.name);
   const batch = Number(cookies);
   const scalable = page.savedYield > 0 && Number.isSafeInteger(batch) && batch > 0;
@@ -124,6 +140,20 @@ export function RecipeReader({
       </header>
       <KeptEditBanner kept={kept} />
       <div className={styles.tools}>
+        {inline && page.state === 'read' && page.rows.length && !open ? (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              // Quantities are edited at the saved batch size, never a scaled one.
+              setCookies(String(page.savedYield));
+              setProblem(null);
+              inline.begin();
+              setEditing(true);
+            }}
+          >
+            Edit recipe
+          </Button>
+        ) : null}
         <Button variant="secondary" onClick={onCosts}>
           Cost, history &amp; edit
         </Button>
@@ -148,31 +178,94 @@ export function RecipeReader({
         <div className={styles.columns}>
           <Panel>
             <section aria-label="Recipe quantities">
-              <div className={styles.batch}>
-                <h2>Recipe</h2>
-                <OwnerField
-                  label="Cookies to make"
-                  type="number"
-                  min="1"
-                  step="1"
-                  inputMode="numeric"
-                  value={cookies}
-                  onChange={(event) => setCookies(event.target.value)}
-                />
-              </div>
-              <Checklist
-                title="Ingredients"
-                lines={page.rows.filter((row) => row.kind !== 'packaging')}
-                amount={amount}
-              />
-              <Checklist
-                title="Packaging"
-                lines={page.rows.filter((row) => row.kind === 'packaging')}
-                amount={amount}
-              />
+              {open && inline ? (
+                <>
+                  <div className={styles.batch}>
+                    <h2>Edit recipe</h2>
+                    <span>
+                      Makes {inline.recipe.yieldNum} cookies
+                      <Button
+                        variant="secondary"
+                        onClick={inline.recipe.yieldDown}
+                        aria-label="Lower yield"
+                      >
+                        −
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={inline.recipe.yieldUp}
+                        aria-label="Raise yield"
+                      >
+                        +
+                      </Button>
+                    </span>
+                  </div>
+                  <p className={styles.note}>
+                    Amounts are for one saved batch. Saving makes a new version; anything already
+                    baked keeps its old one.
+                  </p>
+                  {problem ? <Banner tone="warn" title={problem} /> : null}
+                  <RecipeLines recipe={inline.recipe} />
+                </>
+              ) : (
+                <>
+                  <div className={styles.batch}>
+                    <h2>Recipe</h2>
+                    <OwnerField
+                      label="Cookies to make"
+                      type="number"
+                      min="1"
+                      step="1"
+                      inputMode="numeric"
+                      value={cookies}
+                      onChange={(event) => setCookies(event.target.value)}
+                    />
+                  </div>
+                  <Checklist
+                    title="Ingredients"
+                    lines={page.rows.filter((row) => row.kind !== 'packaging')}
+                    amount={amount}
+                  />
+                  <Checklist
+                    title="Packaging"
+                    lines={page.rows.filter((row) => row.kind === 'packaging')}
+                    amount={amount}
+                  />
+                </>
+              )}
               <div className={styles.foot}>
                 <span>Saved yield: {page.savedYield} cookies</span>
-                {page.startProduction ? (
+                {open && inline ? (
+                  <>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        page.discardEdit?.();
+                        setProblem(null);
+                        setEditing(false);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="primary"
+                      disabled={!dirty}
+                      reason="Change something first."
+                      onClick={() => {
+                        const rows = inline.recipe.rows ?? [];
+                        if (rows.some((row) => !String(row.name).trim()))
+                          return setProblem('Give every line a name, or remove it.');
+                        if (rows.some((row) => row.kind === null))
+                          return setProblem('Choose ingredient or packaging for each line.');
+                        setProblem(null);
+                        asked.current = true;
+                        inline.recipe.save();
+                      }}
+                    >
+                      Save new version
+                    </Button>
+                  </>
+                ) : page.startProduction ? (
                   <Button
                     variant="primary"
                     disabled={

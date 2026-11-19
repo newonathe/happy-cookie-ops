@@ -82,6 +82,8 @@ export interface LiveRecipesVals {
       count?: () => void;
     }>;
     startProduction?: (cookies?: number) => void;
+    /** Drops the unsaved changes to this recipe, back to its last saved version. */
+    discardEdit?: () => void;
     back: () => void;
     refresh: () => void;
   };
