@@ -314,12 +314,12 @@ describe('the live Home', () => {
     expect(view.queryByText('1 item short')).toBeNull();
   });
   it.each([
-    ['2026-11-08T15:59:00Z', 'Good evening', 'Sunday, 8 Nov'],
-    ['2026-11-08T16:00:00Z', 'Good morning', 'Monday, 9 Nov'],
-    ['2026-11-09T03:59:00Z', 'Good morning', 'Monday, 9 Nov'],
-    ['2026-11-09T04:00:00Z', 'Good afternoon', 'Monday, 9 Nov'],
-    ['2026-11-09T09:59:00Z', 'Good afternoon', 'Monday, 9 Nov'],
-    ['2026-11-09T10:00:00Z', 'Good evening', 'Monday, 9 Nov']
+    ['2026-11-08T15:59:00Z', 'Good evening', 'Sun, 8 Nov'],
+    ['2026-11-08T16:00:00Z', 'Good morning', 'Mon, 9 Nov'],
+    ['2026-11-09T03:59:00Z', 'Good morning', 'Mon, 9 Nov'],
+    ['2026-11-09T04:00:00Z', 'Good afternoon', 'Mon, 9 Nov'],
+    ['2026-11-09T09:59:00Z', 'Good afternoon', 'Mon, 9 Nov'],
+    ['2026-11-09T10:00:00Z', 'Good evening', 'Mon, 9 Nov']
   ])(
     'uses the business day and greeting on a UTC device at %s',
     async (instant, salutation, day) => {

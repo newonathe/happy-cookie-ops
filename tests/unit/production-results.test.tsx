@@ -1,3 +1,4 @@
+import { dayLabel } from '@/lib/date/display';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LiveProductionVals } from '@/lib/production/live-production-types';
@@ -105,13 +106,7 @@ describe('saved production results', () => {
     const ui = render(<ProductionResults data={data({ rows })} />);
     expect(screen.getByText('Recent history · all drops')).toBeTruthy();
     expect(screen.queryByText('Drop 5')).toBeNull();
-    const date = (at: number) =>
-      new Intl.DateTimeFormat('en-PH', {
-        timeZone: 'Asia/Manila',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      }).format(at);
+    const date = (at: number) => dayLabel(at);
     expect(screen.getByText(`${date(rows[0].at)} – ${date(rows[1].at)}`)).toBeTruthy();
     ui.rerender(<ProductionResults data={data({ rows, periodText: 'Drop 6' })} />);
     expect(screen.queryByText('Drop 6')).toBeNull();
@@ -128,12 +123,7 @@ describe('saved production results', () => {
         })}
       />
     );
-    const day = new Intl.DateTimeFormat('en-PH', {
-      timeZone: 'Asia/Manila',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    }).format(Date.parse('2026-11-04T07:00:00Z'));
+    const day = dayLabel(Date.parse('2026-11-04T07:00:00Z'));
     expect(screen.getByText(day, { exact: true })).toBeTruthy();
     expect(screen.queryByText(`${day} – ${day}`, { exact: true })).toBeNull();
   });

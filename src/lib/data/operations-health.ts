@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import { dayTimeLabel } from '@/lib/date/display';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import type { OpsVals } from '@/view-models/vals';
-import { formatManila } from '@/lib/time/business-clock';
 
 // Object construction probes dynamic evaluation unless configured first; the live CSP forbids it.
 z.config({ jitless: true });
@@ -106,12 +106,7 @@ const jobs = [
     'Database activity check; this cannot guarantee the provider will never pause a project.'
   ]
 ] as const;
-const when = (value: string) =>
-  formatManila(
-    new Date(value),
-    { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' },
-    'en-PH'
-  );
+const when = (value: string) => dayTimeLabel(value);
 
 /**
  * Shown only while `setupPending` (below) holds and nothing else is wrong. Addressed to the

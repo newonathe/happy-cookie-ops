@@ -193,11 +193,11 @@ describe('B5 Inventory item page', () => {
       '300 g',
       'Low',
       'Low below 500 g',
-      'Counted 3 Oct',
+      'Counted Sat, 3 Oct',
       '₱0.09 per g · average',
       'Dairy Direct',
       '1 kg bag · 1,000 g per pack',
-      'Last paid ₱88.25 · 3 Oct'
+      'Last paid ₱88.25 · Sat, 3 Oct'
     ])
       expect(facts.textContent).toContain(text);
     for (const [label, fn] of [
@@ -287,12 +287,12 @@ describe('B5 Inventory item page', () => {
     expect(lis[0]!.textContent).toContain('₱42.50');
     expect(lis[0]!.textContent).toContain('Mill & Co');
     expect(lis[0]!.textContent).toContain('Weekly delivery');
-    expect(lis[0]!.textContent).toContain('3 Oct, 2:15 PM');
+    expect(lis[0]!.textContent).toContain('Sat, 3 Oct · 2:15 PM');
     expect(lis[1]!.textContent).toContain('Waste');
     expect(lis[1]!.textContent).toContain('−120 g');
     expect(lis[1]!.textContent).toContain('Spilled');
     // 1 Oct 00:05 UTC is 8:05 AM in Manila.
-    expect(lis[1]!.textContent).toContain('1 Oct, 8:05 AM');
+    expect(lis[1]!.textContent).toContain('Thu, 1 Oct · 8:05 AM');
     expect(lis[1]!.textContent).not.toContain('₱');
     expect(lis[2]!.textContent).toContain('Count');
     expect(lis[2]!.textContent).toContain('Cost pending');

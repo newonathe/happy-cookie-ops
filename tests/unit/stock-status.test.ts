@@ -96,9 +96,9 @@ describe('quantities, levels and changes', () => {
 
 describe('last counted', () => {
   it('says the day in the shop’s time zone', () => {
-    expect(lastCountedText('2026-10-03T04:00:00.000Z')).toBe('Counted 3 Oct');
+    expect(lastCountedText('2026-10-03T04:00:00.000Z')).toBe('Counted Sat, 3 Oct');
     // 23:30 UTC on 3 October is 07:30 on 4 October in Manila.
-    expect(lastCountedText('2026-10-03T23:30:00.000Z')).toBe('Counted 4 Oct');
+    expect(lastCountedText('2026-10-03T23:30:00.000Z')).toBe('Counted Sun, 4 Oct');
     // Mutation: the device's own time zone would say 3 Oct here.
   });
 
@@ -111,9 +111,11 @@ describe('last counted', () => {
 
 describe('last paid', () => {
   it('says what the last delivery cost and the shop’s day', () => {
-    expect(lastPaidText(88.25, Date.UTC(2026, 9, 3, 4, 0, 0))).toBe('Last paid ₱88.25 · 3 Oct');
+    expect(lastPaidText(88.25, Date.UTC(2026, 9, 3, 4, 0, 0))).toBe(
+      'Last paid ₱88.25 · Sat, 3 Oct'
+    );
     expect(lastPaidText(1234.5, Date.UTC(2026, 9, 3, 23, 30, 0))).toBe(
-      'Last paid ₱1,234.50 · 4 Oct'
+      'Last paid ₱1,234.50 · Sun, 4 Oct'
     );
   });
 

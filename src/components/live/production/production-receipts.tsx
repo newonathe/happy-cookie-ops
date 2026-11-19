@@ -1,22 +1,12 @@
 'use client';
 
+import { dayTimeLabel } from '@/lib/date/display';
 import type { LiveProductionReceipt } from '@/lib/production/live-production-types';
-import { formatManila } from '@/lib/time/business-clock';
 import { Button } from '@/components/ui/button';
 import styles from './results.module.css';
 
 const n = (value: number) => value.toLocaleString('en-PH', { maximumFractionDigits: 6 });
-const when = (at: number) =>
-  formatManila(
-    at,
-    {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    },
-    'en-PH'
-  );
+const when = (at: number) => dayTimeLabel(at);
 
 /** Acknowledgement and later read health are deliberately separate facts. */
 export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) {

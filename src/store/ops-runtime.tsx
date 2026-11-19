@@ -1,5 +1,6 @@
 'use client';
 
+import { dayLabel, dayTimeLabel } from '@/lib/date/display';
 import { OrderRecovery } from '@/lib/orders/order-recovery';
 import {
   fetchProductTypes,
@@ -324,7 +325,7 @@ import {
   pickupTimes,
   waitlistRange
 } from '@/lib/orders/pickup';
-import { formatManila, manilaHour, manilaMidnight, monthStart } from '@/lib/time/business-clock';
+import { manilaHour, manilaMidnight, monthStart } from '@/lib/time/business-clock';
 import {
   EMPTY_IDENTITY,
   fetchShopIdentity,
@@ -1202,8 +1203,7 @@ export class OpsRuntime extends OpsProvider {
         })
       );
     },
-    dateText: (at) =>
-      formatManila(at, { day: 'numeric' }) + ' ' + formatManila(at, { month: 'short' }),
+    dateText: (at) => dayLabel(at),
     online: () => Boolean(this.state.online),
     anonymise: async (phone) => {
       const client = this.booksClient as unknown as {
@@ -2906,10 +2906,7 @@ export class OpsRuntime extends OpsProvider {
         /^Good (morning|afternoon|evening),/,
         `${salutation},`
       ),
-      date:
-        formatManila(now, { weekday: 'long' }, 'en-GB') +
-        ', ' +
-        formatManila(now, { day: 'numeric', month: 'short' }, 'en-GB')
+      date: dayLabel(now)
     };
     return { ...this.homeDesk.vals(), booksReadState: this.booksReadState };
   }
@@ -3167,12 +3164,7 @@ export class OpsRuntime extends OpsProvider {
         (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening') +
         (name ? ', ' + name : '') +
         '.',
-      todayDate:
-        formatManila(Number(s.now), { weekday: 'long' }) +
-        ', ' +
-        formatManila(Number(s.now), { day: 'numeric' }) +
-        ' ' +
-        formatManila(Number(s.now), { month: 'short' }),
+      todayDate: dayLabel(Number(s.now)),
       ...(role === 'support'
         ? {}
         : {
@@ -4078,7 +4070,7 @@ export class OpsRuntime extends OpsProvider {
                 countText: plural(this.booksRows.lines.length, 'record', 'records'),
                 rows: this.booksRows.lines.slice(-10).map((line) => ({
                   what: line.label,
-                  when: formatManila(line.at, {}, 'en-PH'),
+                  when: dayTimeLabel(line.at),
                   value: PESO(line.amountCents / 100)
                 }))
               }
@@ -9431,7 +9423,7 @@ export class OpsRuntime extends OpsProvider {
           (r.costCents / 100).toLocaleString('en-PH') +
           (r.supplier ? ' · ' + r.supplier : '') +
           ' · ' +
-          formatManila(r.at, { day: 'numeric', month: 'short' }, 'en-PH')
+          dayLabel(r.at)
       })),
       uncosted: books.uncosted.map((u) => ({
         id: u.id,
@@ -9449,7 +9441,7 @@ export class OpsRuntime extends OpsProvider {
           u.unit +
           (u.why ? ' · ' + u.why : '') +
           ' · ' +
-          formatManila(u.at, { day: 'numeric', month: 'short' }, 'en-PH')
+          dayLabel(u.at)
       })),
       // S3: a bazaar that is not closed yet is left out of the books; this says so, with what is held back.
       held: books.held.map((h) => ({

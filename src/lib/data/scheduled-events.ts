@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { dayLabel } from '@/lib/date/display';
 import type { Database, Json } from '@/lib/types/database';
 import { classifySaveError, type SaveOutcome } from '@/lib/data/payments';
 
@@ -117,15 +118,7 @@ export function upcomingEvents(rows: readonly ScheduledEvent[], today: string): 
 
 /** `Sat, Oct 24` or `Sat, Oct 24 – Sun, Oct 25`. */
 export function dateRange(startsOn: string, endsOn: string): string {
-  const fmt = (ymd: string) => {
-    const [y, m, d] = ymd.split('-').map(Number) as [number, number, number];
-    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
-      timeZone: 'UTC',
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const fmt = (ymd: string) => dayLabel(ymd) || ymd;
   return startsOn === endsOn ? fmt(startsOn) : fmt(startsOn) + ' – ' + fmt(endsOn);
 }
 

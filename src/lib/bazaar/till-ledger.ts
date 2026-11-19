@@ -1,4 +1,5 @@
 import { pesosToCentavos } from '@/lib/money';
+import { timeLabel } from '@/lib/date/display';
 import { peso } from '@/lib/money/format';
 import type { EventSale } from '@/store/engine/ops-engine';
 
@@ -64,7 +65,7 @@ const count = (items: Record<string, number>) =>
   Object.values(items).reduce((sum, n) => sum + (Number(n) || 0), 0);
 
 function timeOf(at: number): string {
-  return new Date(at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
+  return timeLabel(at);
 }
 
 /**
