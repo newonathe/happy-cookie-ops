@@ -1,3 +1,22 @@
+# Moved from current.md on 2026-11-19 (afternoon): 19 November morning releases (#89–#105)
+
+## Released — 19 November 2026
+
+Latest deployed: #105 (merge `544fd96d`, run 44439171071, Worker version `c1ee2851-77cc-47c5-bd24-2fda241091ae`). The trial schema is 91 migrations / 186 exact public functions. Released on 19 November, each through its own PR into the deploy branch after green CI (the owner gave standing approval to merge once CI passes):
+
+- **#89 public order form** (`91ebc7e1`): Ethan created the bypass Access app `bf75b9f2-848c-4941-92e6-066179d6cb5d` (seven customer paths; Bypass / Everyone) and the repository variable `TRIAL_PUBLIC_CUSTOMER_ACCESS_APP_ID` holds it. Anonymous `/shop`, `/checkout`, `/status`, `/lookup` and their assets load; owner paths and lookalikes still redirect to Access.
+- **Outage and #97:** #89's first release deployed, then failed its post-deploy gate and the fail-closed switch disabled `workers.dev` (Cloudflare 1042) until an unchanged re-run passed. Likely cause: the edge served the previous build's `/shop` for a few seconds (new build id per build). #97 (`d9fd6d68`) polls `/shop` up to 24 × 5 s before the full gate and prints the real reason before failing closed; Sonnet `security-reviewer`: clear with notes.
+- **#95** (`1bee5e1e`): Sign out sits inside the sidebar card (44 px; icon-only when folded); the owner is named once ("Ethan" / "Owner").
+- **#96 Option A glass** (`1bad8faf`), chosen by Ethan from the mockup canvas (claude.ai artifact `3YD8sbmbaB1U3uDNUNuat3`): animated white marble waves, translucent containers through one shared recipe (`hc-surface` on `PANEL_CLASS`/`Panel`, glass card modules, tokens `--color-owner-card*`, `--blur-owner-card*` in `globals.css`), glass sidebar/header/sheet, floating frosted phone tab bar, 700 ms / 70 ms rise and 0.96 press. Reduced motion and reduced transparency fall back. Bazaar till and customer pages unchanged. Cine has not seen it yet.
+- **#98 HCB-083** (`c9f9cac5`): demo browser bundles swap `lib/supabase/client` and `lib/supabase/auth-errors` for stubs (no backend, not live, client only), removing ~860 KB of SDK source. Local `/bazaar` 613,407 → 542,352 bytes, TBT median 499 → 382 ms; CI Performance budget passed with no TBT warning.
+
+- **#100** (`5c0b81a3`): CI Browser flows runs in `mcr.microsoft.com/playwright:v1.63.0-noble` (no 36-minute apt install; a release now takes about 19 min) and `/api/sync` returns a plain `Response.json`, ending the `sync-unavailable` 5 s timeout. A test keeps every image tag equal to the pinned `@playwright/test`.
+- **Scenarios A, B, C** (#101 `870eda76`, #103 `1af59839`, #105 `544fd96d`): `tests/integration/scenarios/scenario-{a,b,c}.sql`, run with `pnpm test:scenario-a|b|c` (`scripts/test-scenario.mjs`) on a throwaway local Supabase stack on the Postgres 17.6.1.166 image: 61, 68 and 92 checks pass, no server defect found. Order → payment → production → stock → pickup → books; planned bake → shopping → receipt → dough → partial bake → cost; bazaar event → day → table stock → sales (offline replay, price version) → void → close → finalise → books. This closes HCB-078 for the SQL layer; browser and physical-device runs of the same loops remain open.
+- **#102** (`344f166b`): a verified owner (or helper) who opens a customer route keeps the customer page; the role is held without the protected `setRole` jump to Home.
+- **#104** (`65e64879`): customer history and export are labelled "Recent orders (last 60 days)" (HCB-042); a malformed pickup date returns blank text, never "Invalid Date" (HCB-036). HCB-043 was already fixed.
+
+Open: the checkout photo sits above its choice's label (Cine's call); unit tests can still time out at 5 s when two sessions run commit hooks at once (sessions retry with `VITEST_MAX_WORKERS=3`, never a longer timeout); Cine has not used the public form, pickup place, flavour removal, choice photos or the glass look. Codex's untouched sticker WIP stays at `codex/sticker-photos-wip-20261118`.
+
 # Moved from current.md on 2026-11-19: 18 November release (#93)
 
 ## Released — 18 November 2026
