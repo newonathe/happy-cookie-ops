@@ -197,6 +197,11 @@ begin
   perform pg_temp.place(a, 'place_notes_long', 914, jsonb_build_object('notes', repeat('n', 301)), '{}', '22023');
   perform pg_temp.place(a, 'place_date_format', 915, '{"pickup_date": "10/12/2026"}', '{}', '22023');
   perform pg_temp.place(a, 'place_date_impossible', 916, '{"pickup_date": "2026-02-30"}', '{}', '22023');
+  -- S1: a customer order always carries a pickup date.
+  perform pg_temp.place(a, 'place_date_missing', 1916, '{}', array['pickup_date'], '22023');
+  perform pg_temp.place(a, 'place_date_blank', 1917, '{"pickup_date": ""}', '{}', '22023');
+  perform pg_temp.place(a, 'place_date_null', 1918, '{"pickup_date": null}', '{}', '22023');
+  perform pg_temp.place(a, 'place_date_number', 1919, '{"pickup_date": 20261012}', '{}', '22023');
   perform pg_temp.place(a, 'place_items_empty', 917, '{"items": []}', '{}', '22023');
   perform pg_temp.place(a, 'place_item_price_key', 918,
     '{"items": [{"product_id": "b1-cookie", "qty": 1, "unit_price_cents": 1}]}', '{}', '22023');
@@ -405,6 +410,9 @@ begin
   perform pg_temp.wl_call(a, 'wait_missing_key', 1, '{}', array['name'], '22023');
   perform pg_temp.wl_call(a, 'wait_bad_phone', 1, '{"mobile": "123"}', '{}', '22023');
   perform pg_temp.wl_call(a, 'wait_bad_ig', 1, '{"ig": "no way"}', '{}', '22023');
+  perform pg_temp.wl_call(a, 'wait_ig_blank', 1, '{"ig": ""}', '{}', '22023');
+  perform pg_temp.wl_call(a, 'wait_ig_spaces', 1, '{"ig": "   "}', '{}', '22023');
+  perform pg_temp.wl_call(a, 'wait_ig_at_only', 1, '{"ig": "@"}', '{}', '22023');
   perform pg_temp.wl_call(a, 'wait_bad_date_format', 1, '{"wanted_date": "soon"}', '{}', '22023');
   perform pg_temp.wl_call(a, 'wait_date_past', 1,
     jsonb_build_object('wanted_date', to_char(pg_temp.today() - 1, 'YYYY-MM-DD')), '{}', '22023');

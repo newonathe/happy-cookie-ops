@@ -579,16 +579,19 @@ before the event are dated the day they were paid and count when the event is fi
 Cine reviewed the trial on 19 November (messages to Ethan, with screenshots and a drawing). What she decided, and what is
 still open with her:
 
-| Question                        | Decision                                                                                                                       |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Waiting list on the shop        | Shown only while orders are closed: "they're not waiting for anything" while the form is open (#121).                          |
-| Instagram on the waiting list   | Required, not optional (#121). Checkout: still optional until she says otherwise.                                              |
-| Price note under the cart total | Removed: she did not understand it (#121).                                                                                     |
-| Owner dashboard look            | No wavy line background and no colour change; Ethan: keep the glass and everything else (#120).                                |
-| Recipe editing                  | Ingredients and quantities editable on the recipe page itself, without "Cost, history & edit" (#122).                          |
-| Box ordering                    | An "Order a box!" button beside "Your order", opening Box of 6 / 8 / 12 tabs over the cookie cards with a side panel of picks. |
-| Cookie pictures on the box page | A cookie picture inside a circle.                                                                                              |
-| Wholesale (cafés, events)       | She needs a lower price for cafés and events that does not change the order form.                                              |
+| Question                        | Decision                                                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Waiting list on the shop        | Shown only while orders are closed: "they're not waiting for anything" while the form is open (#121).                                                              |
+| Instagram on the waiting list   | Required, not optional (#121). Ethan, 19 November: Instagram is always required, so `join_waitlist` refuses a blank handle too (S1).                               |
+| Price note under the cart total | Removed: she did not understand it (#121).                                                                                                                         |
+| Owner dashboard look            | No wavy line background and no colour change; Ethan: keep the glass and everything else (#120).                                                                    |
+| Recipe editing                  | Ingredients and quantities editable on the recipe page itself, without "Cost, history & edit" (#122).                                                              |
+| Box ordering                    | An "Order a box!" button beside "Your order", opening Box of 6 / 8 / 12 tabs over the cookie cards with a side panel of picks.                                     |
+| Cookie pictures on the box page | A cookie picture inside a circle.                                                                                                                                  |
+| Wholesale (cafés, events)       | She needs a lower price for cafés and events that does not change the order form.                                                                                  |
+| Counted cash at close-day       | Stays pre-filled with the expected cash (Ethan, 19 November). No change.                                                                                           |
+| Refunds                         | A refund needs a reference from the send-money receipt (Ethan, 19 November; S1): the form and the database both refuse a blank.                                    |
+| Pickup date                     | Every customer order has a pickup date (Ethan, 19 November; S1): the checkout will not continue without one and `place_order` refuses a missing or malformed date. |
 
 **Open with her:** the shop's closed hours (she said Sunday 9 am to Monday 9 am; the banner reads Thursday 9 PM), a box's price
 (fixed per size, or the cookies plus the box size's charge), whether a flavour may repeat in a box, cut-out cookie images, and

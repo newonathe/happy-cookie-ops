@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, type FormEvent } from 'react';
+import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import type { OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
@@ -269,10 +271,22 @@ export function PayRulesLive({ v }: { v: OpsVals }) {
 
 /** Refund: the same form and handler as the sheet. It records a refund already sent. */
 export function RefundLive({ v }: { v: OpsVals }) {
+  const [missing, setMissing] = useState(false);
+  // S1: the reference is required ("refunds do need reference"): a blank one stops here, with the reason beside the field.
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    const field = event.currentTarget.elements.namedItem('rref') as HTMLInputElement | null;
+    if (!field?.value.trim()) {
+      event.preventDefault();
+      setMissing(true);
+      return;
+    }
+    setMissing(false);
+    v.saveRefund(event);
+  };
   return (
     <div className="w-full">
       <Panel>
-        <form onSubmit={v.saveRefund} className="flex flex-col gap-3">
+        <form onSubmit={submit} noValidate className="flex flex-col gap-3">
           <p className="text-caption text-ink-soft">
             Send {v.sheetAmountText} back to the account they paid from, then record the outgoing
             reference here. Revenue drops by that amount and the cookies go back into stock.
@@ -281,7 +295,16 @@ export function RefundLive({ v }: { v: OpsVals }) {
             name="rref"
             label="Refund reference"
             placeholder="From your send-money receipt"
+            required
+            aria-invalid={missing || undefined}
+            aria-describedby={missing ? 'rref-error' : undefined}
+            onChange={() => setMissing(false)}
           />
+          {missing ? (
+            <p id="rref-error" role="alert" className="text-caption font-semibold text-danger">
+              {STAFF_COPY.refundNeedsRef}
+            </p>
+          ) : null}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
             <Button variant="secondary" onClick={v.closeSheet}>
               Keep the order
