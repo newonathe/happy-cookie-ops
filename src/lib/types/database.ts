@@ -1717,6 +1717,49 @@ export type Database = {
         }
         Relationships: []
       }
+      product_cafe_prices: {
+        Row: {
+          price_cents: number
+          product_id: string
+          set_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          price_cents: number
+          product_id: string
+          set_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          price_cents?: number
+          product_id?: string
+          set_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_cafe_prices_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_cafe_prices_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_cafe_prices_set_by_fkey"
+            columns: ["set_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_types: {
         Row: {
           active: boolean
@@ -2890,6 +2933,10 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      default_cafe_price_cents: {
+        Args: { p_retail_cents: number }
+        Returns: number
+      }
       delete_bazaar_booking: {
         Args: { p_booking: string; p_confirm_name: string }
         Returns: Json
@@ -2959,6 +3006,18 @@ export type Database = {
         }[]
       }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
+      get_cafe_prices: {
+        Args: never
+        Returns: {
+          cafe_price_cents: number
+          default_cents: number
+          effective_cents: number
+          name: string
+          price_cents: number
+          product_id: string
+          updated_at: string
+        }[]
+      }
       get_event_prices: { Args: { p_event: string }; Returns: Json }
       get_flavour_costs: { Args: never; Returns: Json }
       get_flavours: {
@@ -3461,6 +3520,18 @@ export type Database = {
         }[]
       }
       set_bazaar_day_price: { Args: { p_change: Json }; Returns: Json }
+      set_cafe_price: {
+        Args: { p_price_cents: number; p_product_id: string }
+        Returns: {
+          cafe_price_cents: number
+          default_cents: number
+          effective_cents: number
+          name: string
+          price_cents: number
+          product_id: string
+          updated_at: string
+        }[]
+      }
       set_cost_basis: { Args: { p_basis: string }; Returns: string }
       set_event_device: {
         Args: { p_device: string; p_event: string }
