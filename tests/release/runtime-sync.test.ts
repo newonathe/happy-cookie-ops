@@ -6,7 +6,10 @@ vi.mock('@/lib/offline/queue', () => ({
   pendingSales: vi.fn(async () => []),
   allSales: vi.fn(async () => []),
   isSaleKey: () => true,
-  clientIdFor: (sale: { saleId: string; at: number }) => 'device:' + sale.saleId + ':' + sale.at
+  clientIdFor: (sale: { saleId: string; at: number }) => 'device:' + sale.saleId + ':' + sale.at,
+  // S2 (#131): a sale taken back from the server keeps its own client id.
+  saleClientId: (sale: { id: string; at: number; clientId?: string }) =>
+    sale.clientId ?? 'device:' + sale.id + ':' + sale.at
 }));
 vi.mock('@/lib/offline/sync', () => ({
   flushQueue: vi.fn(async () => ({ sent: [], failed: [], skipped: true })),
