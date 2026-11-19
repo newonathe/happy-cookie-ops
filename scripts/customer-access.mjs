@@ -223,6 +223,18 @@ export async function waitForPublicRoute(
   throw lastError;
 }
 
+/**
+ * Every public route and resource of a release, each waited for as `waitForPublicRoute` waits for one (19 November
+ * 2026: after #97 waited on `/shop` alone, `/lookup/` still served the previous build for a few seconds and the gate
+ * switched the release off). `entries` are `[route, emittedBody]`; stops at the first route that never matches, with
+ * its reason. `attempts: 1` is the strict single read for a preflight with no deploy.
+ */
+export async function assertPublicRoutesSettled(fetcher, origin, entries, options = {}) {
+  for (const [route, body] of entries)
+    await waitForPublicRoute(fetcher, origin, route, body, options);
+  return entries.length;
+}
+
 export async function assertOwnerRouteDenied(fetcher, origin, route) {
   const base = new URL(origin);
   const url = new URL(route, base);

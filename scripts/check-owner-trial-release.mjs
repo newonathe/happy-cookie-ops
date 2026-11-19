@@ -9,7 +9,7 @@ import {
   OWNER_DENIED_ROUTES,
   PUBLIC_CUSTOMER_ROUTES,
   assertOwnerRouteDenied,
-  assertPublicRoute,
+  assertPublicRoutesSettled,
   waitForPublicRoute,
   buildCustomerAccessManifest,
   emittedPublicResourcePaths,
@@ -232,16 +232,21 @@ async function listEmittedFiles(dir, prefix = '') {
   return files;
 }
 
-async function assertAnonymousCustomerAccess() {
+/** `settle`: right after a deploy, wait for each public route to serve the new build; otherwise one strict read each. */
+async function assertAnonymousCustomerAccess({ settle = false } = {}) {
   const origin = `https://${TARGET.hostname}`;
   const publicDir = 'build/pages-spike/public';
   const files = await listEmittedFiles(publicDir);
   const resources = emittedPublicResourcePaths(files);
-  for (const route of [...PUBLIC_CUSTOMER_ROUTES, ...resources]) {
-    const artifact = emittedArtifactPath(route);
-    const emitted = await readFile(path.join(publicDir, artifact));
-    await assertPublicRoute(fetch, origin, route, emitted);
-  }
+  const entries = [];
+  for (const route of [...PUBLIC_CUSTOMER_ROUTES, ...resources])
+    entries.push([route, await readFile(path.join(publicDir, emittedArtifactPath(route)))]);
+  await assertPublicRoutesSettled(
+    fetch,
+    origin,
+    entries,
+    settle ? { attempts: 12 } : { attempts: 1 }
+  );
   for (const route of OWNER_DENIED_ROUTES) await assertOwnerRouteDenied(fetch, origin, route);
 }
 
@@ -294,7 +299,7 @@ async function deploy() {
       '/shop',
       await readFile(path.join('build/pages-spike/public', emittedArtifactPath('/shop')))
     );
-    await assertAnonymousCustomerAccess();
+    await assertAnonymousCustomerAccess({ settle: true });
   } catch (error) {
     // The reason is our own message (a route, a status, a check name), never a token: print it before failing closed.
     console.error(
