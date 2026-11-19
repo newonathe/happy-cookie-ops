@@ -77,6 +77,27 @@ describe('fluid client Shop', () => {
     for (const button of ui.getAllByRole('button', { name: 'Continue · ₱500' }))
       expect(button).toBeDisabled();
   });
+  it('says "Nothing picked yet" once in an empty order card, not twice', () => {
+    const f = fixture();
+    f.v.shopFlavours[0]!.picked = false;
+    f.v.shopFlavours[0]!.qty = 0;
+    f.v.boxTitle = 'Your order';
+    f.v.boxCountText = 'Nothing picked yet';
+    f.v.boxProgressText = 'Nothing picked yet';
+    f.v.boxTotalText = '₱0';
+    f.v.boxReady = false;
+    f.v.pickedItems = [];
+    const ui = render(<CustomerShopLive v={f.v} />);
+    const card = ui.getByRole('complementary', { name: 'Your cookies' });
+    expect(within(card).getAllByText('Nothing picked yet')).toHaveLength(1);
+    expect(within(card).queryByRole('list')).toBeNull();
+  });
+  it('keeps the flavour line under the picked items once something is picked', () => {
+    const ui = render(<CustomerShopLive v={fixture().v} />);
+    const card = ui.getByRole('complementary', { name: 'Your cookies' });
+    expect(within(card).getByText('2 cookies picked')).toBeTruthy();
+    expect(within(card).getByText('1 flavour')).toBeTruthy();
+  });
   it('preserves the runtime ask-us allergen warning when confirmation is needed', () => {
     const f = fixture();
     f.v.shopFlavours[0]!.allergens = 'Allergens: please ask us before ordering.';

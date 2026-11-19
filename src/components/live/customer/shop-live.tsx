@@ -144,19 +144,28 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
         >
           <h2 className="text-heading font-semibold">{v.boxTitle}</h2>
           <p className="mt-2 text-label text-ink-soft">{v.boxCountText}</p>
-          <ul className="my-4 grid gap-3">
-            {v.pickedItems.map((item, index) => (
-              <li key={index} className="flex min-w-0 items-center gap-3">
-                <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-                  {item.qty} {item.name}
-                </span>
-                <Button variant="icon" onClick={item.remove} aria-label={'Remove one ' + item.name}>
-                  −
-                </Button>
-              </li>
-            ))}
-          </ul>
-          <p className="text-label text-ink-soft">{v.boxProgressText}</p>
+          {/* An empty cart says "Nothing picked yet" once, under the title: the list and the flavour line wait for a pick. */}
+          {v.pickedItems.length > 0 ? (
+            <>
+              <ul className="my-4 grid gap-3">
+                {v.pickedItems.map((item, index) => (
+                  <li key={index} className="flex min-w-0 items-center gap-3">
+                    <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+                      {item.qty} {item.name}
+                    </span>
+                    <Button
+                      variant="icon"
+                      onClick={item.remove}
+                      aria-label={'Remove one ' + item.name}
+                    >
+                      −
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-label text-ink-soft">{v.boxProgressText}</p>
+            </>
+          ) : null}
           <p className="my-3 text-title font-bold">{v.boxTotalText}</p>
           <p className="mb-4 text-label text-ink-soft">{ORDER_COPY.extras.priceNote}</p>
           <div className="hidden lg:block">{checkout('w-full')}</div>
