@@ -1276,7 +1276,7 @@ describe('B2: find my order and the waiting list', () => {
     act(() => runtime.renderVals().openWaitlist!());
     const form = runtime.renderVals().liveWaitlist!;
     await act(async () =>
-      form.join({ name: ' Ana ', ig: '', mobile: '0917 123 4567', wantedDate: form.min })
+      form.join({ name: ' Ana ', ig: '@ana', mobile: '0917 123 4567', wantedDate: form.min })
     );
     await flush();
     const body = calls.find((c) => c.name === 'join_waitlist')!.args.p_entry as Record<
@@ -1286,6 +1286,18 @@ describe('B2: find my order and the waiting list', () => {
     expect(Object.keys(body).sort()).toEqual(['client_id', 'ig', 'mobile', 'name', 'wanted_date']);
     expect(body.name).toBe('Ana');
     expect(runtime.renderVals().liveWaitlist!.state).toBe('done');
+  });
+
+  it('the waiting list refuses to send without an Instagram handle', async () => {
+    const { runtime, calls } = await mounted({}, 'shop');
+    act(() => runtime.renderVals().openWaitlist!());
+    const form = runtime.renderVals().liveWaitlist!;
+    await act(async () =>
+      form.join({ name: 'Ana', ig: '  ', mobile: '09171234567', wantedDate: form.min })
+    );
+    await flush();
+    expect(calls.some((c) => c.name === 'join_waitlist')).toBe(false);
+    expect(runtime.renderVals().liveWaitlist!.errors.ig).toMatch(/Instagram handle/);
   });
 
   it('the waiting list checks its fields first and words a refusal', async () => {
@@ -1302,12 +1314,13 @@ describe('B2: find my order and the waiting list', () => {
     expect(calls.some((c) => c.name === 'join_waitlist')).toBe(false);
     expect(Object.keys(runtime.renderVals().liveWaitlist!.errors).sort()).toEqual([
       'date',
+      'ig',
       'mobile',
       'name'
     ]);
     const form = runtime.renderVals().liveWaitlist!;
     await act(async () =>
-      form.join({ name: 'Ana', ig: '', mobile: '09171234567', wantedDate: form.min })
+      form.join({ name: 'Ana', ig: '@ana', mobile: '09171234567', wantedDate: form.min })
     );
     await flush();
     expect(runtime.renderVals().liveWaitlist!.state).toBe('refused');
@@ -1327,7 +1340,7 @@ describe('B2: find my order and the waiting list', () => {
     );
     act(() => runtime.renderVals().openWaitlist!());
     const form = runtime.renderVals().liveWaitlist!;
-    const fields = { name: 'Ana', ig: '', mobile: '09171234567', wantedDate: form.min };
+    const fields = { name: 'Ana', ig: '@ana', mobile: '09171234567', wantedDate: form.min };
     await act(async () => form.join(fields));
     await flush();
     expect(runtime.renderVals().liveWaitlist!.state).toBe('unknown');
@@ -1354,7 +1367,7 @@ describe('B2: find my order and the waiting list', () => {
     );
     act(() => runtime.renderVals().openWaitlist!());
     const form = runtime.renderVals().liveWaitlist!;
-    const fields = { name: 'Ana', ig: '', mobile: '09171234567', wantedDate: form.min };
+    const fields = { name: 'Ana', ig: '@ana', mobile: '09171234567', wantedDate: form.min };
     await act(async () => form.join(fields));
     await flush();
     act(() => runtime.renderVals().liveWaitlist!.close());

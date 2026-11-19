@@ -1039,6 +1039,8 @@ export interface OpsVals {
   dropBannerBr: string | number;
   dropBannerFg: string | number;
   dropBannerSub: React.ReactNode;
+  /** True while the schedule says orders can be placed (open or closing soon); the engine already returns it. */
+  dropOpen?: boolean;
   dropBannerTitle: React.ReactNode;
   dropNoText: React.ReactNode;
   dropProducts: Array<{

@@ -61,7 +61,32 @@ describe('fluid client Shop', () => {
       expect(action).toHaveBeenCalledOnce();
     expect(ui.getByText('Contains milk')).toBeTruthy();
     expect(ui.container.textContent).not.toContain('no extra packaging charge');
-    expect(ui.getByText(/Boxes, add-ons|boxes, add-ons/)).toBeTruthy();
+    // Cine: the price note under the total only confused people, so the card prints none.
+    expect(ui.container.textContent).not.toMatch(/You pay for each item|Boxes, add-ons/i);
+  });
+  it('shows the waiting list only while orders are closed, and keeps it when the schedule is unread', () => {
+    const ready = { state: 'ready', stale: false, online: true };
+    const open = fixture();
+    Object.assign(open.v, { dropOpen: true, liveShopAvailability: ready });
+    const a = render(<CustomerShopLive v={open.v} />);
+    expect(a.queryByRole('button', { name: 'Join the waiting list' })).toBeNull();
+    expect(a.getByRole('button', { name: 'Find my order' })).toBeTruthy();
+    cleanup();
+    const closed = fixture();
+    Object.assign(closed.v, { dropOpen: false, liveShopAvailability: ready });
+    const b = render(<CustomerShopLive v={closed.v} />);
+    expect(b.getByRole('button', { name: 'Join the waiting list' })).toBeTruthy();
+    cleanup();
+    for (const state of ['loading', 'failed']) {
+      const unread = fixture();
+      Object.assign(unread.v, {
+        dropOpen: true,
+        liveShopAvailability: { state, stale: false, online: true }
+      });
+      const c = render(<CustomerShopLive v={unread.v} />);
+      expect(c.getByRole('button', { name: 'Join the waiting list' })).toBeTruthy();
+      cleanup();
+    }
   });
   it('keeps a selected removed item inspectable, blocks empty checkout and hides unset allergen placeholders', () => {
     const f = fixture();

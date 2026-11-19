@@ -709,7 +709,7 @@ export function LiveLookup({ v }: { v: OpsVals }) {
   );
 }
 
-/** The waiting list as a sheet: name, Instagram (optional), mobile and the date wanted. */
+/** The waiting list as a sheet: name, Instagram, mobile and the date wanted. */
 export function LiveWaitlistForm({ v }: { v: OpsVals }) {
   const live = v.liveWaitlist;
   const [name, setName] = useState('');
@@ -730,6 +730,7 @@ export function LiveWaitlistForm({ v }: { v: OpsVals }) {
   const frozen = live.state === 'unknown';
   return (
     <form
+      noValidate
       onSubmit={(e) => {
         e.preventDefault();
         live.join({ name, ig, mobile, wantedDate });
@@ -747,11 +748,12 @@ export function LiveWaitlistForm({ v }: { v: OpsVals }) {
         {live.errors.name ? <span style={errorText}>{live.errors.name}</span> : null}
       </label>
       <label style={labelStyle}>
-        <span style={smallLabel}>Instagram handle (optional)</span>
+        <span style={smallLabel}>Instagram handle</span>
         <input
           value={ig}
           onChange={(e) => setIg(e.target.value)}
           readOnly={frozen}
+          required
           placeholder="@yourhandle"
           style={inputStyle}
         />
