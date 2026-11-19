@@ -491,7 +491,7 @@ describe('find my order', () => {
 });
 
 describe('the waitlist', () => {
-  const fields = { name: ' Ana ', ig: '', mobile: '09171234567', wantedDate: '2026-10-12' };
+  const fields = { name: ' Ana ', ig: '@ana', mobile: '09171234567', wantedDate: '2026-10-12' };
 
   it('builds exactly the keys join_waitlist accepts', () => {
     const body = buildWaitlistBody(ID, fields);
@@ -499,8 +499,9 @@ describe('the waitlist', () => {
     expect(body.name).toBe('Ana');
   });
 
-  it('checks the fields; Instagram is optional here', () => {
+  it('checks the fields; Instagram is required', () => {
     expect(waitlistFieldErrors(fields)).toEqual({});
+    expect(waitlistFieldErrors({ ...fields, ig: ' @ ' }).ig).toMatch(/Instagram handle/);
     expect(
       Object.keys(
         waitlistFieldErrors({ name: '', ig: 'bad handle', mobile: '1', wantedDate: '' })

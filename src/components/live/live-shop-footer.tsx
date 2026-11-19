@@ -9,6 +9,9 @@ import { Pressable } from '@/components/ui/pressable';
  */
 export function LiveShopFooter({ v }: { v: OpsVals }) {
   const footer = v.shopFooter ?? { badge: '', tin: '', invoice: '', allergens: '' };
+  // Cine (19 Nov): nobody waits while orders are open, so the waiting list shows only when the shop's
+  // own schedule says closed. If that schedule has not been read, today's behaviour stays: show it.
+  const ordersOpen = v.dropOpen === true && v.liveShopAvailability?.state === 'ready';
   const note = [footer.invoice, footer.allergens].filter(Boolean).join(' ');
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '4px 2px 0' }}>
@@ -83,7 +86,7 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
         >
           Already ordered? Find my order
         </Pressable>
-        {v.openWaitlist ? (
+        {v.openWaitlist && !ordersOpen ? (
           <Pressable
             as="button"
             onClick={v.openWaitlist}

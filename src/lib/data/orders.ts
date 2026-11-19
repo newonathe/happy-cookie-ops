@@ -440,7 +440,8 @@ export function waitlistFieldErrors(f: WaitlistFields): FieldErrors & { date?: s
   const name = f.name.trim();
   if (name.length < 1 || name.length > 80) e.name = ORDER_COPY.needName;
   const ig = f.ig.trim().replace(/^@+/, '');
-  if (ig && !IG.test(ig)) e.ig = ORDER_COPY.badIg;
+  if (!ig) e.ig = ORDER_COPY.needIg;
+  else if (!IG.test(ig)) e.ig = ORDER_COPY.badIg;
   if (!/^09[0-9]{9}$/.test(normalisePhone(f.mobile.trim()))) e.mobile = ORDER_COPY.needMobile;
   if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(f.wantedDate)) e.date = ORDER_COPY.needDate;
   return e;

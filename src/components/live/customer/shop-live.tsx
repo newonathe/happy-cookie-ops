@@ -4,7 +4,6 @@ import { useId } from 'react';
 import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
-import { ORDER_COPY } from '@/lib/orders/copy';
 import { Button } from '@/components/ui/button';
 import { Banner } from '@/components/ui/banner';
 import { LiveShopFooter } from '@/components/live/live-shop-footer';
@@ -170,7 +169,6 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
             </>
           ) : null}
           <p className="my-3 text-title font-bold">{v.boxTotalText}</p>
-          <p className="mb-4 text-label text-ink-soft">{ORDER_COPY.extras.priceNote}</p>
           <div className="hidden lg:block">{checkout('w-full')}</div>
         </aside>
       </div>
