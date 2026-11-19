@@ -72,16 +72,19 @@ import {
 } from '@/lib/offline/sync';
 import {
   allSales,
-  clientIdFor,
   commandKey,
   enqueueCommand,
   enqueueVoid,
+  isCommandRow,
   isSaleKey,
+  isVoidRow,
   pendingSales,
+  saleClientId,
   splitForEvent,
   unsentForEvent,
   type CommandKind
 } from '@/lib/offline/queue';
+import { mergeDay, type LocalDaySale } from '@/lib/bazaar/day-merge';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
 import {
   readCountRecovery,
@@ -113,6 +116,7 @@ import {
   setEventDevice,
   engineStateForDay,
   fetchBazaar,
+  fetchBazaarDay,
   fetchEventPrices,
   startBazaarDay,
   type DayPrices,
@@ -1054,11 +1058,14 @@ export class OpsRuntime extends OpsProvider {
       const event = this.state.event as LiveEvent | null;
       if (!event?.id) return null;
       try {
+        // S2: this till now shows sales rung on her other devices, and the server compares counts exactly: it reads the day again first,
+        // so a sale another device voided since is not counted here (a stale count would be refused, 40001, and refused again).
+        await this.refreshHeldDay({ force: true });
         const { blocking, refused } = await unsentForEvent(event.id);
         const out = new Set(refused.map((row) => row.clientId));
         // The engine drops a voided sale from its list, so what is left is the day's sales that are not voided.
         const sales = (this.state.sales as EventSale[]).filter(
-          (sale) => !out.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+          (sale) => !out.has(saleClientId(sale))
         );
         // A sale the till holds that has not been acknowledged counts as waiting even before it reaches the queue (the copy
         // into IndexedDB is asynchronous): the close must not go ahead without it.
@@ -1608,6 +1615,7 @@ export class OpsRuntime extends OpsProvider {
         );
         return;
       }
+      this.tillEdits += 1;
       recordSale(pay, freebie);
       this.setState((s: { sales: EventSale[] }) => {
         const sales = withUniqueNewestId(s.sales);
@@ -1618,10 +1626,13 @@ export class OpsRuntime extends OpsProvider {
     // the pair in either order.
     bazaar.voidSale = (id) => {
       const sale = this.state.sales.find((x: EventSale) => x.id === id);
+      this.tillEdits += 1;
       voidSale(id);
       if (!sale) return;
       void (async () => {
-        await enqueueVoid(clientIdFor({ saleId: sale.id, at: sale.at }));
+        await enqueueVoid(saleClientId(sale));
+        // A read of the day that was in flight did not see this void row: it reads again rather than bring the sale back.
+        this.tillEdits += 1;
         await this.reflectQueue();
         if (navigator.onLine) await this.flushSales();
         else await requestBackgroundSync();
@@ -2051,29 +2062,55 @@ export class OpsRuntime extends OpsProvider {
       );
       return outcome.error === 'refused' ? 'refused' : 'offline';
     }
-    // A repeat of a start is answered with the day as it first started, selling device included. Ethan, 14 November 2026:
-    // the day belongs to her account, not to one browser. Signed in as the owner on another device (Safari, the Home Screen
-    // app, Messenger's browser, another phone), opening the day moves the selling here; the device before stays a former
-    // device, so whatever it still holds is accepted when it sends, and nothing is lost or counted twice.
-    if (outcome.started.sellingDevice !== deviceId()) {
-      const moved = await setEventDevice(
-        target as unknown as BazaarClient,
-        outcome.started.eventId,
-        deviceId()
-      );
-      if (moved !== 'moved') {
-        this.toast(
-          moved === 'offline'
-            ? 'This day was started on another device. Connect, then open it again to sell here.'
-            : 'This day could not be moved to this device. It may already be closed.',
-          'warn'
-        );
-        return moved === 'offline' ? 'offline' : 'refused';
+    // S2 (Ethan, 19 November 2026): the day belongs to her account, not to a device. Whichever phone or browser she is signed in
+    // on, opening the day rebuilds the till from the server: every sale and void, and the table stock worked out there, with
+    // what this phone has not sent laid on top. Nothing moves: any device of hers may sell the day at the same time.
+    const client = target as unknown as BazaarClient;
+    const read = await fetchBazaarDay(client, day.id);
+    let held: ReturnType<typeof mergeDay> | null = null;
+    if (read.ok) {
+      if (read.day.eventId !== outcome.started.eventId) {
+        this.toast('The day could not be loaded. Try again.', 'warn');
+        return 'offline';
       }
-      this.toast(
-        'Selling now on this device. Sales from the other device still send. The till here starts from the planned stock: check the table before selling.'
-      );
-      outcome.started = { ...outcome.started, sellingDevice: deviceId() };
+      let layer: { sales: LocalDaySale[]; voids: Set<string> };
+      try {
+        layer = await this.localDayLayer(read.day.eventId);
+      } catch {
+        // An unreadable queue cannot be laid over the server's day: showing the day alone would hide this phone's unsent
+        // sales and overstate the stock. Nothing is opened; the queue still holds and sends everything it has.
+        this.toast('The day could not be loaded. Try again.', 'warn');
+        return 'offline';
+      }
+      held = mergeDay({
+        server: read.day,
+        local: layer.sales,
+        localVoids: layer.voids,
+        toPesos: centavosToPesos
+      });
+    } else if (read.reason === 'unavailable') {
+      // A database older than migration 93 has no read of the day, and refuses a sale from a device that is not the selling
+      // one. Selling moves here as it did before (the device before stays a former device, so what it holds is still accepted),
+      // and the till starts from the planned stock.
+      if (outcome.started.sellingDevice !== deviceId()) {
+        const moved = await setEventDevice(client, outcome.started.eventId, deviceId());
+        if (moved !== 'moved') {
+          this.toast(
+            moved === 'offline'
+              ? 'This day was started on another device. Connect, then open it again to sell here.'
+              : 'This day could not be moved to this device. It may already be closed.',
+            'warn'
+          );
+          return moved === 'offline' ? 'offline' : 'refused';
+        }
+        this.toast(
+          'Selling now on this device. Sales from the other device still send. The till here starts from the planned stock: check the table before selling.'
+        );
+        outcome.started = { ...outcome.started, sellingDevice: deviceId() };
+      }
+    } else {
+      this.toast('The day could not be loaded. Try again.', 'warn');
+      return read.reason === 'refused' ? 'refused' : 'offline';
     }
     // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
     void requestPersistentStorage();
@@ -2088,11 +2125,13 @@ export class OpsRuntime extends OpsProvider {
       PRODUCTS.map((p) => p.id),
       centavosToPesos
     );
+    this.tillEdits += 1;
     this.setState((s) => ({
       // The engine's own startEvent sets syncState 'idle' (it means nothing to sync), which its state type does not list.
       ...(patch as Omit<typeof patch, 'syncState'>),
       syncState: 'idle' as never,
-      eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices }
+      eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices },
+      ...(held ? this.heldDayPatch(held) : {})
     }));
     return 'started';
   }
@@ -2116,7 +2155,7 @@ export class OpsRuntime extends OpsProvider {
     if (!day) return Math.max(Number(this.state.unsynced) || 0, this.operationsQueue, 0);
     // S3.1: only the held event's rows, and a sale the server refused outright no longer holds the day (it stays queued).
     const onScreen = (this.state.sales as EventSale[]).filter(
-      (sale) => !sale.synced && !day.refused.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+      (sale) => !sale.synced && !day.refused.has(saleClientId(sale))
     ).length;
     return Math.max(onScreen, day.blocking, 0);
   }
@@ -2205,6 +2244,7 @@ export class OpsRuntime extends OpsProvider {
 
   /** S3: a loss (below zero) or more stock (above) on the day this phone is selling: the table follows. */
   private moveDayStock(dayId: string, pid: string, by: number, loaded: number | null): void {
+    this.tillEdits += 1;
     this.setState((s) => {
       if ((s.event as LiveEvent | null)?.dayId !== dayId) return null;
       const stock = (s.eventStock ?? {}) as Record<string, number>;
@@ -2250,6 +2290,131 @@ export class OpsRuntime extends OpsProvider {
       } as never;
     });
     void this.refreshHeldPrices();
+    void this.refreshHeldDay({ force: true });
+  }
+
+  /**
+   * S2: what this phone holds for one event that the server may not have acknowledged: the queue's sales, and the sales it
+   * voided (a void row of any state: sent or not, the sale is voided). A read of the queue only; nothing is marked or removed.
+   */
+  private async localDayLayer(
+    eventId: string
+  ): Promise<{ sales: LocalDaySale[]; voids: Set<string> }> {
+    const sales: LocalDaySale[] = [];
+    const voids = new Set<string>();
+    for (const row of await allSales()) {
+      if (isVoidRow(row)) {
+        voids.add(row.saleClientId);
+        continue;
+      }
+      if (isCommandRow(row) || row.eventId !== eventId) continue;
+      sales.push({
+        clientId: row.clientId,
+        items: row.items,
+        gross: row.gross,
+        discount: row.discount,
+        total: row.total,
+        pay: row.pay,
+        ref: row.ref,
+        clerk: row.clerk,
+        at: row.at,
+        tendered: row.tendered,
+        change: row.change,
+        state: row.state
+      });
+    }
+    return { sales, voids };
+  }
+
+  /** The till's own flavours only, as `engineStateForDay` fills them: a flavour the day does not hold is 0, never absent. */
+  private heldDayPatch(held: ReturnType<typeof mergeDay>): Record<string, unknown> {
+    const by = (m: Record<string, number>) =>
+      Object.fromEntries(PRODUCTS.map((p) => [p.id, m[p.id] ?? 0]));
+    return {
+      sales: held.sales,
+      eventStock: by(held.stock),
+      eventLoaded: by(held.loaded),
+      unsynced: held.unsynced
+    };
+  }
+
+  /**
+   * S2: the day this till sells, read again from the server and rebuilt: sales rung on any of her devices, voids, losses,
+   * added stock and the table stock, with this phone's unsent sales and voids laid on top (`mergeDay`). Read when the till
+   * opens, after a sync, when the phone comes back online or to the front, and when the day is confirmed. A read that
+   * could not be made, or a closed day (`confirmHeldDay` lets go of it), changes nothing. If a sale is rung, voided or a
+   * stock move lands while the read is in flight, it is read again rather than put over that change.
+   */
+  private dayReading = false;
+  private dayReadAt = 0;
+  private tillEdits = 0;
+  /** A sale sends the queue, and every send asks for the day again: at most one read in that many milliseconds. */
+  private static readonly DAY_READ_EVERY_MS = 15_000;
+  private async refreshHeldDay(opts: { force?: boolean } = {}): Promise<void> {
+    const event = this.state.event as LiveEvent | null;
+    if (!isLiveMode() || !event?.id || !event.dayId || this.state.role !== 'owner') return;
+    if (!this.state.online || this.dayReading) return;
+    if (!opts.force && Date.now() - this.dayReadAt < OpsRuntime.DAY_READ_EVERY_MS) return;
+    this.dayReadAt = Date.now();
+    const client = (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null;
+    if (!client) return;
+    this.dayReading = true;
+    try {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const edits = this.tillEdits;
+        const read = await fetchBazaarDay(client, event.dayId);
+        if (!read.ok || this.unmounted || read.day.status !== 'open' || !read.day.eventId) return;
+        const eventId = read.day.eventId;
+        const layer = await this.localDayLayer(eventId);
+        if (this.unmounted || edits !== this.tillEdits) continue;
+        await new Promise<void>((resolve) => {
+          // Resolves once the till shows the day (or soon after, should React skip the callback).
+          setTimeout(resolve, 300);
+          this.setState((s) => {
+            const now = s.event as LiveEvent | null;
+            if (now?.dayId !== read.day.dayId || now.id !== eventId) return null;
+            // A sale on screen that the queue does not hold yet (its copy into IndexedDB is asynchronous) is this phone's too.
+            const known = new Set(layer.sales.map((x) => x.clientId));
+            const onScreen: LocalDaySale[] = (
+              s.sales as Array<EventSale & { clientId?: string }>
+            ).flatMap((sale) =>
+              known.has(saleClientId(sale))
+                ? []
+                : [
+                    {
+                      clientId: saleClientId(sale),
+                      items: sale.items,
+                      gross: sale.gross,
+                      discount: sale.discount,
+                      total: sale.total,
+                      pay: sale.pay,
+                      ref: sale.ref,
+                      clerk: sale.clerk,
+                      at: sale.at,
+                      tendered: sale.tendered,
+                      change: sale.change,
+                      state: sale.synced ? 'sent' : sale.failed ? 'failed' : 'pending',
+                      ledgerId: sale.ledgerId
+                    } as LocalDaySale
+                  ]
+            );
+            return this.heldDayPatch(
+              mergeDay({
+                server: read.day,
+                local: [...layer.sales, ...onScreen],
+                localVoids: layer.voids,
+                toPesos: centavosToPesos
+              })
+            ) as never;
+          }, resolve);
+        });
+        return;
+      }
+    } catch {
+      // The till is left as it was: the queue still holds everything this phone has not sent.
+    } finally {
+      this.dayReading = false;
+    }
   }
 
   /**
@@ -3459,6 +3624,8 @@ export class OpsRuntime extends OpsProvider {
     if (isLiveMode()) {
       clearStoredBooks();
       this.tillClassic = readClassicTill();
+      // S2: coming back to the front, the day is read again: she may have sold on another device meanwhile.
+      document.addEventListener('visibilitychange', this.onForeground);
       const bazaar = readBazaar();
       if (bazaar) {
         // S3: the saved copy keeps the event and not the drawer. A started day carries its float on the event, so the
@@ -3495,7 +3662,12 @@ export class OpsRuntime extends OpsProvider {
     this.stopViewportTracking = () => window.removeEventListener('resize', apply);
   }
 
+  private onForeground = (): void => {
+    if (document.visibilityState === 'visible') void this.refreshHeldDay({ force: true });
+  };
+
   componentWillUnmount(): void {
+    document.removeEventListener('visibilitychange', this.onForeground);
     this.clearOrderRead(false);
     this.flavourSync?.retire();
     this.retireOperationsHealth();
@@ -3698,7 +3870,10 @@ export class OpsRuntime extends OpsProvider {
       s.screen === 'bazaar' &&
       !!(s.event as LiveEvent | null)?.dayId &&
       !this.bazaarDirectoryShowing();
-    if (tillShowing && !this.tillPricesShowing) void this.refreshHeldPrices();
+    if (tillShowing && !this.tillPricesShowing) {
+      void this.refreshHeldPrices();
+      void this.refreshHeldDay({ force: true });
+    }
     this.tillPricesShowing = tillShowing;
   }
   private tillPricesShowing = false;
@@ -9773,6 +9948,8 @@ export class OpsRuntime extends OpsProvider {
     eng.noShow = (id) =>
       void this.liveOrder((s) => s.setStatus(id, 'No-show'), STAFF_COPY.noShow(this.firstName(id)));
     eng.refundOrder = (id, ref) => {
+      // S1: a refund always carries the reference from the send-money receipt (the database refuses a blank one too).
+      if (!String(ref ?? '').trim()) return void this.toast(STAFF_COPY.refundNeedsRef, 'warn');
       const amount = PESO(this.orderPesos(id));
       void this.liveOrder(
         (s) => s.refund(id, String(ref ?? '').trim()),
@@ -10850,8 +11027,7 @@ export class OpsRuntime extends OpsProvider {
       names: Object.fromEntries(PRODUCTS.map((p) => [p.id, String(p.short ?? p.id)])),
       // Cine's rule (decision register, 28 September): a helper sees totals only when the owner allows it.
       seesTotals: this.state.role === 'owner' || cfg.helperSeesSales === 1,
-      problemOf: (sale) =>
-        this.saleProblems.get(clientIdFor({ saleId: sale.id, at: sale.at })) ?? null
+      problemOf: (sale) => this.saleProblems.get(saleClientId(sale)) ?? null
     });
     const liveTill: LiveTillVals = {
       // The engine's flavour image is already resolved (`flavours.ts`).
@@ -11780,6 +11956,8 @@ export class OpsRuntime extends OpsProvider {
   flushSales = async (options?: FlushOptions): Promise<FlushResult> => {
     const result = await flushQueue(this.saleClient, options);
     await this.reflectQueue();
+    // S2: after a send, or the phone coming back, the day is read again: sales from her other devices arrive here.
+    if (!this.unmounted) void this.refreshHeldDay();
     // A sale that reached the server used its pouches and bag there (stock only: no batch or dough changed): show what stock the database holds.
     if (result.sent.length > 0 && this.state.role === 'owner' && !this.unmounted) {
       void this.loadStockCatalogue(null);
@@ -11821,7 +11999,7 @@ export class OpsRuntime extends OpsProvider {
     );
     this.setState((s) => {
       const sales = (s.sales as EventSale[]).map((sale) => {
-        const state = states.get(clientIdFor({ saleId: sale.id, at: sale.at }));
+        const state = states.get(saleClientId(sale));
         if (!state) return sale;
         const synced = state === 'sent';
         const failed = state === 'failed';
@@ -11874,7 +12052,7 @@ export class OpsRuntime extends OpsProvider {
         sales: isLiveMode()
           ? s.sales
           : s.sales.map((sale: EventSale) =>
-              sentIds.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+              sentIds.has(saleClientId(sale))
                 ? { ...sale, synced: true, failed: false }
                 : { ...sale, failed: !sale.synced }
             )

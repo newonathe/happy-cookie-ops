@@ -263,6 +263,11 @@ begin
   -- money: refund and balance
   perform pg_temp.expect(a, 'refund_stale', format(refu, 'HC-S6', 'GC-1', old), 'P0002');
   perform pg_temp.expect(a, 'refund_unpaid', format(refu, 'HC-S11', 'GC-1', pg_temp.st('HC-S11')), '55000');
+  -- S1: a refund needs its reference ("refunds do need reference").
+  perform pg_temp.expect(a, 'refund_ref_blank', format(refu, 'HC-S6', '', pg_temp.st('HC-S6')), '22023');
+  perform pg_temp.expect(a, 'refund_ref_spaces', format(refu, 'HC-S6', '   ', pg_temp.st('HC-S6')), '22023');
+  perform pg_temp.expect(a, 'refund_ref_null', format(refu, 'HC-S6', null, pg_temp.st('HC-S6')), '22023');
+  perform pg_temp.expect(a, 'refund_ref_too_long', format(refu, 'HC-S6', repeat('r', 61), pg_temp.st('HC-S6')), '22023');
   perform pg_temp.expect(a, 'refund_ok', format(refu, 'HC-S6', 'GC-1', pg_temp.st('HC-S6')), '00000');
   perform pg_temp.assert_ok(a, 'refund_cancels_and_keeps_the_reference',
     pg_temp.ord('HC-S6') ->> 'state' = 'Cancelled' and pg_temp.ord('HC-S6') ->> 'pay_state' = 'refunded'

@@ -28,7 +28,8 @@ describe('queuedBeforeSignOut', () => {
     vi.doMock('@/lib/offline/idb', () => ({ idb: { supported: () => supported } }));
     vi.doMock('@/lib/offline/queue', () => ({
       allSales,
-      clientIdFor: (sale: { saleId: string; at: number }) => `${sale.saleId}@${sale.at}`,
+      saleClientId: (sale: { id: string; at: number; clientId?: string }) =>
+        sale.clientId ?? `${sale.id}@${sale.at}`,
       markSent,
       markFailed,
       pruneSent,
@@ -87,6 +88,18 @@ describe('queuedBeforeSignOut', () => {
       { id: 'S2', at: 20, synced: true }, // sent
       { id: 'S3', at: 30, synced: false }, // no row, not synced: only on this phone's screen
       { id: 'S4', at: 40, synced: true } // synced and its row pruned: not counted
+    ];
+    expect(await queuedBeforeSignOut(local)).toBe(2);
+  });
+
+  it('matches a sale taken back from the server by its own client id, not by this device’s (S2)', async () => {
+    mockQueue(async () => [{ clientId: 'devB:S1:10', state: 'pending' }]);
+    const { queuedBeforeSignOut } = await import('@/lib/auth/sign-out-guard');
+    const local = [
+      // Rung on another device and still unsent from this phone's queue: its row counts it once.
+      { id: 'S1', at: 10, clientId: 'devB:S1:10', synced: false },
+      // Not synced and not in the queue under its own id: only on the screen.
+      { id: 'S2', at: 20, clientId: 'devB:S2:20', synced: false }
     ];
     expect(await queuedBeforeSignOut(local)).toBe(2);
   });

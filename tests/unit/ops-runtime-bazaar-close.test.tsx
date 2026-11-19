@@ -122,6 +122,8 @@ function fakeDatabase() {
         ],
         error: null
       };
+    // A database older than migration 93 has no `get_bazaar_day`: the till starts from the planned stock, as before.
+    if (name === 'get_bazaar_day') return { data: null, error: { code: 'PGRST202' } };
     if (name === 'get_bazaar')
       return { data: bazaarAnswer(closed ? 'closed' : 'open'), error: null };
     if (name === 'close_bazaar_day') {

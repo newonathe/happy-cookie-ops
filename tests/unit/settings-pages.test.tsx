@@ -147,7 +147,17 @@ describe('sheets shown as pages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Keep the order' }));
     expect(saveRefund).not.toHaveBeenCalled();
     expect(v.closeSheet).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: 'Record refund and cancel' }));
+    // S1: a blank reference is refused here, with the reason beside the field.
+    expect(saveRefund).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert').textContent).toBe(
+      'Add the refund reference from your send-money receipt.'
+    );
+    fireEvent.change(screen.getByLabelText('Refund reference'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Record refund and cancel' }));
+    expect(saveRefund).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText('Refund reference'), { target: { value: 'REF1' } });
+    expect(screen.queryByRole('alert')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Record refund and cancel' }));
     expect(saveRefund).toHaveBeenCalledOnce();
   });
