@@ -77,7 +77,7 @@ function toPrice(parsed: z.infer<typeof row>): CafePrice {
 }
 
 /** PostgREST answers PGRST202 and Postgres 42883 when the function is not there yet. */
-function missingFunction(error: { code?: string; message?: string }): boolean {
+export function missingFunction(error: { code?: string; message?: string }): boolean {
   return (
     error.code === 'PGRST202' ||
     error.code === '42883' ||
