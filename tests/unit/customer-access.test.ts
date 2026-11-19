@@ -4,6 +4,7 @@ import {
   CUSTOMER_PUBLIC_PATHS,
   assertOwnerRouteDenied,
   assertPublicRoute,
+  assertPublicRoutesSettled,
   waitForPublicRoute,
   buildCustomerAccessManifest,
   emittedPublicResourcePaths,
@@ -243,5 +244,39 @@ describe('waiting for a new release to reach the edge (19 November 2026)', () =>
         sleep: async () => {}
       })
     ).rejects.toThrow('Public route body mismatch (/shop)');
+  });
+
+  it('waits for every public route, not only the first: a stale /lookup/ after a fresh /shop still passes', async () => {
+    const reads: string[] = [];
+    let lookupReads = 0;
+    const edge = async (url: URL | RequestInfo) => {
+      const route = new URL(String(url)).pathname;
+      reads.push(route);
+      if (route === '/lookup/' && ++lookupReads < 3) return page('<main>old build</main>');
+      return page('<main>new build</main>');
+    };
+    const checked = await assertPublicRoutesSettled(
+      edge,
+      origin,
+      [
+        ['/shop', fresh],
+        ['/lookup/', fresh],
+        ['/status', fresh]
+      ],
+      { attempts: 5, delayMs: 0, sleep: async () => {} }
+    );
+    expect(checked).toBe(3);
+    expect(reads).toEqual(['/shop', '/lookup/', '/lookup/', '/lookup/', '/status']);
+  });
+
+  it('a strict single read (no deploy) still fails on the first stale route', async () => {
+    await expect(
+      assertPublicRoutesSettled(
+        async () => page('<main>old build</main>'),
+        origin,
+        [['/lookup/', fresh]],
+        { attempts: 1 }
+      )
+    ).rejects.toThrow('Public route body mismatch (/lookup/)');
   });
 });
