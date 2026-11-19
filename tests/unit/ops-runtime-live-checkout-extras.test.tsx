@@ -302,7 +302,8 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
 
   it('Order a box!: the shop offers the active sizes, and Continue picks one box and sends the usual order', async () => {
     const { runtime, calls } = await mounted({}, { dcf: 6 });
-    act(() => runtime.setState({ screen: 'shop' }));
+    // The engine's `now` is read once at import: pin it inside the ordering window (Monday 11:00 Manila).
+    act(() => runtime.setState({ screen: 'shop', now: NOW.getTime() }));
     const box = () => runtime.renderVals().shopBox!;
     expect(box().sizes).toEqual([6, 8]);
     expect(box().cookies).toBe(6);
@@ -319,6 +320,15 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
       boxes: [{ size: 6, qty: 1 }]
     });
     // Mutation: pick() that skips setBox sends no box; the server then charges no box and Cine's drawing is lost.
+  });
+
+  it('Order a box!: hidden when orders are closed', async () => {
+    const { runtime } = await mounted({}, { dcf: 6 });
+    // Thursday 22:00 Manila, after the default close (Thursday 21:00).
+    act(() =>
+      runtime.setState({ screen: 'shop', now: new Date('2026-10-08T14:00:00Z').getTime() })
+    );
+    expect(runtime.renderVals().shopBox ?? null).toBeNull();
   });
 
   it("the shop's sampler card lists the cookies inside, from the owner's saved list", async () => {
