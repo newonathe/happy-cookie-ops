@@ -159,16 +159,14 @@ it('shows the owner once in the sidebar and keeps a place for Sign out inside it
   expect(slot?.closest('aside')).toBeTruthy();
 });
 
-it('draws Option A: animated marble waves behind translucent glass containers (Ethan, 19 November 2026)', async () => {
+it('keeps the Option A glass but no marble ground or colour change (Cine, 19 November 2026)', async () => {
   const { readFileSync } = await import('node:fs');
   const { PANEL_CLASS } = await import('@/components/ui/owner-kit');
   expect(PANEL_CLASS.split(' ')).toContain('hc-surface');
   mount();
   const root = document.querySelector('[data-glass]');
   expect(root?.getAttribute('data-glass')).toBe('on');
-  const marble = root?.querySelector('[data-marble]');
-  expect(marble?.getAttribute('aria-hidden')).toBe('true');
-  expect(marble?.querySelectorAll('svg').length).toBe(2);
+  expect(root?.querySelector('[data-marble]')).toBeNull();
   const globals = readFileSync('src/app/globals.css', 'utf8');
   for (const token of [
     '--color-owner-card:',
@@ -178,8 +176,8 @@ it('draws Option A: animated marble waves behind translucent glass containers (E
   ])
     expect(globals).toContain(token);
   expect(globals).toMatch(/\[data-glass='on'\] \.hc-surface/);
+  expect(globals).not.toContain('--color-marble');
   const workspace = readFileSync('src/components/live/owner-workspace.module.css', 'utf8');
-  expect(workspace).toContain('@keyframes marbleDrift');
-  expect(workspace).toMatch(/prefers-reduced-transparency[\s\S]*\.marble/);
-  expect(workspace).toMatch(/prefers-reduced-motion[\s\S]*\.marble/);
+  expect(workspace).not.toMatch(/marble/i);
+  expect(workspace).toContain('@keyframes optionRise');
 });
