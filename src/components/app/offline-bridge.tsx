@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
-import { clientIdFor, enqueueSale, hasRetryable } from '@/lib/offline/queue';
+import { enqueueSale, hasRetryable, saleClientId } from '@/lib/offline/queue';
 import { startQueueRetry } from '@/lib/offline/retry';
 import { flushQueue, requestBackgroundSync, type FlushOptions } from '@/lib/offline/sync';
 import { warmOfflineShell } from '@/lib/offline/shell';
@@ -67,28 +67,37 @@ export function OfflineBridge() {
   useEffect(() => {
     const event = engine.state.event;
     const eventId = (event && event.id) || null;
-    const keyOf = (sale: EventSale) => clientIdFor({ saleId: sale.id, at: sale.at });
-    const fresh = sales.filter((sale: EventSale) => !mirrored.current.has(keyOf(sale)));
+    const keyOf = (sale: EventSale & { clientId?: string }) => saleClientId(sale);
+    // S2: a sale that is synced and has a client id of its own was taken back from the server: it is already held there, and
+    // queueing it under this device's id would send the same sale twice. One that has an id of its own but is not synced is
+    // this phone's (the day was read again before its copy reached IndexedDB): it is queued under that id, never skipped.
+    const fresh = sales.filter(
+      (sale: EventSale & { clientId?: string }) =>
+        !(sale.clientId && sale.synced) && !mirrored.current.has(keyOf(sale))
+    );
     if (!fresh.length) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     void (async () => {
       let unsaved = 0;
       for (const sale of fresh) {
         try {
-          await enqueueSale({
-            saleId: sale.id,
-            eventId,
-            items: sale.items,
-            gross: sale.gross,
-            discount: sale.discount,
-            total: sale.total,
-            pay: sale.pay,
-            ref: sale.ref,
-            clerk: sale.clerk,
-            at: sale.at,
-            tendered: sale.tendered,
-            change: sale.change
-          });
+          await enqueueSale(
+            {
+              saleId: sale.id,
+              eventId,
+              items: sale.items,
+              gross: sale.gross,
+              discount: sale.discount,
+              total: sale.total,
+              pay: sale.pay,
+              ref: sale.ref,
+              clerk: sale.clerk,
+              at: sale.at,
+              tendered: sale.tendered,
+              change: sale.change
+            },
+            keyOf(sale)
+          );
           mirrored.current.add(keyOf(sale));
         } catch {
           unsaved += 1;

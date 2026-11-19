@@ -161,5 +161,12 @@ three sales, once each.
 - The queue is per device. Two phones at one stall produce two queues and two sets of
   sale numbers; the server merges them by `clientId`. There is no device-to-device sync,
   and there does not need to be.
+- A selling day belongs to the account, not the device (S2, migration 93). Any device signed in as the owner may
+  sell the same day at the same time: `record_event_sale` no longer refuses a device that is not the "selling
+  device", and opening the day elsewhere moves nothing. A till opened, brought back to the front or back online
+  reads the day (`get_bazaar_day`: every sale and void, the table stock worked out on the server) and lays this
+  phone's unsent sales and voids on top (`src/lib/bazaar/day-merge.ts`); a sale taken back from the server carries
+  the server's client id and is never queued again. Until the new migration is applied to a database the till
+  keeps the old behaviour (moving the selling device here; the till starts from the planned stock).
 - `toggleOnline()` from the prototype still works and still wins over the browser's
   signal. It is how the owner demonstrates the failure case.

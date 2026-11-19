@@ -1,4 +1,4 @@
-import { allSales, clientIdFor } from '@/lib/offline/queue';
+import { allSales, saleClientId } from '@/lib/offline/queue';
 import { idb } from '@/lib/offline/idb';
 
 /** How long the count may take before it counts as unreadable (a stuck IndexedDB must not stall the control). */
@@ -8,6 +8,8 @@ export const COUNT_TIMEOUT_MS = 3_000;
 export interface LocalSale {
   id: string;
   at: number;
+  /** S2: the server's id for a sale taken back from it (see `saleClientId`). */
+  clientId?: string;
   synced?: boolean;
 }
 
@@ -35,9 +37,7 @@ export async function queuedBeforeSignOut(
     if (!rows) return null;
     const known = new Set(rows.map((row) => row.clientId));
     const held = rows.filter((row) => row.state !== 'sent').length;
-    const unqueued = local.filter(
-      (sale) => !sale.synced && !known.has(clientIdFor({ saleId: sale.id, at: sale.at }))
-    ).length;
+    const unqueued = local.filter((sale) => !sale.synced && !known.has(saleClientId(sale))).length;
     return held + unqueued;
   } catch {
     return null;

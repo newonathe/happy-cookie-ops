@@ -88,8 +88,20 @@ export function clientIdFor(sale: { saleId: string; at: number }): string {
   return deviceId() + ':' + sale.saleId + ':' + sale.at;
 }
 
-export async function enqueueSale(sale: SaleInput): Promise<QueuedSale> {
-  const clientId = clientIdFor(sale);
+/**
+ * Which sale on the server a sale on the till's screen is. A sale this phone rang has no id of its own: it is this device, the
+ * till's number and the time (`clientIdFor`). A sale the till took back from the server (S2: the day belongs to the account,
+ * so it holds sales rung on other devices too) carries the server's client id, which names its own device: never this one's.
+ */
+export function saleClientId(sale: { id: string; at: number; clientId?: string }): string {
+  return sale.clientId ?? clientIdFor({ saleId: sale.id, at: sale.at });
+}
+
+export async function enqueueSale(
+  sale: SaleInput,
+  /** S2: a sale on the screen that already has an id of its own (see `saleClientId`) is queued under that one. */
+  clientId = clientIdFor(sale)
+): Promise<QueuedSale> {
   const existing = await idb.get<QueuedSale>(clientId);
   if (existing) return existing;
   const row: QueuedSale = { ...sale, clientId, state: 'pending', attempts: 0, lastError: null };

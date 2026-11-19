@@ -2744,6 +2744,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      bazaar_day_access: { Args: { p_day: string }; Returns: boolean }
       bazaar_held_ledger: {
         Args: never
         Returns: {
@@ -2998,6 +2999,7 @@ export type Database = {
         Returns: string
       }
       get_bazaar: { Args: { p_booking: string }; Returns: Json }
+      get_bazaar_day: { Args: { p_day: string }; Returns: Json }
       get_bazaar_kitchen_sources: {
         Args: { p_booking: string }
         Returns: {

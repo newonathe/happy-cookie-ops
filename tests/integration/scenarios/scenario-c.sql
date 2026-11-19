@@ -207,8 +207,10 @@ begin
   perform pg_temp.ok('replay: S1 sent again (a retry) is acknowledged as a duplicate and changes no sale, money or stock', r.duplicate = true and fp = pg_temp.fp());
   perform pg_temp.refused('replay: another sale under S1''s id is refused', format($$select * from public.record_event_sale(%L::jsonb)$$,
     pg_temp.sale('S1', '{"sc-oat": 1}', 0, 12000, 'Cash', 0)::text), '23505');
-  perform pg_temp.refused('another phone cannot sell this event', format($$select * from public.record_event_sale(%L::jsonb)$$,
-    pg_temp.sale('X1', '{"sc-oat": 1}', 0, 12000, 'Cash', 0, 'devZ')::text), '42501');
+  -- S2 (migration 93): any device of hers may sell the day, so "another phone cannot sell" is gone; a sale still cannot take a client
+  -- id that names another device than the one sending it. (Two devices selling the same day is proved in bazaar-day-anywhere.sql.)
+  perform pg_temp.refused('a client id cannot name another device than the sender', format($$select * from public.record_event_sale(%L::jsonb)$$,
+    (pg_temp.sale('X1', '{"sc-oat": 1}', 0, 12000, 'Cash', 0, 'devZ') || '{"deviceId": "devC"}')::text), '22023');
   perform pg_temp.refused('a total that is not the prices is refused', format($$select * from public.record_event_sale(%L::jsonb)$$,
     pg_temp.sale('X2', '{"sc-oat": 1}', 0, 11000, 'Cash', 0)::text), '22023');
   perform pg_temp.refused('a flavour not on the day is refused', format($$select * from public.record_event_sale(%L::jsonb)$$,

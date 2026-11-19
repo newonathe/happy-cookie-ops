@@ -786,8 +786,185 @@ export async function dayEventId(dayId: string): Promise<string> {
   ].join('-');
 }
 
+// ------------------------------------------------------------------ S2: the day belongs to the account, not to a device
+
+/** One sale of a selling day as the server holds it. Money in centavos; `at` and `voidedAt` in epoch milliseconds. */
+export interface DaySale {
+  clientId: string;
+  items: Record<string, number>;
+  grossCents: number;
+  discountCents: number;
+  totalCents: number;
+  pay: string;
+  ref: string;
+  clerk: string;
+  at: number;
+  tenderedCents: number;
+  changeCents: number;
+  voided: boolean;
+  voidedAt: number | null;
+}
+
+/** `get_bazaar_day` (migration 20260101009300): everything a till on any device needs to show the day as it stands. */
+export interface DayRead {
+  dayId: string;
+  bookingId: string;
+  /** YYYY-MM-DD */
+  day: string;
+  /** Null while the day is only a plan. */
+  eventId: string | null;
+  status: DayState;
+  closedAt: number | null;
+  floatCents: number;
+  priceVersion: number;
+  /** Centavos by flavour: the latest list. */
+  prices: Record<string, number>;
+  /** By flavour: made and carried, with what was added. */
+  loaded: Record<string, number>;
+  /** By flavour, worked out by the server: loaded less sales that are not voided less losses that are not voided. */
+  tableStock: Record<string, number>;
+  /** Oldest first. */
+  sales: DaySale[];
+}
+
+const SALE_ID = /^[A-Za-z0-9_-]{1,64}:[\x21-\x7e]{1,95}$/;
+
+/** A count by flavour: whole, from `min` to `max`, on a flavour id. */
+function parseCounts(v: unknown, min: number, max: number): Record<string, number> | null {
+  if (!isObj(v)) return null;
+  const out: Record<string, number> = {};
+  for (const [id, n] of Object.entries(v)) {
+    if (!PRODUCT.test(id) || !whole(n, min, max)) return null;
+    out[id] = n;
+  }
+  return out;
+}
+
+function parseDaySale(s: unknown): DaySale | null {
+  if (
+    !isObj(s) ||
+    typeof s.client_id !== 'string' ||
+    !SALE_ID.test(s.client_id) ||
+    !whole(s.gross_cents, 0, 1_000_000_000_000) ||
+    !whole(s.discount_cents, 0, 1_000_000_000_000) ||
+    !whole(s.total_cents, 0, 1_000_000_000_000) ||
+    !str(s.pay, 32) ||
+    s.pay.length < 1 ||
+    !str(s.ref, 32) ||
+    !str(s.clerk, 40) ||
+    !whole(s.at, 100_000_000_000, 99_999_999_999_999) ||
+    !whole(s.tendered_cents, 0, 1_000_000_000_000) ||
+    !whole(s.change_cents, 0, 1_000_000_000_000) ||
+    typeof s.voided !== 'boolean' ||
+    !(s.voided_at === null || whole(s.voided_at, 100_000_000_000, 99_999_999_999_999)) ||
+    // A sale is voided exactly when it says when.
+    (s.voided_at !== null) !== s.voided
+  )
+    return null;
+  const items = parseCounts(s.items, 1, 999);
+  // Every sale has at least one flavour, and a discount never exceeds what was rung.
+  if (!items || Object.keys(items).length === 0 || s.discount_cents > s.gross_cents) return null;
+  return {
+    clientId: s.client_id,
+    items,
+    grossCents: s.gross_cents,
+    discountCents: s.discount_cents,
+    totalCents: s.total_cents,
+    pay: s.pay,
+    ref: s.ref,
+    clerk: s.clerk,
+    at: s.at,
+    tenderedCents: s.tendered_cents,
+    changeCents: s.change_cents,
+    voided: s.voided,
+    voidedAt: s.voided_at as number | null
+  };
+}
+
+/** Strict: anything unexpected is no answer at all, so a till never shows half of what the server holds. */
+export function parseBazaarDay(json: Json | null | undefined): DayRead | null {
+  if (
+    !isObj(json) ||
+    typeof json.day_id !== 'string' ||
+    !UUID.test(json.day_id) ||
+    typeof json.booking_id !== 'string' ||
+    !UUID.test(json.booking_id) ||
+    typeof json.day !== 'string' ||
+    !realDate(json.day) ||
+    !(json.event_id === null || (typeof json.event_id === 'string' && UUID.test(json.event_id))) ||
+    (json.status !== 'planned' && json.status !== 'open' && json.status !== 'closed') ||
+    !(json.closed_at === null || whole(json.closed_at, 0, 99_999_999_999_999)) ||
+    !whole(json.float_cents, 0, 100_000_000) ||
+    !whole(json.price_version, 0, 100) ||
+    !Array.isArray(json.sales)
+  )
+    return null;
+  // The state and the event agree: a plan has no event, a started day has one, and only a closed day has a close time.
+  if ((json.status === 'planned') !== (json.event_id === null)) return null;
+  if ((json.status === 'closed') !== (json.closed_at !== null)) return null;
+  const prices = parseCounts(json.prices, 0, 100_000_000);
+  const loaded = parseCounts(json.loaded, 0, 19_998);
+  // Below zero only when two devices sold the last cookie at once: shown as it is, never hidden.
+  const tableStock = parseCounts(json.table_stock, -1_000_000, 19_998);
+  if (!prices || !loaded || !tableStock) return null;
+  const sales: DaySale[] = [];
+  const seen = new Set<string>();
+  for (const raw of json.sales) {
+    const sale = parseDaySale(raw);
+    // A client id is one sale: a list that repeats one is not understood.
+    if (!sale || seen.has(sale.clientId)) return null;
+    seen.add(sale.clientId);
+    sales.push(sale);
+  }
+  return {
+    dayId: json.day_id,
+    bookingId: json.booking_id,
+    day: json.day,
+    eventId: json.event_id as string | null,
+    status: json.status,
+    closedAt: json.closed_at as number | null,
+    floatCents: json.float_cents,
+    priceVersion: json.price_version,
+    prices,
+    loaded,
+    tableStock,
+    sales
+  };
+}
+
 /**
- * Makes this device the one that sells an open day (the owner only; `set_event_device`). The device that sold it before stays
+ * `unavailable`: the database has no `get_bazaar_day` yet (a hosted schema older than migration 93), so the till keeps working
+ * as it did. `refused`: the server said no (not the owner, or no such day). `offline`: no answer. `unreadable`: an answer this
+ * app does not understand.
+ */
+export type DayReadOutcome =
+  | { ok: true; day: DayRead }
+  | { ok: false; reason: 'unavailable' | 'refused' | 'offline' | 'unreadable' };
+
+/** The day as the server holds it, for a till on any device. Owner only. */
+export async function fetchBazaarDay(client: BazaarClient, dayId: string): Promise<DayReadOutcome> {
+  if (!UUID.test(dayId)) return { ok: false, reason: 'refused' };
+  try {
+    const { data, error } = await client.rpc('get_bazaar_day', { p_day: dayId });
+    if (error) {
+      // PostgREST: PGRST202 (no such function in its schema cache) and 42883 (undefined function) mean the migration is not there.
+      if (error.code === 'PGRST202' || error.code === '42883')
+        return { ok: false, reason: 'unavailable' };
+      return {
+        ok: false,
+        reason: ['22023', '42501', 'P0002'].includes(error.code ?? '') ? 'refused' : 'offline'
+      };
+    }
+    const day = parseBazaarDay(data);
+    return day && day.dayId === dayId ? { ok: true, day } : { ok: false, reason: 'unreadable' };
+  } catch {
+    return { ok: false, reason: 'offline' };
+  }
+}
+
+/**
+ * Makes this device the one that sells an open day (the owner only; `set_event_device`). Only for a database older than migration 93:
+ * since then any device of the owner sells the same day and nothing is moved. The device that sold it before stays
  * on the event's former devices, so the sales it still holds are accepted when they send. True once the server answers with
  * this device.
  */

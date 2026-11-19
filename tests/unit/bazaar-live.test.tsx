@@ -160,6 +160,8 @@ function fakeClient(f: Fake) {
         ],
         error: null
       };
+    // A database older than migration 93 has no `get_bazaar_day`: the till starts from the planned stock, as before.
+    if (name === 'get_bazaar_day') return { data: null, error: { code: 'PGRST202' } };
     return { data: null, error: null };
   });
   return { rpc, client: { rpc } };
@@ -551,9 +553,11 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
       expect(
         rpc.mock.calls
           .slice(before)
-          // D3: resuming the till re-reads the day's prices (a read, like the other two).
+          // D3: resuming the till re-reads the day's prices (a read, like the other two). S2: and the day itself.
           .every(([name]) =>
-            ['get_bazaar', 'get_scheduled_events', 'get_event_prices'].includes(name)
+            ['get_bazaar', 'get_scheduled_events', 'get_event_prices', 'get_bazaar_day'].includes(
+              name
+            )
           )
       ).toBe(true);
     });
