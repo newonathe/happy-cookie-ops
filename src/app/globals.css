@@ -99,7 +99,7 @@
   --color-owner-glass: rgb(255 255 255 / 0.8);
   --color-owner-glass-strong: rgb(255 255 255 / 0.94);
   --shadow-owner-glass: 0 8px 32px rgb(24 28 36 / 0.06);
-  /* Option A (Ethan, 19 Nov 2026): translucent containers over animated white marble waves. One recipe, below. */
+  /* Option A (Ethan, 19 Nov 2026): translucent containers; no marble ground since Cine's review (19 Nov). One recipe, below. */
   --color-owner-card: rgb(255 255 255 / 0.5);
   --color-owner-card-line: rgb(255 255 255 / 0.85);
   --color-owner-card-inner: rgb(255 255 255 / 0.55);
@@ -108,11 +108,6 @@
   --shadow-owner-bar: 0 16px 40px rgb(60 45 30 / 0.14);
   --blur-owner-card: blur(28px) saturate(1.6);
   --blur-owner-card-phone: blur(18px) saturate(1.5);
-  --color-marble-base: #f3f1ee;
-  --color-marble-light: #f8f6f3;
-  --color-marble-shade: #e9e6e1;
-  --color-marble-vein: #d8d2ca;
-  --color-marble-vein-soft: #e6e1da;
   --ease-owner-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-owner: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-owner-fast: 140ms;

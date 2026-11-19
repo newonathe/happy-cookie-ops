@@ -831,59 +831,10 @@
 }
 
 /* ==========================================================================
-   Option A (Ethan, 19 November 2026): animated white marble waves behind translucent glass, the approved mockup's
-   motion (700 ms rise 70 ms apart, press to 0.96). Scoped to data-glass="on" so it switches off in one place.
+   Option A (Ethan, 19 November 2026): translucent glass containers and the approved mockup's motion (700 ms rise
+   70 ms apart, press to 0.96). Scoped to data-glass="on" so it switches off in one place. Cine (19 November) asked
+   for no wavy line background and no colour change: the ground stays the workspace's own --color-owner-app.
    ========================================================================== */
-.workspace[data-glass='on'] {
-  background: var(--color-marble-base);
-}
-.marble {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-.marbleBase {
-  position: absolute;
-  inset: -80px;
-  background:
-    radial-gradient(45% 45% at 15% 10%, rgb(255 255 255) 0%, rgb(255 255 255 / 0) 70%),
-    radial-gradient(40% 40% at 85% 25%, var(--color-marble-shade) 0%, transparent 70%),
-    radial-gradient(55% 50% at 60% 100%, rgb(255 255 255) 0%, rgb(255 255 255 / 0) 70%),
-    linear-gradient(150deg, var(--color-marble-light) 0%, var(--color-marble-shade) 100%);
-}
-.marble svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  will-change: transform;
-}
-.marbleVeins {
-  animation: marbleDrift 22s ease-in-out infinite;
-}
-.marbleSheen {
-  animation: marbleDrift2 28s ease-in-out infinite;
-}
-@keyframes marbleDrift {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-40px, 18px) scale(1.03);
-  }
-}
-@keyframes marbleDrift2 {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(36px, -22px);
-  }
-}
 .workspace[data-glass='on'] .rail,
 .workspace[data-glass='on'] .header,
 .workspace[data-glass='on'] .main,
@@ -1017,7 +968,6 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .marble svg,
   .workspace[data-glass='on'] .screenBody > * > * {
     animation: none;
   }
@@ -1026,9 +976,6 @@
   }
 }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  .marble {
-    display: none;
-  }
   .workspace[data-glass='on'] {
     background: var(--color-owner-app);
   }

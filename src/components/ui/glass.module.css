@@ -44,7 +44,7 @@
     background: var(--color-surface);
   }
 }
-/* Option A (19 Nov 2026): inside the owner workspace the cards are translucent glass over the marble waves. */
+/* Option A (19 Nov 2026): inside the owner workspace the cards are translucent glass over the workspace ground. */
 :global([data-glass='on']) .glassCard,
 :global([data-glass='on']) .glassSlot > section {
   border-color: var(--color-owner-card-line);
