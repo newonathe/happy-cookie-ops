@@ -143,7 +143,10 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
           className="min-w-0 rounded-card border border-line bg-surface p-4 lg:sticky lg:top-4"
         >
           <h2 className="text-heading font-semibold">{v.boxTitle}</h2>
-          <p className="mt-2 text-label text-ink-soft">{v.boxCountText}</p>
+          {/* Picked, the title already carries the count ("Your order · 2 cookies"): the line under it is for an empty cart. */}
+          {v.pickedItems.length === 0 ? (
+            <p className="mt-2 text-label text-ink-soft">{v.boxCountText}</p>
+          ) : null}
           {/* An empty cart says "Nothing picked yet" once, under the title: the list and the flavour line wait for a pick. */}
           {v.pickedItems.length > 0 ? (
             <>
