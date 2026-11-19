@@ -302,8 +302,9 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
 
   it('Order a box!: the shop offers the active sizes, and Continue picks one box and sends the usual order', async () => {
     const { runtime, calls } = await mounted({}, { dcf: 6 });
-    // The engine's `now` is read once at import: pin it inside the ordering window (Monday 11:00 Manila).
-    act(() => runtime.setState({ screen: 'shop', now: NOW.getTime() }));
+    // The engine reads `now` once at import and reads the weekday in the machine's zone: pin an instant that is
+    // Tuesday midday in both Manila and UTC, inside the ordering window (Monday 9:00 to Thursday 21:00) in either.
+    act(() => runtime.setState({ screen: 'shop', now: Date.parse('2026-10-06T04:00:00Z') }));
     const box = () => runtime.renderVals().shopBox!;
     expect(box().sizes).toEqual([6, 8]);
     expect(box().cookies).toBe(6);
@@ -324,10 +325,8 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
 
   it('Order a box!: hidden when orders are closed', async () => {
     const { runtime } = await mounted({}, { dcf: 6 });
-    // Thursday 22:00 Manila, after the default close (Thursday 21:00).
-    act(() =>
-      runtime.setState({ screen: 'shop', now: new Date('2026-10-08T14:00:00Z').getTime() })
-    );
+    // Friday midday in both Manila and UTC: closed in either zone.
+    act(() => runtime.setState({ screen: 'shop', now: Date.parse('2026-10-09T04:00:00Z') }));
     expect(runtime.renderVals().shopBox ?? null).toBeNull();
   });
 
