@@ -361,6 +361,12 @@ function ownerSellingInFrame(v: OpsVals, screen: string): boolean {
   );
 }
 
+/** The till draws its own "Back to events" (HCB-015): one way back per page, so the header leaves its Back out. */
+function tillHasOwnBack(v: OpsVals, screen: string): boolean {
+  const nav = v.liveBazaar?.navigation;
+  return screen === 'bazaar' && nav?.route === 'till' && !!nav.events;
+}
+
 /** The approved live frame is separate from the locked demo. Its domain runtime never remounts. */
 /**
  * The rail's one progress figure (espresso glass, Ethan 16 Nov 2026): this week's drop, cookies confirmed of the cap,
@@ -665,7 +671,10 @@ export function OwnerWorkspace({
       <div className={styles.work}>
         <header className={styles.header}>
           <div className={styles.location}>
-            {pageForm || (v.showBack && !(screen === 'recipes' && v.liveRecipes?.recipePage)) ? (
+            {pageForm ||
+            (v.showBack &&
+              !(screen === 'recipes' && v.liveRecipes?.recipePage) &&
+              !tillHasOwnBack(v, screen)) ? (
               <button type="button" className={styles.back} aria-label="Back" onClick={back}>
                 <Icon path={v.ic.back} size={18} weight={1.7} />
               </button>
