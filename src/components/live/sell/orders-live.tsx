@@ -13,6 +13,7 @@ import { ordersRead } from '@/lib/orders/orders-read-state';
 import { orderActionWord, orderStatusWord } from '@/lib/orders/owner-words';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import { readAtText } from '@/lib/time/read-at-text';
+import { CafeOrderSection } from './cafe-order-form';
 import { OrderPill, SellSettings, SellTabs, SellTools } from './sell-shared';
 import sg from './sell-glass.module.css';
 
@@ -137,6 +138,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
   return (
     <div className={sg.page}>
       {header}
+      {isLiveMode() && v.ownerView ? <CafeOrderSection /> : null}
       {stale || read.dropped > 0 || v.reviewHasWork ? (
         <div className={sg.flow}>
           {stale ? (

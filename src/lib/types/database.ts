@@ -589,6 +589,24 @@ export type Database = {
         }
         Relationships: []
       }
+      cafe_order_settings: {
+        Row: {
+          count_toward_limit: boolean
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          count_toward_limit?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          count_toward_limit?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cost_cutover: {
         Row: {
           at: string
@@ -2918,6 +2936,16 @@ export type Database = {
           reset_at: string
         }[]
       }
+      create_cafe_order: {
+        Args: { p_order: Json }
+        Returns: {
+          order_no: string
+          pickup_date: string
+          replayed: boolean
+          takes_slots: boolean
+          total_cents: number
+        }[]
+      }
       credit_bazaar_kitchen: {
         Args: {
           p_at: string
@@ -3006,6 +3034,13 @@ export type Database = {
         }[]
       }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
+      get_cafe_order_settings: {
+        Args: never
+        Returns: {
+          count_toward_limit: boolean
+          updated_at: string
+        }[]
+      }
       get_cafe_prices: {
         Args: never
         Returns: {
@@ -3394,6 +3429,13 @@ export type Database = {
       save_bazaar_target: {
         Args: { p_booking: string; p_cents: number }
         Returns: number
+      }
+      save_cafe_order_settings: {
+        Args: { p_count_toward_limit: boolean }
+        Returns: {
+          count_toward_limit: boolean
+          updated_at: string
+        }[]
       }
       save_flavour: {
         Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
