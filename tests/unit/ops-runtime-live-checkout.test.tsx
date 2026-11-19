@@ -1273,6 +1273,9 @@ describe('B2: find my order and the waiting list', () => {
     const { runtime, calls } = await mounted({}, 'shop');
     const footer = render(<LiveShopFooter v={runtime.renderVals()} />).container.textContent ?? '';
     expect(footer).toContain('Join the waiting list');
+    // Instagram is always required (Ethan, 19 November): the privacy line never calls it optional.
+    expect(footer).toContain('phone number, Instagram handle and order details');
+    expect(footer).not.toMatch(/optional Instagram/);
     act(() => runtime.renderVals().openWaitlist!());
     const form = runtime.renderVals().liveWaitlist!;
     await act(async () =>
