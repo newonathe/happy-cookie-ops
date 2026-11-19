@@ -48,6 +48,13 @@ describe('Home, espresso glass', () => {
     vi.unstubAllGlobals();
   });
 
+  it('sets the greeting formally: as written, in the body font, never forced to lowercase (Cine, 19 November)', () => {
+    const { v } = build();
+    const view = render(<HomeLive v={v} />);
+    const heading = view.getByRole('heading', { level: 1, name: 'Good evening, Owner.' });
+    expect(heading.className).not.toMatch(/(^|\s)lowercase(\s|$)/);
+    expect(heading.className).not.toMatch(/(^|\s)font-display(\s|$)/);
+  });
   it('draws the goal ring at the right percentage when the goal is known', () => {
     const { v } = build({}, { goal: 20000, profit: 8000, set: vi.fn() });
     const view = render(<HomeLive v={v} />);

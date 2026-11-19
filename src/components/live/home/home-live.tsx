@@ -102,7 +102,7 @@ function HelperHome({ go }: { go: { bazaar: () => void; sales: () => void } }) {
       <header className={styles.span12}>
         <h1
           tabIndex={-1}
-          className="font-display text-page text-on-ground lowercase outline-none md:text-page-lg"
+          className="font-sans text-page font-semibold tracking-tight text-on-ground outline-none md:text-page-lg"
         >
           Where would you like to work?
         </h1>
@@ -387,7 +387,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
         <div className="min-w-0">
           <h1
             tabIndex={-1}
-            className="font-display text-page text-on-ground lowercase outline-none md:text-page-lg"
+            className="font-sans text-page font-semibold tracking-tight text-on-ground outline-none md:text-page-lg"
           >
             {home.greeting}
           </h1>
