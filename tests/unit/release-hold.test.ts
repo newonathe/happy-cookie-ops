@@ -87,12 +87,12 @@ describe('owner-trial workflow: hold on means no deploy', () => {
     expect(building[0]).not.toContain('CLOUDFLARE');
     const qr = steps.findIndex((step) => step.includes('preview-placeholder-qr.mjs'));
     const deploy = steps.findIndex((step) => step.includes('check-owner-trial-release.mjs'));
-    // The QR step needs Chromium, which the bare deploy runner does not have until it is installed, behind the gate.
-    const browser = steps.findIndex((step) =>
-      step.includes('playwright install --with-deps chromium')
+    // The QR step needs Chromium: the deploy job runs in the pinned Playwright image, which has it, so nothing is
+    // installed from Ubuntu's package servers (19 November 2026: a mirror outage failed a release before it deployed).
+    expect(deployJob.slice(0, deployJob.indexOf('steps:'))).toMatch(
+      /container:\n\s+image: mcr\.microsoft\.com\/playwright:v[0-9.]+-noble/
     );
-    expect(browser).toBeGreaterThan(holdAt);
-    expect(browser).toBeLessThan(qr);
+    expect(deployJob).not.toContain('playwright install');
     // The real payment QR images are removed before anything is deployed.
     expect(qr).toBeGreaterThan(steps.indexOf(building[0]));
     expect(qr).toBeLessThan(deploy);
