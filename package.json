@@ -21,6 +21,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=phone --project=desktop --project=webkit",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:scenarios": "playwright test -c playwright.scenarios.config.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "db:start": "supabase start",

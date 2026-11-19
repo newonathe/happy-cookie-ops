@@ -4,6 +4,6 @@
     "incremental": false,
     "types": ["node"]
   },
-  "include": ["tests/e2e/**/*.ts", "tests/fixtures/**/*.ts"],
+  "include": ["tests/e2e/**/*.ts", "tests/e2e-scenarios/**/*.ts", "tests/fixtures/**/*.ts"],
   "exclude": []
 }
