@@ -13,6 +13,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     state = { screen: 'shop' as ScreenKey, role: 'owner' as 'owner' | 'helper', cfg: {} };
     setRole = vi.fn((role: 'owner' | 'helper') => {
       this.state.role = role;
+      this.state.screen = 'today'; // the real `setRole` goes to the role's home screen
     });
     setState = vi.fn((_patch: unknown, callback?: () => void) => callback?.());
     loadSettings = vi.fn();
@@ -152,12 +153,32 @@ describe('LiveGate: the flavour list each page loads', () => {
       'https://configured.example'
     );
     // A signed-in owner on /shop: the token refresh verifies her, but the shop stays public.
+    // `setRole` navigates Home, so it must never run on a customer screen: the role is only held.
     await act(async () => {
       authEvent('TOKEN_REFRESHED');
       await settle();
     });
-    expect(engine.setRole).toHaveBeenCalledWith('owner');
+    expect(engine.setRole).not.toHaveBeenCalled();
+    expect(engine.setState).toHaveBeenCalledWith({ role: 'owner' });
+    expect(engine.state.screen).toBe('shop');
     expect(engine.loadFlavours).not.toHaveBeenCalled();
+  });
+
+  it('keeps a verified helper on a customer page too, holding the role', async () => {
+    role = 'helper';
+    render(
+      <LiveGate initialScreen="shop">
+        <div />
+      </LiveGate>
+    );
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    role = 'owner';
+    expect(engine.setRole).not.toHaveBeenCalled();
+    expect(engine.setState).toHaveBeenCalledWith({ role: 'helper' });
+    expect(engine.state.screen).toBe('shop');
   });
 
   it('loads the staff list once on a staff page, and no shop menu', async () => {

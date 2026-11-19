@@ -533,8 +533,13 @@ export function LiveGate({
       if (
         !sellingOn &&
         (accessRef.current !== 'verified' || (askedRole ?? engine.state.role) !== role)
-      )
-        engine.setRole(role);
+      ) {
+        // A customer page stays a customer page for any session. The protected engine's `setRole`
+        // goes to the role's home screen, which threw a signed-in owner off /shop. Here the role is
+        // only held, so the owner reaches her own screens from the shop as before.
+        if (CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) engine.setState({ role });
+        else engine.setRole(role);
+      }
       askedRole = role;
       rememberCheck(role);
       stopRecheck();

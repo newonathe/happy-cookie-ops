@@ -455,12 +455,13 @@ describe('HCB-004 a3: the owner reaches a staff screen after a check verified on
     expect(started()).toEqual([1, 1]);
   });
 
-  it('a3-1b. a check that verifies on the shop and lands her on Home starts the read at once', async () => {
+  it('a3-1b. a check that verifies on the shop leaves her on the shop, and the read starts when she moves to a staff screen', async () => {
     const { release } = await heldOnShop();
-    // The protected `setRole` goes Home after a first verified check; the screen the check read
-    // was still the shop, so nothing started there.
+    // A customer page stays a customer page: the check holds her role but does not go Home.
     await release(false);
-    expect(engineNow().state.screen).toBe('today');
+    expect(engineNow().state.screen).toBe('shop');
+    expect(net.flavourCalls).toBe(0);
+    await goTo('today');
     expect(net.flavourCalls).toBe(1);
     expect(flavoursRead.get().phase).toBe('loading');
     await answer(ok(GOOD));
