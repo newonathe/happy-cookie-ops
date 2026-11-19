@@ -163,6 +163,15 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
         key={recipePage.id}
         page={recipePage}
         kept={book.keptEdit?.(recipePage.id)}
+        inline={
+          v.recipe
+            ? {
+                recipe: v.recipe,
+                begin: () => book.items.find((i) => i.id === recipePage.id)?.editRecipe(),
+                dirtyHere: !!v.recipe?.dirty && v.recipe.name === recipePage.name
+              }
+            : undefined
+        }
         onCosts={() => go({ kind: 'flavour', id: recipePage.id }, recipePage.id)}
         onCreate={() => {
           if (recipePage.createRecipe?.())

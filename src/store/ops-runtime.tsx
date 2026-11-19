@@ -697,6 +697,7 @@ interface RecipeState {
     { yield: number; ing: Array<[string, unknown, string, RecipeLine['kind']?]> }
   >;
   recipeDirty?: Record<string, boolean>;
+  recipeBase?: RecipeState['recipes'];
 }
 
 /** `state.sheet` while an A3 stock form is open. */
@@ -10403,6 +10404,20 @@ export class OpsRuntime extends OpsProvider {
             this.recipeRows?.find((row) => row.productId === item.id) === recipe
           )
             this.startProductionFromMake(item.id, cookies);
+        },
+        discardEdit: () => {
+          if (!current()) return;
+          this.setState((s) => {
+            const state = s as unknown as RecipeState;
+            const base = state.recipeBase?.[item.id];
+            if (!base) return null as never;
+            const dirty = { ...state.recipeDirty };
+            delete dirty[item.id];
+            return {
+              recipes: { ...state.recipes, [item.id]: structuredClone(base) },
+              recipeDirty: dirty
+            } as never;
+          });
         },
         back: () => {
           if (current())
