@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Runs tests/integration/scenarios/scenario-<a|b>.sql against a disposable local Postgres container and prints PASS or FAIL.
-// Usage: node scripts/test-scenario.mjs <a|b> [container-name]
+// Runs tests/integration/scenarios/scenario-<a|b|c>.sql against a disposable local Postgres container and prints PASS or FAIL.
+// Usage: node scripts/test-scenario.mjs <a|b|c> [container-name]
 //   container default: hc-scenario-<x>, or $SCENARIO_<X>_DB. Setup of the container is described in docs/TESTING.md.
 // Each SQL file ends with `SCENARIO_<X>|passed|<checks>` and prints `STEP|n|label` lines; a failed check raises "scenario <X> failed: ...".
 // Local containers only: the name is checked.
@@ -10,8 +10,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const key = (process.argv[2] ?? '').toLowerCase();
-if (!/^[ab]$/.test(key)) {
-  console.error('usage: node scripts/test-scenario.mjs <a|b> [container-name]');
+if (!/^[abc]$/.test(key)) {
+  console.error('usage: node scripts/test-scenario.mjs <a|b|c> [container-name]');
   process.exit(2);
 }
 const upper = key.toUpperCase();
