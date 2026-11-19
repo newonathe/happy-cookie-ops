@@ -886,6 +886,7 @@ export type Database = {
           pay_ref: string
           payload_hash: string | null
           received_at: string
+          recorded_by: string | null
           sold_at: string
           tendered_cents: number
           total_cents: number
@@ -904,6 +905,7 @@ export type Database = {
           pay_ref?: string
           payload_hash?: string | null
           received_at?: string
+          recorded_by?: string | null
           sold_at: string
           tendered_cents?: number
           total_cents: number
@@ -922,6 +924,7 @@ export type Database = {
           pay_ref?: string
           payload_hash?: string | null
           received_at?: string
+          recorded_by?: string | null
           sold_at?: string
           tendered_cents?: number
           total_cents?: number
@@ -940,6 +943,13 @@ export type Database = {
             columns: ["ledger_id"]
             isOneToOne: false
             referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_sales_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1038,6 +1048,38 @@ export type Database = {
           {
             foreignKeyName: "flavour_costs_typed_by_fkey"
             columns: ["typed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      helper_invites: {
+        Row: {
+          access_expires_at: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          id: string
+        }
+        Insert: {
+          access_expires_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          id?: string
+        }
+        Update: {
+          access_expires_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "helper_invites_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1986,6 +2028,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_expires_at: string | null
           active: boolean
           created_at: string
           display_name: string
@@ -1993,6 +2036,7 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
+          access_expires_at?: string | null
           active?: boolean
           created_at?: string
           display_name: string
@@ -2000,6 +2044,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Update: {
+          access_expires_at?: string | null
           active?: boolean
           created_at?: string
           display_name?: string
@@ -2727,6 +2772,10 @@ export type Database = {
           duplicate: boolean
         }[]
       }
+      add_helper: {
+        Args: { p_email: string; p_expires_at: string }
+        Returns: Json
+      }
       anonymise_customer: {
         Args: { p_note?: string; p_phone: string }
         Returns: number
@@ -2763,6 +2812,8 @@ export type Database = {
         }[]
       }
       bazaar_day_access: { Args: { p_day: string }; Returns: boolean }
+      bazaar_day_open: { Args: { p_day: string }; Returns: boolean }
+      bazaar_event_open: { Args: { p_event: string }; Returns: boolean }
       bazaar_held_ledger: {
         Args: never
         Returns: {
@@ -3084,6 +3135,7 @@ export type Database = {
         Returns: Json
       }
       get_last_paid: { Args: never; Returns: Json }
+      get_open_bazaar_day: { Args: never; Returns: Json }
       get_operating_settings: {
         Args: never
         Returns: {
@@ -3175,6 +3227,7 @@ export type Database = {
         }
         Returns: Json
       }
+      is_active_helper: { Args: never; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       item_unit_cost: {
@@ -3208,6 +3261,7 @@ export type Database = {
           first_link: boolean
         }[]
       }
+      list_people: { Args: never; Returns: Json }
       load_event_stock: {
         Args: { p_event: string; p_float_cents: number; p_loaded: Json }
         Returns: {
@@ -3394,6 +3448,7 @@ export type Database = {
         Args: { p_booking: string; p_confirm_name: string }
         Returns: Json
       }
+      revoke_helper: { Args: { p_id: string }; Returns: undefined }
       run_import_bookings: { Args: { p_rows: Json }; Returns: Json }
       run_import_flavours: { Args: { p_rows: Json }; Returns: Json }
       run_import_items: { Args: { p_rows: Json }; Returns: Json }
@@ -3580,6 +3635,10 @@ export type Database = {
       set_event_device: {
         Args: { p_device: string; p_event: string }
         Returns: string
+      }
+      set_helper_expiry: {
+        Args: { p_expires_at: string; p_id: string }
+        Returns: undefined
       }
       set_shop_override: {
         Args: { p_mode: string }

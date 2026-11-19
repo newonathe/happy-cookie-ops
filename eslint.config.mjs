@@ -27,6 +27,7 @@ const config = [
     // It is linted for correctness by its tests, not by style rules it predates.
     ignores: [
       'src/store/engine/ops-engine.js',
+      'supabase/functions/**/index.ts',
       '.next/**',
       'tools/owner-preview/**',
       'build/**',

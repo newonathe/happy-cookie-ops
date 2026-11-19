@@ -55,7 +55,9 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101008800_pickup_location.sql',
                     ROOT / 'supabase/migrations/20260101009000_order_extra_choice_photos.sql',
                     # S1: refund reference and waiting-list Instagram handle required.
-                    ROOT / 'supabase/migrations/20260101009200_refund_ref_and_waitlist_ig.sql']
+                    ROOT / 'supabase/migrations/20260101009200_refund_ref_and_waitlist_ig.sql',
+                    # S3: record_event_sale, void_event_sale, add_event_expense and close_bazaar_day were redefined whole, with a helper allowed.
+                    ROOT / 'supabase/migrations/20260101009500_helpers.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
