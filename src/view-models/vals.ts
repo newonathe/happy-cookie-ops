@@ -494,6 +494,8 @@ export interface OpsVals {
   liveMake?: LiveMake | null;
   /** Live owner only: Home's facts, each null until its own source has loaded. */
   liveHome?: LiveHome | null;
+  /** Live helper only: Home's two destinations (HCB-010). */
+  liveHelperHome?: { go: { bazaar: () => void; sales: () => void } } | null;
   /**
    * The month's profit goal (Ethan, 16 Nov 2026; settings key `profitGoal`, migration 87), in pesos, with this month's
    * profit from the books (null until read). Null when the goal is not known yet (before migration 87, or demo).

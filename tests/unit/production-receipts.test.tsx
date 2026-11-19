@@ -116,3 +116,33 @@ it('keeps separate dough and cookie receipts with their original drops', () => {
   expect(screen.getByText(/Drop 6 · Recipe version 3/)).toBeTruthy();
   expect(screen.getByText('26 cookies baked')).toBeTruthy();
 });
+
+it('HCB-016: a single cookie or ball is not plural', () => {
+  render(
+    <ProductionReceipts
+      rows={[
+        receipt({
+          quantity: 1,
+          rejects: 0,
+          usedDough: 1,
+          stockState: 'read',
+          inventoryReady: true,
+          balance: 1,
+          checkedAt: Date.parse('2026-11-04T07:00:00Z')
+        }),
+        receipt({
+          id: 'work-b',
+          kind: 'dough',
+          quantity: 1,
+          stockState: 'read',
+          inventoryReady: true,
+          balance: 1,
+          checkedAt: Date.parse('2026-11-04T07:00:00Z')
+        })
+      ]}
+    />
+  );
+  expect(screen.getByText(/^1 cookie baked$/)).toBeTruthy();
+  expect(screen.getByText('1 dough ball from the fridge used')).toBeTruthy();
+  expect(screen.getByText('Dough in the fridge: 1 ball')).toBeTruthy();
+});

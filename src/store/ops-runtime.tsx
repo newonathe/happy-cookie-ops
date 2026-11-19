@@ -4035,6 +4035,10 @@ export class OpsRuntime extends OpsProvider {
               }))
             }
           : null,
+      liveHelperHome:
+        isLiveMode() && this.state.role === 'helper' && this.state.screen === 'today'
+          ? { go: { bazaar: () => this.go('bazaar'), sales: () => this.go('sales') } }
+          : null,
       liveBooksRead:
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'sales'
           ? this.moneyDesk.booksRead()
@@ -9636,6 +9640,8 @@ export class OpsRuntime extends OpsProvider {
       const order = sync.find(String(row.id));
       return {
         ...row,
+        // The engine writes "1 cookies"; the count is the number it already printed.
+        count: String(row.count).replace(/^1 cookies$/, '1 cookie'),
         pickup: savedPickupText(order?.pickupDate, order?.pickupWindow, 'short', order?.pickupLabel)
       };
     });
