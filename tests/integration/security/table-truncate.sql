@@ -40,10 +40,10 @@ declare relation_name text;
 begin
   foreach relation_name in array (case when only_settings then array['settings'] else array[
     'audit_log','bake_batches','drops','erasure_requests','event_sale_items','event_sales',
-    'events','inventory_items','ledger_entries','order_items','orders','products','profiles',
+    'events','inventory_items','ledger_entries','order_items','orders','product_cafe_prices','products,product_cafe_prices','profiles',
     'rate_limits','recipe_drafts','recipe_ingredients','recipes','settings','supplier_prices','suppliers'] end) loop
     begin
-      execute format('truncate table public.%I', relation_name);
+      execute 'truncate table ' || (select string_agg(format('public.%I', x), ', ') from unnest(string_to_array(relation_name, ',')) x);
       raise exception 'forbidden truncate succeeded: % / %', actor, relation_name;
     exception when insufficient_privilege then
       insert into pg_temp.authority_results values ('table_truncate', actor,
@@ -125,7 +125,7 @@ begin
     end;
   end loop;
   begin
-    truncate table public.products;
+    truncate table public.products, public.product_cafe_prices;
     raise exception 'service_role truncated a table referenced by the private kitchen journal';
   exception when feature_not_supported then
     null; -- refused: the private kitchen journal still references products
@@ -139,7 +139,7 @@ truncate table public.bazaar_kitchen_moves, public.bazaar_kitchen_sources, publi
   public.rate_limits, public.recipe_drafts, public.recipe_ingredients, public.recipes, public.settings,
   public.supplier_prices, public.suppliers, public.event_expenses, public.order_swaps,
   public.order_extras, public.order_add_ons, public.order_boxes, public.scheduled_events, public.recipe_versions, public.stock_movements, public.production_records, public.stock_cost_corrections, public.item_prices, public.books_settings, public.packaging_rules,
-  public.bazaar_days, public.bazaar_day_lines, public.bazaar_costs, public.bazaar_fees, public.bazaar_losses, public.bazaar_stock_adds, public.flavour_costs;
+  public.bazaar_days, public.bazaar_day_lines, public.bazaar_costs, public.bazaar_fees, public.bazaar_losses, public.bazaar_stock_adds, public.flavour_costs, public.product_cafe_prices;
 do $$ declare relation_name text; populated boolean;
 begin
   if exists (select 1 from public.settings) or exists (select 1 from public.profiles) then
@@ -157,7 +157,7 @@ insert into pg_temp.authority_results values ('table_truncate', 'owner', 'all_20
 do $$ begin
   if (select jsonb_agg(u order by id) from auth.users u) is distinct from
        (select value from pg_temp.original_users) then raise exception 'auth users changed'; end if;
-  if (select count(*) from pg_temp.authority_results) <> 46 then
+  if (select count(*) from pg_temp.authority_results) <> 48 then
     raise exception 'truncate result count differs';
   end if;
 end $$;

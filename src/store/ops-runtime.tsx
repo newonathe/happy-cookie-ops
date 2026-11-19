@@ -9948,6 +9948,8 @@ export class OpsRuntime extends OpsProvider {
     eng.noShow = (id) =>
       void this.liveOrder((s) => s.setStatus(id, 'No-show'), STAFF_COPY.noShow(this.firstName(id)));
     eng.refundOrder = (id, ref) => {
+      // S1: a refund always carries the reference from the send-money receipt (the database refuses a blank one too).
+      if (!String(ref ?? '').trim()) return void this.toast(STAFF_COPY.refundNeedsRef, 'warn');
       const amount = PESO(this.orderPesos(id));
       void this.liveOrder(
         (s) => s.refund(id, String(ref ?? '').trim()),

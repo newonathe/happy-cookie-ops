@@ -352,6 +352,18 @@ describe('B3: the owner reads and drives real orders (live mode)', () => {
     expect(toasts(runtime)).toContain(STAFF_COPY.noRoom(1));
   });
 
+  it('S1: a refund with no reference is refused before the server is called', async () => {
+    const f = fake([raw({ total_cents: 30000, paid_cents: 20000 })]);
+    const runtime = await mounted('owner', f);
+    for (const blank of [undefined, '', '   ']) {
+      act(() => actions(runtime).refundOrder('HC-1001', blank));
+      await settle();
+    }
+    expect(sent(f.rpc)).toHaveLength(0);
+    expect(toasts(runtime)).toContain(STAFF_COPY.refundNeedsRef);
+    // Mutation: dropping the check sends staff_refund with an empty reference.
+  });
+
   it('a refund shows what was paid, and a refunded order is not reopened', async () => {
     const f = fake([raw({ total_cents: 30000, paid_cents: 20000 })]);
     const runtime = await mounted('owner', f);
