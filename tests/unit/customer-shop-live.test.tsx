@@ -91,12 +91,15 @@ describe('fluid client Shop', () => {
     const card = ui.getByRole('complementary', { name: 'Your cookies' });
     expect(within(card).getAllByText('Nothing picked yet')).toHaveLength(1);
     expect(within(card).queryByRole('list')).toBeNull();
+    expect(ui.getAllByText('Nothing picked yet')).toHaveLength(1);
   });
   it('keeps the flavour line under the picked items once something is picked', () => {
     const ui = render(<CustomerShopLive v={fixture().v} />);
     const card = ui.getByRole('complementary', { name: 'Your cookies' });
     expect(within(card).getByText('2 cookies picked')).toBeTruthy();
     expect(within(card).getByText('1 flavour')).toBeTruthy();
+    const bar = ui.getByLabelText('Continue your order');
+    expect(within(bar).getByText('2 cookies picked')).toBeTruthy();
   });
   it('preserves the runtime ask-us allergen warning when confirmation is needed', () => {
     const f = fixture();
