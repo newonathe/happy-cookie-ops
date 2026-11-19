@@ -48,3 +48,14 @@ Normal test configuration uses `updateSnapshots: none`, including locally. The v
 The local fixture runner supplies `HCO_LOCAL_RPC_ORIGIN`, `HCO_LOCAL_OWNER_JWT`, `HCO_LOCAL_ANON_JWT` and `HCO_FIXTURE_NONCE`, plus the owner preview on loopback port4186. The driver requires its current synthetic fixture token and loopback API port45000–48999, and blocks other browser origins. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` selects an installed Chromium when needed. Failure artifacts contain RPC bodies and UI text: run only with synthetic fixture data. Fixture setup must verify ownership of the disposable PostgreSQL/PostgREST processes before supplying these variables.
 
 Independent SQL regressions are `tests/integration/security/make-bazaar-transfer.sql` and `bazaar-return-volume.sql`; their runners verify two clean resets, schema/function authority, stock/cost effects and replay behavior. The browser driver consumes an already prepared fixture; bootstrap and physical-device acceptance remain separate gates.
+
+## Scenario A (order to books)
+
+`pnpm test:scenario-a [container]` runs `tests/integration/scenarios/scenario-a.sql` (order, payment, dough and baking, stock, packing, pickup, books; real roles; replays; rolled back) against a disposable local Postgres 17 container and prints PASS or FAIL. Setup, once per container:
+
+1. `docker run -d --name hc-scenario-a -p 127.0.0.1:55433:5432 -e POSTGRES_PASSWORD=<any> public.ecr.aws/supabase/postgres:17.6.1.166`
+2. The bare image has no storage tables. As `supabase_admin` create `storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[])` and `storage.objects(id uuid default gen_random_uuid() primary key, bucket_id text, name text)` with row level security on, and make `postgres` their owner.
+3. With the pinned CLI, from a scratch copy of `supabase/` (project id changed, `major_version = 17`, `[db.seed] enabled = false`): `supabase db reset --workdir <scratch> --yes --no-seed --db-url "postgresql://postgres@127.0.0.1:55433/postgres?sslmode=disable"` with `PGPASSWORD` set.
+4. Remove it afterwards: `docker rm -f -v hc-scenario-a`.
+
+One transaction has one clock, so the stale-stamp cases use an old stamp rather than a competing write.
