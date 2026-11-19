@@ -300,6 +300,27 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
     // Mutation: a max that ignores the cookies already boxed lets one cookie sit in two boxes; the server refuses (box-fit).
   });
 
+  it('Order a box!: the shop offers the active sizes, and Continue picks one box and sends the usual order', async () => {
+    const { runtime, calls } = await mounted({}, { dcf: 6 });
+    act(() => runtime.setState({ screen: 'shop' }));
+    const box = () => runtime.renderVals().shopBox!;
+    expect(box().sizes).toEqual([6, 8]);
+    expect(box().cookies).toBe(6);
+    act(() => box().pick(8)); // the cart holds six: an eight box is not full, so nothing happens
+    expect(runtime.state.screen).toBe('shop');
+    act(() => box().pick(6));
+    expect(runtime.state.screen).toBe('checkout');
+    expect(live1(runtime).extras!.boxes[0]).toMatchObject({ size: 6, qty: 1 });
+    fill(runtime);
+    await submit(runtime);
+    const [order] = placed(calls);
+    expect(order).toMatchObject({
+      items: [{ product_id: 'dcf', qty: 6 }],
+      boxes: [{ size: 6, qty: 1 }]
+    });
+    // Mutation: pick() that skips setBox sends no box; the server then charges no box and Cine's drawing is lost.
+  });
+
   it("the shop's sampler card lists the cookies inside, from the owner's saved list", async () => {
     const { runtime } = await mounted({
       get_shop_extras: () => ({
