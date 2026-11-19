@@ -160,8 +160,9 @@ begin
     'select * from public.record_event_sale(pg_temp.sale(''devA:S1:1'') || ''{"eventId": "g0-synthetic-event"}'')', '22023');
   perform pg_temp.expect(a, 'sale_event_unknown',
     'select * from public.record_event_sale(pg_temp.sale(''devA:S1:1'') || ''{"eventId": "d1e0c105-0000-4000-8000-0000000000ff"}'')', 'P0002');
-  perform pg_temp.expect(a, 'sale_wrong_device',
-    'select * from public.record_event_sale(pg_temp.sale(''devB:S1:1'', ''devB''))', '42501');
+  -- S2 (migration 93): a device that is not the selling one may sell, so this refusal is now the device id's own shape.
+  perform pg_temp.expect(a, 'sale_device_malformed',
+    'select * from public.record_event_sale(pg_temp.sale(''dev B!:S1:1'', ''dev B!''))', '22023');
   perform pg_temp.expect(a, 'sale_total_off',
     'select * from public.record_event_sale(pg_temp.sale(''devA:S1:1'') || ''{"totalCents": 12999}'')', '22023');
   perform pg_temp.expect(a, 'sale_live_price_not_snapshot',
@@ -290,8 +291,9 @@ begin
   perform pg_temp.confirm(r.duplicate = false, a, 'sale_from_former_device', 'accepted');
   select * into r from public.record_event_sale(pg_temp.sale('devB:S1:1767268800000', 'devB'));
   perform pg_temp.confirm(r.duplicate = false, a, 'sale_from_new_device', 'accepted');
+  -- S2 (migration 93): a third device is accepted too; the selling device is no longer a rule for a sale.
   perform pg_temp.expect(a, 'sale_third_device',
-    'select * from public.record_event_sale(pg_temp.sale(''devC:S1:1767268800000'', ''devC''))', '42501');
+    'select * from public.record_event_sale(pg_temp.sale(''devD:S1:1767268800000'', ''devD''))', '00000');
   perform pg_temp.expect(a, 'device_move_back', 'select public.set_event_device(pg_temp.ev(), ''devA'')', '00000');
   perform pg_temp.confirm((select selling_device = 'devA' and former_devices = array['devB'] from public.events where id = ev),
     a, 'device_move_back_state', 'devA_selling_devB_former');
@@ -319,12 +321,12 @@ begin
   select * into r from public.record_event_sale(pg_temp.sale('devA:S1:1767268800000'));
   perform pg_temp.confirm(r.duplicate = true, a, 'repeat_after_device_change', 'acknowledged');
   perform pg_temp.expect(a, 'new_sale_after_device_change',
-    'select * from public.record_event_sale(pg_temp.sale(''devA:S7:1767268800000''))', '42501');
+    'select * from public.record_event_sale(pg_temp.sale(''devA:S7:1767268800000''))', '00000');
   update public.events set selling_device = 'devA', closed_at = '2026-01-01 00:00+00' where id = pg_temp.ev();
   select * into r from public.record_event_sale(pg_temp.sale('devA:S1:1767268800000'));
   perform pg_temp.confirm(r.duplicate = true, a, 'repeat_after_close', 'acknowledged');
   perform pg_temp.expect(a, 'new_sale_after_close',
-    'select * from public.record_event_sale(pg_temp.sale(''devA:S7:1767268800000''))', '55000');
+    'select * from public.record_event_sale(pg_temp.sale(''devA:S8:1767268800000''))', '55000');
 end $$;
 
 grant execute on function pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text),

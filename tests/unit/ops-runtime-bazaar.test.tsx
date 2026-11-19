@@ -48,7 +48,11 @@ const toastText = (runtime: OpsRuntime) => JSON.stringify(runtime.state.toast ??
 function rpcThatStarts(
   reply: (args: Record<string, unknown>) => { data: unknown; error: unknown }
 ) {
-  const rpc = vi.fn(async (_name: string, args: Record<string, unknown>) => reply(args));
+  // These tests run against a database older than migration 93: it has no `get_bazaar_day`, so the till starts from the planned
+  // stock as before (the day on any device is tested in ops-runtime-bazaar-account.test.tsx).
+  const rpc = vi.fn(async (name: string, args: Record<string, unknown>) =>
+    name === 'get_bazaar_day' ? { data: null, error: { code: 'PGRST202' } } : reply(args)
+  );
   return { client: { rpc }, rpc };
 }
 
@@ -119,7 +123,7 @@ describe('beginBazaarDay (live)', () => {
       outcome = await begin(runtime);
     });
     expect(outcome).toBe('started');
-    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc.mock.calls.map((c) => c[0])).toEqual(['start_bazaar_day', 'get_bazaar_day']);
     const [name, args] = rpc.mock.calls[0]!;
     expect(name).toBe('start_bazaar_day');
     expect(args).toMatchObject({ p_day: DAY, p_device: 'dev1' });
@@ -206,7 +210,7 @@ describe('beginBazaarDay (live)', () => {
     // Mutation: adopting the reply's event would sell into an event this day never asked for.
   });
 
-  it('a day another of her devices is selling moves to this device, then opens here (14 November 2026)', async () => {
+  it('on a database older than migration 93, a day another of her devices is selling moves to this device, then opens here (14 November 2026)', async () => {
     const runtime = mounted();
     const { client, rpc } = rpcThatStarts((args) => {
       if ('p_device' in args && 'p_event' in args) return { data: args.p_device, error: null };
@@ -248,7 +252,8 @@ describe('beginBazaarDay (live)', () => {
     bazaar(runtime).saleClient = client;
     await act(async () => void (await begin(runtime)));
     await act(async () => void (await begin(runtime)));
-    expect(rpc.mock.calls[1]![1].p_event_id).toBe(rpc.mock.calls[0]![1].p_event_id);
+    const starts = rpc.mock.calls.filter((c) => c[0] === 'start_bazaar_day');
+    expect(starts[1]![1].p_event_id).toBe(starts[0]![1].p_event_id);
   });
 });
 

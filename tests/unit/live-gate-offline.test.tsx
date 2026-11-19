@@ -89,6 +89,8 @@ vi.mock('@/lib/supabase/client', async () => {
           ],
           error: null
         };
+      // A database older than migration 93 has no `get_bazaar_day`: the till starts from the planned stock, as before.
+      if (name === 'get_bazaar_day') return { data: null, error: { code: 'PGRST202' } };
       if (name === 'record_event_sale') {
         const sale = args.p_sale as { clientId: string };
         return {
