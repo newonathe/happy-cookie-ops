@@ -500,7 +500,8 @@ export class FlavourSync {
     if (!rows.length) {
       // Answered, with nothing in it. Still not `loaded`: publishing or adding from an empty
       // cache stays refused (the c1c review's P0), but the screens may say "no flavours".
-      this.readEmpty = true;
+      // Not when a newer read has failed since: that is a failed menu, not a confirmed empty one.
+      this.readEmpty = this.failedRead <= read;
       this.report();
       return false;
     }
