@@ -1458,6 +1458,28 @@ describe('HCB-004: a malformed get_flavours answer is a failed read', () => {
     expect(await sync.load()).toBe(true);
   });
 
+  it('HCB-004c: an older empty answer after a newer failed read is not a confirmed empty menu', async () => {
+    let release!: (value: { data: unknown; error: null }) => void;
+    const calls: Array<Promise<{ data: unknown; error: unknown }>> = [
+      new Promise((resolve) => (release = resolve)),
+      Promise.resolve({ data: null, error: { message: 'network' } })
+    ];
+    const client = { rpc: vi.fn(() => calls.shift()) } as unknown as FlavoursClient;
+    const sync = new FlavourSync(client, {
+      apply: vi.fn(),
+      edit: vi.fn(),
+      restore: vi.fn(),
+      online: () => true,
+      toast: vi.fn()
+    });
+    const older = sync.load();
+    expect(await sync.load()).toBe(false);
+    release({ data: [], error: null });
+    expect(await older).toBe(false);
+    expect(flavoursRead.get().phase).toBe('failed');
+    expect(sync.readEmpty).toBe(false);
+  });
+
   it('still reads null as answered-empty, and an empty array the same', async () => {
     for (const data of [null, []]) {
       const sync = new FlavourSync(answering(data), {
