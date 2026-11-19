@@ -572,7 +572,12 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           </label>
         )}
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '44px' }}>
-          <input name="active" type="checkbox" defaultChecked={editing.active} />
+          <input
+            className="size-6 accent-brand"
+            name="active"
+            type="checkbox"
+            defaultChecked={editing.active}
+          />
           <span style={smallLabel}>On the order form</span>
         </label>
         <button type="submit" style={primaryButton}>
