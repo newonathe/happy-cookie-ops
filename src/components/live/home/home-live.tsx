@@ -94,6 +94,29 @@ function WeekBars({ week }: { week: NonNullable<LiveHome['week']> }) {
     </>
   );
 }
+
+/** HCB-010: a helper's Home, until the owner decides more (OD-04): the two places a helper may open, and no money. */
+function HelperHome({ go }: { go: { bazaar: () => void; sales: () => void } }) {
+  return (
+    <div data-screen-label="Home" className={styles.home}>
+      <header className={styles.span12}>
+        <h1
+          tabIndex={-1}
+          className="font-display text-page text-on-ground lowercase outline-none md:text-page-lg"
+        >
+          Where would you like to work?
+        </h1>
+      </header>
+      <GlassCard title="Your places" className={styles.span12}>
+        <div className={glassStyles.glassRows}>
+          <ListRow title="Bazaar" detail="Sell at the stall" onOpen={go.bazaar} />
+          <ListRow title="Sales log" detail="Sales recorded on this phone" onOpen={go.sales} />
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
 const ATTENTION_SHOWN = 3;
 const ICON = {
   production: (
@@ -273,7 +296,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
   const home = v.liveHome;
   // HCB-002i: a first read that failed is not "still loading".
   const read = useSyncExternalStore(ordersRead.subscribe, ordersRead.get, ordersRead.getServer);
-  if (!home) return null;
+  if (!home) return v.liveHelperHome ? <HelperHome go={v.liveHelperHome.go} /> : null;
   const { orders, go } = home;
   const till = v.liveScreen?.till;
   const next = v.liveScreen?.next;

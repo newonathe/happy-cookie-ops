@@ -453,3 +453,13 @@ describe('the live Money page', () => {
     }
   });
 });
+
+describe('HCB-017: order income is labelled Orders, not Drops', () => {
+  it('the list and the transaction page show Orders for a paid order', async () => {
+    live = true;
+    const r = await mounted();
+    const cats = money(r).transactions.map((t) => t.cat);
+    expect(cats).toContain('Orders');
+    expect(cats).not.toContain('Drops');
+  });
+});

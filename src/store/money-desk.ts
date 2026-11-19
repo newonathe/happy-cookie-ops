@@ -156,7 +156,8 @@ export class MoneyDesk {
         .map((r, i) => ({
           id: r.id ?? String(i),
           label: r.label,
-          cat: r.cat,
+          // The engine reads order income as 'Drops'; the owner's word for it is Orders.
+          cat: r.cat === 'Drops' ? 'Orders' : r.cat,
           when: date(r.at),
           kind: r.kind,
           signed: r.kind === 'revenue' ? r.amount : -r.amount

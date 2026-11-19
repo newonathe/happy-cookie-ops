@@ -21,7 +21,10 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
         </p>
         {row.duplicate ? <p>Already recorded. No second entry was added.</p> : null}
         <strong className={styles.receiptQuantity}>
-          {n(row.quantity)} {row.kind === 'batch' ? 'cookies baked' : 'dough portions prepared'}
+          {n(row.quantity)}{' '}
+          {row.kind === 'batch'
+            ? `${row.quantity === 1 ? 'cookie' : 'cookies'} baked`
+            : `${row.quantity === 1 ? 'dough portion' : 'dough portions'} prepared`}
         </strong>
         {row.kind === 'batch' ? (
           <p>
@@ -48,7 +51,12 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
             </div>
           </div>
         ) : null}
-        {row.usedDough > 0 ? <p>{n(row.usedDough)} dough balls from the fridge used</p> : null}
+        {row.usedDough > 0 ? (
+          <p>
+            {n(row.usedDough)} {row.usedDough === 1 ? 'dough ball' : 'dough balls'} from the fridge
+            used
+          </p>
+        ) : null}
         {row.recipeAmount ? (
           <p>
             {row.recipeAmount === 1 ? 'Full recipe' : 'Half recipe'} used · actual dough count
@@ -91,8 +99,8 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
           <>
             <p>
               {row.kind === 'batch'
-                ? `Recorded baked stock · Drop ${row.dropNo}: ${n(row.balance)} cookies`
-                : `Dough in the fridge: ${n(row.balance)} balls`}
+                ? `Recorded baked stock · Drop ${row.dropNo}: ${n(row.balance)} ${row.balance === 1 ? 'cookie' : 'cookies'}`
+                : `Dough in the fridge: ${n(row.balance)} ${row.balance === 1 ? 'ball' : 'balls'}`}
             </p>
             <p className={styles.receiptMeta}>
               Checked {when(row.checkedAt)} · recorded balance, not a physical count.
