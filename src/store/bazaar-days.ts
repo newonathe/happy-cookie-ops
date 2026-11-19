@@ -21,6 +21,7 @@ import {
   type DayPrices,
   type TillFigures
 } from '@/lib/data/bazaar-days';
+import { dayTimeLabel } from '@/lib/date/display';
 import { type ScheduledClient, type ScheduledEvent } from '@/lib/data/scheduled-events';
 import { matchesEventEntry, sendEventEntry } from '@/lib/data/event-entry';
 import type { FrozenEventRequest } from '@/lib/bazaar/event-entry-recovery';
@@ -71,7 +72,6 @@ import {
 } from '@/lib/bazaar/review';
 import { costCentavosToPesos } from '@/lib/money';
 import { COST_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
-import { formatManila } from '@/lib/time/business-clock';
 
 /**
  * The owner's bazaar days (S2, S3): which booking is open, what `get_bazaar` returned for it, the day plan being edited
@@ -335,12 +335,7 @@ function datesBetween(a: string, b: string): string[] {
   return out;
 }
 
-const stamp = (at: number): string =>
-  formatManila(
-    at,
-    { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true },
-    'en-PH'
-  );
+const stamp = (at: number): string => dayTimeLabel(at);
 
 export class BazaarDays {
   private listPosition: LiveBazaarVals['listPosition'];

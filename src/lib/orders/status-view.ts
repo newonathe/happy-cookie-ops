@@ -1,8 +1,8 @@
 import type { OrderStatusView } from '@/lib/data/orders';
+import { dayTimeLabel } from '@/lib/date/display';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import { contactOr, ownerOr, withContact } from '@/lib/orders/identity';
 import { clockLabel } from '@/lib/orders/pickup';
-import { formatManila } from '@/lib/time/business-clock';
 
 /**
  * The `cust` values the ported order-status screen reads, built from `order_status()` instead of the
@@ -42,13 +42,7 @@ function whenText(iso: string | null): string {
   if (!iso) return '';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
-  return formatManila(d, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit'
-  });
+  return dayTimeLabel(d);
 }
 
 /** `2026-10-08` and `10:30` (or `campus`) as `Thu, Oct 8 · 10:30 AM`. */

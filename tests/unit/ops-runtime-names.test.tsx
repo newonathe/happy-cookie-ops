@@ -261,7 +261,7 @@ describe('the signed-in person in live mode', () => {
   it('dates Home on the shop’s clock, not the device’s', () => {
     const runtime = mount('owner');
     at(runtime, '2026-10-06T17:00:00Z'); // Wednesday 01:00 in Manila, Tuesday 10:00 on this device
-    expect(text(runtime.renderVals().todayDate)).toBe('Wednesday, 7 Oct');
+    expect(text(runtime.renderVals().todayDate)).toBe('Wed, 7 Oct');
     expect(text(runtime.renderVals().greeting)).toBe('Good morning.');
   });
 

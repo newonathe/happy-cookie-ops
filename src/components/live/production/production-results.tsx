@@ -1,10 +1,10 @@
 'use client';
 
+import { dayLabel, dayTimeLabel } from '@/lib/date/display';
 import { useEffect } from 'react';
 import type { LiveProductionVals } from '@/lib/production/live-production-types';
 import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
-import { formatManila } from '@/lib/time/business-clock';
 import { Banner } from '@/components/ui/banner';
 import styles from './results.module.css';
 
@@ -56,8 +56,7 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
   const dates = data.rows
     .map((row) => row.at)
     .filter((at) => Number.isFinite(new Date(at).getTime()));
-  const date = (at: number) =>
-    formatManila(at, { day: 'numeric', month: 'short', year: 'numeric' }, 'en-PH');
+  const date = (at: number) => dayLabel(at);
   const first = Math.min(...dates),
     last = Math.max(...dates);
   const range = !dates.length
@@ -197,16 +196,7 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
                 .map((row, index) => {
                   const date = new Date(row.at),
                     when = Number.isFinite(date.getTime())
-                      ? formatManila(
-                          date,
-                          {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: 'numeric',
-                            minute: '2-digit'
-                          },
-                          'en-PH'
-                        )
+                      ? dayTimeLabel(date)
                       : 'Time unavailable';
                   return (
                     <li key={`${row.productId}:${row.at}:${index}`}>

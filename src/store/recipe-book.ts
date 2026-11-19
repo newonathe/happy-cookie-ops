@@ -1,8 +1,8 @@
 import type { BazaarClient, FlavourCost } from '@/lib/data/bazaar-days';
+import { dayLabel } from '@/lib/date/display';
 import { fetchFlavourCosts, saveFlavourCost } from '@/lib/data/bazaar-days';
 import type { RecipeCost } from '@/lib/data/costs';
 import { peso } from '@/lib/money/format';
-import { formatManila } from '@/lib/time/business-clock';
 import {
   bookRows,
   costSourceText,
@@ -57,8 +57,7 @@ export interface RecipeBookDeps {
 const MISSING = /PGRST202|42883|404/;
 
 /** "15 Oct", as the spec writes it (en-PH would write "Oct 15"). */
-const stamp = (at: number): string =>
-  `${formatManila(at, { day: 'numeric' }, 'en-PH')} ${formatManila(at, { month: 'short' }, 'en-PH')}`;
+const stamp = (at: number): string => dayLabel(at);
 
 /**
  * The owner's recipe book (U7): each flavour with its price, its cost per cookie (hers if she typed one for the flavour,

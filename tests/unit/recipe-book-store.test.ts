@@ -143,7 +143,7 @@ describe('reading her typed costs', () => {
     expect(h.item('classic')).toMatchObject({
       costText: '₱40.00',
       costSource: 'typed',
-      sourceText: 'Typed by you on 15 Oct',
+      sourceText: 'Typed by you on Thu, 15 Oct',
       marginText: '68%',
       keptText: '₱85.00',
       tone: 'ok',

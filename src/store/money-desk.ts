@@ -1,4 +1,5 @@
 import type { LiveMoney, MoneyPeriod } from '@/view-models/vals';
+import { dayLabel } from '@/lib/date/display';
 import type { OpsEngineState } from '@/store/engine/ops-engine';
 import { centavosToPesos } from '@/lib/money';
 import { formatManila, manilaMidnight, monthStart } from '@/lib/time/business-clock';
@@ -115,8 +116,7 @@ export class MoneyDesk {
     const from = this.periodFrom(s);
     const day = 86_400_000;
     const step = this.period === 'week' ? day : 7 * day;
-    const date = (at: number) =>
-      formatManila(at, { day: 'numeric' }) + ' ' + formatManila(at, { month: 'short' });
+    const date = (at: number) => dayLabel(at);
     // Presentation only: the same ledger rows the totals sum, grouped by day or week.
     const buckets: LiveMoney['buckets'] = [];
     for (let start = from; start < now; start += step) {

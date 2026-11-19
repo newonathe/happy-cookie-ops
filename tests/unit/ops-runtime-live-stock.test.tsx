@@ -326,7 +326,7 @@ describe('B5-1: liveStock (live mode, owner)', () => {
     const butter = byName(runtime, 'Unsalted butter');
     expect(butter.qtyText).toBe('900 g');
     expect(butter.levelText).toBe('Low below 200 g');
-    expect(butter.lastCountedText).toBe('Counted 3 Oct');
+    expect(butter.lastCountedText).toBe('Counted Sat, 3 Oct');
     expect(byName(runtime, 'Eggs').lastCountedText).toBe('Opening count pending');
     expect(byName(runtime, 'Tape').levelText).toBe('No level set');
     expect(byName(runtime, 'Bread flour').qtyText).toBe('0 g');
@@ -375,7 +375,7 @@ describe('B5-1: liveStock (live mode, owner)', () => {
         ]
       })
     );
-    expect(byName(runtime, 'Unsalted butter').lastPaidText).toBe('Last paid ₱88.25 · 3 Oct');
+    expect(byName(runtime, 'Unsalted butter').lastPaidText).toBe('Last paid ₱88.25 · Sat, 3 Oct');
     expect(byName(runtime, 'Eggs').lastPaidText).toBeNull();
   });
 

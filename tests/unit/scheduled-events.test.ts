@@ -147,8 +147,8 @@ describe('upcomingEvents and dateRange', () => {
   });
 
   it('words the dates the way the screens do', () => {
-    expect(dateRange('2026-10-24', '2026-10-24')).toBe('Sat, Oct 24');
-    expect(dateRange('2026-10-24', '2026-10-25')).toBe('Sat, Oct 24 – Sun, Oct 25');
+    expect(dateRange('2026-10-24', '2026-10-24')).toBe('Sat, 24 Oct');
+    expect(dateRange('2026-10-24', '2026-10-25')).toBe('Sat, 24 Oct – Sun, 25 Oct');
   });
 });
 

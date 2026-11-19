@@ -1,7 +1,7 @@
 import type * as React from 'react';
+import { dayTimeLabel } from '@/lib/date/display';
 import type { OpsVals } from '@/view-models/vals';
 import type { LiveStockVals, StockStatus } from '@/lib/stock/live-stock-types';
-import { formatManila } from '@/lib/time/business-clock';
 import { primaryButton, secondaryButton } from '@/components/live/form-styles';
 
 /**
@@ -142,7 +142,5 @@ export function Facts({ rows }: { rows: ReadonlyArray<readonly [string, string]>
 
 /** "3 Oct, 2:15 PM", on the business clock (Manila) whatever zone the device is set to. */
 export function manilaStamp(at: number): string {
-  const day = formatManila(at, { day: 'numeric', month: 'short' }, 'en-GB');
-  const time = formatManila(at, { hour: 'numeric', minute: '2-digit', hour12: true });
-  return `${day}, ${time.replace(/\s/g, ' ')}`;
+  return dayTimeLabel(at);
 }

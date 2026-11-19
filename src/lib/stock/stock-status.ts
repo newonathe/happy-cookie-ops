@@ -1,5 +1,5 @@
 import type { StockStatus } from '@/lib/stock/live-stock-types';
-import { formatManila } from '@/lib/time/business-clock';
+import { dayLabel } from '@/lib/date/display';
 import { COST_COPY, STOCK_COPY } from '@/lib/orders/staff-copy';
 
 /**
@@ -60,9 +60,7 @@ export function changeText(delta: number, unit: string): string {
 
 /** "3 Oct": the shop's day, day then month whatever the device's locale says about the order of the two. */
 function dayAndMonth(at: Date): string {
-  const day = formatManila(at, { day: 'numeric' }, 'en-US');
-  const month = formatManila(at, { month: 'short' }, 'en-US');
-  return day + ' ' + month;
+  return dayLabel(at);
 }
 
 /** "Counted 3 Oct" (the shop's day), or "Opening count pending" when it was never counted. */
