@@ -187,7 +187,7 @@ function CustomerDetail({
         {customer.contactText ? <FactRow label="Other">{customer.contactText}</FactRow> : null}
         <FactRow label="Orders">{customer.orderCountText}</FactRow>
       </Panel>
-      <SectionHeading>Order history</SectionHeading>
+      <SectionHeading>Recent orders (last 60 days)</SectionHeading>
       <Panel>
         {customer.orders.map((order) => (
           <TaskRow
@@ -212,7 +212,7 @@ function CustomerDetail({
             saveFile(`customer-${customer.orders[0]?.id ?? 'record'}.csv`, customer.recordCsv)
           }
         >
-          Export customer record
+          Export recent orders
         </Button>
         {customer.mobile ? (
           <Button variant="secondary" onClick={() => go('remove')}>

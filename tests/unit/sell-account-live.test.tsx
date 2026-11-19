@@ -322,6 +322,14 @@ describe('Customers/Waitlist', () => {
     expect(screen.getByRole('heading', { name: 'Customers/Waitlist' })).toBeTruthy();
   });
 
+  it('labels the history and export as recent orders, not lifetime (HCB-042)', () => {
+    render(<CustomersLive v={vals({ liveCustomers: live() })} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Open customer/ }));
+    expect(screen.getByRole('heading', { name: 'Recent orders (last 60 days)' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Export recent orders' })).toBeTruthy();
+    expect(screen.queryByText('Order history')).toBeNull();
+  });
+
   it('removes contact details only after the tick, and stays put when it fails', async () => {
     const removeContact = vi.fn(async () => 'failed' as const);
     render(<CustomersLive v={vals({ liveCustomers: live(removeContact as never) })} />);
