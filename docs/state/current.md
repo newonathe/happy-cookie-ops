@@ -2,22 +2,21 @@
 
 **The full application remains incomplete.** Source, deployment, public availability, physical-device and unaided-owner acceptance are separate. Read next-goal.md next; prior details are in current-history.md.
 
-## Released — 19 November 2026
+## Released — 19 November 2026 (afternoon)
 
-Latest deployed: #105 (merge `544fd96d`, run 44439171071, Worker version `c1ee2851-77cc-47c5-bd24-2fda241091ae`). The trial schema is 91 migrations / 186 exact public functions. Released on 19 November, each through its own PR into the deploy branch after green CI (the owner gave standing approval to merge once CI passes):
+Latest deployed: #118 (merge `b3c3126a`, run 44507905747, Worker version `96f5290a-c030-4cf1-b9d1-b13ec7846184`). Schema unchanged: 91 migrations / 186 exact public functions. Each PR went into the deploy branch after green CI under the owner's standing approval; the morning releases (#89–#105) are in [history](current-history.md).
 
-- **#89 public order form** (`91ebc7e1`): Ethan created the bypass Access app `bf75b9f2-848c-4941-92e6-066179d6cb5d` (seven customer paths; Bypass / Everyone) and the repository variable `TRIAL_PUBLIC_CUSTOMER_ACCESS_APP_ID` holds it. Anonymous `/shop`, `/checkout`, `/status`, `/lookup` and their assets load; owner paths and lookalikes still redirect to Access.
-- **Outage and #97:** #89's first release deployed, then failed its post-deploy gate and the fail-closed switch disabled `workers.dev` (Cloudflare 1042) until an unchanged re-run passed. Likely cause: the edge served the previous build's `/shop` for a few seconds (new build id per build). #97 (`d9fd6d68`) polls `/shop` up to 24 × 5 s before the full gate and prints the real reason before failing closed; Sonnet `security-reviewer`: clear with notes.
-- **#95** (`1bee5e1e`): Sign out sits inside the sidebar card (44 px; icon-only when folded); the owner is named once ("Ethan" / "Owner").
-- **#96 Option A glass** (`1bad8faf`), chosen by Ethan from the mockup canvas (claude.ai artifact `3YD8sbmbaB1U3uDNUNuat3`): animated white marble waves, translucent containers through one shared recipe (`hc-surface` on `PANEL_CLASS`/`Panel`, glass card modules, tokens `--color-owner-card*`, `--blur-owner-card*` in `globals.css`), glass sidebar/header/sheet, floating frosted phone tab bar, 700 ms / 70 ms rise and 0.96 press. Reduced motion and reduced transparency fall back. Bazaar till and customer pages unchanged. Cine has not seen it yet.
-- **#98 HCB-083** (`c9f9cac5`): demo browser bundles swap `lib/supabase/client` and `lib/supabase/auth-errors` for stubs (no backend, not live, client only), removing ~860 KB of SDK source. Local `/bazaar` 613,407 → 542,352 bytes, TBT median 499 → 382 ms; CI Performance budget passed with no TBT warning.
+- **#107 HCB-018:** one date formatter on the Manila clock (`src/lib/date/display.ts`: `dayLabel`, `dayTimeLabel`, `timeLabel`) across Home, till, events and production.
+- **#108 HCB-030:** a data request answered 401 makes the live gate re-check the sign-in (`src/lib/auth/session-rejected.ts`); a refused session shows "You were signed out" (placeholder wording for Cine) instead of a blank page, queued sales kept.
+- **#109 HCB-033:** live owner checkboxes are at least 24 px; HCB-032 was already fixed (regression test added).
+- **#110, #113 HCB-010/016/017:** a helper's Home offers Bazaar and Sales log (until OD-04); "1 cookie" everywhere the engine wrote "1 cookies" (`src/lib/display/singular-cookies.ts`); order income on Money reads "Orders", not "Drops". HCB-011 and HCB-019 were already fixed.
+- **#111, #114, #116 shop card:** an empty cart says "Nothing picked yet" once (card only; the phone Continue bar shows ₱0); once picked, the card title carries the count. Checked on the live trial at 375 and desktop width.
+- **#112 HCB-078/072 (browser):** `tests/e2e-scenarios/scenario-{a,c}.spec.ts` drive loops A and C through the live owner UI on a local stack, including an offline reload and a single replay by `clientId`; run locally with `pnpm test:e2e:scenarios` (not in CI: no hosted stack).
+- **#115 release gate:** after a deploy every public route and resource is waited for (12 × 5 s) before the strict byte check; the #114 release had failed closed on a stale `/lookup/` and the trial was 404 until the deploy job was re-run.
+- **#117 HCB-015:** the till keeps its own "Back to events" and the header Back is left out. HCB-021, 022, 034 and 040 were already fixed in current source.
+- **#118 HCB-004c:** an older empty menu read after a newer failed read no longer counts as a confirmed empty menu. HCB-031, 035 and 002 were already fixed.
 
-- **#100** (`5c0b81a3`): CI Browser flows runs in `mcr.microsoft.com/playwright:v1.63.0-noble` (no 36-minute apt install; a release now takes about 19 min) and `/api/sync` returns a plain `Response.json`, ending the `sync-unavailable` 5 s timeout. A test keeps every image tag equal to the pinned `@playwright/test`.
-- **Scenarios A, B, C** (#101 `870eda76`, #103 `1af59839`, #105 `544fd96d`): `tests/integration/scenarios/scenario-{a,b,c}.sql`, run with `pnpm test:scenario-a|b|c` (`scripts/test-scenario.mjs`) on a throwaway local Supabase stack on the Postgres 17.6.1.166 image: 61, 68 and 92 checks pass, no server defect found. Order → payment → production → stock → pickup → books; planned bake → shopping → receipt → dough → partial bake → cost; bazaar event → day → table stock → sales (offline replay, price version) → void → close → finalise → books. This closes HCB-078 for the SQL layer; browser and physical-device runs of the same loops remain open.
-- **#102** (`344f166b`): a verified owner (or helper) who opens a customer route keeps the customer page; the role is held without the protected `setRole` jump to Home.
-- **#104** (`65e64879`): customer history and export are labelled "Recent orders (last 60 days)" (HCB-042); a malformed pickup date returns blank text, never "Invalid Date" (HCB-036). HCB-043 was already fixed.
-
-Open: the checkout photo sits above its choice's label (Cine's call); unit tests can still time out at 5 s when two sessions run commit hooks at once (sessions retry with `VITEST_MAX_WORKERS=3`, never a longer timeout); Cine has not used the public form, pickup place, flavour removal, choice photos or the glass look. Codex's untouched sticker WIP stays at `codex/sticker-photos-wip-20261118`.
+Open: Cine has not seen the glass look, public form, pickup place, flavour removal, choice photos or the new notices; owner wording for "You were signed out" and the helper Home. Unit tests can still time out at 5 s when two sessions run commit hooks at once (retry with `VITEST_MAX_WORKERS=3`, never a longer timeout). A fresh worktree has no `.husky/_`, so run `pnpm verify` by hand there. The uncommitted Sell glass edits in the original urgent checkout predate #84 and are superseded; they stay untouched.
 
 ## Preservation and external acceptance
 
