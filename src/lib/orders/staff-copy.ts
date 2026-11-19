@@ -39,6 +39,7 @@ export const STAFF_COPY = {
   collected: (first: string): string => `${first}’s order is picked up.`,
   noShow: (first: string): string => `${first} did not pick up. The order stays paid.`,
   refunded: (amount: string): string => `${amount} refund recorded. The order is cancelled.`,
+  refundNeedsRef: 'Add the refund reference from your send-money receipt.',
   settled: (first: string): string => `Balance settled. ${first}’s order is fully paid.`,
   flagged: (flavour: string, first: string): string =>
     `${flavour} flagged as unavailable. Message ${first} to agree a swap.`,

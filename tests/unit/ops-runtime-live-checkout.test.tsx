@@ -720,6 +720,14 @@ describe('B2: the live checkout', () => {
     // Mutation: sending without the field check reaches place_order with an empty body.
   });
 
+  it('S1: cannot continue without a pickup date, and no order is sent', async () => {
+    const { runtime, calls } = await mounted();
+    await fillForm(runtime, { pickupDate: '' });
+    await submit(runtime);
+    expect(placeCalls(calls)).toHaveLength(0);
+    expect(Object.keys(runtime.renderVals().liveCheckout!.errors)).toEqual(['date']);
+  });
+
   it('places the order once, with exactly the customer’s own fields, and shows the number and link', async () => {
     const { runtime, calls } = await mounted();
     await fillForm(runtime);

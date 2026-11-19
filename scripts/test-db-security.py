@@ -53,7 +53,9 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101008200_customer_payment_read.sql',
                     # Later redefinitions of mutated functions (order_status, get_shop_order_rules: 088; shop extras: 090).
                     ROOT / 'supabase/migrations/20260101008800_pickup_location.sql',
-                    ROOT / 'supabase/migrations/20260101009000_order_extra_choice_photos.sql']
+                    ROOT / 'supabase/migrations/20260101009000_order_extra_choice_photos.sql',
+                    # S1: refund reference and waiting-list Instagram handle required.
+                    ROOT / 'supabase/migrations/20260101009200_refund_ref_and_waitlist_ig.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -75,6 +77,7 @@ ORDER_MUTATIONS = {
     'rule_waitlist_client_id_reuse': ('join_waitlist', 'rule', 'waitlist-client-id-reuse', _OUT + 'wait_replay_other_body / '),
     'rule_waitlist_replay': ('join_waitlist', 'rule', 'waitlist-replay', _OUT + 'wait_replay_other_body / '),
     'rule_waitlist_dedupe': ('join_waitlist', 'rule', 'waitlist-dedupe', 'duplicate key value violates unique constraint'),
+    'rule_waitlist_ig': ('join_waitlist', 'rule', 'waitlist-ig', _OUT + 'wait_ig_blank / '),
     'rule_waitlist_limit': ('join_waitlist', 'rule', 'waitlist-limit', _OUT + 'wait_limit / '),
     'text_menu_published': ('place_order', 'text',
                             ('join public.products p on p.id = t.pid and p.published and p.active;',
@@ -153,6 +156,7 @@ STAFF_MUTATIONS = {
     'rule_swap_price_clash': ('staff_swap_item', 'rule', 'swap-price-clash', _STF + 'swap_price_clash / '),
     'rule_swap_capacity': ('staff_swap_item', 'rule', 'swap-capacity', _STF + 'swap_capacity / '),
     'rule_refund_replay': ('staff_refund', 'rule', 'refund-replay', _STF + 'refund_replay / '),
+    'rule_refund_ref': ('staff_refund', 'rule', 'refund-ref', _STF + 'refund_ref_blank / '),
     'rule_refund_stale': ('staff_refund', 'rule', 'stale', _STF + 'refund_stale / '),
     'rule_refund_paid': ('staff_refund', 'rule', 'refund-paid', _STF + 'refund_unpaid / '),
     'rule_settle_replay': ('staff_settle_balance', 'rule', 'settle-replay', _STF + 'settle_replay / '),
@@ -1177,7 +1181,7 @@ SUITES = (
     ('order-inserts.sql', ('orders', 'order_items'), 'forbidden order insert succeeded', 12),
     ('legacy-mutations.sql', ('sync_event_sale(jsonb)', 'update_order_state(text,timestamptz,text,text,text)'), 'legacy EXECUTE boundary missing: active_owner / ', 14),
     ('audit-writes.sql', ('audit_staff_insert',), 'forbidden audit mutation succeeded: active_owner / insert', 30),
-    ('table-truncate.sql', ('settings_truncate',), 'forbidden truncate succeeded: anon / settings', 46),
+    ('table-truncate.sql', ('settings_truncate',), 'forbidden truncate succeeded: anon / settings', 48),
     ('settings.sql', ('settings_staff_read',), 'settings visibility differs: active_helper', 84),
     ('profiles.sql', ('current_role_name_missing_active_filter',), 'profile authority differs: inactive_owner_forged_service', 17),
     ('erasure-authority.sql', ('anonymise_customer(text,text)',), 'erasure ACL boundary missing: anon', 12),
@@ -1188,9 +1192,9 @@ SUITES = (
                              'payment_tables_raw_write', 'public_read_leaks_inactive'), 'forbidden payment call succeeded', 88),
     ('order-placement.sql', ('get_order_rules()', 'save_order_rules(jsonb,timestamptz)',
                              'orders_rows_leak', 'waitlist_table_select', 'rules_table_select')
-                            + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 175),
+                            + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 182),
     ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 25),
-    ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 122),
+    ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 126),
     ('shop-state.sql', ('set_shop_override(text)',) + tuple(SHOP_MUTATIONS), 'forbidden shop state call succeeded', 29),
     ('order-extras.sql', ('get_order_extras()', 'save_order_extras(jsonb,timestamptz)')
                          + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 156),
@@ -1592,7 +1596,7 @@ def main():
                 verify_functions(json.loads(h.psql(db_id, workdir, query))['functions'])
                 report['historical_production_runs'] = report.get('historical_production_runs', 0) + 1
             assert_empty()
-        if len(set(results)) != 3380:
+        if len(set(results)) != 3393:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         current_production_contracts()
         assert_functions()
@@ -1606,11 +1610,11 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1578 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1582 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4
                 and report.get('current_production_contract_runs') == 12 and report.get('historical_production_runs') == 8):
-            report.update(status="passed", cases_per_reset=3380, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3393, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
