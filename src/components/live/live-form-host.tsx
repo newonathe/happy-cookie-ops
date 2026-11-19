@@ -21,6 +21,8 @@ import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { CostForm } from '@/components/live/recipes/flavour-page';
 import { ProductTypesPanel } from '@/components/live/product-types-panel';
+import { CafePriceField } from '@/components/live/cafe-price-field';
+import { isLiveMode } from '@/lib/config/app-mode';
 import { ProductionDough } from '@/components/live/production/production-dough';
 
 /**
@@ -428,6 +430,8 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
             />
           </label>
         </div>
+        {/* Cafés and events pay a lower price she sets here (migration 91). It saves on its own, never the order form's price. */}
+        {editing.id && isLiveMode() ? <CafePriceField productId={editing.id} /> : null}
         <label style={labelStyle}>
           <span style={smallLabel}>Short name</span>
           <input
