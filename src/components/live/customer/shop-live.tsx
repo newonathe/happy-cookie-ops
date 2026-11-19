@@ -180,7 +180,10 @@ export function CustomerShopLive({ v }: { v: OpsVals }) {
       >
         <span className="min-w-0">
           <strong className="block">{v.boxTotalText}</strong>
-          <span className="text-label text-ink-soft">{v.boxCountText}</span>
+          {/* The card already says "Nothing picked yet": the bar names a count only once there is one. */}
+          {v.pickedItems.length > 0 ? (
+            <span className="text-label text-ink-soft">{v.boxCountText}</span>
+          ) : null}
         </span>
         {checkout('min-w-0')}
       </div>
