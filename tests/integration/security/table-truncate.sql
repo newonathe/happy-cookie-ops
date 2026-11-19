@@ -133,7 +133,7 @@ begin
 end $$;
 reset role;
 -- Only the trusted owner role empties the whole set, kitchen journal included.
-truncate table public.product_cafe_prices, public.bazaar_kitchen_moves, public.bazaar_kitchen_sources, public.event_price_versions, public.audit_log, public.bake_batches, public.drops, public.erasure_requests,
+truncate table public.bazaar_kitchen_moves, public.bazaar_kitchen_sources, public.event_price_versions, public.audit_log, public.bake_batches, public.drops, public.erasure_requests,
   public.event_sale_items, public.event_sales, public.events, public.inventory_items,
   public.ledger_entries, public.order_items, public.orders, public.products, public.profiles,
   public.rate_limits, public.recipe_drafts, public.recipe_ingredients, public.recipes, public.settings,
