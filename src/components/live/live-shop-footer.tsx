@@ -60,13 +60,13 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
           </span>
         ) : null}
         <span style={{ fontSize: '13px', lineHeight: '1.5', color: '#8A7062', textWrap: 'pretty' }}>
-          Privacy: {v.shopName || 'This shop'} uses your name, phone number, optional Instagram
-          handle and order details to fulfil orders and contact you. Supabase hosts the database.
-          Customer name, phone, Instagram and add-on-note fields are cleared from orders older than
-          one year by our retention routine. Payment references and financial records remain for
-          bookkeeping. Encrypted backup copies are kept separately and may contain older details.
-          For access, corrections or removal, contact {v.shopName || 'the shop'} through its usual
-          ordering channel.
+          Privacy: {v.shopName || 'This shop'} uses your name, phone number, Instagram handle and
+          order details to fulfil orders and contact you. Supabase hosts the database. Customer
+          name, phone, Instagram and add-on-note fields are cleared from orders older than one year
+          by our retention routine. Payment references and financial records remain for bookkeeping.
+          Encrypted backup copies are kept separately and may contain older details. For access,
+          corrections or removal, contact {v.shopName || 'the shop'} through its usual ordering
+          channel.
         </span>
         <Pressable
           as="button"
