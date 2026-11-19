@@ -34,6 +34,8 @@ const ROLES: Record<Role, true> = { owner: true, helper: true, support: true };
 export interface RememberedCheck {
   role: Role;
   at: number;
+  /** S3: when a helper's access ends (ms), or absent. An offline open never outlives it. */
+  until?: number;
 }
 
 /** The owner's hours from `cfg` (or the copy on the phone), clamped whatever the source says. */
@@ -43,8 +45,12 @@ export function offlineOpenHoursFor(cfg: Record<string, unknown> | undefined): n
   return Math.min(OFFLINE_OPEN_HOURS_MAX, Math.max(OFFLINE_OPEN_HOURS_MIN, Math.round(raw)));
 }
 
-export function rememberCheck(role: Role, at: number = Date.now()): void {
-  const record: RememberedCheck = { role, at };
+export function rememberCheck(
+  role: Role,
+  at: number = Date.now(),
+  until: number | null = null
+): void {
+  const record: RememberedCheck = until === null ? { role, at } : { role, at, until };
   try {
     localStorage.setItem(KEY, JSON.stringify(record));
   } catch {
@@ -56,10 +62,11 @@ export function readRememberedCheck(): RememberedCheck | null {
   try {
     const saved: unknown = JSON.parse(localStorage.getItem(KEY) ?? 'null');
     if (!saved || typeof saved !== 'object') return null;
-    const { role, at } = saved as Record<string, unknown>;
+    const { role, at, until } = saved as Record<string, unknown>;
     if (typeof role !== 'string' || !Object.hasOwn(ROLES, role)) return null;
     if (typeof at !== 'number' || !Number.isFinite(at) || at <= 0) return null;
-    return { role: role as Role, at };
+    if (until !== undefined && (typeof until !== 'number' || !Number.isFinite(until))) return null;
+    return until === undefined ? { role: role as Role, at } : { role: role as Role, at, until };
   } catch {
     return null;
   }
@@ -121,6 +128,8 @@ export function checkStillFresh(
 ): boolean {
   if (!check) return false;
   if (check.at > now + CLOCK_SLACK_MS) return false;
+  // S3: a helper whose time has run out is not let in offline either.
+  if (check.until !== undefined && now > check.until) return false;
   return now - check.at <= hours * HOUR_MS;
 }
 

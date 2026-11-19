@@ -311,9 +311,10 @@ describe('S2: with no event on the phone', () => {
     // Mutation: "No upcoming events yet" before the read lets her add a booking that is already there.
   });
 
-  it('a helper is told a day is started by the owner, and is offered nothing to start', async () => {
+  it('a helper sees only the open day (S3): the helper screen, and nothing to start or plan', async () => {
     await mount('helper');
-    expect(screen.getByText(/started by the owner, with signal/)).toBeTruthy();
+    expect(document.querySelector('[data-helper-day]')).not.toBeNull();
+    expect(screen.queryByText(/Upcoming events/i)).toBeNull();
     expect(screen.queryByRole('button', { name: /Start this day|Add an event/ })).toBeNull();
   });
 

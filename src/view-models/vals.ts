@@ -8,6 +8,7 @@ import type { RecipeBookItem } from '@/lib/recipes/live-recipes-types';
 import type { OrderStatusView } from '@/lib/data/orders';
 import type { PublicMethod } from '@/lib/data/payments';
 import type { TillLedger } from '@/lib/bazaar/till-ledger';
+import type { HelperBazaarVals } from '@/lib/bazaar/helper-bazaar-types';
 import type { LiveCustomers } from '@/store/customer-desk';
 import type { LiveMake } from '@/store/make-desk';
 import type { ShopMenuReadView } from '@/store/shop-menu-read';
@@ -423,6 +424,8 @@ export interface OpsVals {
   } | null;
   /** Live owner only (S2): the Bazaar screens' data (event list, event page, day plan). Null for anyone else. */
   liveBazaar?: LiveBazaarVals | null;
+  /** Live helper only (S3): the helper's Bazaar screen (find the open day, close it). Null for anyone else. */
+  liveHelperBazaar?: HelperBazaarVals | null;
   /** Live owner only (U7): the recipe book's data (the flavours with price, cost, margin and cost receipt). Null for anyone else. */
   liveRecipes?: LiveRecipesVals | null;
   /** Live owner only (HCB-013): where the open recipe sits in the address, and how an address opens it. */

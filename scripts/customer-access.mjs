@@ -14,6 +14,12 @@ export const CUSTOMER_PUBLIC_PATHS = Object.freeze([
 export const PUBLIC_CUSTOMER_ROUTES = Object.freeze(
   ['/shop', '/checkout', '/status', '/lookup'].flatMap((route) => [route, `${route}/`])
 );
+// S3 (helpers): the second Access application. It covers the bazaar page and the sign-in page only, and admits any email that
+// proves itself with a one-time code. Cloudflare picks the most specific application for a path, so these two paths leave the owner
+// application; the app's own sign-in, and the helper list and its expiry (RLS), are the real gate. Off until the repository
+// variable TRIAL_HELPER_ACCESS_APP_ID is set.
+export const HELPER_ACCESS_NAME = 'Happy Cookie helper access';
+export const HELPER_ACCESS_PATHS = Object.freeze(['/bazaar', '/sign-in']);
 export const OWNER_DENIED_ROUTES = Object.freeze([
   '/',
   '/pnl',
@@ -40,6 +46,123 @@ export function requireCustomerAccessAppId(value, ownerAppId = OWNER_ACCESS_APP_
   if (!isUuid(ownerAppId) || value.toLowerCase() === ownerAppId.toLowerCase())
     fail('Customer Access app ID must identify a separate app from the private owner app');
   return value;
+}
+
+/**
+ * The helper Access app ID, or null when it is not configured (the release then behaves exactly as before). When it is set it must
+ * be a UUID of an application that is neither the private owner app nor the public customer app.
+ */
+export function requireHelperAccessAppId(
+  value,
+  { ownerAppId = OWNER_ACCESS_APP_ID, customerAppId = /** @type {string | null} */ (null) } = {}
+) {
+  if (value == null || String(value).trim() === '') return null;
+  const id = String(value).trim();
+  if (!isUuid(id)) fail('TRIAL_HELPER_ACCESS_APP_ID must be a UUID');
+  const same = (other) => other != null && id.toLowerCase() === String(other).toLowerCase();
+  if (same(ownerAppId) || same(customerAppId))
+    fail('Helper Access app ID must identify a separate app from the owner and customer apps');
+  return id;
+}
+
+export function buildHelperAccessManifest(host = CUSTOMER_ACCESS_HOSTNAME) {
+  if (host !== CUSTOMER_ACCESS_HOSTNAME)
+    fail('Helper Access manifest host must match the trial hostname');
+  return {
+    application: {
+      name: HELPER_ACCESS_NAME,
+      type: 'self_hosted',
+      destinations: HELPER_ACCESS_PATHS.map((path) => ({ type: 'public', uri: `${host}${path}` })),
+      allowed_idps: ['<the account one-time PIN identity provider id>']
+    },
+    policies: [
+      {
+        name: 'Any email with a one-time code',
+        decision: 'allow',
+        include: [{ everyone: {} }],
+        exclude: [],
+        require: []
+      }
+    ]
+  };
+}
+
+/**
+ * The helper Access application as Cloudflare holds it: exactly the bazaar and sign-in paths on the trial host (no hostname-wide
+ * entry), one identity provider and it is the one-time PIN one, and one allow policy that admits everyone who passes it. The session
+ * length is not checked: Cloudflare does not publish the string its API returns, and a guess would fail a release.
+ */
+export function validateHelperAccessGate({
+  appId,
+  ownerAppId = OWNER_ACCESS_APP_ID,
+  customerAppId = /** @type {string | null} */ (null),
+  host = CUSTOMER_ACCESS_HOSTNAME,
+  app,
+  policies,
+  providers
+}) {
+  requireHelperAccessAppId(appId, { ownerAppId, customerAppId });
+  if (app?.id !== appId || app?.type !== 'self_hosted')
+    fail('Helper Access application identity/type mismatch');
+  const expected = HELPER_ACCESS_PATHS.map((path) => `${host}${path}`).sort();
+  const actual = Array.isArray(app?.destinations)
+    ? app.destinations
+        .map((destination) => {
+          if (
+            !destination ||
+            Object.keys(destination).sort().join() !== 'type,uri' ||
+            destination.type !== 'public' ||
+            typeof destination.uri !== 'string'
+          )
+            fail('Helper Access destinations must be exact public host/path entries');
+          return destination.uri;
+        })
+        .sort()
+    : [];
+  if (actual.length !== expected.length || actual.some((uri, index) => uri !== expected[index]))
+    fail('Helper Access destinations do not exactly match the bazaar and sign-in paths');
+  const approvedUris = new Set(expected);
+  const approvedDomainList = (value) =>
+    value == null ||
+    (Array.isArray(value) &&
+      new Set(value).size === value.length &&
+      value.every((uri) => approvedUris.has(uri)));
+  if (
+    (app.domain != null && app.domain !== '' && !approvedUris.has(app.domain)) ||
+    !approvedDomainList(app.self_hosted_domains)
+  )
+    fail('Helper Access app contains hostname-wide or unapproved destinations');
+  if (
+    !Array.isArray(providers) ||
+    !Array.isArray(app.allowed_idps) ||
+    app.allowed_idps.length !== 1
+  )
+    fail('Helper Access app must allow exactly one identity provider');
+  const provider = providers.find((p) => p.id === app.allowed_idps[0]);
+  if (provider?.type !== 'onetimepin')
+    fail('Helper Access app must allow only the one-time PIN provider');
+  if (!Array.isArray(policies) || policies.length !== 1)
+    fail('Helper Access app must have exactly one policy');
+  const [policy] = policies;
+  const include = policy?.include;
+  if (
+    policy?.decision !== 'allow' ||
+    !Array.isArray(include) ||
+    include.length !== 1 ||
+    Object.keys(include[0] ?? {}).join() !== 'everyone' ||
+    include[0]?.everyone === null ||
+    typeof include[0]?.everyone !== 'object' ||
+    Array.isArray(include[0]?.everyone) ||
+    Object.keys(include[0]?.everyone ?? {}).length !== 0 ||
+    !Array.isArray(policy.exclude) ||
+    policy.exclude.length !== 0 ||
+    !Array.isArray(policy.require) ||
+    policy.require.length !== 0
+  )
+    fail(
+      'Helper policy must be one allow policy for Everyone (a one-time code is the proof) without exclude/require selectors'
+    );
+  return true;
 }
 
 export function buildCustomerAccessManifest(host = CUSTOMER_ACCESS_HOSTNAME) {

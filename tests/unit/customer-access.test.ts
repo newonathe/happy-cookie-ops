@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   CUSTOMER_ACCESS_NAME,
   CUSTOMER_PUBLIC_PATHS,
+  HELPER_ACCESS_NAME,
+  HELPER_ACCESS_PATHS,
+  OWNER_ACCESS_APP_ID,
+  buildHelperAccessManifest,
+  requireHelperAccessAppId,
+  validateHelperAccessGate,
   assertOwnerRouteDenied,
   assertPublicRoute,
   assertPublicRoutesSettled,
@@ -278,5 +284,132 @@ describe('waiting for a new release to reach the edge (19 November 2026)', () =>
         { attempts: 1 }
       )
     ).rejects.toThrow('Public route body mismatch (/lookup/)');
+  });
+});
+
+// S3: the helper Access application. Off until TRIAL_HELPER_ACCESS_APP_ID is set; set, it is held to the same standard as the others.
+describe('helper Access gate (S3)', () => {
+  const helperId = '7c4d9a52-3b1e-4f60-9d28-5a0e6b8c1f34';
+  const otpId = '0337f851-5c16-4722-83a8-fda354c0818e';
+  const good = () => ({
+    appId: helperId,
+    customerAppId: appId,
+    app: {
+      id: helperId,
+      type: 'self_hosted',
+      destinations: HELPER_ACCESS_PATHS.map(dest),
+      allowed_idps: [otpId]
+    },
+    providers: [
+      { id: otpId, type: 'onetimepin' },
+      { id: 'g-1', type: 'google' }
+    ],
+    policies: [{ decision: 'allow', include: [{ everyone: {} }], exclude: [], require: [] }]
+  });
+  const rejects = (change: (g: ReturnType<typeof good>) => void) => {
+    const g = good();
+    change(g);
+    expect(() => validateHelperAccessGate(g)).toThrow();
+  };
+
+  it('is off when the variable is unset or blank, so the release is exactly as before', () => {
+    expect(requireHelperAccessAppId(undefined)).toBeNull();
+    expect(requireHelperAccessAppId('')).toBeNull();
+    expect(requireHelperAccessAppId('   ')).toBeNull();
+    expect(requireHelperAccessAppId(null)).toBeNull();
+  });
+
+  it('covers the bazaar and sign-in paths and nothing else', () => {
+    expect(HELPER_ACCESS_PATHS).toEqual(['/bazaar', '/sign-in']);
+    const manifest = buildHelperAccessManifest();
+    expect(manifest.application).toMatchObject({ name: HELPER_ACCESS_NAME, type: 'self_hosted' });
+    expect(manifest.application.destinations).toEqual([dest('/bazaar'), dest('/sign-in')]);
+    expect(manifest.policies).toEqual([
+      {
+        name: 'Any email with a one-time code',
+        decision: 'allow',
+        include: [{ everyone: {} }],
+        exclude: [],
+        require: []
+      }
+    ]);
+    expect(() => buildHelperAccessManifest('other.example')).toThrow();
+  });
+
+  it('accepts the configured application', () => {
+    expect(requireHelperAccessAppId(` ${helperId} `)).toBe(helperId);
+    expect(validateHelperAccessGate(good())).toBe(true);
+  });
+
+  it('refuses an id that is not a UUID, or that is the owner or customer application', () => {
+    expect(() => requireHelperAccessAppId('not-a-uuid')).toThrow(/UUID/);
+    expect(() => requireHelperAccessAppId(OWNER_ACCESS_APP_ID)).toThrow(/separate/);
+    expect(() => requireHelperAccessAppId(appId, { customerAppId: appId })).toThrow(/separate/);
+    expect(() =>
+      validateHelperAccessGate({
+        ...good(),
+        appId: OWNER_ACCESS_APP_ID,
+        app: { ...good().app, id: OWNER_ACCESS_APP_ID }
+      })
+    ).toThrow();
+  });
+
+  it('refuses an application that is not exactly the two paths', () => {
+    rejects((g) => void (g.app.destinations = [dest('/bazaar')]));
+    rejects(
+      (g) => void (g.app.destinations = [...HELPER_ACCESS_PATHS.map(dest), dest('/settings')])
+    );
+    rejects((g) => void (g.app.destinations = [dest('/bazaar'), dest('/sign-in/')]));
+    rejects(
+      (g) =>
+        void (g.app.destinations = [
+          ...HELPER_ACCESS_PATHS.map(dest),
+          { type: 'public', uri: host }
+        ])
+    );
+    rejects(
+      (g) =>
+        void (g.app.destinations = HELPER_ACCESS_PATHS.map((p) => ({
+          type: 'private',
+          uri: uri(p)
+        })) as never)
+    );
+    rejects((g) => void ((g.app as Record<string, unknown>).domain = host));
+    rejects((g) => void ((g.app as Record<string, unknown>).self_hosted_domains = [host]));
+    rejects((g) => void (g.app.id = appId));
+    rejects((g) => void (g.app.type = 'saas'));
+  });
+
+  it('allows only the one-time PIN provider', () => {
+    rejects((g) => void (g.app.allowed_idps = []));
+    rejects((g) => void (g.app.allowed_idps = [otpId, 'g-1']));
+    rejects((g) => void (g.app.allowed_idps = ['g-1']));
+    rejects((g) => void (g.app.allowed_idps = ['missing']));
+    rejects((g) => void (g.providers = []));
+  });
+
+  it('wants one allow policy for Everyone, with no exclude or require selectors', () => {
+    rejects((g) => void (g.policies = []));
+    rejects((g) => void (g.policies = [g.policies[0]!, g.policies[0]!]));
+    rejects((g) => void (g.policies[0]!.decision = 'bypass'));
+    rejects(
+      (g) => void (g.policies[0]!.include = [{ email: { email: 'a@example.test' } }] as never)
+    );
+    rejects((g) => void (g.policies[0]!.include = [{ everyone: {} }, { everyone: {} }]));
+    rejects((g) => void (g.policies[0]!.exclude = [{ everyone: {} }] as never));
+    rejects((g) => void (g.policies[0]!.require = [{ everyone: {} }] as never));
+  });
+
+  it('is wired into the release preflight and the workflow, and stays optional there', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const script = await readFile('scripts/check-owner-trial-release.mjs', 'utf8');
+    expect(script).toContain('process.env.TRIAL_HELPER_ACCESS_APP_ID');
+    expect(script).toContain('if (helperAppId)');
+    const workflow = await readFile('.github/workflows/owner-trial.yml', 'utf8');
+    expect(workflow).toContain(
+      'TRIAL_HELPER_ACCESS_APP_ID: ${{ vars.TRIAL_HELPER_ACCESS_APP_ID }}'
+    );
+    // The variable is not among the secrets the release insists on: unset, the release passes as it did.
+    expect(workflow).not.toMatch(/test -n "\$[A-Z_]*HELPER/);
   });
 });

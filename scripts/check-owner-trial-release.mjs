@@ -12,6 +12,9 @@ import {
   assertPublicRoutesSettled,
   waitForPublicRoute,
   buildCustomerAccessManifest,
+  buildHelperAccessManifest,
+  requireHelperAccessAppId,
+  validateHelperAccessGate,
   emittedPublicResourcePaths,
   emittedArtifactPath,
   requireCustomerAccessAppId,
@@ -196,6 +199,26 @@ async function snapshot(afterDeploy = false) {
     app: customerApp,
     policies: customerPolicies
   });
+  // S3: only when the repository variable names a helper Access application; unset, nothing here runs and the release is as before.
+  const helperAppId = requireHelperAccessAppId(process.env.TRIAL_HELPER_ACCESS_APP_ID, {
+    ownerAppId: TARGET.app,
+    customerAppId
+  });
+  if (helperAppId) {
+    const [helperApp, helperPolicies] = await Promise.all([
+      get(`${base}/access/apps/${helperAppId}`, accessToken),
+      get(`${base}/access/apps/${helperAppId}/policies`, accessToken)
+    ]);
+    validateHelperAccessGate({
+      appId: helperAppId,
+      ownerAppId: TARGET.app,
+      customerAppId,
+      host: TARGET.hostname,
+      app: helperApp,
+      policies: helperPolicies,
+      providers
+    });
+  }
 }
 
 async function detachCanonicalDomain() {
@@ -320,10 +343,13 @@ async function deploy() {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const manifest = process.argv.length === 3 && process.argv[2] === '--manifest';
+  const helperManifest = process.argv.length === 3 && process.argv[2] === '--helper-manifest';
   const checkOnly = process.argv.length === 3 && process.argv[2] === '--check-only';
   const run = async () => {
     if (manifest) {
       console.log(JSON.stringify(buildCustomerAccessManifest(TARGET.hostname), null, 2));
+    } else if (helperManifest) {
+      console.log(JSON.stringify(buildHelperAccessManifest(TARGET.hostname), null, 2));
     } else if (checkOnly) {
       await snapshot(true);
       await assertAnonymousCustomerAccess();
@@ -331,7 +357,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     } else if (process.argv.length === 2) await deploy();
     else
       fail(
-        'Supported usage: --manifest, no arguments to deploy, or --check-only for read-only preflight'
+        'Supported usage: --manifest, --helper-manifest, no arguments to deploy, or --check-only for read-only preflight'
       );
   };
   run().catch((error) => {

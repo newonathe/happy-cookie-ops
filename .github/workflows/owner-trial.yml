@@ -140,3 +140,5 @@ jobs:
           CLOUDFLARE_ACCESS_API_TOKEN: ${{ secrets.CLOUDFLARE_ACCESS_API_TOKEN }}
           TRIAL_ACCESS_EMAIL_SHA256: ${{ secrets.TRIAL_ACCESS_EMAIL_SHA256 }}
           TRIAL_PUBLIC_CUSTOMER_ACCESS_APP_ID: ${{ vars.TRIAL_PUBLIC_CUSTOMER_ACCESS_APP_ID }}
+          # S3: optional. Set only after the helper Access application exists (steps in the S3 pull request); unset changes nothing.
+          TRIAL_HELPER_ACCESS_APP_ID: ${{ vars.TRIAL_HELPER_ACCESS_APP_ID }}
