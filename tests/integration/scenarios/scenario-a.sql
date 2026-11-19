@@ -7,7 +7,7 @@
 --        (bare image has no storage tables: create storage.buckets and storage.objects as supabase_admin first, owner postgres,
 --         then `supabase db reset --yes --no-seed --db-url postgresql://postgres@127.0.0.1:55433/postgres?sslmode=disable`;
 --         the full recipe is in docs/TESTING.md under "Scenario A")
---   2. node scripts/test-scenario-a.mjs [container-name]     (default hc-scenario-a)  prints PASS or FAIL.
+--   2. node scripts/test-scenario.mjs a [container-name]     (default hc-scenario-a)  prints PASS or FAIL.
 --
 -- What it proves, in order:
 --   shop      the owner gives a sticker choice a photo, removes a flavour and restores it; anon sees the photo, and the restored
@@ -57,7 +57,7 @@ create function pg_temp.claims(sub text, claim_role text) returns void language 
 begin
   perform set_config('request.jwt.claim.sub', coalesce(sub, ''), true);
   perform set_config('request.jwt.claims',
-    jsonb_build_object('sub', coalesce(sub, ''), 'role', claim_role)::text, true);
+    (case when sub is null then '{}'::jsonb else jsonb_build_object('sub', sub) end || jsonb_build_object('role', claim_role))::text, true);
 end $$;
 create function pg_temp.set(k text, v text) returns void language sql as $$
   insert into pg_temp.ctx values (k, v) on conflict (key) do update set val = excluded.val $$;

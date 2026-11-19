@@ -59,3 +59,9 @@ Independent SQL regressions are `tests/integration/security/make-bazaar-transfer
 4. Remove it afterwards: `docker rm -f -v hc-scenario-a`.
 
 One transaction has one clock, so the stale-stamp cases use an old stamp rather than a competing write.
+
+Both scenarios run through one runner: `node scripts/test-scenario.mjs <a|b> [container]` (`pnpm test:scenario-a`, `pnpm test:scenario-b`). The container can instead be a throwaway `supabase start` stack (scratch copy of `supabase/` with its own `project_id`, `major_version = 17`, `[db.seed] enabled = false`; the database container is `supabase_db_<project_id>`), which needs none of the bare-image steps above.
+
+## Scenario B (planned bake to cost reconciliation)
+
+`pnpm test:scenario-b [container]` runs `tests/integration/scenarios/scenario-b.sql` the same way: planned bake and shopping list worked out from the server's recipes, stock and supplier prices (the plan itself is a device note and writes nothing), supplier prices, stock receipts, dough with a variable yield, partial baking with rejects, remaining dough, a recipe edit between doughs, a half recipe, an independent product, a shortage, a missing price, discard, the Production page and the books. Every dough takes its recipe once; baking takes no ingredient; replays change nothing. Not covered: the "when used" cost basis (needs the one-off cost cutover), concurrency, the client plan screen.
