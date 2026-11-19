@@ -39,6 +39,7 @@
     "test:load": "k6 run tests/load/drop-open.js",
     "test:scenario-a": "node scripts/test-scenario.mjs a",
     "test:scenario-b": "node scripts/test-scenario.mjs b",
+    "test:scenario-c": "node scripts/test-scenario.mjs c",
     "lighthouse": "lhci autorun",
     "verify:engine": "node scripts/check-engine-contract.mjs",
     "test:port-gates": "node scripts/test-port-gates.mjs",
