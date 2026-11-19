@@ -19,7 +19,8 @@ vi.mock('@/lib/offline/idb', () => ({
 }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
-import { useOpsVals } from '@/store/use-ops';
+import { useOpsEngine, useOpsVals } from '@/store/use-ops';
+import { OwnerWorkspace } from '@/components/live/owner-workspace';
 import { AppFrame } from '@/components/shell/app-frame';
 import { liveScreenFor } from '@/components/live/live-screens';
 import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
@@ -168,8 +169,20 @@ const calls = (rpc: ReturnType<typeof fakeClient>['rpc'], name: string) =>
     [string, Record<string, unknown>]
   >;
 
+let inWorkspace = false;
 function Frame() {
-  return <AppFrame v={useOpsVals()} />;
+  const v = useOpsVals();
+  const engine = useOpsEngine();
+  return inWorkspace ? (
+    <OwnerWorkspace
+      v={v}
+      screen={engine.state.screen}
+      role={engine.state.role}
+      onAccount={() => undefined}
+    />
+  ) : (
+    <AppFrame v={v} />
+  );
 }
 async function mount(role: Role, f: Fake = { days: [], stamps: [] }) {
   const ref: { current: OpsRuntime | null } = { current: null };
@@ -434,6 +447,19 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
         eventPrices: { dcf: 125 }
       })
     );
+
+  it('draws one Back on the till: Back to events, with no second header Back', async () => {
+    inWorkspace = true;
+    try {
+      const { runtime } = await mount('owner');
+      seedDay(runtime);
+      await settle();
+      expect(screen.getAllByRole('button', { name: 'Back to events' })).toHaveLength(1);
+      expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
+    } finally {
+      inWorkspace = false;
+    }
+  });
 
   for (const role of ['owner', 'helper'] as const) {
     it(`the ${role} sells with no signal and no read of the owner's data`, async () => {
