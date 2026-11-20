@@ -45,8 +45,20 @@ create function pg_temp.bag() returns integer language sql security definer as $
   select on_hand::integer from public.inventory_items where id = 'cs-bag' $$;
 create function pg_temp.books_line(order_no text) returns jsonb language sql security definer as $$
   select l from jsonb_array_elements(public.get_books(now() - interval '120 days', now() + interval '1 day') -> 'lines') l where l ->> 'id' = 'o:' || order_no $$;
+create function pg_temp.exp(cat text, cents numeric, note text) returns jsonb language sql as $$
+  select jsonb_build_object('category', cat, 'amountCents', cents, 'note', note) $$;
+create function pg_temp.with_exp(cid text, exps jsonb) returns jsonb language sql as $$
+  select pg_temp.body(cid, 'Exp Cafe', pg_temp.pickup(0), '', jsonb_build_array(pg_temp.line('co-choc', 4, 10000))) || jsonb_build_object('expenses', exps) $$;
+create function pg_temp.exp_body(cid text, order_no text, cat text, cents numeric, note text) returns jsonb language sql as $$
+  select jsonb_build_object('clientId', cid, 'orderNo', order_no, 'category', cat, 'amountCents', cents, 'note', note) $$;
+create function pg_temp.exp_refused(b jsonb, wanted text) returns void language plpgsql as $$
+declare got text;
+begin
+  begin perform * from public.add_cafe_expense(b); exception when others then got := SQLSTATE; end;
+  if got is distinct from wanted then raise exception 'cafe sales expected % got %', wanted, coalesce(got, 'success'); end if;
+end $$;
 grant execute on function pg_temp.check_it(boolean), pg_temp.expect_error(text,text), pg_temp.body(text,text,text,text,jsonb,text,boolean),
-  pg_temp.line(text,numeric,numeric), pg_temp.refused(jsonb,text), pg_temp.pickup(integer), pg_temp.bag(), pg_temp.books_line(text)
+  pg_temp.line(text,numeric,numeric), pg_temp.refused(jsonb,text), pg_temp.pickup(integer), pg_temp.bag(), pg_temp.books_line(text), pg_temp.exp(text,numeric,text), pg_temp.with_exp(text,jsonb), pg_temp.exp_body(text,text,text,numeric,text), pg_temp.exp_refused(jsonb,text)
   to anon, authenticated;
 
 -- The old entry point is gone.
@@ -276,6 +288,146 @@ select pg_temp.check_it((select r.replayed and r.order_no = 'HC-REPLAY-96' from 
     jsonb_build_array(pg_temp.line('co-choc', 1, 1000)))) r));
 select pg_temp.refused(pg_temp.body('94000000-0000-4000-8000-0000000000f2', 'Gone Cafe', pg_temp.pickup(-120), '',
   jsonb_build_array(pg_temp.line('co-choc', 1, 1000))), '22023');
+reset role;
+-- ===================================================== Additional expenses (migration 97)
+-- Authority of add_cafe_expense: nobody signed out, no helper, no inactive owner.
+select pg_temp.check_it(not has_function_privilege('anon', 'public.add_cafe_expense(jsonb)', 'EXECUTE'));
+set local role anon;
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e0', 'HC-SHOP-96', 'Transport', 100, ''), '42501');
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000002"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000002', true);
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e0', 'HC-SHOP-96', 'Transport', 100, ''), '42501');
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000003"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000003', true);
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e0', 'HC-SHOP-96', 'Transport', 100, ''), '42501');
+reset role;
+select pg_temp.check_it((select count(*) = 0 from public.ledger_entries where order_id is not null and kind = 'cost'));
+
+-- Expenses on a new sale: refusals first (each writes nothing).
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', '"x"'::jsonb), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', (select jsonb_agg(pg_temp.exp('Transport', 100, '')) from generate_series(1, 11))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Transport', 100, '') || '{"role":"owner"}'::jsonb)), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Transport', 100, '') - 'note')), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(jsonb_build_object('category', 'Transport', 'amountCents', '100', 'note', ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Transport', 0, ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Transport', -5, ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Transport', 10.5, ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Transport', 100000001, ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('  ', 100, ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp(repeat('c', 61), 100, ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Owner Draw', 100, ''))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp('Transport', 100, repeat('n', 121)))), '22023');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e1', jsonb_build_array(pg_temp.exp(E'Trans
+port', 100, ''))), '22023');
+reset role;
+select pg_temp.check_it((select count(*) = 0 from public.orders where client_id = '94000000-0000-4000-8000-0000000000e1'));
+select pg_temp.check_it((select count(*) = 0 from public.ledger_entries where order_id is not null and kind = 'cost'));
+
+-- A sale with two expenses, today: the sale's total is untouched; each expense is a cost line of the books dated the sale's stamp.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+select pg_temp.check_it((select count(*) = 1 from public.record_cafe_sale(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e2',
+  jsonb_build_array(pg_temp.exp(' Transport ', 5000, ' Van '), pg_temp.exp('Packaging', 1250, ''))))));
+reset role;
+select pg_temp.check_it((select o.total_cents = 40000 and o.paid_cents = 40000 from public.orders o where o.client_id = '94000000-0000-4000-8000-0000000000e2'));
+select pg_temp.check_it((select count(*) = 2 and sum(l.amount_cents) = -6250 and bool_and(l.kind = 'cost' and l.created_by = '94000000-0000-4000-8000-000000000001'
+    and l.occurred_at = o.paid_at and l.client_id is not null)
+  from public.ledger_entries l join public.orders o on o.id = l.order_id where o.client_id = '94000000-0000-4000-8000-0000000000e2'));
+select pg_temp.check_it((select array_agg(l.category || '|' || l.memo order by l.amount_cents) = array['Transport|Café Exp Cafe · Van', 'Packaging|Café Exp Cafe · Packaging']
+  from public.ledger_entries l join public.orders o on o.id = l.order_id where o.client_id = '94000000-0000-4000-8000-0000000000e2'));
+-- The books: the sale is revenue as before; the expenses are expense lines with those labels.
+select pg_temp.check_it((select count(*) = 2 and sum((l ->> 'amount_cents')::bigint) = 6250 and bool_and(l ->> 'kind' = 'expense')
+  from jsonb_array_elements(public.get_books(now() - interval '1 day', now() + interval '1 day') -> 'lines') l where l ->> 'label' like 'Café Exp Cafe · %'));
+select pg_temp.check_it((select (pg_temp.books_line((select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2')) ->> 'amount_cents')::bigint = 40000));
+-- The log carries them.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+select pg_temp.check_it((select s.expense_cents = 6250 and jsonb_array_length(s.expenses) = 2 and s.total_cents = 40000
+  from public.get_cafe_sales() s where s.name = 'Exp Cafe'));
+select pg_temp.check_it((select s.expense_cents = 0 and s.expenses = '[]'::jsonb from public.get_cafe_sales() s where s.order_no = 'HC-LEGACY-94'));
+-- A retry of the same sale writes nothing twice; another body under that id is refused.
+select pg_temp.check_it((select r.replayed from public.record_cafe_sale(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e2',
+  jsonb_build_array(pg_temp.exp(' Transport ', 5000, ' Van '), pg_temp.exp('Packaging', 1250, '')))) r));
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e2',
+  jsonb_build_array(pg_temp.exp(' Transport ', 5000, ' Van '), pg_temp.exp('Packaging', 1251, ''))), '23505');
+select pg_temp.refused(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e2', '[]'::jsonb), '23505');
+reset role;
+select pg_temp.check_it((select count(*) = 2 from public.ledger_entries l join public.orders o on o.id = l.order_id where o.client_id = '94000000-0000-4000-8000-0000000000e2'));
+-- A sale without the expenses key is still taken (the app of migration 96), and one with an empty list writes no lines.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+select pg_temp.check_it((select count(*) = 1 from public.record_cafe_sale(pg_temp.body('94000000-0000-4000-8000-0000000000e3', 'Plain Cafe', pg_temp.pickup(0), '',
+  jsonb_build_array(pg_temp.line('co-choc', 1, 8000))))));
+select pg_temp.check_it((select count(*) = 1 from public.record_cafe_sale(pg_temp.with_exp('94000000-0000-4000-8000-0000000000e4', '[]'::jsonb))));
+reset role;
+select pg_temp.check_it((select count(*) = 0 from public.ledger_entries l join public.orders o on o.id = l.order_id
+  where o.client_id in ('94000000-0000-4000-8000-0000000000e3', '94000000-0000-4000-8000-0000000000e4')));
+
+-- A backdated sale's expenses are dated that day, not today.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+insert into placed select order_no from public.record_cafe_sale(jsonb_set(
+  pg_temp.with_exp('94000000-0000-4000-8000-0000000000e5', jsonb_build_array(pg_temp.exp('Transport', 700, 'Bike'))), '{saleDate}', to_jsonb(pg_temp.pickup(-6))));
+reset role;
+select pg_temp.check_it((select (l.occurred_at at time zone 'Asia/Manila') = (pg_temp.pickup(-6)::date + time '12:00')
+  from public.ledger_entries l join public.orders o on o.id = l.order_id where o.client_id = '94000000-0000-4000-8000-0000000000e5'));
+select pg_temp.check_it((select count(*) = 0 from jsonb_array_elements(public.get_books(now() - interval '2 days', now() + interval '1 day') -> 'lines') l
+  where l ->> 'label' = 'Café Exp Cafe · Bike'));
+select pg_temp.check_it((select count(*) = 1 from jsonb_array_elements(public.get_books(now() - interval '10 days', now() + interval '1 day') -> 'lines') l
+  where l ->> 'label' = 'Café Exp Cafe · Bike'));
+
+-- Adding an expense to a sale already logged.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+select pg_temp.check_it((select r.expense_cents = 6250 + 300 and not r.replayed and r.order_no = (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2')
+  from public.add_cafe_expense(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e6', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'),
+    ' Extra bags ', 300, ' Late ')) r));
+select pg_temp.check_it((select r.replayed and r.expense_cents = 6550 from public.add_cafe_expense(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e6',
+  (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), ' Extra bags ', 300, ' Late ')) r));
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e6', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Extra bags', 301, 'Late'), '23505');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e6', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e5'), 'Extra bags', 300, 'Late'), '23505');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', 'HC-SHOP-96', 'Transport', 100, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', 'HC-LEGACY-94', 'Transport', 100, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', 'HC-NOPE', 'Transport', 100, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('not-a-uuid', 'HC-SHOP-96', 'Transport', 100, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Owner draw', 100, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), '', 100, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Transport', 0, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Transport', 1.5, ''), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Transport', 100, repeat('n', 121)), '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Transport', 100, '') || '{"x": 1}'::jsonb, '22023');
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e7', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Transport', 100, '') - 'note', '22023');
+reset role;
+-- The new line is dated the sale's own stamp and is in the log and the books.
+select pg_temp.check_it((select l.occurred_at = o.placed_at and l.amount_cents = -300 and l.memo = 'Café Exp Cafe · Late' and l.category = 'Extra bags' and l.order_id = o.id
+  from public.ledger_entries l join public.orders o on o.id = l.order_id where l.client_id = '94000000-0000-4000-8000-0000000000e6'));
+select pg_temp.check_it((select count(*) = 3 from public.ledger_entries l join public.orders o on o.id = l.order_id where o.client_id = '94000000-0000-4000-8000-0000000000e2'));
+-- An expense added to a backdated sale is dated that sale's day.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+select pg_temp.check_it((select count(*) = 1 from public.add_cafe_expense(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e9',
+  (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e5'), 'Transport', 900, 'Return trip'))));
+reset role;
+select pg_temp.check_it((select (l.occurred_at at time zone 'Asia/Manila') = (pg_temp.pickup(-6)::date + time '12:00')
+  from public.ledger_entries l where l.client_id = '94000000-0000-4000-8000-0000000000e9'));
+-- At most 10 on a sale: the sale above has 3, so 7 more fit and the next is refused.
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000001', true);
+select pg_temp.check_it((select count(*) = 7 from generate_series(1, 7) i,
+  lateral public.add_cafe_expense(pg_temp.exp_body(('94000000-0000-4000-8000-0000000001' || lpad(i::text, 2, '0'))::text, (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Transport', 100 + i, ''))));
+select pg_temp.exp_refused(pg_temp.exp_body('94000000-0000-4000-8000-0000000000e8', (select id from public.orders where client_id = '94000000-0000-4000-8000-0000000000e2'), 'Transport', 100, ''), '22023');
 reset role;
 select 'CAFE_SALES|passed';
 rollback;
