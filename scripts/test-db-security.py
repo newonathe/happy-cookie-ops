@@ -56,6 +56,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101009000_order_extra_choice_photos.sql',
                     # S1: refund reference and waiting-list Instagram handle required.
                     ROOT / 'supabase/migrations/20260101009200_refund_ref_and_waitlist_ig.sql',
+                    # S3: record_event_sale, void_event_sale, add_event_expense and close_bazaar_day were redefined whole, with a helper allowed.
+                    ROOT / 'supabase/migrations/20260101009500_helpers.sql',
                     # Café sale log: get_staff_orders keeps café rows off the Orders read, get_books labels a café sale's line.
                     ROOT / 'supabase/migrations/20260101009600_cafe_sale_log.sql']
 _OUT = 'order outcome differs: anon / '

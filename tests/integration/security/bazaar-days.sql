@@ -134,7 +134,8 @@ begin
   exception when others then
     get stacked diagnostics state = returned_sqlstate, why = message_text;
   end;
-  if state <> wanted then
+  -- `wanted` may list the accepted codes with | (S3: an active helper reaches the shape check, or the day lookup if a rule is mutated away).
+  if not (state = any (string_to_array(wanted, '|'))) then
     raise exception 'bazaar day outcome differs: % / % / % (wanted %): %', actor, operation, state, wanted, why;
   end if;
   insert into pg_temp.authority_results values (operation, actor, 'sqlstate_' || state);
@@ -269,7 +270,10 @@ begin
   perform pg_temp.expect(actor, 'start_bazaar_day', 'select * from public.start_bazaar_day(' || f || ', ''devA'', ' || f || ')', '42501');
   perform pg_temp.expect(actor, 'add_bazaar_day_stock',
     'select * from public.add_bazaar_day_stock(' || f || ', ''mp0s-a'', 1, ''made'', ' || f || ')', '42501');
-  perform pg_temp.expect(actor, 'close_bazaar_day', 'select public.close_bazaar_day(''{}''::jsonb)', '42501');
+  -- S3 (migration 95): an active helper passes this command's role gate (helpers.sql proves what they may do), so the empty body
+  -- reaches the shape check and is refused there (22023); every other caller is refused at the gate.
+  perform pg_temp.expect(actor, 'close_bazaar_day', 'select public.close_bazaar_day(''{}''::jsonb)',
+    case when actor = 'active_helper' then '22023|P0002' else '42501' end);
   perform pg_temp.expect(actor, 'void_bazaar_fee', 'select public.void_bazaar_fee(''f-permit'')', '42501');
   perform pg_temp.expect(actor, 'void_bazaar_loss', 'select public.void_bazaar_loss(''devA:L1'')', '42501');
   perform pg_temp.expect(actor, 'finalise_bazaar', 'select public.finalise_bazaar(' || f || ', repeat(''0'', 64), 7, null)', '42501');

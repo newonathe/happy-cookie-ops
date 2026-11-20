@@ -93,7 +93,9 @@ begin
      or not has_function_privilege('authenticated', 'public.record_event_sale(jsonb)', 'EXECUTE') then
     raise exception 'DAY_GRANTS changed';
   end if;
-  foreach bad in array array['b0930000-0000-4000-8000-000000000002', 'b0930000-0000-4000-8000-000000000003',
+  -- S3 (migration 20260101009500): the helper reads and sells the day that is open now, so it is no longer in this list of the refused.
+  -- helpers.sql proves what a helper may and may not do; a support profile and an inactive owner are refused as before.
+  foreach bad in array array['b0930000-0000-4000-8000-000000000003',
                              'b0930000-0000-4000-8000-000000000004']::uuid[] loop
     perform pg_temp.act(bad);
     perform pg_temp.expect('not owner read', format('select public.get_bazaar_day(%L)', d_one), '42501');

@@ -68,6 +68,7 @@ def check(db_id, workdir, _password, _report):
         ("collected today", s("v_total::bigint, v_total::bigint, v_stamp,\n          v_stamp, v_notes", "v_total::bigint, v_total::bigint, v_stamp,\n          v_now, v_notes")),
         ("future stamp", s("v_stamp := case when v_date = v_today then v_now", "v_stamp := case when false then v_now")),
         ("customer token", s("v_notes, v_date, v_client, v_hash, null, v_stamp); -- rule:cafe-sale-paid", "v_notes, v_date, v_client, v_hash, repeat('c', 64), v_stamp); -- rule:cafe-sale-paid")),
+        ("audit action changed", s("'cafe.sale', 'orders', v_id", "'cafe.sold', 'orders', v_id")),
         ("stock never taken", s("if v_take then -- rule:cafe-sale-stock", "if false then -- rule:cafe-sale-stock")),
         ("stock always taken", s("if v_take then -- rule:cafe-sale-stock", "if true then -- rule:cafe-sale-stock")),
         ("café in staff orders", s("where o.channel <> 'cafe' -- rule:staff-orders-no-cafe", "where true -- rule:staff-orders-no-cafe")),

@@ -45,7 +45,7 @@ begin
   end;
   if state = '00000' and wanted <> '00000' then
     raise exception 'forbidden closeout call succeeded: % / %', actor, operation;
-  elsif state <> wanted then
+  elsif not (state = any (string_to_array(wanted, '|'))) then -- wanted may list the accepted codes with | (S3)
     raise exception 'closeout outcome differs: % / % / % (wanted %)', actor, operation, state, wanted;
   end if;
   insert into pg_temp.authority_results values (operation, actor, 'sqlstate_' || state);
@@ -111,7 +111,10 @@ declare
 begin
   perform pg_temp.expect(actor, 'event_summary', 'select * from public.event_summary(' || fake || ')', '42501');
   perform pg_temp.expect(actor, 'load_event_stock', 'select * from public.load_event_stock(' || fake || ', ''{}''::jsonb, 0)', '42501');
-  perform pg_temp.expect(actor, 'add_event_expense', 'select * from public.add_event_expense(''{}''::jsonb)', '42501');
+  -- S3 (migration 95): an active helper passes this command's role gate (helpers.sql proves what they may do), so the empty body
+  -- reaches the shape check and is refused there (22023); every other caller is refused at the gate.
+  perform pg_temp.expect(actor, 'add_event_expense', 'select * from public.add_event_expense(''{}''::jsonb)',
+    case when actor = 'active_helper' then '22023|P0002' else '42501' end);
   perform pg_temp.expect(actor, 'close_event', 'select * from public.close_event(''{}''::jsonb)', '42501');
 end $$;
 

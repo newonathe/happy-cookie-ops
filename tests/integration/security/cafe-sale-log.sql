@@ -1,10 +1,11 @@
 -- Disposable local fixture only; every row rolls back. Café sale log (migration 20260101009600; the settings are migration 20260101009400).
 begin;
 insert into auth.users(id) values
-  ('94000000-0000-4000-8000-000000000001'), ('94000000-0000-4000-8000-000000000002');
+  ('94000000-0000-4000-8000-000000000001'), ('94000000-0000-4000-8000-000000000002'), ('94000000-0000-4000-8000-000000000003');
 insert into public.profiles(id, role, display_name, active) values
   ('94000000-0000-4000-8000-000000000001', 'owner', 'Synthetic owner', true),
-  ('94000000-0000-4000-8000-000000000002', 'helper', 'Synthetic helper', true);
+  ('94000000-0000-4000-8000-000000000002', 'helper', 'Synthetic helper', true),
+  ('94000000-0000-4000-8000-000000000003', 'owner', 'Synthetic inactive owner', false);
 insert into public.products(id, name, short_name, price_cents, kind, active, published, sort_order, type_id, capacity_weight)
 values ('co-choc', 'Order choc', 'Choc', 13000, 'Permanent', true, true, 90, 'cookie', 1),
        ('co-box', 'Order box', 'Box', 52000, 'Permanent', true, true, 91, 'set', 4),
@@ -75,6 +76,12 @@ select pg_temp.expect_error('select * from public.save_cafe_order_settings(false
 select pg_temp.expect_error('select * from public.get_cafe_sales()', '42501');
 select pg_temp.refused(pg_temp.body('94000000-0000-4000-8000-0000000000a1', 'Cafe', pg_temp.pickup(0), '', jsonb_build_array(pg_temp.line('co-choc', 1, 9000))), '42501');
 select pg_temp.expect_error('select * from public.cafe_order_settings', '42501');
+-- An owner whose profile is not active is refused like anyone else.
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000003"}', true);
+select set_config('request.jwt.claim.sub', '94000000-0000-4000-8000-000000000003', true);
+select pg_temp.expect_error('select * from public.get_cafe_sales()', '42501');
+select pg_temp.expect_error('select * from public.get_cafe_order_settings()', '42501');
+select pg_temp.refused(pg_temp.body('94000000-0000-4000-8000-0000000000a1', 'Cafe', pg_temp.pickup(0), '', jsonb_build_array(pg_temp.line('co-choc', 1, 9000))), '42501');
 reset role;
 select pg_temp.check_it((select count(*) = 1 from public.orders where channel = 'cafe'));
 
@@ -150,6 +157,9 @@ select pg_temp.check_it((select price_cents = 13000 from public.products where i
 select pg_temp.check_it((select count(*) = 1 from public.production_records r where r.kind = 'pack' and r.ref = (select no from placed) and r.qty = 12));
 select pg_temp.check_it(pg_temp.bag() = 9);
 select pg_temp.check_it((select count(*) = 1 from public.stock_movements m where m.production_id = md5('pack:' || (select no from placed))::uuid and m.kind = 'use'));
+-- The sale is in the audit log, once, without the lines.
+select pg_temp.check_it((select count(*) = 1 from public.audit_log a where a.action = 'cafe.sale' and a.entity_id = (select no from placed)
+  and a.detail ->> 'name' = 'Bean Cafe' and (a.detail ->> 'total_cents')::bigint = 172000 and a.detail ->> 'method' = 'CS Gcash'));
 -- The books: revenue on the sale day, labelled Café, category Orders; an ordinary order keeps its label.
 select pg_temp.check_it((select l ->> 'kind' = 'revenue' and l ->> 'cat' = 'Orders' and (l ->> 'amount_cents')::bigint = 172000
   and l ->> 'label' = 'Café sale ' || (select no from placed) || ' · Bean Cafe' from (select pg_temp.books_line((select no from placed)) l) x));

@@ -50,7 +50,7 @@ begin
   end;
   if state = '00000' and wanted <> '00000' then
     raise exception 'forbidden bazaar call succeeded: % / %', actor, operation;
-  elsif state <> wanted then
+  elsif not (state = any (string_to_array(wanted, '|'))) then -- wanted may list the accepted codes with | (S3)
     raise exception 'bazaar outcome differs: % / % / % (wanted %)', actor, operation, state, wanted;
   end if;
   insert into pg_temp.authority_results values (operation, actor, 'sqlstate_' || state);
@@ -115,8 +115,12 @@ begin
   perform pg_temp.expect(actor, 'start_event', 'select * from public.start_event(''Denied'', ''devA'', 0)', '42501');
   perform pg_temp.expect(actor, 'set_event_device',
     'select public.set_event_device(''d1e0c105-0000-4000-8000-000000000001'', ''devZ'')', '42501');
-  perform pg_temp.expect(actor, 'record_event_sale', 'select * from public.record_event_sale(' || sale || ')', '42501');
-  perform pg_temp.expect(actor, 'void_event_sale', 'select * from public.void_event_sale(' || sale || ')', '42501');
+  -- S3 (migration 95): an active helper passes the role gate of these two commands (helpers.sql proves what they may do), so this
+  -- deliberately malformed body reaches the shape check and is refused there (22023); every other caller is refused at the gate.
+  perform pg_temp.expect(actor, 'record_event_sale', 'select * from public.record_event_sale(' || sale || ')',
+    case when actor = 'active_helper' then '22023|P0002' else '42501' end);
+  perform pg_temp.expect(actor, 'void_event_sale', 'select * from public.void_event_sale(' || sale || ')',
+    case when actor = 'active_helper' then '22023|P0002' else '42501' end);
 end $$;
 
 create function pg_temp.assert_owner() returns void language plpgsql security invoker as $$
