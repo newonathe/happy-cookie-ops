@@ -35,6 +35,13 @@ Availability on 2026-09-26: Codex is unavailable, so Claude is doing all of the 
     - **Models on hand (Ethan, 2026-11-15):** Claude Pro (Fable until 16 November, Opus, Sonnet, Haiku) and, when its usage is free, Codex (Sol, Terra, Luna, Astra; rule 3 maps Sol to planning and Luna to building). Codex is maxed out on 15 November, so Claude does all of it. Pro usage is limited: Sonnet builds and reviews, Haiku searches, Opus plans and signs off only, and Fable is kept for one second opinion that changes a decision.
     - **Prompts for another model are exact:** paths, commands, expected output and stop conditions. No open-ended exploring.
 
+13. **GOAT routing (Ethan, 20 November 2026; superpowers `subagent-driven-development`, "Model Selection").** Route each task, verify by risk, escalate on failure, learn from the result:
+    - **Router:** the coordinating session picks model and effort per task from its difficulty and risk, the cheapest that fits. Haiku: search, status, mechanical edits and docs. Sonnet medium: a named-file UI or logic slice, tests. Sonnet high: SQL, RLS, auth, money, offline, the release gate. Opus: coordination, plans, design-heavy work, sign-off, the rung-2 escalation. Fable: one second opinion that changes a decision, nothing else.
+    - **Verify by risk:** light = targeted tests, `pnpm verify`, CI (docs, tests, copy, styling). Full = light plus SQL proofs and the security harness, the `security-reviewer`, browser QA at 390 and 1440 px, and the coordinator reading the diff (SQL, auth, money, offline, customer-facing flows, releases, migrations).
+    - **Escalate on fail:** a failed check goes back to the same worker with the exact failure; after two evidence-led failures, one rung up under rule 11. Never start at the top rung.
+    - **Feedback:** every final report's Token notes name the model, effort, rounds and whether it passed first time; when a rung keeps failing a kind of task, change this table.
+    - **Superpowers skills:** `brainstorming` and `writing-plans` before a multi-slice build, `test-driven-development` for every change, `verification-before-completion` before any "done", `requesting-code-review` for full-risk diffs, `subagent-driven-development` to run a multi-task plan.
+
 Availability on 2026-10-05: Codex reached its usage limit during F2, and Ethan continued the same goal in Claude Code. Where a goal says "Codex Sol/high", read it as Claude Opus coordinating with at most two pinned Sonnet workers. Codex had coordinated F2 from 2026-10-03 to 2026-10-05.
 
 ## History — policy as of 2026-09-09 to 2026-09-26 (superseded)
