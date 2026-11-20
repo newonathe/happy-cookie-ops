@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
 import { OwnerField, Panel, SectionHeading, TaskRow } from '@/components/ui/owner-kit';
 import { FactRow } from '@/components/ui/owner-patterns';
+import { HelpersPanel } from './helpers-panel';
 
 /**
  * Settings and order actions that used to open a sheet, drawn as pages in the owner frame. Every
@@ -179,6 +180,10 @@ export function PeopleLive({ v }: { v: OpsVals }) {
           />
         ))}
       </Panel>
+      {/* S3: the helpers Cine registers, each with an expiry. Drawn only in live mode, on a database that has them. */}
+      <div className="mt-3">
+        <HelpersPanel />
+      </div>
       <BackRow v={v} label="Back" />
     </div>
   );

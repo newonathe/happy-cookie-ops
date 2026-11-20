@@ -91,6 +91,95 @@ describe('checkStaffProfile', () => {
   });
 });
 
+describe('checkStaffProfile: helper expiry and the temporary password (S3)', () => {
+  const HOUR = 3_600_000;
+  const iso = (ms: number) => new Date(Date.now() + ms).toISOString();
+
+  it('is "expired" for a profile whose time has passed: a definite answer, not a denial and not a lost signal', async () => {
+    const c = client({
+      user: { id: 'u1' },
+      profile: { role: 'helper', active: true, access_expires_at: iso(-HOUR) }
+    });
+    expect(await checkStaffProfile(c)).toEqual({ status: 'expired' });
+  });
+
+  it('is "ok" before the time, and says when it ends', async () => {
+    const at = iso(2 * HOUR);
+    const c = client({
+      user: { id: 'u1' },
+      profile: { role: 'helper', active: true, access_expires_at: at }
+    });
+    expect(await checkStaffProfile(c)).toEqual({
+      status: 'ok',
+      role: 'helper',
+      userId: 'u1',
+      expiresAt: Date.parse(at)
+    });
+  });
+
+  it('is "ok" with no expiry for a null time (permanent)', async () => {
+    const c = client({
+      user: { id: 'u1' },
+      profile: { role: 'owner', active: true, access_expires_at: null }
+    });
+    expect(await checkStaffProfile(c)).toEqual({ status: 'ok', role: 'owner', userId: 'u1' });
+  });
+
+  it('removed beats expired: an inactive profile is denied', async () => {
+    const c = client({
+      user: { id: 'u1' },
+      profile: { role: 'helper', active: false, access_expires_at: iso(-HOUR) }
+    });
+    expect(await checkStaffProfile(c)).toEqual({ status: 'denied' });
+  });
+
+  it('flags an account whose temporary password has not been replaced', async () => {
+    const c = client({
+      user: { id: 'u1', user_metadata: { must_change_password: true } },
+      profile: { role: 'helper', active: true }
+    });
+    expect(await checkStaffProfile(c)).toMatchObject({ status: 'ok', mustChangePassword: true });
+    const done = client({
+      user: { id: 'u1', user_metadata: { must_change_password: false } },
+      profile: { role: 'helper', active: true }
+    });
+    expect(await checkStaffProfile(done)).toEqual({ status: 'ok', role: 'helper', userId: 'u1' });
+  });
+
+  it('reads the profile again without the expiry column on a database that has none, and then behaves as before', async () => {
+    const calls: string[] = [];
+    const c = {
+      auth: { getUser: async () => ({ data: { user: { id: 'u1' } }, error: null }) },
+      from: () => ({
+        select: (columns: string) => ({
+          eq: () => ({
+            maybeSingle: async () => {
+              calls.push(columns);
+              return columns.includes('access_expires_at')
+                ? {
+                    data: null,
+                    error: {
+                      code: '42703',
+                      message: 'column profiles.access_expires_at does not exist'
+                    }
+                  }
+                : { data: { role: 'owner', active: true }, error: null };
+            }
+          })
+        })
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+    expect(await checkStaffProfile(c)).toEqual({ status: 'ok', role: 'owner', userId: 'u1' });
+    expect(calls).toEqual(['role, active, access_expires_at', 'role, active']);
+  });
+
+  it('a lost signal on the profile read is still "unknown", never "expired"', async () => {
+    const c = client({ user: { id: 'u1' }, profileError: { code: '', message: 'timeout' } });
+    expect(await checkStaffProfile(c)).toEqual({ status: 'unknown' });
+  });
+});
+
 describe('signOutAndRedirect', () => {
   const realLocation = window.location;
   const replace = vi.fn();

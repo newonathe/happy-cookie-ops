@@ -51,7 +51,7 @@ vi.mock('@/lib/supabase/client', async () => {
     from: () => ({
       select: (columns: string) => {
         // The gate's role check: `.eq().maybeSingle()`, answered at once with the current role.
-        if (columns === 'role, active')
+        if (columns.startsWith('role, active'))
           return {
             eq: () => ({
               maybeSingle: async () => ({

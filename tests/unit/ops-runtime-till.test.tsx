@@ -297,12 +297,13 @@ describe("the till's expense Add (Ateneo B2)", () => {
     // Mutation: leaving the ported openEventExpense opens sheet('evExp'), a second list the books never see.
   });
 
-  it('says the owner adds fees, and opens nothing, for a helper', () => {
+  it('opens the engine’s own stall expense sheet for a helper (S3), never the owner’s fee form', () => {
     const runtime = mounted('helper');
     onTheTable(runtime);
     act(() => seen(runtime).openEventExpense());
-    expect(runtime.state.sheet).toBeNull();
-    expect(JSON.stringify(runtime.state.toast ?? null)).toContain('owner');
+    // A stall expense (add_event_expense, queued like a sale) is a helper's to record; fees, which the books read, stay the owner's.
+    expect((runtime.state.sheet as { kind?: string } | null)?.kind).toBe('evExp');
+    expect(seen(runtime).liveBazaar?.tillPanel ?? null).toBeNull();
   });
 
   it('needs signal, and says so', () => {

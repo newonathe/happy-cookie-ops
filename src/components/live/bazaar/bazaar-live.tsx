@@ -21,6 +21,7 @@ import { DayReview } from './day-review';
 import { TillBar } from './till-bar';
 import { ConsolidatedTill, TillBoundary } from './till';
 import { CatalogueNotice, useCatalogue } from './catalogue-notice';
+import { HelperBazaar, helperBazaarOf } from './helper-bazaar';
 import { PageTitle } from '@/components/ui/owner-kit';
 
 /** `liveBazaar` as the runtime provides it. Typed through the contract so this compiles before and after vals.ts widens. */
@@ -36,7 +37,17 @@ export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
 /** Every 15 s while on screen and online, and on coming back: sales from her other devices show up (14 November 2026). */
 const REFRESH_MS = 15_000;
 
+/**
+ * S3: a helper's Bazaar screen is the open day's till and nothing else (`HelperBazaar`); everyone else gets the owner's screen.
+ * Two components so each keeps its own hooks.
+ */
 export function BazaarLive({ v }: { v: OpsVals }) {
+  const helper = helperBazaarOf(v);
+  if (helper) return <HelperBazaar helper={helper} till={<BazaarBody v={v} bazaar={null} />} />;
+  return <OwnerBazaarLive v={v} />;
+}
+
+function OwnerBazaarLive({ v }: { v: OpsVals }) {
   const bazaar = liveBazaarOf(v);
   const refresh = bazaar?.refresh;
   useEffect(() => {

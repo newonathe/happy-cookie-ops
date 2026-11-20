@@ -118,6 +118,33 @@ describe('offlineBazaarRole', () => {
   });
 });
 
+describe('a helper whose access ends (S3)', () => {
+  const NOW = Date.UTC(2026, 10, 20, 8, 0, 0);
+  const HOUR = 3_600_000;
+
+  it('remembers when the access ends, and keeps the record to what it needs', () => {
+    rememberCheck('helper', NOW, NOW + 5 * HOUR);
+    expect(readRememberedCheck()).toEqual({ role: 'helper', at: NOW, until: NOW + 5 * HOUR });
+    rememberCheck('owner', NOW);
+    expect(readRememberedCheck()).toEqual({ role: 'owner', at: NOW });
+  });
+
+  it('does not open offline once the access has ended, even inside the offline hours', () => {
+    const check = { role: 'helper' as const, at: NOW, until: NOW + 2 * HOUR };
+    expect(checkStillFresh(NOW + HOUR, check, 48)).toBe(true);
+    expect(checkStillFresh(NOW + 3 * HOUR, check, 48)).toBe(false);
+    expect(checkStillFresh(NOW + 3 * HOUR, { role: 'helper', at: NOW }, 48)).toBe(true);
+  });
+
+  it('refuses a record whose end is not a time', () => {
+    localStorage.setItem(
+      'hc-live-check',
+      JSON.stringify({ role: 'helper', at: NOW, until: 'soon' })
+    );
+    expect(readRememberedCheck()).toBeNull();
+  });
+});
+
 describe('the stall copy', () => {
   it('keeps five settings and the menu fields, and nothing else it is handed', () => {
     saveStallCopy(
