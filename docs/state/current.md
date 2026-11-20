@@ -2,23 +2,18 @@
 
 **The full application remains incomplete.** Source, deployment, public availability, physical-device and unaided-owner acceptance are separate. Read next-goal.md next; prior details are in current-history.md.
 
-## Released — 19 November 2026 (afternoon)
+## Released — 20 November 2026
 
-Latest deployed: #122 (merge `076459f0`, run 44523565721, Worker version `0200d46a-0380-49e3-b02b-71b9e7f0e408`). Schema unchanged: 91 migrations / 186 exact public functions. Each PR went into the deploy branch after green CI under the owner's standing approval; the morning releases (#89–#105) are in [history](current-history.md).
+Latest deployed: #136 (merge `1bb77b1b`, run 44663174360, Worker version `39652258-644b-4fa5-af3f-f974413e1e7d`). Hosted schema: migrations through 095 (091 café prices, 092 refund ref + waitlist Instagram, 093 bazaar day on any device, 094 café orders, 095 helpers), each applied after a verified backup with a one-file kit (`C:\Users\ethan\HappyCookie-Cutover-NN`). The release gate refuses to deploy while a merged migration is unapplied, so each migration is applied right after its PR merges. The 19 November releases (#107–#127) are in [history](current-history.md).
 
-- **#107 HCB-018:** one date formatter on the Manila clock (`src/lib/date/display.ts`: `dayLabel`, `dayTimeLabel`, `timeLabel`) across Home, till, events and production.
-- **#108 HCB-030:** a data request answered 401 makes the live gate re-check the sign-in (`src/lib/auth/session-rejected.ts`); a refused session shows "You were signed out" (placeholder wording for Cine) instead of a blank page, queued sales kept.
-- **#109 HCB-033:** live owner checkboxes are at least 24 px; HCB-032 was already fixed (regression test added).
-- **#110, #113 HCB-010/016/017:** a helper's Home offers Bazaar and Sales log (until OD-04); "1 cookie" everywhere the engine wrote "1 cookies" (`src/lib/display/singular-cookies.ts`); order income on Money reads "Orders", not "Drops". HCB-011 and HCB-019 were already fixed.
-- **#111, #114, #116 shop card:** an empty cart says "Nothing picked yet" once (card only; the phone Continue bar shows ₱0); once picked, the card title carries the count. Checked on the live trial at 375 and desktop width.
-- **#112 HCB-078/072 (browser):** `tests/e2e-scenarios/scenario-{a,c}.spec.ts` drive loops A and C through the live owner UI on a local stack, including an offline reload and a single replay by `clientId`; run locally with `pnpm test:e2e:scenarios` (not in CI: no hosted stack).
-- **#115 release gate:** after a deploy every public route and resource is waited for (12 × 5 s) before the strict byte check; the #114 release had failed closed on a stale `/lookup/` and the trial was 404 until the deploy job was re-run.
-- **#117 HCB-015:** the till keeps its own "Back to events" and the header Back is left out. HCB-021, 022, 034 and 040 were already fixed in current source.
-- **#118 HCB-004c:** an older empty menu read after a newer failed read no longer counts as a confirmed empty menu. HCB-031, 035 and 002 were already fixed.
+- **#127 box page:** "Order a box!" beside Your order: tabs per active box size, round pictures, exact fill; priced by the existing rule (cookies at their prices plus the box size's charge).
+- **#128 / #130 café prices and orders:** a café price per product (default retail × 0.7 rounded down to ₱5, editable on Edit product); café orders with the setting "Café orders count toward the weekly limit" (default on). Being reworked (#137, 096–097): café sales become a manual bulk sale log on their own Café page with expenses, off every customer surface.
+- **#132 S1:** refunds need a reference (form and `staff_refund`); `join_waitlist` refuses a blank Instagram handle; pickup date proofs.
+- **#131 S2:** the bazaar day belongs to the account: `get_bazaar_day` returns sales, voids and table stock; any device may sell; the till hydrates from the server and lays its unsent queue on top.
+- **#135 / #136 S3 helpers:** `profiles.access_expires_at`; Cine adds helpers with an expiry on People; helpers land on Bazaar, sell, void their own sales, record stall expenses and close the open day; late offline sales stamped before the close count; expired helpers see "Your access has ended". Needs Ethan: deploy the `create-helper-account` Edge Function and create the second Cloudflare Access app (steps in #136).
+- **#124, #129, #133, #134:** release deploy job in the Playwright image; security-suite and release-test fixes; GOAT routing (rule 13 of `agent-orchestration.md`).
 
-- **Cine's review (19 November), first answers:** #120 removes the marble wave ground and its colour (the glass, motion and everything else stay; Ethan: "keep the glass"); #121 shows "Join the waiting list" only while the shop's schedule says closed, makes Instagram required on the waiting list (checkout still optional) and drops the price note under the cart total; #122 edits a recipe's lines on the recipe page ("Edit recipe", Save new version / Cancel, same save path); #123 sets Home's greeting formally (body font, as written). #124 (release deploy job in the pinned Playwright image after an Ubuntu mirror outage failed #121's release before it deployed) merges next.
-
-Open with Cine: the shop's closed hours (she said Sun 9am–Mon 9am; the banner reads Thursday 9 PM), Instagram at checkout, box pricing (fixed per size or cookies plus box charge), repeats in a box, cut-out cookie images, café wholesale prices (enter per order or a saved price list; bazaar days already have their own prices), and the rest of the review pack's decisions. The "Order a box!" page is being built on the existing box rule. Unit tests can still time out at 5 s under a full local run (retry with `VITEST_MAX_WORKERS=3`, never a longer timeout); a fresh worktree has no `.husky/_`, so run `pnpm verify` by hand there.
+Open: the Café tab needs Ethan's OK to add `'cafe'` to the protected engine's `SCREENS` list; Ethan to set Ordering closes to Sunday 9:00 AM; S4 live sync (098) after the café slices; scenario D (two devices + helper). Unit tests can still time out at 5 s under a full local run (retry with `VITEST_MAX_WORKERS=3`).
 
 ## Preservation and external acceptance
 
