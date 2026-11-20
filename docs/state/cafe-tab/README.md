@@ -4,12 +4,14 @@ The Café page is built and reachable from Sell → Orders (the "Café sales" bu
 is held here as a tested patch. **Do not apply until Ethan has approved the exception below.** When applied, delete this folder.
 
 ## What needs approval
+
 One word in the engine's own screen list, `src/store/engine/ops-engine.js` line 171 (`const SCREENS`): `'cafe'` after `'bazaar'`.
 `tests/unit/screens.test.ts` requires `src/lib/screens.ts` and the engine list to be the same, so the key cannot be added on one side.
 Nothing else protected changes. `scripts/port-baseline.json` does not fingerprint the engine, so `check-port-integrity` passes without
 `--update` (only `scripts/validate-g0.py` needs one reversal line, included).
 
 ## Two patches (made against the branch that adds this folder; both checked in a scratch copy)
+
 1. `engine-screens.patch`: the one engine word, plus the `CAFE_SCREEN_REVERSALS` entry in `scripts/validate-g0.py`.
 2. `register-tab.patch`: everything else (no protected path): `'cafe'` in `src/lib/screens.ts`; the tab and place in
    `src/lib/nav/function-map.ts` (after Bazaar); `src/components/live/cafe/{cafe-screen.tsx,register.ts}` and `register-all.ts`; the
@@ -28,6 +30,7 @@ failures) and the 8 test files the change touches (168 tests). **Not checked: a 
 opening the page). Do that before merging.
 
 ## Paste into docs/state/protected-exception.md when approved
+
 ```
 # Café screen key: engine exception — APPROVED <date>, applied <date>
 
