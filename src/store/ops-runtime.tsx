@@ -109,6 +109,7 @@ import { HomeDesk } from '@/store/home-desk';
 import { MakeDesk } from '@/store/make-desk';
 import { MoneyDesk, type MoneyEngine } from '@/store/money-desk';
 import { MoneyEntry } from '@/store/money-entry';
+import { fetchOpenBazaarDay, startedFromRead } from '@/lib/data/helper-day';
 import { ReceiveDelivery, StockChange, type StockEntryItem } from '@/store/stock-entries';
 import { RecipeBook } from '@/store/recipe-book';
 import {
@@ -119,6 +120,7 @@ import {
   fetchBazaarDay,
   fetchEventPrices,
   startBazaarDay,
+  closeBazaarDay,
   type DayPrices,
   type Bazaar,
   type BazaarClient
@@ -2136,6 +2138,208 @@ export class OpsRuntime extends OpsProvider {
     return 'started';
   }
 
+  /**
+   * S3 (helpers): what a helper's bazaar screen shows while no day is held on this phone. `none`: nothing is open now; `error` and
+   * `unavailable` (a database older than migration 95) are said plainly; `refused`: their access has ended.
+   */
+  private helperDay: { phase: 'idle' | 'loading' | 'none' | 'error' | 'unavailable' | 'refused' } =
+    {
+      phase: 'idle'
+    };
+  private helperCloseOpen = false;
+  private helperJoining = false;
+  private helperCloseAt: number | null = null;
+
+  /**
+   * S3: a helper's phone finds the day that is open now and builds its till from the server's read of it (`get_open_bazaar_day`,
+   * then `get_bazaar_day`), with this phone's unsent sales laid on top exactly as the owner's till does. It never starts or plans a
+   * day: Cine does that. A day this phone holds that is no longer the open one has been closed, and is let go of once nothing of it
+   * is waiting to send. Called when the helper's Bazaar screen opens, every 15 seconds while it is on screen, and on coming back.
+   */
+  async joinOpenBazaarDay(): Promise<void> {
+    if (this.state.role !== 'helper' || !isLiveMode() || this.helperJoining) return;
+    const target = this.state.online ? this.salesTarget() : null;
+    if (!target) return;
+    const client = target as unknown as BazaarClient;
+    this.helperJoining = true;
+    const held = this.state.event as LiveEvent | null;
+    if (!held) this.helperDay = { phase: 'loading' };
+    this.forceUpdate();
+    try {
+      const open = await fetchOpenBazaarDay(client);
+      if (this.unmounted) return;
+      if (!open.ok) {
+        // A phone that already holds its day keeps selling whatever the read says; the screen only changes when there is none.
+        if (!this.state.event)
+          this.helperDay = {
+            phase:
+              open.reason === 'unavailable'
+                ? 'unavailable'
+                : open.reason === 'refused'
+                  ? 'refused'
+                  : 'error'
+          };
+        return;
+      }
+      const heldNow = this.state.event as LiveEvent | null;
+      if (!open.day) {
+        this.helperDay = { phase: 'none' };
+        if (heldNow?.dayId) await this.dropClosedDay(heldNow.dayId);
+        return;
+      }
+      if (heldNow?.dayId === open.day.dayId) {
+        await this.refreshHeldDay({ force: true });
+        return;
+      }
+      // This phone holds another day (closed since), or none: the day that is open now is the one to sell.
+      if (heldNow?.dayId) {
+        await this.dropClosedDay(heldNow.dayId);
+        if ((this.state.event as LiveEvent | null)?.dayId) return;
+      }
+      const read = await fetchBazaarDay(client, open.day.dayId);
+      if (this.unmounted) return;
+      const started = read.ok ? startedFromRead(read.day) : null;
+      if (!read.ok || !started) {
+        this.helperDay = { phase: read.ok || read.reason === 'refused' ? 'none' : 'error' };
+        return;
+      }
+      let layer: { sales: LocalDaySale[]; voids: Set<string> };
+      try {
+        layer = await this.localDayLayer(started.eventId);
+      } catch {
+        // An unreadable queue cannot be laid under the server's day: nothing is opened, and the queue still holds everything.
+        this.helperDay = { phase: 'error' };
+        return;
+      }
+      const merged = mergeDay({
+        server: read.day,
+        local: layer.sales,
+        localVoids: layer.voids,
+        toPesos: centavosToPesos
+      });
+      void requestPersistentStorage();
+      const patch = engineStateForDay(
+        started,
+        {
+          name: open.day.name,
+          date: dateRange(open.day.day, open.day.day),
+          dayId: open.day.dayId,
+          scheduledId: open.day.bookingId
+        },
+        PRODUCTS.map((p) => p.id),
+        centavosToPesos
+      );
+      this.tillEdits += 1;
+      this.helperDay = { phase: 'idle' };
+      this.setState((s) => ({
+        ...(patch as Omit<typeof patch, 'syncState'>),
+        syncState: 'idle' as never,
+        eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices },
+        ...this.heldDayPatch(merged)
+      }));
+    } finally {
+      this.helperJoining = false;
+      if (!this.unmounted) this.forceUpdate();
+    }
+  }
+
+  /**
+   * S3: a helper closes the day they are selling. They count what is left of each flavour; the database decides where it goes (it
+   * carries to the next day, or goes to the shop on the last), and says nothing about money back. Needs signal, and every sale of
+   * this phone sent first: a sale rung after the close would be refused. Returns the sentence to show when it did not close.
+   */
+  async closeDayAsHelper(input: {
+    left: Record<string, number>;
+    countedPesos: number | null;
+  }): Promise<string | null> {
+    const event = this.state.event as LiveEvent | null;
+    if (this.state.role !== 'helper' || !event?.dayId || !isEventUuid(event.id))
+      return 'There is no open day to close.';
+    const target = this.state.online ? this.salesTarget() : null;
+    if (!target)
+      return 'Closing the day needs signal. Keep selling: sales are saved on this phone.';
+    const stock = (this.state.eventStock ?? {}) as Record<string, number>;
+    const lines: Record<
+      string,
+      { left: number; carryNext: number; toShop: number; writtenOff: number }
+    > = {};
+    for (const pid of event.snapshot ?? []) {
+      const left = input.left[pid] ?? 0;
+      if (!Number.isInteger(left) || left < 0)
+        return 'Count each flavour as a whole number, 0 or more.';
+      if (left > (stock[pid] ?? 0))
+        return 'You counted more than the till says is on the table. Check the count.';
+      lines[pid] = { left, carryNext: 0, toShop: 0, writtenOff: left };
+    }
+    let countedCents: number | null = null;
+    if (input.countedPesos !== null) {
+      if (!Number.isFinite(input.countedPesos) || input.countedPesos < 0)
+        return 'The cash counted must be 0 or more.';
+      countedCents = pesosToCentavos(input.countedPesos);
+    }
+    // Everything this phone rang goes first (the queue itself decides, not the count on screen).
+    await this.flushSales();
+    let unsent = 0;
+    try {
+      unsent = (await unsentForEvent(event.id)).blocking.length;
+    } catch {
+      return 'This phone could not check its unsent sales. Try again.';
+    }
+    if (unsent > 0)
+      return `${unsent} ${unsent === 1 ? 'sale is' : 'sales are'} still on this phone. Wait for ${unsent === 1 ? 'it' : 'them'} to send, then close the day.`;
+    this.helperCloseAt ??= Date.now();
+    const outcome = await closeBazaarDay(target as unknown as BazaarClient, {
+      dayId: event.dayId,
+      at: this.helperCloseAt,
+      countedCents,
+      lines,
+      expected: '0'.repeat(64),
+      till: null
+    });
+    if (outcome === 'saved') {
+      this.helperCloseAt = null;
+      this.helperCloseOpen = false;
+      this.setCloseInDoubt(event.dayId);
+      this.toast('Day closed.');
+      await this.dropClosedDay(event.dayId);
+      this.helperDay = { phase: 'none' };
+      this.forceUpdate();
+      return null;
+    }
+    if (outcome === 'offline') {
+      this.setCloseInDoubt(event.dayId);
+      return 'The close may not have reached the server. Check the signal and press Close the day again: it is safe to repeat.';
+    }
+    this.helperCloseAt = null;
+    return 'The day could not be closed. It may already be closed: ask the owner.';
+  }
+
+  private helperBazaarVals() {
+    const event = this.state.event as LiveEvent | null;
+    const stock = (this.state.eventStock ?? {}) as Record<string, number>;
+    return {
+      phase: event ? ('selling' as const) : this.helperDay.phase,
+      online: Boolean(this.state.online),
+      dayName: event?.name ?? '',
+      join: () => void this.joinOpenBazaarDay(),
+      close: this.helperCloseOpen
+        ? {
+            flavours: (event?.snapshot ?? []).map((pid) => ({
+              id: pid,
+              name: PRODUCTS.find((p) => p.id === pid)?.short ?? pid,
+              onTable: stock[pid] ?? 0
+            })),
+            submit: (input: { left: Record<string, number>; countedPesos: number | null }) =>
+              this.closeDayAsHelper(input),
+            cancel: () => {
+              this.helperCloseOpen = false;
+              this.forceUpdate();
+            }
+          }
+        : null
+    };
+  }
+
   /** S3: kept on the phone so a reload does not forget that a close of the day may have landed. */
   private setCloseInDoubt(dayId: string | null): void {
     try {
@@ -2167,6 +2371,12 @@ export class OpsRuntime extends OpsProvider {
   private openDayReview(): void {
     const event = this.state.event as LiveEvent | null;
     if (!event?.dayId || !event.scheduledId) return;
+    // S3: a helper closes the day with a count of what is left, never through the owner's review.
+    if (this.state.role === 'helper') {
+      this.helperCloseOpen = true;
+      this.forceUpdate();
+      return;
+    }
     if (this.state.role !== 'owner') {
       this.toast('The owner closes the day from its review.', 'warn');
       return;
@@ -2352,7 +2562,14 @@ export class OpsRuntime extends OpsProvider {
   private static readonly DAY_READ_EVERY_MS = 15_000;
   private async refreshHeldDay(opts: { force?: boolean } = {}): Promise<void> {
     const event = this.state.event as LiveEvent | null;
-    if (!isLiveMode() || !event?.id || !event.dayId || this.state.role !== 'owner') return;
+    // S3: a helper's till is rebuilt from the server the same way (get_bazaar_day lets an active helper read the open day).
+    if (
+      !isLiveMode() ||
+      !event?.id ||
+      !event.dayId ||
+      (this.state.role !== 'owner' && this.state.role !== 'helper')
+    )
+      return;
     if (!this.state.online || this.dayReading) return;
     if (!opts.force && Date.now() - this.dayReadAt < OpsRuntime.DAY_READ_EVERY_MS) return;
     this.dayReadAt = Date.now();
@@ -4329,6 +4546,9 @@ export class OpsRuntime extends OpsProvider {
               }
             }
           : null,
+      // S3: what a helper's Bazaar screen needs (find the open day, close it). Never for the owner.
+      liveHelperBazaar:
+        isLiveMode() && this.state.role === 'helper' ? this.helperBazaarVals() : null,
       // Worked out only on the Recipes screen: nothing else reads it, and the till must not pay for it.
       liveRecipes:
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
@@ -10913,6 +11133,12 @@ export class OpsRuntime extends OpsProvider {
    * expense sheet. A helper cannot book a fee.
    */
   private openTillFees = (): void => {
+    // S3: a helper records a stall expense through the engine's own expense sheet (`add_event_expense`, queued like a sale); fees,
+    // which the books read, stay the owner's.
+    if (this.state.role === 'helper') {
+      this.sheet('evExp');
+      return;
+    }
     if (this.state.role !== 'owner') {
       this.toast('The owner adds fees from the event page.', 'warn');
       return;

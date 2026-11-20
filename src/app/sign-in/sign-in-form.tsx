@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { returnPathFromSearch } from '@/lib/auth/return-path';
 import { clearIdleSpent } from '@/lib/auth/offline-trust';
 import { clearStaffName } from '@/lib/auth/staff-name';
+import { checkStaffProfile } from '@/lib/auth/live-gate';
 
 /**
  * Staff sign-in. Styled from the prototype's own control vocabulary — the same 44px
@@ -25,11 +26,11 @@ export function SignInForm() {
     event.preventDefault();
     setBusy(true);
     setError(null);
-    const { error: signInError } = await createClient().auth.signInWithPassword({
+    const client = createClient();
+    const { error: signInError } = await client.auth.signInWithPassword({
       email,
       password
     });
-    setBusy(false);
     if (signInError) {
       setError('That email and password do not match an account.');
       return;
@@ -38,6 +39,21 @@ export function SignInForm() {
     clearIdleSpent();
     // B2: nor is it the person this phone last remembered. Their name is read from the profile.
     clearStaffName();
+    // S3: a helper has one page, the open bazaar day (the second Cloudflare Access application covers /bazaar and /sign-in only),
+    // so that is where they land, whatever page they came from. A helper whose access has ended is sent there too, to be told.
+    let landing: string | null = null;
+    try {
+      const check = await checkStaffProfile(client);
+      if (check.status === 'expired' || (check.status === 'ok' && check.role === 'helper'))
+        landing = '/bazaar';
+    } catch {
+      /* the gate checks again on the next page */
+    }
+    setBusy(false);
+    if (landing) {
+      router.replace(landing);
+      return;
+    }
     // Read at submit, not render: useSearchParams() would suspend the prerender and leave the
     // static page empty until the JavaScript ran (T-18: LCP 6.2 s on the phone profile).
     router.replace(returnPathFromSearch(new URLSearchParams(window.location.search)));

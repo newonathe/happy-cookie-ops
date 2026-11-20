@@ -168,5 +168,14 @@ three sales, once each.
   phone's unsent sales and voids on top (`src/lib/bazaar/day-merge.ts`); a sale taken back from the server carries
   the server's client id and is never queued again. Until the new migration is applied to a database the till
   keeps the old behaviour (moving the selling device here; the till starts from the planned stock).
+- A helper's phone (S3, migration 95) opens on the bazaar day that is open now and nothing else. It finds the day
+  with `get_open_bazaar_day`, builds its till from `get_bazaar_day`, and lays its own unsent sales on top exactly as
+  the owner's does; selling, taking back its own sale and a stall expense are queued like the owner's. The server
+  accepts them only while the day is open and the account has not ended: a queued sale, void or expense that reaches
+  the server after the day closed or the access ended is refused (42501) and stays on the phone, listed, never
+  deleted, while a repeat of one already booked is still answered. Closing the day needs signal and every sale of the
+  phone sent first. The remembered offline check carries the moment the access ends (`until`), so an offline open
+  never outlives it; an ended access is answered by the server ("Your access has ended"), never inferred from a
+  failed request. Until the migration is applied the helper's screen says helper access is not available yet.
 - `toggleOnline()` from the prototype still works and still wins over the browser's
   signal. It is how the owner demonstrates the failure case.

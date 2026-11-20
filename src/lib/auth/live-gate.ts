@@ -17,11 +17,45 @@ function isRole(value: string): value is Role {
 }
 
 export type ProfileCheck =
-  | { status: 'ok'; role: Role; userId?: string }
+  | {
+      status: 'ok';
+      role: Role;
+      userId?: string;
+      /** S3: the helper's access ends at this moment (ms), or absent for none. */
+      expiresAt?: number;
+      /** S3: the account was made with a temporary password that has not been replaced yet. */
+      mustChangePassword?: boolean;
+    }
+  /** S3: a helper whose access has ended, by time (a definite answer, never a network failure). The app says so and offers sign-out. */
+  | { status: 'expired' }
   /** A definite, positive denial: no user, an explicit auth error, or an inactive/missing/unrecognised profile row. */
   | { status: 'denied' }
   /** The check could not be completed — offline, a timed-out fetch, a transient server error. Not evidence of anything. */
   | { status: 'unknown' };
+
+/**
+ * The own profile row. A database without migration 95 has no `access_expires_at`: asking for it fails with 42703 (or PGRST204),
+ * so the read is made again without it and the app behaves as before (no expiry exists there).
+ */
+async function readProfile(supabase: SupabaseClient<Database>, id: string) {
+  const first = await supabase
+    .from('profiles')
+    .select('role, active, access_expires_at')
+    .eq('id', id)
+    .maybeSingle();
+  if (first.error && ['42703', 'PGRST204', 'PGRST200'].includes(first.error.code ?? '')) {
+    const second = await supabase
+      .from('profiles')
+      .select('role, active')
+      .eq('id', id)
+      .maybeSingle();
+    return {
+      data: second.data ? { ...second.data, access_expires_at: null as string | null } : null,
+      error: second.error
+    };
+  }
+  return first;
+}
 
 /**
  * The live-mode identity check. `getUser()` is used rather than `getSession()` because it
@@ -55,11 +89,7 @@ export async function checkStaffProfile(supabase: SupabaseClient<Database>): Pro
 
   let profileResult;
   try {
-    profileResult = await supabase
-      .from('profiles')
-      .select('role, active')
-      .eq('id', userData.user.id)
-      .maybeSingle();
+    profileResult = await readProfile(supabase, userData.user.id);
   } catch {
     return { status: 'unknown' };
   }
@@ -68,8 +98,19 @@ export async function checkStaffProfile(supabase: SupabaseClient<Database>): Pro
   // returning zero rows — the latter is a real, positive "no such active profile".
   if (error) return { status: 'unknown' };
   if (!data || !data.active || !isRole(data.role)) return { status: 'denied' };
+  // S3: past the expiry the database gives the profile no role, and the app says so instead of signing it out blindly.
+  const until = data.access_expires_at ? Date.parse(data.access_expires_at) : null;
+  if (until !== null && Number.isFinite(until) && until <= Date.now()) return { status: 'expired' };
 
-  return { status: 'ok', role: data.role, userId: userData.user.id };
+  return {
+    status: 'ok',
+    role: data.role,
+    userId: userData.user.id,
+    ...(until !== null && Number.isFinite(until) ? { expiresAt: until } : {}),
+    ...(userData.user.user_metadata?.must_change_password === true
+      ? { mustChangePassword: true }
+      : {})
+  };
 }
 
 /**

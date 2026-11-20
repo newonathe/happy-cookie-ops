@@ -16,6 +16,10 @@ const { FakeRuntime } = vi.hoisted(() => ({
       this.state.screen = 'today'; // the real `setRole` goes to the role's home screen
     });
     setState = vi.fn((_patch: unknown, callback?: () => void) => callback?.());
+    // S3: a verified helper is held to the Bazaar screen, which the gate does with `go`.
+    go = vi.fn((screen: ScreenKey) => {
+      this.state.screen = screen;
+    });
     loadSettings = vi.fn();
     saveStallCopy = vi.fn();
     loadFlavours = vi.fn();

@@ -31,6 +31,7 @@ import type { Role } from '@/store/engine/ops-engine';
 import { registerAllLiveScreens } from '@/components/live/register-all';
 import { SESSION_REJECTED_EVENT } from '@/lib/auth/session-rejected';
 import { OfflineHold } from './offline-hold';
+import { SetPasswordForm } from '@/components/auth/set-password-form';
 import { SignOutControl } from './sign-out-control';
 
 // The live screens (stock, Bazaar, recipes, Money, Home, Sell, Account, customer) take their guarded slots, once,
@@ -62,8 +63,11 @@ function showsBazaarAlone(screen: ScreenKey, state: Readonly<Record<string, unkn
  * waiting   the server could not be reached and this phone may not open offline: a notice.
  * signin    signed out with the sign-in page out of reach: a notice, no redirect.
  * ended     HCB-030: a session that was open ended (the server refused it); a notice while the sign-in page opens.
+ * expired    S3: a helper whose access has ended: "Your access has ended", with Sign out. Nothing else opens.
+ * password   S3: an account made with a temporary password: the helper chooses their own before anything opens.
  */
-type Access = 'closed' | 'verified' | 'bazaar' | 'waiting' | 'signin' | 'ended';
+type Access =
+  'closed' | 'verified' | 'bazaar' | 'waiting' | 'signin' | 'ended' | 'expired' | 'password';
 
 /** `landing`: the screen this page load opens on. `hold`: shown in place of the frame, or null. */
 export interface GateView {
@@ -508,6 +512,16 @@ export function LiveGate({
         lockOut(true);
         return;
       }
+      if (result.status === 'expired') {
+        // S3: their time ran out. A definite answer from the server (never a lost signal): the remembered check goes, so an
+        // offline open cannot bring the app back, and the person is told plainly. Queued sales stay on the phone.
+        clearRememberedCheck();
+        stopIdle();
+        stopRecheck();
+        verifiedUserId = null;
+        setAccess('expired');
+        return;
+      }
       const role = result.role;
       if (verifiedUserId && result.userId && verifiedUserId !== result.userId) {
         clearIdleSpent();
@@ -515,6 +529,12 @@ export function LiveGate({
         leaving = false;
       }
       verifiedUserId = result.userId ?? null;
+      // S3: a temporary password must be replaced before anything else opens or loads.
+      if (result.mustChangePassword) {
+        stopRecheck();
+        setAccess('password');
+        return;
+      }
       // The server answers again and the idle time ran out while it could not: the sign-out
       // that was put off happens now. Nothing is opened first.
       if (idleWasSpent() || idleSpent(role)) {
@@ -545,7 +565,7 @@ export function LiveGate({
         else engine.setRole(role);
       }
       askedRole = role;
-      rememberCheck(role);
+      rememberCheck(role, undefined, result.expiresAt ?? null);
       stopRecheck();
       // Reopening after a spell with no server: send what the phone is holding now. On a dead
       // connection that comes back no `online` event fires, so nothing else would until the
@@ -798,6 +818,16 @@ export function LiveGate({
     };
   }, [live, configured, engine, initialScreen]);
 
+  // S3: a verified helper sees the Bazaar screen alone (with at most its own sheets), exactly what Bazaar-only access draws.
+  const helperConfined =
+    needsGate && access === 'verified' && engine.state.role === 'helper' && live;
+  const helperElsewhere = helperConfined && !showsBazaarAlone(screen, engine.state);
+  useEffect(() => {
+    if (!helperElsewhere) return;
+    engine.setState({ sheet: null, quick: false });
+    engine.go(BAZAAR);
+  }, [helperElsewhere, engine]);
+
   const needsFirstCheck = needsGate && access === 'closed';
   useEffect(() => {
     if (needsFirstCheck) actions.current.firstCheck();
@@ -823,9 +853,11 @@ export function LiveGate({
   // A3: the deliberate sign-out. Never over the Bazaar screen or an open sheet or the Quick add
   // layer (a stray tap while a sale is being taken), never when there is no session to sign out.
   const sheetOpen = Boolean(engine.state.sheet) || Boolean(engine.state.quick);
+  // S3: a helper has no Account page, so Sign out is offered on Bazaar too, but only while no day is held on this phone.
+  const helperIdle = helperConfined && !engine.state.event;
   const signOut =
     needsGate &&
-    screen !== BAZAAR &&
+    (screen !== BAZAAR || helperIdle) &&
     !sheetOpen &&
     (access === 'verified' || (access === 'waiting' && hasStoredSession())) ? (
       <SignOutControl
@@ -843,7 +875,7 @@ export function LiveGate({
   if (!needsGate || access === 'verified')
     return (
       <>
-        {view(null)}
+        {view(helperElsewhere ? <></> : null)}
         {signOut}
       </>
     );
@@ -868,5 +900,14 @@ export function LiveGate({
     return <OfflineHold kind="signin" onAction={() => actions.current.signIn()} />;
   if (access === 'ended')
     return <OfflineHold kind="ended" onAction={() => actions.current.signIn()} />;
+  if (access === 'expired')
+    return <OfflineHold kind="accessEnded" onAction={() => actions.current.signOut()} />;
+  if (access === 'password')
+    return (
+      <SetPasswordForm
+        onChanged={() => actions.current.retry()}
+        onSignOut={() => actions.current.signOut()}
+      />
+    );
   return null;
 }

@@ -8,8 +8,9 @@
  *   waiting    The sign-in could not be checked and this phone may not open offline.
  *   signin     She is signed out and the sign-in page cannot be reached yet.
  *   ended      HCB-030: her sign-in ran out while she was working; the sign-in page is opening.
+ *   accessEnded  S3: a helper's access has ended (the owner set a time, or removed them).
  */
-export type HoldKind = 'elsewhere' | 'waiting' | 'signin' | 'ended';
+export type HoldKind = 'elsewhere' | 'waiting' | 'signin' | 'ended' | 'accessEnded';
 
 export const HOLD_COPY: Record<HoldKind, { title: string; body: string; action: string }> = {
   elsewhere: {
@@ -32,6 +33,12 @@ export const HOLD_COPY: Record<HoldKind, { title: string; body: string; action: 
     title: 'You were signed out',
     body: 'Your sign-in ended, so anything you changed just now may not have been saved. Sales already recorded are kept on this phone and are sent after you sign in again.',
     action: 'Sign in again'
+  },
+  // S3. Wording for the owner to confirm.
+  accessEnded: {
+    title: 'Your access has ended',
+    body: 'Your time as a helper is over. Ask the owner if you should have more. Sales already recorded are kept on this phone and are sent if you sign in again with access.',
+    action: 'Sign out'
   }
 };
 
