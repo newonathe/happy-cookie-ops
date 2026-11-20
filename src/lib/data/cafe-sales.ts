@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import { CafePricesUnavailable, missingFunction } from '@/lib/data/cafe-prices';
 import { pesosToCentavos } from '@/lib/money';
+import { cfgValueFromRow, fetchSettings, type SettingsClient } from '@/lib/data/settings';
 
 /**
  * The café sale log, owner only (migration 20260101009600). A café sale is a sale Cine has already made in bulk to a café and logs
@@ -16,6 +17,8 @@ export type CafeSalesClient = Pick<SupabaseClient<Database>, 'rpc'>;
 export const CAFE_SALE_DAYS_BACK = 90;
 
 export type CafeSaleLine = { productId: string; qty: number; unitCents: number };
+/** An additional expense of a sale (delivery, extra packaging): a category of her expense list, whole centavos and a note. */
+export type CafeExpenseLine = { category: string; amountCents: number; note: string };
 export type CafeSaleInput = {
   clientId: string;
   name: string;
@@ -27,6 +30,8 @@ export type CafeSaleInput = {
   /** Take the cookies and the packaging off stock, as when she packs an order. */
   takeStock: boolean;
   lines: CafeSaleLine[];
+  /** Zero or more. Sent only when there are some, so a database without migration 97 still takes a sale without them. */
+  expenses?: CafeExpenseLine[];
 };
 export type CafeSaleSaved = {
   orderNo: string;
@@ -48,6 +53,9 @@ export type CafeSaleRow = {
   paid: boolean;
   cookies: number;
   notes: string;
+  /** What the sale's expenses add up to, and each one (category, the books' label, centavos). */
+  expenseCents: number;
+  expenses: { category: string; label: string; amountCents: number }[];
 };
 
 /** The words for what stopped a save; `retryable` says whether the same sale can be sent again unchanged. */
@@ -97,7 +105,12 @@ const saleRows = z.array(
     pay_method: z.string(),
     pay_state: z.string(),
     cookies: bigint,
-    notes: z.string()
+    notes: z.string(),
+    // Absent from a database without migration 97.
+    expense_cents: bigint.optional(),
+    expenses: z
+      .array(z.object({ category: z.string(), label: z.string(), amount_cents: bigint }))
+      .optional()
   })
 );
 
@@ -114,7 +127,16 @@ export function cafeSaleBody(input: CafeSaleInput) {
       productId: l.productId,
       qty: l.qty,
       unitCents: l.unitCents
-    }))
+    })),
+    ...(input.expenses?.length
+      ? {
+          expenses: input.expenses.map((x) => ({
+            category: x.category.trim(),
+            amountCents: x.amountCents,
+            note: x.note.trim()
+          }))
+        }
+      : {})
   };
 }
 
@@ -125,6 +147,11 @@ export async function recordCafeSale(
   const { data, error } = await client.rpc('record_cafe_sale', { p_sale: cafeSaleBody(input) });
   if (error) {
     if (missingFunction(error)) throw new CafePricesUnavailable();
+    if (error.code === '22023' && input.expenses?.length && /expense/i.test(error.message ?? ''))
+      throw new CafeSaleRefused(
+        'An expense was not accepted. Check each category, amount and note.',
+        false
+      );
     if (error.code === 'ZC002') {
       const details = (error as { details?: string | null }).details;
       const left = details ? Number(details) : Number.NaN;
@@ -185,20 +212,98 @@ export async function fetchCafeSales(client: CafeSalesClient): Promise<CafeSaleR
     payMethod: r.pay_method,
     paid: r.pay_state === 'confirmed',
     cookies: r.cookies,
-    notes: r.notes
+    notes: r.notes,
+    expenseCents: r.expense_cents ?? 0,
+    expenses: (r.expenses ?? []).map((x) => ({
+      category: x.category,
+      label: x.label,
+      amountCents: x.amount_cents
+    }))
   }));
+}
+
+/** An expense for a sale already logged. `clientId` is minted once per attempt so a retry cannot add it twice. */
+export async function addCafeExpense(
+  client: CafeSalesClient,
+  input: { clientId: string; orderNo: string } & CafeExpenseLine
+): Promise<{ orderNo: string; expenseCents: number; replayed: boolean }> {
+  const { data, error } = await client.rpc('add_cafe_expense', {
+    p_expense: {
+      clientId: input.clientId,
+      orderNo: input.orderNo,
+      category: input.category.trim(),
+      amountCents: input.amountCents,
+      note: input.note.trim()
+    }
+  });
+  if (error) {
+    if (missingFunction(error)) throw new CafePricesUnavailable();
+    if (error.code === '22023')
+      throw new CafeSaleRefused(
+        'The expense was not accepted. Check the category, the amount and the note, and that the sale has fewer than 10 expenses.',
+        false
+      );
+    if (error.code === '23505')
+      throw new CafeSaleRefused(
+        'This expense was already used for a different one. Start it again.',
+        false
+      );
+    if (error.code === '42501')
+      throw new CafeSaleRefused('Only the owner can add a café expense.', false);
+    throw new CafeSaleRefused(
+      'The expense was not saved. Check your connection and try again.',
+      true
+    );
+  }
+  const parsed = z
+    .array(z.object({ order_no: z.string(), expense_cents: bigint, replayed: z.boolean() }))
+    .length(1)
+    .safeParse(data);
+  if (!parsed.success)
+    throw new CafeSaleRefused('The expense may have been saved. Try again.', true);
+  const row = parsed.data[0]!;
+  return { orderNo: row.order_no, expenseCents: row.expense_cents, replayed: row.replayed };
+}
+
+/** Her expense categories (the Money list, hidden ones left out), or a short default when they cannot be read. */
+export const DEFAULT_EXPENSE_CATEGORIES = [
+  'Transport',
+  'Packaging',
+  'Business-paid delivery',
+  'Other'
+];
+export async function fetchExpenseCategories(client: SettingsClient): Promise<string[]> {
+  try {
+    const rows = await fetchSettings(client, 'owner');
+    const value = (key: string) => {
+      const row = rows.find((r) => r.key === key);
+      const v = row ? cfgValueFromRow(row) : undefined;
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+    };
+    const hidden = new Set(value('inactiveCats'));
+    const list = value('categories').filter(
+      (c) => !hidden.has(c) && c.toLowerCase() !== 'owner draw'
+    );
+    return list.length ? list : DEFAULT_EXPENSE_CATEGORIES;
+  } catch {
+    return DEFAULT_EXPENSE_CATEGORIES;
+  }
 }
 
 /** One form line as typed: product, quantity and price text (pesos). */
 export type CafeFormLine = { productId: string; name: string; qty: string; price: string };
 
 /** What she typed (pesos) as centavos: whole centavos from ₱0.01 to ₱1,000,000, or the words that say what to fix. */
-export function parseCafePrice(text: string): { cents: number } | { error: string } {
+export function parseCafePrice(
+  text: string,
+  word = 'price'
+): { cents: number } | { error: string } {
   const trimmed = text.trim().replace(/^₱/, '').replace(/,/g, '');
-  if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(trimmed)) return { error: 'Use a price like 90 or 90.50.' };
+  if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(trimmed))
+    return { error: `Use ${word === 'price' ? 'a price' : 'an amount'} like 90 or 90.50.` };
   const cents = pesosToCentavos(Number(trimmed));
-  if (cents < 1) return { error: 'The price must be more than ₱0.' };
-  if (cents > 100000000) return { error: 'That price is more than ₱1,000,000.' };
+  if (cents < 1) return { error: `The ${word} must be more than ₱0.` };
+  if (cents > 100000000) return { error: `That ${word} is more than ₱1,000,000.` };
   return { cents };
 }
 
@@ -216,12 +321,52 @@ export function addDays(ymd: string, days: number): string {
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 }
 
+/** One expense row as typed: category (from her list), amount in pesos and a note. */
+export type CafeFormExpense = { category: string; amount: string; note: string };
+
+/** Checks expense rows as typed. A row with no amount and no note is blank and left out; a row with either needs both a category and an amount. */
+export function checkCafeExpenses(rows: CafeFormExpense[]): {
+  send: CafeExpenseLine[];
+  errors: (string | undefined)[];
+  totalCents: number;
+} {
+  const send: CafeExpenseLine[] = [];
+  const errors: (string | undefined)[] = [];
+  let totalCents = 0;
+  for (const row of rows) {
+    if (row.amount.trim() === '' && row.note.trim() === '') {
+      errors.push(undefined);
+      continue;
+    }
+    const amount = parseCafePrice(row.amount, 'amount');
+    if (!row.category.trim()) errors.push('Choose a category.');
+    else if ('error' in amount) errors.push(amount.error);
+    else if (row.note.trim().length > 120) errors.push('The note is at most 120 characters.');
+    else {
+      errors.push(undefined);
+      send.push({
+        category: row.category.trim(),
+        amountCents: amount.cents,
+        note: row.note.trim()
+      });
+      totalCents += amount.cents;
+    }
+  }
+  return { send, errors, totalCents };
+}
+
 export type CafeFormCheck = {
   /** Words for the first thing to fix in each header field, if any. */
   name?: string;
   date?: string;
   method?: string;
   lines?: string;
+  /** Per expense row, in order: what is wrong with it. */
+  expenseErrors: (string | undefined)[];
+  /** The expenses to send, when valid. */
+  expenses: CafeExpenseLine[];
+  /** For display only. */
+  expenseCents: number;
   /** Per product id: what is wrong with a line that has a quantity. */
   lineErrors: Record<string, { qty?: string; price?: string }>;
   /** The lines to send (those with a quantity), when everything is valid. */
@@ -233,10 +378,28 @@ export type CafeFormCheck = {
 
 /** Checks the form as typed. A line with a blank quantity is not on the sale. */
 export function checkCafeForm(
-  form: { name: string; saleDate: string; payMethod: string; lines: CafeFormLine[] },
+  form: {
+    name: string;
+    saleDate: string;
+    payMethod: string;
+    lines: CafeFormLine[];
+    expenses?: CafeFormExpense[];
+  },
   today: string
 ): CafeFormCheck {
-  const out: CafeFormCheck = { lineErrors: {}, send: [], totalCents: 0, ok: false };
+  const out: CafeFormCheck = {
+    lineErrors: {},
+    send: [],
+    totalCents: 0,
+    ok: false,
+    expenseErrors: [],
+    expenses: [],
+    expenseCents: 0
+  };
+  const exp = checkCafeExpenses(form.expenses ?? []);
+  out.expenseErrors = exp.errors;
+  out.expenses = exp.send;
+  out.expenseCents = exp.totalCents;
   const name = form.name.trim();
   if (!name) out.name = 'Type the café’s name.';
   else if (name.length > 80) out.name = 'The name is at most 80 characters.';
@@ -263,6 +426,12 @@ export function checkCafeForm(
   }
   if (!bad && out.send.length === 0) out.lines = 'Add at least one flavour with a quantity.';
   if (!bad && out.totalCents > 100000000) out.lines = 'The sale total is more than ₱1,000,000.';
-  out.ok = !out.name && !out.date && !out.method && !out.lines && !bad;
+  out.ok =
+    !out.name &&
+    !out.date &&
+    !out.method &&
+    !out.lines &&
+    !bad &&
+    out.expenseErrors.every((e) => !e);
   return out;
 }

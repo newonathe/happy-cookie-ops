@@ -2765,6 +2765,14 @@ export type Database = {
           product_id: string
         }[]
       }
+      add_cafe_expense: {
+        Args: { p_expense: Json }
+        Returns: {
+          expense_cents: number
+          order_no: string
+          replayed: boolean
+        }[]
+      }
       add_event_expense: {
         Args: { p_expense: Json }
         Returns: {
@@ -3100,6 +3108,8 @@ export type Database = {
         Args: never
         Returns: {
           cookies: number
+          expense_cents: number
+          expenses: Json
           items: Json
           logged_at: string
           name: string

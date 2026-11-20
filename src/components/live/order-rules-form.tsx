@@ -2,8 +2,6 @@ import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { RULES_COPY } from '@/lib/orders/staff-copy';
 import { Button } from '@/components/ui/button';
-import { CafeOrderSettings } from '@/components/live/cafe-order-settings';
-import { isLiveMode } from '@/lib/config/app-mode';
 import { FooterActions, InfoTip, OwnerField, Panel } from '@/components/ui/owner-kit';
 
 type LiveOrderRules = NonNullable<OpsVals['liveOrderRules']>;
@@ -132,7 +130,6 @@ export function OrderRulesForm({ liveOrderRules }: { liveOrderRules: LiveOrderRu
       >
         {number('unpaidHoldHours', 'Keep unpaid orders for (hours)', rules.unpaidHoldHours, 1, 168)}
       </Panel>
-      {isLiveMode() ? <CafeOrderSettings /> : null}
       <p className="mb-2 text-caption text-ink-mute">These apply to new orders only.</p>
       <FooterActions
         back={

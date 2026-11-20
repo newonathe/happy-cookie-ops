@@ -24,7 +24,11 @@ def check(db_id, workdir, _password, _report):
     settings = m94[m94.index("create function public.get_cafe_order_settings"):m94.index("/**\n * Enters a café order")].replace(
         "create function", "create or replace function")
     m96 = (ROOT / "supabase/migrations/20260101009600_cafe_sale_log.sql").read_text(encoding="utf-8")
-    sale = m96[m96.index("create function public.record_cafe_sale"):].replace("create function", "create or replace function")
+    m97 = (ROOT / "supabase/migrations/20260101009700_cafe_expenses.sql").read_text(encoding="utf-8")
+    # The functions as they stand after migration 97, with the staff orders and the books as migration 96 left them.
+    sale = (m97[m97.index("create or replace function public.record_cafe_sale"):].replace("drop function public.get_cafe_sales();\n", "").replace(
+        "create function", "create or replace function")
+        + "\n" + m96[m96.index("create or replace function public.get_staff_orders"):])
 
     def cut(source, old, new):
         if source.count(old) < 1:
@@ -43,7 +47,27 @@ def check(db_id, workdir, _password, _report):
         ("null setting", t("if p_count_toward_limit is null then -- rule:cafe-settings-null", "if false then")),
         ("any caller", s("if not public.is_owner() then -- rule:cafe-sale-owner", "if false then")),
         ("any log reader", s("if not public.is_owner() then -- rule:cafe-sales-read-owner", "if false then")),
-        ("extra keys", s("is distinct from array['clientId', 'lines', 'name', 'notes', 'payMethod', 'saleDate', 'takeStock'] then -- rule:cafe-sale-keys", "is null then")),
+        ("extra keys", s("and v_keys <@ array['clientId', 'expenses', 'lines', 'name', 'notes', 'payMethod', 'saleDate', 'takeStock']", "and true")),
+        ("missing keys", s("if not (v_keys @> array['clientId', 'lines', 'name', 'notes', 'payMethod', 'saleDate', 'takeStock']", "if not (true")),
+        ("any expenses", s("if p_sale ? 'expenses' then -- rule:cafe-sale-expenses", "if false then")),
+        ("too many expenses", s("jsonb_array_length(p_sale -> 'expenses') > 10", "false")),
+        ("expense draw", s("or lower(v_exp_cats[cardinality(v_exp_cats)]) = 'owner draw' then -- rule:cafe-sale-expense-text", "then -- rule:cafe-sale-expense-text")),
+        ("expense text", s("if length(v_exp_cats[cardinality(v_exp_cats)]) not between 1 and 60 or", "if false and")),
+        ("expense amount", s("if v_n <> trunc(v_n) or v_n < 1 or v_n > 100000000 then -- rule:cafe-sale-expense-amount", "if false then")),
+        ("expense dated now", s("-v_exp_amts[v_i], v_stamp, v_id,", "-v_exp_amts[v_i], v_now, v_id,")),
+        ("expense not tied", s("-v_exp_amts[v_i], v_stamp, v_id,", "-v_exp_amts[v_i], v_stamp, null,")),
+        ("expense positive", s("-v_exp_amts[v_i], v_stamp, v_id,", "v_exp_amts[v_i], v_stamp, v_id,")),
+        ("expense any caller", s("if not public.is_owner() then -- rule:cafe-expense-owner", "if false then")),
+        ("expense keys", s("is distinct from array['amountCents', 'category', 'clientId', 'note', 'orderNo'] then -- rule:cafe-expense-keys", "is null then")),
+        ("expense add text", s("or lower(v_cat) = 'owner draw' then -- rule:cafe-expense-text", "then -- rule:cafe-expense-text")),
+        ("expense add amount", s("if v_amount <> trunc(v_amount) or v_amount < 1 or v_amount > 100000000 then -- rule:cafe-expense-amount", "if false then")),
+        ("expense add replay", s("if found then -- rule:cafe-expense-replay", "if false then")),
+        ("expense add id reuse", s("if v_seen.payload_hash is distinct from v_hash or v_seen.order_id is distinct from v_no then -- rule:cafe-expense-client-id-reuse", "if false then")),
+        ("expense add any order", s("o.channel = 'cafe' and o.pay_state = 'confirmed';", "true;")),
+        ("expense add limit", s("kind = 'cost') >= 10 then -- rule:cafe-expense-limit", "kind = 'cost') >= 100 then -- rule:cafe-expense-limit")),
+        ("expense add dated now", s("v_order.placed_at, v_no, auth.uid()", "now(), v_no, auth.uid()")),
+        ("log ignores expenses", s("where l.order_id = o.id and l.kind = 'cost'), 0)::bigint", "where false), 0)::bigint")),
+        ("anon adds expense", sale + "\ngrant execute on function public.add_cafe_expense(jsonb) to anon;"),
         ("no text limits", s("if length(v_name) not between 1 and 80 or length(v_notes) > 300 or length(v_method) not between 1 and 30\n     or v_name ~ '[[:cntrl:]]' or v_notes ~ '[[:cntrl:]]' or v_method ~ '[[:cntrl:]]' then -- rule:cafe-sale-text", "if false then")),
         ("control characters", s("or v_name ~ '[[:cntrl:]]' or v_notes ~ '[[:cntrl:]]' or v_method ~ '[[:cntrl:]]' then -- rule:cafe-sale-text", "then -- rule:cafe-sale-text")),
         ("any date", s("if v_date > v_today or v_date < v_today - 90 then -- rule:cafe-sale-date", "if false then")),
@@ -84,7 +108,7 @@ def check(db_id, workdir, _password, _report):
     # Mutants that restate only part of the functions still need the others from the migration; the settings and the sale pieces are
     # separate texts, so a sale mutant is applied on top of the unchanged settings (already installed on the reset) and the reverse.
     # What a mutant's failure may say besides the scenario's own words: the database's own refusal when a rule is gone.
-    ALSO = {"no replay": "orders_client_id_key", "off ignored": "not enough room left", "stock always taken": "cafe sales"}
+    ALSO = {"expense add replay": "ledger_entries_client_id_key", "no replay": "orders_client_id_key", "off ignored": "not enough room left", "stock always taken": "cafe sales"}
     problems = []
     for name, mutation in mutants:
         try:

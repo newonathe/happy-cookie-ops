@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
-import { OwnerField, Panel } from '@/components/ui/owner-kit';
+import { OwnerField, PageTitle, Panel } from '@/components/ui/owner-kit';
+import { CafeOrderSettings } from '@/components/live/cafe-order-settings';
 import {
   CafePricesUnavailable,
   cafePesosText,
@@ -14,11 +15,16 @@ import { fetchCafeOrderSettings } from '@/lib/data/cafe-orders';
 import {
   CAFE_SALE_DAYS_BACK,
   CafeSaleRefused,
+  DEFAULT_EXPENSE_CATEGORIES,
+  addCafeExpense,
   addDays,
   cafeSaleBody,
+  checkCafeExpenses,
   checkCafeForm,
   fetchCafeSales,
+  fetchExpenseCategories,
   recordCafeSale,
+  type CafeFormExpense,
   type CafeFormLine,
   type CafeSaleRow,
   type CafeSaleSaved,
@@ -39,6 +45,33 @@ const dateText = (ymd: string): string => {
   return y && m && d ? `${d} ${MONTHS[m - 1]} ${y}` : ymd;
 };
 
+/** An expense's own note: the books' label is "Café <name> · <note or category>", so the note is what follows the first " · ". */
+const noteOf = (x: { category: string; label: string }): string => {
+  const note = x.label.replace(/^Café .*? · /, '');
+  return note === x.category ? '' : note;
+};
+
+const SELECT_CLASS =
+  'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body font-semibold text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label';
+const MAX_EXPENSES = 10;
+
+/** Her expense categories, read once; the short default until they arrive or when they cannot be read. */
+function useExpenseCategories(getClient: () => CafeSalesClient): string[] {
+  const [categories, setCategories] = useState<string[]>(DEFAULT_EXPENSE_CATEGORIES);
+  useEffect(() => {
+    let current = true;
+    Promise.resolve()
+      .then(() => fetchExpenseCategories(getClient()))
+      .then((list) => {
+        if (current) setCategories(list);
+      });
+    return () => {
+      current = false;
+    };
+  }, [getClient]);
+  return categories;
+}
+
 type ListPhase =
   | { kind: 'loading' }
   | { kind: 'unavailable' }
@@ -46,26 +79,31 @@ type ListPhase =
   | { kind: 'ready'; rows: CafeSaleRow[] };
 
 /**
- * Café sales (owner only, inside Sell > Orders): the cookies Cine has sold in bulk to cafés, logged after the fact. Each is paid and
- * handed over on its date, counts in the books on that date, and never appears among the orders or customers. "Log café sale" adds one.
+ * Café (owner only): the cookies Cine sells in bulk to cafés, logged after the fact, with their additional expenses. A sale is paid and
+ * handed over on its date, counted in the books that day, and never appears among the orders or customers; each expense is a cost line
+ * of the books on the same date. It stands on its own: no till, events or selling days. `onBack` is given only while the page is
+ * reached from Orders (until it has its own tab); then the page leaves its title to the screen around it.
  */
-export function CafeSalesView({
+export function CafePage({
   getClient = defaultClient,
   onBack,
   today = () => manilaToday()
 }: {
   getClient?: () => CafeSalesClient;
-  onBack: () => void;
+  onBack?: () => void;
   today?: () => string;
 }) {
   const [phase, setPhase] = useState<ListPhase>({ kind: 'loading' });
   const [reads, setReads] = useState(0);
   const [open, setOpen] = useState(false);
-  const [done, setDone] = useState<{
+  const [adding, setAdding] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{
     saved: CafeSaleSaved;
     method: string;
     takeStock: boolean;
   } | null>(null);
+  const categories = useExpenseCategories(getClient);
 
   useEffect(() => {
     let current = true;
@@ -85,72 +123,91 @@ export function CafeSalesView({
     };
   }, [getClient, reads]);
 
-  const back = (
+  const title = onBack ? null : (
+    <PageTitle title="Café" subtitle="Cookies sold in bulk to cafés, logged after the sale." />
+  );
+  const back = onBack ? (
     <Button variant="ghost" size="sm" onClick={onBack}>
       Back to orders
     </Button>
-  );
+  ) : undefined;
+  const settings = <CafeOrderSettings getClient={getClient} />;
+
   if (phase.kind === 'loading')
     return (
-      <Panel title="Café sales" action={back}>
-        <p role="status" className="text-caption text-ink-mute">
-          Reading the café sales…
-        </p>
-      </Panel>
+      <div className="flex flex-col gap-3">
+        {title}
+        <Panel title="Café sales" action={back}>
+          <p role="status" className="text-caption text-ink-mute">
+            Reading the café sales…
+          </p>
+        </Panel>
+      </div>
     );
   if (phase.kind === 'unavailable')
     return (
-      <Panel title="Café sales" action={back}>
-        <p role="note" className="text-body text-ink">
-          Café sales need the next database update. Until then they cannot be logged. Your orders
-          are not affected.
-        </p>
-      </Panel>
+      <div className="flex flex-col gap-3">
+        {title}
+        <Panel title="Café sales" action={back}>
+          <p role="note" className="text-body text-ink">
+            Café sales need the next database update. Until then they cannot be logged. Your orders
+            are not affected.
+          </p>
+        </Panel>
+      </div>
     );
   if (phase.kind === 'failed')
     return (
-      <Panel title="Café sales" action={back}>
-        <Banner
-          tone="warn"
-          title="The café sales could not be read."
-          action={{
-            label: 'Try again',
-            onPress: () => {
-              setPhase({ kind: 'loading' });
-              setReads((n) => n + 1);
-            }
-          }}
-        />
-      </Panel>
+      <div className="flex flex-col gap-3">
+        {title}
+        <Panel title="Café sales" action={back}>
+          <Banner
+            tone="warn"
+            title="The café sales could not be read."
+            action={{
+              label: 'Try again',
+              onPress: () => {
+                setPhase({ kind: 'loading' });
+                setReads((n) => n + 1);
+              }
+            }}
+          />
+        </Panel>
+      </div>
     );
 
   const paid = phase.rows.filter((r) => r.paid);
   const total = paid.reduce((sum, r) => sum + r.totalCents, 0);
+  const expenses = phase.rows.reduce((sum, r) => sum + r.expenseCents, 0);
+  const reload = () => setReads((n) => n + 1);
   return (
     <div className="flex flex-col gap-3">
-      {done ? (
+      {title}
+      {saved ? (
         <Banner
-          tone={done.saved.short.length ? 'warn' : 'info'}
-          title={`Café sale ${done.saved.orderNo} logged: ${peso(done.saved.totalCents)}, paid by ${done.method} on ${dateText(done.saved.saleDate)}.`}
+          tone={saved.saved.short.length ? 'warn' : 'info'}
+          title={`Café sale ${saved.saved.orderNo} logged: ${peso(saved.saved.totalCents)}, paid by ${saved.method} on ${dateText(saved.saved.saleDate)}.`}
           body={
-            done.saved.short.length
-              ? `Stock did not cover: ${done.saved.short.join(', ')}.`
-              : done.takeStock
+            saved.saved.short.length
+              ? `Stock did not cover: ${saved.saved.short.join(', ')}.`
+              : saved.takeStock
                 ? 'The cookies and the packaging were taken off stock.'
                 : 'Stock was not changed.'
           }
-          onDismiss={() => setDone(null)}
+          onDismiss={() => setSaved(null)}
         />
       ) : null}
+      {done ? <Banner tone="info" title={done} onDismiss={() => setDone(null)} /> : null}
+      {settings}
       {open ? (
         <CafeSaleForm
           getClient={getClient}
           today={today}
           onCancel={() => setOpen(false)}
-          onSaved={(saved, method, takeStock) => {
-            setDone({ saved, method, takeStock });
+          onSaved={(result, method, takeStock) => {
+            setSaved({ saved: result, method, takeStock });
             setOpen(false);
-            setReads((n) => n + 1);
+            reload();
           }}
         />
       ) : (
@@ -167,6 +224,9 @@ export function CafeSalesView({
             <>
               <p className="mb-2 text-caption text-ink-mute">
                 {paid.length === 1 ? '1 sale' : `${paid.length} sales`} · {peso(total)}
+                {expenses > 0
+                  ? ` · expenses ${peso(expenses)} · net ${peso(total - expenses)}`
+                  : ''}
               </p>
               <ul className="m-0 flex list-none flex-col p-0">
                 {phase.rows.map((row) => (
@@ -191,6 +251,52 @@ export function CafeSalesView({
                     {row.notes ? (
                       <span className="text-caption text-ink-mute">{row.notes}</span>
                     ) : null}
+                    {row.expenses.length ? (
+                      <ul className="m-0 mt-1 flex list-none flex-col gap-0.5 p-0">
+                        {row.expenses.map((x, i) => (
+                          <li
+                            key={i}
+                            className="flex justify-between gap-3 text-caption text-ink-mute"
+                          >
+                            <span>
+                              {x.category}
+                              {noteOf(x) ? ` · ${noteOf(x)}` : ''}
+                            </span>
+                            <span>-{peso(x.amountCents)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {row.expenseCents > 0 ? (
+                      <span className="text-caption font-semibold text-ink">
+                        Net {peso(row.totalCents - row.expenseCents)}
+                      </span>
+                    ) : null}
+                    {row.paid ? (
+                      adding === row.orderNo ? (
+                        <ExpenseForm
+                          getClient={getClient}
+                          orderNo={row.orderNo}
+                          categories={categories}
+                          onCancel={() => setAdding(null)}
+                          onSaved={() => {
+                            setAdding(null);
+                            setDone(`Expense added to the sale for ${row.name}.`);
+                            reload();
+                          }}
+                        />
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="self-start"
+                          aria-label={`Add an expense to the sale for ${row.name} on ${dateText(row.saleDate)}`}
+                          onClick={() => setAdding(row.orderNo)}
+                        >
+                          Add expense
+                        </Button>
+                      )
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -199,6 +305,113 @@ export function CafeSalesView({
         </Panel>
       )}
     </div>
+  );
+}
+
+/** One expense for a sale already logged: its category, an amount and a note. The same attempt keeps its id, so a retry cannot add it twice. */
+function ExpenseForm({
+  getClient,
+  orderNo,
+  categories,
+  onCancel,
+  onSaved
+}: {
+  getClient: () => CafeSalesClient;
+  orderNo: string;
+  categories: string[];
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const [row, setRow] = useState<CafeFormExpense>({
+    category: categories[0] ?? '',
+    amount: '',
+    note: ''
+  });
+  const [tried, setTried] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const attempt = useRef<{ key: string; id: string } | null>(null);
+  const check = checkCafeExpenses([row]);
+  const problem = row.amount.trim() === '' ? 'Type the amount.' : check.errors[0];
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setTried(true);
+    const line = check.send[0];
+    if (!line || saving) return;
+    const key = JSON.stringify([orderNo, line]);
+    if (attempt.current?.key !== key) attempt.current = { key, id: crypto.randomUUID() };
+    setSaving(true);
+    setError(null);
+    try {
+      await addCafeExpense(getClient(), { clientId: attempt.current.id, orderNo, ...line });
+      attempt.current = null;
+      onSaved();
+    } catch (e) {
+      setError(
+        e instanceof CafeSaleRefused
+          ? e.message
+          : e instanceof CafePricesUnavailable
+            ? 'Café expenses need the next database update.'
+            : 'The expense was not saved. Try again.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form
+      onSubmit={submit}
+      noValidate
+      aria-label="Add expense"
+      className="mt-1 flex flex-col gap-2 rounded-control border border-line p-3"
+    >
+      {error ? <Banner tone="danger" title={error} /> : null}
+      <div className="grid gap-2 sm:grid-cols-3">
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-label font-semibold text-ink-soft">Expense category</span>
+          <select
+            value={row.category}
+            onChange={(e) => setRow({ ...row, category: e.target.value })}
+            className={SELECT_CLASS}
+          >
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+        <OwnerField
+          label="Expense amount (₱)"
+          inputMode="decimal"
+          value={row.amount}
+          autoComplete="off"
+          onChange={(e) => setRow({ ...row, amount: e.target.value })}
+        />
+        <OwnerField
+          label="Expense note"
+          value={row.note}
+          maxLength={120}
+          autoComplete="off"
+          onChange={(e) => setRow({ ...row, note: e.target.value })}
+        />
+      </div>
+      {tried && problem ? (
+        <span role="alert" className="text-caption text-danger">
+          {problem}
+        </span>
+      ) : null}
+      <div className="flex gap-2">
+        <Button type="submit" variant="primary" size="sm" disabled={saving}>
+          {saving ? 'Saving…' : 'Save expense'}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onCancel} disabled={saving}>
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -235,9 +448,11 @@ function CafeSaleForm({
   const [notes, setNotes] = useState('');
   const [takeStock, setTakeStock] = useState(true);
   const [lines, setLines] = useState<CafeFormLine[]>([]);
+  const [expenses, setExpenses] = useState<CafeFormExpense[]>([]);
   const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const categories = useExpenseCategories(getClient);
   // The id of the sale being sent: kept for a retry of the same sale, replaced when it is edited.
   const attempt = useRef<{ key: string; id: string } | null>(null);
 
@@ -319,10 +534,12 @@ function CafeSaleForm({
     );
 
   const now = today();
-  const check = checkCafeForm({ name, saleDate: date, payMethod: method, lines }, now);
+  const check = checkCafeForm({ name, saleDate: date, payMethod: method, lines, expenses }, now);
   const shown = (message?: string) => (tried ? message : undefined);
   const setLine = (productId: string, change: Partial<CafeFormLine>) =>
     setLines((all) => all.map((l) => (l.productId === productId ? { ...l, ...change } : l)));
+  const setExpense = (index: number, change: Partial<CafeFormExpense>) =>
+    setExpenses((all) => all.map((x, i) => (i === index ? { ...x, ...change } : x)));
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -335,16 +552,17 @@ function CafeSaleForm({
       payMethod: method,
       notes,
       takeStock,
-      lines: check.send
+      lines: check.send,
+      expenses: check.expenses
     };
     const key = JSON.stringify(cafeSaleBody(input));
     if (attempt.current?.key !== key) attempt.current = { key, id: crypto.randomUUID() };
     setSaving(true);
     setError(null);
     try {
-      const saved = await recordCafeSale(getClient(), { ...input, clientId: attempt.current.id });
+      const result = await recordCafeSale(getClient(), { ...input, clientId: attempt.current.id });
       attempt.current = null;
-      onSaved(saved, method, takeStock);
+      onSaved(result, method, takeStock);
     } catch (e) {
       if (e instanceof CafePricesUnavailable) setPhase({ kind: 'unavailable' });
       else
@@ -403,7 +621,7 @@ function CafeSaleForm({
               <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value)}
-                className="h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-body font-semibold text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-label"
+                className={SELECT_CLASS}
               >
                 {['Cash', ...phase.methods].map((label) => (
                   <option key={label} value={label}>
@@ -479,6 +697,83 @@ function CafeSaleForm({
             </span>
           ) : null}
         </fieldset>
+        <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+          <legend className="mb-1 text-label font-semibold text-ink-soft">
+            Additional expenses (optional)
+          </legend>
+          <p className="m-0 text-caption text-ink-mute">
+            Delivery, extra packaging or anything else this sale cost you. Each one is an expense in
+            the books on the sale date.
+          </p>
+          {expenses.map((x, i) => (
+            <div
+              key={i}
+              className="grid items-start gap-2 border-b border-line pb-2 sm:grid-cols-[12rem_8rem_minmax(0,1fr)_auto]"
+            >
+              <label className="flex min-w-0 flex-col gap-1.5">
+                <span className="text-label font-semibold text-ink-soft">Expense category</span>
+                <select
+                  value={x.category}
+                  aria-label={`Category of expense ${i + 1}`}
+                  onChange={(e) => setExpense(i, { category: e.target.value })}
+                  className={SELECT_CLASS}
+                >
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <OwnerField
+                label="Amount (₱)"
+                inputMode="decimal"
+                value={x.amount}
+                autoComplete="off"
+                aria-label={`Amount of expense ${i + 1}`}
+                aria-invalid={tried && check.expenseErrors[i] ? true : undefined}
+                onChange={(e) => setExpense(i, { amount: e.target.value })}
+              />
+              <OwnerField
+                label="Note"
+                value={x.note}
+                maxLength={120}
+                autoComplete="off"
+                aria-label={`Note of expense ${i + 1}`}
+                onChange={(e) => setExpense(i, { note: e.target.value })}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="sm:mt-7"
+                aria-label={`Remove expense ${i + 1}`}
+                onClick={() => setExpenses((all) => all.filter((_, j) => j !== i))}
+              >
+                Remove
+              </Button>
+              {tried && check.expenseErrors[i] ? (
+                <span role="alert" className="text-caption text-danger sm:col-span-4">
+                  Expense {i + 1}: {check.expenseErrors[i]}
+                </span>
+              ) : null}
+            </div>
+          ))}
+          {expenses.length < MAX_EXPENSES ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="self-start"
+              onClick={() =>
+                setExpenses((all) => [
+                  ...all,
+                  { category: categories[0] ?? '', amount: '', note: '' }
+                ])
+              }
+            >
+              Add an expense
+            </Button>
+          ) : null}
+        </fieldset>
         <OwnerField
           label="Notes (optional)"
           value={notes}
@@ -503,10 +798,16 @@ function CafeSaleForm({
         </label>
         <div className="flex flex-col gap-1 border-t border-line pt-3">
           <p className="m-0 text-heading font-semibold text-ink">Total {peso(check.totalCents)}</p>
+          {check.expenseCents > 0 ? (
+            <p className="m-0 text-body text-ink">
+              Expenses {peso(check.expenseCents)} · Net{' '}
+              {peso(check.totalCents - check.expenseCents)}
+            </p>
+          ) : null}
           <p className="m-0 text-caption text-ink-mute">
             {phase.counts
-              ? 'This sale counts toward the weekly limit of its date (a setting in the order settings), and is refused if that week is full.'
-              : 'This sale does not count toward the weekly limit (a setting in the order settings).'}{' '}
+              ? 'This sale counts toward the weekly limit of its date (a setting at the top of this page), and is refused if that week is full.'
+              : 'This sale does not count toward the weekly limit (a setting at the top of this page).'}{' '}
             It is saved as paid and handed over on its date, and counted in the books that day. The
             database adds up the total again when it saves.
           </p>

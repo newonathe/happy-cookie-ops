@@ -1,0 +1,365 @@
+diff --git a/src/app/cafe/page.tsx b/src/app/cafe/page.tsx
+new file mode 100644
+index 00000000..73e8c4fa
+--- /dev/null
++++ b/src/app/cafe/page.tsx
+@@ -0,0 +1,8 @@
++import type { Metadata } from 'next';
++import { OpsApp } from '@/components/app/ops-app';
++
++export const metadata: Metadata = { title: 'Café · The Happy Cookie Ops' };
++
++export default function Page() {
++  return <OpsApp initialScreen="cafe" />;
++}
+diff --git a/src/components/live/cafe/cafe-screen.tsx b/src/components/live/cafe/cafe-screen.tsx
+new file mode 100644
+index 00000000..0769591d
+--- /dev/null
++++ b/src/components/live/cafe/cafe-screen.tsx
+@@ -0,0 +1,10 @@
++'use client';
++
++import type { OpsVals } from '@/view-models/vals';
++import { CafePage } from './cafe-page';
++
++/** The live Café screen: the page, with no ported screen behind it (there is none in the demo). */
++export function CafeScreen({ v }: { v: OpsVals }) {
++  void v;
++  return <CafePage />;
++}
+diff --git a/src/components/live/cafe/register.ts b/src/components/live/cafe/register.ts
+new file mode 100644
+index 00000000..a3925255
+--- /dev/null
++++ b/src/components/live/cafe/register.ts
+@@ -0,0 +1,7 @@
++import { registerLiveScreen } from '@/components/live/live-screens';
++import { CafeScreen } from './cafe-screen';
++
++/** Puts the live Café screen in the live-only slot, under its own key. Returns the function that takes it back. */
++export function registerLiveCafeScreens(): () => void {
++  return registerLiveScreen('cafe', CafeScreen);
++}
+diff --git a/src/components/live/owner-workspace.tsx b/src/components/live/owner-workspace.tsx
+index ae39fc34..ce1a2eec 100644
+--- a/src/components/live/owner-workspace.tsx
++++ b/src/components/live/owner-workspace.tsx
+@@ -72,6 +72,8 @@ const screens = {
+   grocery: GroceryListScreen,
+   pnl: ProfitAndLossScreen,
+   bazaar: BazaarModeScreen,
++  // No ported screen: the live Café screen (live-screens registry) draws it; the demo has none.
++  cafe: () => null,
+   formqueue: FormQueueScreen,
+   health: SystemHealthScreen,
+   products: ProductsScreen,
+diff --git a/src/components/live/register-all.ts b/src/components/live/register-all.ts
+index fcdb5bba..a774e9aa 100644
+--- a/src/components/live/register-all.ts
++++ b/src/components/live/register-all.ts
+@@ -1,5 +1,6 @@
+ import { registerLiveStockScreens } from '@/components/live/stock/register';
+ import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
++import { registerLiveCafeScreens } from '@/components/live/cafe/register';
+ import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
+ import { registerLiveMoneyScreens } from '@/components/live/money/register';
+ import { registerLiveHomeScreens } from '@/components/live/home/register';
+@@ -14,6 +15,7 @@ import { registerLiveAccountScreens } from '@/components/live/account/register';
+ export function registerAllLiveScreens(): void {
+   registerLiveStockScreens();
+   registerLiveBazaarScreens();
++  registerLiveCafeScreens();
+   registerLiveRecipeScreens();
+   registerLiveMoneyScreens();
+   registerLiveHomeScreens();
+diff --git a/src/components/live/sell/orders-live.tsx b/src/components/live/sell/orders-live.tsx
+index f803479d..47eebc12 100644
+--- a/src/components/live/sell/orders-live.tsx
++++ b/src/components/live/sell/orders-live.tsx
+@@ -1,6 +1,6 @@
+ 'use client';
+ 
+-import { useState, useSyncExternalStore } from 'react';
++import { useSyncExternalStore } from 'react';
+ import type { OpsVals } from '@/view-models/vals';
+ import { Banner } from '@/components/ui/banner';
+ import { Button } from '@/components/ui/button';
+@@ -13,7 +13,6 @@ import { ordersRead } from '@/lib/orders/orders-read-state';
+ import { orderActionWord, orderStatusWord } from '@/lib/orders/owner-words';
+ import { STAFF_COPY } from '@/lib/orders/staff-copy';
+ import { readAtText } from '@/lib/time/read-at-text';
+-import { CafePage } from '@/components/live/cafe/cafe-page';
+ import { OrderPill, SellSettings, SellTabs, SellTools } from './sell-shared';
+ import sg from './sell-glass.module.css';
+ 
+@@ -84,9 +83,6 @@ function OrderRow({ order }: { order: Row }) {
+  * flavour tally and the quick next action are the existing engine values, unchanged.
+  */
+ export function OrdersLive({ v }: { v: OpsVals }) {
+-  // Café is a logged record of bulk sales, kept apart from the orders. Until it has its own tab, this page swaps to it and back.
+-  const [view, setView] = useState<'orders' | 'cafe'>('orders');
+-  const cafe = isLiveMode() && !!v.ownerView;
+   const orders = v.orderList ?? [];
+   // Every group is kept: an empty one is hidden on a phone and stays a column from `lg`.
+   const ordered = GROUP_ORDER.map(
+@@ -109,11 +105,6 @@ export function OrdersLive({ v }: { v: OpsVals }) {
+         subtitle="Pack each order and see what is ready for customer pickup."
+         actions={
+           <>
+-            {cafe ? (
+-              <Button variant="secondary" onClick={() => setView('cafe')}>
+-                Café sales
+-              </Button>
+-            ) : null}
+             <SellTools v={v} />
+             <SellSettings v={v} />
+           </>
+@@ -122,13 +113,6 @@ export function OrdersLive({ v }: { v: OpsVals }) {
+       <SellTabs v={v} onGround />
+     </div>
+   );
+-  if (cafe && view === 'cafe')
+-    return (
+-      <div className={sg.page}>
+-        {header}
+-        <CafePage onBack={() => setView('orders')} />
+-      </div>
+-    );
+   if (notRead || failedFirst)
+     return (
+       <div className={sg.page}>
+diff --git a/src/lib/nav/function-map.ts b/src/lib/nav/function-map.ts
+index a5a82843..10eb483f 100644
+--- a/src/lib/nav/function-map.ts
++++ b/src/lib/nav/function-map.ts
+@@ -14,6 +14,7 @@ import type { ScreenKey } from '../screens';
+ export const TABS = [
+   { id: 'home', label: 'Home', screen: 'today' },
+   { id: 'bazaar', label: 'Bazaar', screen: 'bazaar' },
++  { id: 'cafe', label: 'Café', screen: 'cafe' },
+   { id: 'sell', label: 'Sell', screen: 'orders' },
+   { id: 'make', label: 'Make', screen: 'products' },
+   { id: 'stock', label: 'Stock', screen: 'inventory' },
+@@ -73,6 +74,14 @@ export const PLACES: readonly Place[] = [
+     ],
+     routes: ['bazaar']
+   },
++  {
++    id: 'cafe',
++    home: 'cafe',
++    label: 'Café',
++    screen: 'cafe',
++    entries: [],
++    routes: ['cafe']
++  },
+   {
+     id: 'customers',
+     home: 'sell',
+diff --git a/src/lib/screens.ts b/src/lib/screens.ts
+index b3ba7943..143d6bd2 100644
+--- a/src/lib/screens.ts
++++ b/src/lib/screens.ts
+@@ -18,6 +18,7 @@ export const SCREEN_KEYS = [
+   'more',
+   'grocery',
+   'bazaar',
++  'cafe',
+   'pnl',
+   'formqueue',
+   'health',
+diff --git a/src/store/ops-runtime.tsx b/src/store/ops-runtime.tsx
+index d73d811b..2dd3eeed 100644
+--- a/src/store/ops-runtime.tsx
++++ b/src/store/ops-runtime.tsx
+@@ -848,6 +848,8 @@ const MENU_TOOLS = {
+ 
+ type ToolItem = OpsVals['toolGroups'][number]['items'][number];
+ /** A receipt, so Sales log no longer shares the peso icon with P&L. */
++/** A cup, for the Café tab (the engine has no dock item for it). */
++const CAFE_ICON = 'M5 8h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM16 9.5h1.5a2 2 0 0 1 0 4H16M8 4.5v1.5M11.5 4.5v1.5';
+ const SALES_LOG_ICON =
+   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
+ 
+@@ -10547,7 +10549,7 @@ export class OpsRuntime extends OpsProvider {
+       (vals.dockNav ?? []).find((nav) => (nav as { key?: unknown }).key === screen)?.icon ?? '';
+     const nav = TABS.map((tab) => ({
+       key: tab.id,
+-      icon: icon(tab.id === 'make' ? 'bake' : tab.screen),
++      icon: tab.id === 'cafe' ? CAFE_ICON : icon(tab.id === 'make' ? 'bake' : tab.screen),
+       label: tab.label,
+       badge:
+         placesOf(tab.id).reduce((sum, place) => sum + this.navCount(vals, place.screen), 0) +
+diff --git a/src/view-models/vals.ts b/src/view-models/vals.ts
+index 63e90bd6..147f4f55 100644
+--- a/src/view-models/vals.ts
++++ b/src/view-models/vals.ts
+@@ -1761,6 +1761,7 @@ export interface OpsVals {
+     bake: unknown;
+     batch: unknown;
+     bazaar: unknown;
++    cafe: unknown;
+     checkout: unknown;
+     drops: unknown;
+     formqueue: unknown;
+diff --git a/tests/unit/function-map.test.tsx b/tests/unit/function-map.test.tsx
+index 77acd8a2..8dfd9483 100644
+--- a/tests/unit/function-map.test.tsx
++++ b/tests/unit/function-map.test.tsx
+@@ -41,10 +41,11 @@ const mappedRoutes = PLACES.flatMap((place) => place.routes);
+ afterEach(cleanup);
+ 
+ describe('the function map (final-plan.md section 8.1)', () => {
+-  it('has six tabs, in order, each opening a screen that belongs to it', () => {
++  it('has seven tabs, in order, each opening a screen that belongs to it', () => {
+     expect(TABS.map((tab) => tab.label)).toEqual([
+       'Home',
+       'Bazaar',
++      'Café',
+       'Sell',
+       'Make',
+       'Stock',
+@@ -57,16 +58,17 @@ describe('the function map (final-plan.md section 8.1)', () => {
+     }
+   });
+ 
+-  it('has thirteen places under the six tabs, and four homes outside them', () => {
++  it('has fourteen places under the seven tabs, and four homes outside them', () => {
+     expect(TABS.map((tab) => placesOf(tab.id).map((place) => place.label))).toEqual([
+       ['This week'],
+       ['Bazaar'],
++      ['Café'],
+       ['Orders', 'Customers/Waitlist', 'Shop'],
+       ['Products', 'Production'],
+       ['Inventory', 'Shopping', 'Suppliers'],
+       ['P&L', 'Sales', 'Expenses']
+     ]);
+-    expect(TABS.flatMap((tab) => placesOf(tab.id))).toHaveLength(13);
++    expect(TABS.flatMap((tab) => placesOf(tab.id))).toHaveLength(14);
+     const outside = PLACES.filter((place) => !TABS.some((tab) => tab.id === place.home));
+     expect(outside.map((place) => place.home)).toEqual(['account', 'bell', 'customer', 'retired']);
+     expect(new Set(PLACES.map((place) => place.id)).size).toBe(PLACES.length);
+@@ -85,8 +87,8 @@ describe('the function map (final-plan.md section 8.1)', () => {
+     for (const label of entries) expect(placeOfEntry(label)).toBeTruthy();
+   });
+ 
+-  it('gives each of the 25 routes exactly one home', () => {
+-    expect(SCREEN_KEYS).toHaveLength(25);
++  it('gives each of the 26 routes exactly one home', () => {
++    expect(SCREEN_KEYS).toHaveLength(26);
+     for (const route of SCREEN_KEYS)
+       expect([route, count(mappedRoutes, route)]).toEqual([route, 1]);
+     expect([...mappedRoutes].sort()).toEqual([...SCREEN_KEYS].sort());
+diff --git a/tests/unit/live-register-all.test.ts b/tests/unit/live-register-all.test.ts
+index 618e9295..c43f1a3e 100644
+--- a/tests/unit/live-register-all.test.ts
++++ b/tests/unit/live-register-all.test.ts
+@@ -10,6 +10,7 @@ const LIVE_KEYS: ScreenKey[] = [
+   'grocery',
+   'suppliers',
+   'bazaar',
++  'cafe',
+   'recipes',
+   'products',
+   'bake',
+diff --git a/tests/unit/ops-runtime-live-dock.test.tsx b/tests/unit/ops-runtime-live-dock.test.tsx
+index 9521bdd6..89a88afc 100644
+--- a/tests/unit/ops-runtime-live-dock.test.tsx
++++ b/tests/unit/ops-runtime-live-dock.test.tsx
+@@ -29,7 +29,7 @@ function mount(role: 'owner' | 'helper' | 'support' = 'owner', device = 'mobile'
+   act(() => runtime.setState({ device }));
+   return runtime;
+ }
+-const TAB_LABELS = ['Home', 'Bazaar', 'Sell', 'Make', 'Stock', 'Money'];
++const TAB_LABELS = ['Home', 'Bazaar', 'Café', 'Sell', 'Make', 'Stock', 'Money'];
+ const dock = (runtime: OpsRuntime) => runtime.renderVals().dockNav;
+ const labels = (runtime: OpsRuntime) => dock(runtime).map((item) => item.label);
+ const marked = (runtime: OpsRuntime) =>
+@@ -50,17 +50,19 @@ afterEach(() => {
+   live = true;
+ });
+ 
+-describe('the six tabs on the live owner’s dock and sidebar', () => {
+-  it('shows Home, Bazaar, Sell, Make, Stock, Money with the engine’s own icons', () => {
++describe('the seven tabs on the live owner’s dock and sidebar', () => {
++  it('shows Home, Bazaar, Café, Sell, Make, Stock, Money with the engine’s own icons', () => {
+     const runtime = mount();
+     expect(labels(runtime)).toEqual(TAB_LABELS);
+     const ported = OpsProvider.prototype.renderVals.call(runtime).dockNav;
+     const icon = (label: string) =>
+       ported.find((item: { label: unknown }) => item.label === label)?.icon;
+     expect(dock(runtime).map((item) => item.icon)).toEqual(
+-      ['Home', 'Bazaar', 'Orders', 'Bake', 'Inventory', 'P&L'].map(icon)
++      ['Home', 'Bazaar', 'Café', 'Orders', 'Bake', 'Inventory', 'P&L'].map((label) =>
++        label === 'Café' ? expect.stringContaining('M5 8h11v6') : icon(label)
++      )
+     );
+-    expect(String(runtime.renderVals().dockPillStyle)).toContain('calc((100% - 12px) / 6)');
++    expect(String(runtime.renderVals().dockPillStyle)).toContain('calc((100% - 12px) / 7)');
+     for (const label of TAB_LABELS) {
+       const button = screen.getByRole('button', { name: label });
+       expect(within(button).getByText(label)).toBeTruthy();
+@@ -103,13 +105,13 @@ describe('the six tabs on the live owner’s dock and sidebar', () => {
+     }
+   });
+ 
+-  it('gives the sidebar the same six', () => {
++  it('gives the sidebar the same seven', () => {
+     const runtime = mount('owner', 'desktop');
+     expect(runtime.renderVals().railNav.map((item) => item.label)).toEqual(TAB_LABELS);
+     expect(runtime.renderVals().railNav.map((item) => item.icon)).toEqual(
+       dock(runtime).map((item) => item.icon)
+     );
+-    act(() => runtime.renderVals().railNav[4]!.go());
++    act(() => runtime.renderVals().railNav[5]!.go());
+     expect(runtime.state.screen).toBe('inventory');
+   });
+ 
+diff --git a/tests/unit/ops-runtime-live-state.test.tsx b/tests/unit/ops-runtime-live-state.test.tsx
+index f320dd8b..2a211118 100644
+--- a/tests/unit/ops-runtime-live-state.test.tsx
++++ b/tests/unit/ops-runtime-live-state.test.tsx
+@@ -21,7 +21,7 @@ import { SCREEN_KEYS, CUSTOMER_SCREENS } from '@/lib/screens';
+ //   'batch'      ProductionFocusScreen is the same shape, gated on `v.batch`.
+ // Real no-throw/no-NaN/no-seeded-name coverage still applies to all three; only the "a
+ // screen body actually rendered" assertion is skipped for them.
+-const SCREENS_NEED_A_SELECTION: ReadonlySet<string> = new Set(['stocktake', 'order', 'batch']);
++const SCREENS_NEED_A_SELECTION: ReadonlySet<string> = new Set(['stocktake', 'order', 'batch', 'cafe']);
+ const STAFF_SCREENS = SCREEN_KEYS.filter((key) => !CUSTOMER_SCREENS.includes(key));
+ const DEVICES: Device[] = ['mobile', 'tablet', 'desktop'];
+ 
+diff --git a/tests/unit/owner-workspace.test.tsx b/tests/unit/owner-workspace.test.tsx
+index c425cec7..c20ddf3d 100644
+--- a/tests/unit/owner-workspace.test.tsx
++++ b/tests/unit/owner-workspace.test.tsx
+@@ -75,7 +75,7 @@ it('opens the product form as a page in the frame, with the existing form and cl
+   expect(close).toHaveBeenCalledTimes(1);
+ });
+ 
+-it('shows the approved six destinations and real brand asset, with direct Account', () => {
++it('shows the approved seven destinations and real brand asset, with direct Account', () => {
+   const runtime = mount();
+   expect(document.querySelector('[data-refined-frame]')).toBeTruthy();
+   const nav = screen.getByRole('navigation', { name: 'Main navigation' });
+@@ -83,7 +83,7 @@ it('shows the approved six destinations and real brand asset, with direct Accoun
+     within(nav)
+       .getAllByRole('button')
+       .map((b) => b.textContent?.replace(/\d+/g, ''))
+-  ).toEqual(['Home', 'Bazaar', 'Sell', 'Make', 'Stock', 'Money']);
++  ).toEqual(['Home', 'Bazaar', 'Café', 'Sell', 'Make', 'Stock', 'Money']);
+   expect(document.querySelector('img')?.getAttribute('src')).toBe('/assets/mark.png');
+   fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
+   expect(runtime.state.screen).toBe('notifications');
+diff --git a/tests/unit/return-path.test.ts b/tests/unit/return-path.test.ts
+index 43fce95e..9aa39dfc 100644
+--- a/tests/unit/return-path.test.ts
++++ b/tests/unit/return-path.test.ts
+@@ -19,7 +19,7 @@ describe('safe sign-in destination', () => {
+         )
+         .map((entry) => '/' + entry.name)
+     ];
+-    expect(pages).toHaveLength(25);
++    expect(pages).toHaveLength(26);
+     for (const page of pages) expect(safeReturnPath(page)).toBe(page);
+     expect(safeReturnPath('/sign-in')).toBe('/');
+   });

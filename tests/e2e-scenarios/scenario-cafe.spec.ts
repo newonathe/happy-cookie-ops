@@ -53,6 +53,12 @@ test('SCENARIO CAFÉ: a café sale at café prices, paid, counted, and kept out 
   await qty.fill('10');
   const agreed = ownPrice - 500;
   await priceField.fill(String(agreed / 100));
+  // An additional expense of the same sale.
+  await page.getByRole('button', { name: 'Add an expense' }).click();
+  await page.getByRole('combobox', { name: 'Category of expense 1' }).selectOption('Transport');
+  await page.getByRole('textbox', { name: 'Amount of expense 1' }).fill('50');
+  await page.getByRole('textbox', { name: 'Note of expense 1' }).fill('Van');
+  await expect(page.getByText(/Expenses ₱50\.00 · Net/)).toBeVisible();
   await page.getByRole('button', { name: 'Save café sale' }).click();
   await expect(page.getByText(/Café sale HC-\d+ logged/)).toBeVisible();
   const row = sql(
@@ -78,12 +84,31 @@ test('SCENARIO CAFÉ: a café sale at café prices, paid, counted, and kept out 
     String(retail)
   );
 
+  // The expense is a cost line of the books on the sale date, tied to the sale.
+  expect(
+    sql(
+      `select category || '|' || amount_cents || '|' || memo || '|' || (occurred_at at time zone 'Asia/Manila')::date from public.ledger_entries where order_id = '${orderNo}'`
+    )
+  ).toBe(`Transport|-5000|Café Scenario Café · Van|${manilaDate(-3)}`);
+
   // It is in the log with its café, cookies and method,
   await page.screenshot({ path: 'build/cafe-sale-saved-390.png', fullPage: true });
   await expect(page.getByText('Scenario Café')).toBeVisible();
   await expect(page.getByText(/10 cookies · Cash/)).toBeVisible();
 
   // ...(the books' revenue on the sale date is proved in SQL: tests/integration/security/cafe-sale-log.sql)...
+
+  // An expense added afterwards to the logged sale.
+  await page.getByRole('button', { name: /Add an expense to the sale for Scenario Café/ }).click();
+  await page.getByRole('textbox', { name: 'Expense amount (₱)' }).fill('12.50');
+  await page.getByRole('button', { name: 'Save expense' }).click();
+  await expect(page.getByText('Expense added to the sale for Scenario Café.')).toBeVisible();
+  expect(
+    sql(
+      `select count(*) || '|' || sum(-amount_cents) from public.ledger_entries where order_id = '${orderNo}'`
+    )
+  ).toBe('2|6250');
+  await page.screenshot({ path: 'build/cafe-expenses-390.png', fullPage: true });
 
   // ...and not among the orders.
   await page.getByRole('button', { name: 'Back to orders' }).click();
