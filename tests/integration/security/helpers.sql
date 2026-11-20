@@ -115,6 +115,9 @@ begin
      or has_function_privilege('service_role', 'public.bazaar_event_open(uuid)', 'EXECUTE')
      or has_function_privilege('anon', 'public.bazaar_day_open(uuid)', 'EXECUTE') or has_function_privilege('authenticated', 'public.bazaar_day_open(uuid)', 'EXECUTE')
      or has_function_privilege('service_role', 'public.bazaar_day_open(uuid)', 'EXECUTE')
+     or has_function_privilege('anon', 'public.bazaar_event_accepts(uuid, timestamptz)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'public.bazaar_event_accepts(uuid, timestamptz)', 'EXECUTE')
+     or has_function_privilege('service_role', 'public.bazaar_event_accepts(uuid, timestamptz)', 'EXECUTE')
      or has_function_privilege('authenticated', 'public.bazaar_day_access(uuid)', 'EXECUTE') then
     raise exception 'HELPERS_GRANTS an internal function is callable';
   end if;
@@ -197,15 +200,17 @@ begin
   end if;
   -- Not on a closed day, a planned day (no event), or an event that is not a bazaar day.
   perform pg_temp.act(ha);
-  perform pg_temp.expect('sale on a closed day', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 5, d_closed, '{"hp-a": 1}', 10000)), '42501');
+  perform pg_temp.expect('sale on a closed day', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 5, d_closed, '{"hp-a": 1}', 10000, 5)), '42501');
   insert into public.events(id, name, starts_at, selling_device, price_snapshot) values
     ('b0952000-0000-4000-8000-000000000001', 'Loose event', now() - interval '1 hour', 'devP', '{"hp-a": 10000}');
   perform pg_temp.expect('sale on a loose event', format('select * from public.record_event_sale(%L)',
     pg_temp.sale('devA', 6, d_open, '{"hp-a": 1}', 10000) || '{"eventId": "b0952000-0000-4000-8000-000000000001"}'), '42501');
   perform pg_temp.expect('sale with a wrong total is still refused', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 7, d_open, '{"hp-a": 1}', 1)), '22023');
   perform pg_temp.expect('same id other body', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 1, d_open, '{"hp-a": 3}', 30000, -120)), '23505');
-  -- A past event (the old day) cannot be sold into either: a closed event is not "open now".
-  perform pg_temp.expect('sale on the old event', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 8, d_closed, '{"hp-a": 1}', 10000, -2000)), '42501');
+  -- A sale stamped before an earlier day's close that only now arrives (an offline phone) is accepted, exactly as the owner's is; one
+  -- stamped after that close is refused above (42501). Nothing is accepted for a helper who is not active (refused for every command above).
+  perform pg_temp.expect('late sale before the close of an old day', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 8, d_closed, '{"hp-a": 1}', 10000, -2000)), null);
+  if (select recorded_by from public.event_sales where client_id = 'devA:S8') is distinct from ha then raise exception 'HELPERS a late sale was not recorded under the helper'; end if;
 
   -- ---- taking back: only their own sale, on the open day
   select * into r from public.void_event_sale(pg_temp.void('devA:S2', -10));
@@ -336,13 +341,20 @@ begin
   if j <> jsonb_build_object('closed', true, 'day_id', d_open) then raise exception 'HELPERS the close repeat was not answered'; end if;
   perform pg_temp.expect('another close of the same day', format('select public.close_bazaar_day(%L)', pg_temp.closing(d_open, 29, 25, 1)), '23505');
   perform pg_temp.expect('read after the close', format('select public.get_bazaar_day(%L)', d_open), '42501');
-  perform pg_temp.expect('sale after the close', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 9, d_open, '{"hp-a": 1}', 10000)), '42501');
+  perform pg_temp.expect('sale after the close', format('select * from public.record_event_sale(%L)', pg_temp.sale('devA', 9, d_open, '{"hp-a": 1}', 10000, 5)), '42501');
   perform pg_temp.expect('expense after the close', format('select * from public.add_event_expense(%L)', pg_temp.expense('ex-9', d_open, 100)), '42501');
   select * into r from public.record_event_sale(pg_temp.sale('devA', 1, d_open, '{"hp-a": 2}', 20000, -120));
   if not r.duplicate then raise exception 'HELPERS a sale repeat after the close was not acknowledged'; end if;
   select * into r from public.void_event_sale(pg_temp.void('devA:S2', -5));
   if not r.duplicate then raise exception 'HELPERS a void repeat after the close was not acknowledged'; end if;
-  perform pg_temp.expect('take back an own sale after the close', format('select * from public.void_event_sale(%L)', pg_temp.void('devA:S1')), '42501');
+  perform pg_temp.expect('take back an own sale after the close', format('select * from public.void_event_sale(%L)', pg_temp.void('devA:S1', 5)), '42501');
+  -- Stamped before the close but arriving after it: a sale of this phone and the void of its own sale are accepted, as the owner's are.
+  select * into r from public.record_event_sale(pg_temp.sale('devA', 10, d_open, '{"hp-b": 1}', 5000, -3));
+  if r.duplicate or r.sale_id is null then raise exception 'HELPERS a sale stamped before the close and arriving after it was not accepted'; end if;
+  if (select recorded_by from public.event_sales where client_id = 'devA:S10') is distinct from ha then raise exception 'HELPERS a late sale was not recorded under the helper'; end if;
+  select * into r from public.void_event_sale(pg_temp.void('devA:S10', -2));
+  if not r.sale_known or r.duplicate then raise exception 'HELPERS a void stamped before the close and arriving after it was not accepted'; end if;
+  perform pg_temp.expect('late void of another helper sale', format('select * from public.void_event_sale(%L)', pg_temp.void('devO:S1', -2)), '42501');
   perform pg_temp.expect('open day after the close', 'select public.get_open_bazaar_day() ->> ''day_id''', null);
   if public.get_open_bazaar_day() is not null then raise exception 'HELPERS a closed day is still the open day'; end if;
   -- On the booking's last day the left cookies go to the shop, none carry.
