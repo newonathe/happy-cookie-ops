@@ -21,7 +21,12 @@ import { SCREEN_KEYS, CUSTOMER_SCREENS } from '@/lib/screens';
 //   'batch'      ProductionFocusScreen is the same shape, gated on `v.batch`.
 // Real no-throw/no-NaN/no-seeded-name coverage still applies to all three; only the "a
 // screen body actually rendered" assertion is skipped for them.
-const SCREENS_NEED_A_SELECTION: ReadonlySet<string> = new Set(['stocktake', 'order', 'batch']);
+const SCREENS_NEED_A_SELECTION: ReadonlySet<string> = new Set([
+  'stocktake',
+  'order',
+  'batch',
+  'cafe'
+]);
 const STAFF_SCREENS = SCREEN_KEYS.filter((key) => !CUSTOMER_SCREENS.includes(key));
 const DEVICES: Device[] = ['mobile', 'tablet', 'desktop'];
 

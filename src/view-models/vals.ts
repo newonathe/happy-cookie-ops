@@ -1761,6 +1761,7 @@ export interface OpsVals {
     bake: unknown;
     batch: unknown;
     bazaar: unknown;
+    cafe: unknown;
     checkout: unknown;
     drops: unknown;
     formqueue: unknown;

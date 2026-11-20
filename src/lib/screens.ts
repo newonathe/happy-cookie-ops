@@ -18,6 +18,7 @@ export const SCREEN_KEYS = [
   'more',
   'grocery',
   'bazaar',
+  'cafe',
   'pnl',
   'formqueue',
   'health',

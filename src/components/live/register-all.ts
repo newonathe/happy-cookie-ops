@@ -1,5 +1,6 @@
 import { registerLiveStockScreens } from '@/components/live/stock/register';
 import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
+import { registerLiveCafeScreens } from '@/components/live/cafe/register';
 import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
 import { registerLiveMoneyScreens } from '@/components/live/money/register';
 import { registerLiveHomeScreens } from '@/components/live/home/register';
@@ -14,6 +15,7 @@ import { registerLiveAccountScreens } from '@/components/live/account/register';
 export function registerAllLiveScreens(): void {
   registerLiveStockScreens();
   registerLiveBazaarScreens();
+  registerLiveCafeScreens();
   registerLiveRecipeScreens();
   registerLiveMoneyScreens();
   registerLiveHomeScreens();

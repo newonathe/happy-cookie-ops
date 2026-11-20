@@ -10,6 +10,7 @@ const LIVE_KEYS: ScreenKey[] = [
   'grocery',
   'suppliers',
   'bazaar',
+  'cafe',
   'recipes',
   'products',
   'bake',

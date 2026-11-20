@@ -14,6 +14,7 @@ import type { ScreenKey } from '../screens';
 export const TABS = [
   { id: 'home', label: 'Home', screen: 'today' },
   { id: 'bazaar', label: 'Bazaar', screen: 'bazaar' },
+  { id: 'cafe', label: 'Café', screen: 'cafe' },
   { id: 'sell', label: 'Sell', screen: 'orders' },
   { id: 'make', label: 'Make', screen: 'products' },
   { id: 'stock', label: 'Stock', screen: 'inventory' },
@@ -72,6 +73,14 @@ export const PLACES: readonly Place[] = [
       { label: 'Bazaar events', screen: 'bazaar' }
     ],
     routes: ['bazaar']
+  },
+  {
+    id: 'cafe',
+    home: 'cafe',
+    label: 'Café',
+    screen: 'cafe',
+    entries: [],
+    routes: ['cafe']
   },
   {
     id: 'customers',

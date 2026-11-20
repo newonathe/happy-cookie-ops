@@ -848,6 +848,9 @@ const MENU_TOOLS = {
 
 type ToolItem = OpsVals['toolGroups'][number]['items'][number];
 /** A receipt, so Sales log no longer shares the peso icon with P&L. */
+/** A cup, for the Café tab (the engine has no dock item for it). */
+const CAFE_ICON =
+  'M5 8h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM16 9.5h1.5a2 2 0 0 1 0 4H16M8 4.5v1.5M11.5 4.5v1.5';
 const SALES_LOG_ICON =
   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
 
@@ -10547,7 +10550,7 @@ export class OpsRuntime extends OpsProvider {
       (vals.dockNav ?? []).find((nav) => (nav as { key?: unknown }).key === screen)?.icon ?? '';
     const nav = TABS.map((tab) => ({
       key: tab.id,
-      icon: icon(tab.id === 'make' ? 'bake' : tab.screen),
+      icon: tab.id === 'cafe' ? CAFE_ICON : icon(tab.id === 'make' ? 'bake' : tab.screen),
       label: tab.label,
       badge:
         placesOf(tab.id).reduce((sum, place) => sum + this.navCount(vals, place.screen), 0) +

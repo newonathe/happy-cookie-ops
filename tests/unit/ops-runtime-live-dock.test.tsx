@@ -29,7 +29,7 @@ function mount(role: 'owner' | 'helper' | 'support' = 'owner', device = 'mobile'
   act(() => runtime.setState({ device }));
   return runtime;
 }
-const TAB_LABELS = ['Home', 'Bazaar', 'Sell', 'Make', 'Stock', 'Money'];
+const TAB_LABELS = ['Home', 'Bazaar', 'Café', 'Sell', 'Make', 'Stock', 'Money'];
 const dock = (runtime: OpsRuntime) => runtime.renderVals().dockNav;
 const labels = (runtime: OpsRuntime) => dock(runtime).map((item) => item.label);
 const marked = (runtime: OpsRuntime) =>
@@ -50,17 +50,19 @@ afterEach(() => {
   live = true;
 });
 
-describe('the six tabs on the live owner’s dock and sidebar', () => {
-  it('shows Home, Bazaar, Sell, Make, Stock, Money with the engine’s own icons', () => {
+describe('the seven tabs on the live owner’s dock and sidebar', () => {
+  it('shows Home, Bazaar, Café, Sell, Make, Stock, Money with the engine’s own icons', () => {
     const runtime = mount();
     expect(labels(runtime)).toEqual(TAB_LABELS);
     const ported = OpsProvider.prototype.renderVals.call(runtime).dockNav;
     const icon = (label: string) =>
       ported.find((item: { label: unknown }) => item.label === label)?.icon;
     expect(dock(runtime).map((item) => item.icon)).toEqual(
-      ['Home', 'Bazaar', 'Orders', 'Bake', 'Inventory', 'P&L'].map(icon)
+      ['Home', 'Bazaar', 'Café', 'Orders', 'Bake', 'Inventory', 'P&L'].map((label) =>
+        label === 'Café' ? expect.stringContaining('M5 8h11v6') : icon(label)
+      )
     );
-    expect(String(runtime.renderVals().dockPillStyle)).toContain('calc((100% - 12px) / 6)');
+    expect(String(runtime.renderVals().dockPillStyle)).toContain('calc((100% - 12px) / 7)');
     for (const label of TAB_LABELS) {
       const button = screen.getByRole('button', { name: label });
       expect(within(button).getByText(label)).toBeTruthy();
@@ -103,13 +105,13 @@ describe('the six tabs on the live owner’s dock and sidebar', () => {
     }
   });
 
-  it('gives the sidebar the same six', () => {
+  it('gives the sidebar the same seven', () => {
     const runtime = mount('owner', 'desktop');
     expect(runtime.renderVals().railNav.map((item) => item.label)).toEqual(TAB_LABELS);
     expect(runtime.renderVals().railNav.map((item) => item.icon)).toEqual(
       dock(runtime).map((item) => item.icon)
     );
-    act(() => runtime.renderVals().railNav[4]!.go());
+    act(() => runtime.renderVals().railNav[5]!.go());
     expect(runtime.state.screen).toBe('inventory');
   });
 

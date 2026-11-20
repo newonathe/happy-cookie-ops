@@ -131,6 +131,12 @@ FLAVOUR_REVERSALS = {
          b'"src/components/shell/app-frame.tsx": {\n      "copy": "8f7ed5b6",\n      "copyCount": 15,\n      "styles": 146,\n      "dynamicStyles": 10,\n      "elements": 243'),
     ],
 }
+# Café screen key (owner approval pending, docs/state/protected-exception.md): one word in the engine's screen list.
+CAFE_SCREEN_REVERSALS = {
+    'src/store/engine/ops-engine.js': [
+        (b"'grocery', 'bazaar', 'cafe', 'pnl'", b"'grocery', 'bazaar', 'pnl'"),
+    ],
+}
 # B2 live checkout slot (D4, approved 2026-09-28; docs/state/protected-exception.md): one import, one destructured
 # name and one guarded region in checkout.tsx, the ported "About you" to footnote markup kept verbatim as the demo branch.
 CHECKOUT_REVERSALS = {
@@ -292,6 +298,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(FLAVOUR_REVERSALS.get(rel, [])):
             check(f'approved_flavour_exception_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
+        for index, (edited, original) in enumerate(CAFE_SCREEN_REVERSALS.get(rel, [])):
+            check(f'approved_cafe_screen_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(CHECKOUT_REVERSALS.get(rel, [])):
             check(f'approved_checkout_exception_once:{rel}:{index}', data.count(edited) == 1)

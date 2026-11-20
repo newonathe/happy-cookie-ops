@@ -72,6 +72,8 @@ const screens = {
   grocery: GroceryListScreen,
   pnl: ProfitAndLossScreen,
   bazaar: BazaarModeScreen,
+  // No ported screen: the live Café screen (live-screens registry) draws it; the demo has none.
+  cafe: () => null,
   formqueue: FormQueueScreen,
   health: SystemHealthScreen,
   products: ProductsScreen,
