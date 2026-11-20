@@ -100,7 +100,11 @@ describe('café sale data layer', () => {
 
   it('reads the saved sale, where it counts and what stock could not cover', async () => {
     const client = clientOf(async () => ({
-      data: [saved({ short: [{ name: 'Loose cookies', by: 12, unit: 'cookie', why: 'no packaging rule' }] })],
+      data: [
+        saved({
+          short: [{ name: 'Loose cookies', by: 12, unit: 'cookie', why: 'no packaging rule' }]
+        })
+      ],
       error: null
     }));
     const result = await recordCafeSale(client, {
@@ -183,9 +187,7 @@ describe('café sale data layer', () => {
     );
     expect(unpaid[0]).toMatchObject({ paid: false, payMethod: '' });
     await expect(
-      fetchCafeSales(
-        clientOf(async () => ({ data: null, error: { code: '42883', message: 'x' } }))
-      )
+      fetchCafeSales(clientOf(async () => ({ data: null, error: { code: '42883', message: 'x' } })))
     ).rejects.toBeInstanceOf(CafePricesUnavailable);
     await expect(
       fetchCafeSales(clientOf(async () => ({ data: [{ order_no: 1 }], error: null })))
@@ -249,9 +251,7 @@ describe('café sale data layer', () => {
     expect(checkCafeForm(form({ saleDate: '2026-11-21' }), '2026-11-20').date).toMatch(
       /cannot be after today/
     );
-    expect(checkCafeForm(form({ saleDate: '2026-08-21' }), '2026-11-20').date).toMatch(
-      /90 days/
-    );
+    expect(checkCafeForm(form({ saleDate: '2026-08-21' }), '2026-11-20').date).toMatch(/90 days/);
     expect(checkCafeForm(form({ payMethod: '' }), '2026-11-20').method).toMatch(/payment/);
     expect(
       checkCafeForm(form({ lines: lines.map((l) => ({ ...l, qty: '' })) }), '2026-11-20').lines
@@ -287,7 +287,11 @@ describe('café sales stay off the Orders and Customers pages', () => {
   });
 
   it('drops a row the database says is a café sale, and does not call it unreadable', () => {
-    const answer = [order('HC-1', { channel: 'shop' }), order('HC-2', { channel: 'cafe' }), order('HC-3')];
+    const answer = [
+      order('HC-1', { channel: 'shop' }),
+      order('HC-2', { channel: 'cafe' }),
+      order('HC-3')
+    ];
     expect(parseStaffOrders(answer).map((o) => o.id)).toEqual(['HC-1', 'HC-3']);
     const read = readStaffOrders(answer);
     expect(read?.dropped).toBe(0);
@@ -296,7 +300,9 @@ describe('café sales stay off the Orders and Customers pages', () => {
       dropped: 0
     });
     // A genuinely unreadable row is still counted.
-    expect(readStaffOrders([order('HC-4', { items: [] }), order('HC-5', { channel: 'cafe' })])?.dropped).toBe(1);
+    expect(
+      readStaffOrders([order('HC-4', { items: [] }), order('HC-5', { channel: 'cafe' })])?.dropped
+    ).toBe(1);
   });
 });
 
@@ -393,7 +399,10 @@ describe('the Café sales view', () => {
       (screen.getByRole('textbox', { name: 'Price of Butter' }) as HTMLInputElement).value
     ).toBe('75');
     expect(screen.getByText(/Order form ₱130\.00 · café ₱90\.00/)).toBeTruthy();
-    expect((screen.getByLabelText(/Take these cookies and the packaging off stock/) as HTMLInputElement).checked).toBe(true);
+    expect(
+      (screen.getByLabelText(/Take these cookies and the packaging off stock/) as HTMLInputElement)
+        .checked
+    ).toBe(true);
     expect(screen.getByText(/counts toward the weekly limit/)).toBeTruthy();
     fill();
     fireEvent.change(screen.getByRole('textbox', { name: 'Price of Chocolate' }), {
@@ -439,7 +448,9 @@ describe('the Café sales view', () => {
     await openForm();
     fill();
     fireEvent.click(screen.getByRole('button', { name: 'Save café sale' }));
-    expect(await screen.findByText(/Stock did not cover: Loose cookies \(no packaging rule\)/)).toBeTruthy();
+    expect(
+      await screen.findByText(/Stock did not cover: Loose cookies \(no packaging rule\)/)
+    ).toBeTruthy();
   });
 
   it('says what is missing before it asks the database anything', async () => {

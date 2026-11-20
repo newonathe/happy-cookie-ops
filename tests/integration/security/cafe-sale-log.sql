@@ -44,7 +44,7 @@ create function pg_temp.bag() returns integer language sql security definer as $
   select on_hand::integer from public.inventory_items where id = 'cs-bag' $$;
 create function pg_temp.books_line(order_no text) returns jsonb language sql security definer as $$
   select l from jsonb_array_elements(public.get_books(now() - interval '120 days', now() + interval '1 day') -> 'lines') l where l ->> 'id' = 'o:' || order_no $$;
-grant execute on function pg_temp.check_it(boolean), pg_temp.expect_error(text,text), pg_temp.body(text,text,text,text,jsonb),
+grant execute on function pg_temp.check_it(boolean), pg_temp.expect_error(text,text), pg_temp.body(text,text,text,text,jsonb,text,boolean),
   pg_temp.line(text,numeric,numeric), pg_temp.refused(jsonb,text), pg_temp.pickup(integer), pg_temp.bag(), pg_temp.books_line(text)
   to anon, authenticated;
 
@@ -127,7 +127,7 @@ select pg_temp.check_it((select count(*) = 1 from public.orders where channel = 
 select pg_temp.check_it(pg_temp.bag() = 10);
 
 create temp table placed(no text);
-grant all on placed to authenticated;
+grant all on placed to authenticated, anon;
 -- A sale with the setting ON, taking stock: paid in full and completed, prices as sent, the total the server's, slots taken, the bag taken.
 set local role authenticated;
 select set_config('request.jwt.claims', '{"role":"authenticated","sub":"94000000-0000-4000-8000-000000000001"}', true);

@@ -61,7 +61,11 @@ export function CafeSalesView({
   const [phase, setPhase] = useState<ListPhase>({ kind: 'loading' });
   const [reads, setReads] = useState(0);
   const [open, setOpen] = useState(false);
-  const [done, setDone] = useState<{ saved: CafeSaleSaved; method: string; takeStock: boolean } | null>(null);
+  const [done, setDone] = useState<{
+    saved: CafeSaleSaved;
+    method: string;
+    takeStock: boolean;
+  } | null>(null);
 
   useEffect(() => {
     let current = true;
@@ -182,7 +186,8 @@ export function CafeSalesView({
                       <span className="text-body text-ink">{peso(row.totalCents)}</span>
                     </span>
                     <span className="text-caption text-ink-mute">
-                      {dateText(row.saleDate)} · {row.cookies === 1 ? '1 cookie' : `${row.cookies} cookies`}
+                      {dateText(row.saleDate)} ·{' '}
+                      {row.cookies === 1 ? '1 cookie' : `${row.cookies} cookies`}
                       {row.payMethod ? ` · ${row.payMethod}` : ''}
                     </span>
                     {!row.paid ? (
@@ -264,9 +269,7 @@ function CafeSaleForm({
             prices,
             counts: settings.countTowardLimit,
             methods: [
-              ...new Set(
-                methods.filter((m) => m.active && m.label !== 'Cash').map((m) => m.label)
-              )
+              ...new Set(methods.filter((m) => m.active && m.label !== 'Cash').map((m) => m.label))
             ]
           });
         },
@@ -351,7 +354,8 @@ function CafeSaleForm({
       onSaved(saved, method, takeStock);
     } catch (e) {
       if (e instanceof CafePricesUnavailable) setPhase({ kind: 'unavailable' });
-      else setError(e instanceof CafeSaleRefused ? e.message : 'The sale was not saved. Try again.');
+      else
+        setError(e instanceof CafeSaleRefused ? e.message : 'The sale was not saved. Try again.');
     } finally {
       setSaving(false);
     }
