@@ -1,14 +1,18 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CafeOrderSettings } from '@/components/live/cafe-order-settings';
-import { CafeSalesView } from '@/components/live/sell/cafe-sales';
+import { CafePage } from '@/components/live/cafe/cafe-page';
 import { CafePricesUnavailable } from '@/lib/data/cafe-prices';
 import { fetchCafeOrderSettings, saveCafeOrderSettings } from '@/lib/data/cafe-orders';
 import {
   CafeSaleRefused,
+  DEFAULT_EXPENSE_CATEGORIES,
+  addCafeExpense,
   cafeSaleBody,
+  checkCafeExpenses,
   checkCafeForm,
   fetchCafeSales,
+  fetchExpenseCategories,
   parseCafePrice,
   parseCafeQty,
   recordCafeSale,
@@ -175,7 +179,9 @@ describe('café sale data layer', () => {
         payMethod: 'GCash',
         paid: true,
         cookies: 12,
-        notes: 'Rear door'
+        notes: 'Rear door',
+        expenseCents: 0,
+        expenses: []
       }
     ]);
     expect(client.rpc).toHaveBeenCalledWith('get_cafe_sales');
@@ -192,6 +198,179 @@ describe('café sale data layer', () => {
     await expect(
       fetchCafeSales(clientOf(async () => ({ data: [{ order_no: 1 }], error: null })))
     ).rejects.toThrow(/malformed/);
+  });
+
+  it('sends the expenses only when there are some, trimmed', () => {
+    const base = {
+      clientId: 'c',
+      name: 'Bean',
+      saleDate: '2026-11-18',
+      payMethod: 'Cash',
+      notes: '',
+      takeStock: false,
+      lines: [{ productId: 'choc', qty: 1, unitCents: 9000 }]
+    };
+    expect(Object.keys(cafeSaleBody(base))).not.toContain('expenses');
+    expect(Object.keys(cafeSaleBody({ ...base, expenses: [] }))).not.toContain('expenses');
+    const body = cafeSaleBody({
+      ...base,
+      expenses: [{ category: ' Transport ', amountCents: 5000, note: ' Van ' }]
+    });
+    expect(body.expenses).toEqual([{ category: 'Transport', amountCents: 5000, note: 'Van' }]);
+    expect(Object.keys(body.expenses![0]!).sort()).toEqual(['amountCents', 'category', 'note']);
+  });
+
+  it('says an expense was refused when the database names one', async () => {
+    const input = {
+      clientId: 'c',
+      name: 'Bean',
+      saleDate: '2026-11-18',
+      payMethod: 'Cash',
+      notes: '',
+      takeStock: false,
+      lines: [{ productId: 'choc', qty: 1, unitCents: 9000 }],
+      expenses: [{ category: 'Transport', amountCents: 5000, note: '' }]
+    };
+    await expect(
+      recordCafeSale(
+        clientOf(async () => ({
+          data: null,
+          error: { code: '22023', message: 'an expense is whole centavos from 1 to 100000000' }
+        })),
+        input
+      )
+    ).rejects.toThrow(/An expense was not accepted/);
+  });
+
+  it('adds an expense to a sale already logged', async () => {
+    const client = clientOf(async () => ({
+      data: [{ order_no: 'HC-2001', expense_cents: '6550', replayed: false }],
+      error: null
+    }));
+    const input = {
+      clientId: 'x',
+      orderNo: 'HC-2001',
+      category: ' Transport ',
+      amountCents: 300,
+      note: ' Late '
+    };
+    expect(await addCafeExpense(client, input)).toEqual({
+      orderNo: 'HC-2001',
+      expenseCents: 6550,
+      replayed: false
+    });
+    expect(client.rpc).toHaveBeenCalledWith('add_cafe_expense', {
+      p_expense: {
+        clientId: 'x',
+        orderNo: 'HC-2001',
+        category: 'Transport',
+        amountCents: 300,
+        note: 'Late'
+      }
+    });
+    const refuse = (error: unknown) =>
+      addCafeExpense(
+        clientOf(async () => ({ data: null, error })),
+        input
+      );
+    await expect(refuse({ code: '22023', message: 'x' })).rejects.toThrow(/not accepted/);
+    await expect(refuse({ code: '23505', message: 'x' })).rejects.toThrow(/already used/);
+    await expect(refuse({ code: '42501', message: 'x' })).rejects.toThrow(/Only the owner/);
+    await expect(refuse({ code: 'PGRST202', message: 'Could not find' })).rejects.toBeInstanceOf(
+      CafePricesUnavailable
+    );
+    const timeout = await refuse({ code: '57014', message: 'x' }).catch((e: unknown) => e);
+    expect((timeout as CafeSaleRefused).retryable).toBe(true);
+    const unreadable = await addCafeExpense(
+      clientOf(async () => ({ data: [{ order_no: 1 }], error: null })),
+      input
+    ).catch((e: unknown) => e);
+    expect((unreadable as CafeSaleRefused).retryable).toBe(true);
+  });
+
+  it('reads each sale with its expenses, and a database without them as none', async () => {
+    const [row] = await fetchCafeSales(
+      clientOf(async () => ({
+        data: [
+          {
+            ...SALE_ROW,
+            expense_cents: '6250',
+            expenses: [
+              { category: 'Transport', label: 'Café Bean Cafe · Van', amount_cents: 5000 },
+              { category: 'Packaging', label: 'Café Bean Cafe · Packaging', amount_cents: '1250' }
+            ]
+          }
+        ],
+        error: null
+      }))
+    );
+    expect(row).toMatchObject({ expenseCents: 6250 });
+    expect(row!.expenses).toEqual([
+      { category: 'Transport', label: 'Café Bean Cafe · Van', amountCents: 5000 },
+      { category: 'Packaging', label: 'Café Bean Cafe · Packaging', amountCents: 1250 }
+    ]);
+  });
+
+  it('offers her expense categories, without hidden ones or Owner draw, else a short default', async () => {
+    const row = (key: string, json: unknown) => ({
+      key,
+      int_value: null,
+      cents_value: null,
+      text_value: null,
+      json_value: json,
+      updated_at: null
+    });
+    const list = await fetchExpenseCategories(
+      clientOf(async () => ({
+        data: [
+          row('categories', ['Ingredients', 'Transport', 'Owner draw', 'Other']),
+          row('inactiveCats', ['Ingredients'])
+        ],
+        error: null
+      }))
+    );
+    expect(list).toEqual(['Transport', 'Other']);
+    expect(
+      await fetchExpenseCategories(clientOf(async () => ({ data: null, error: { code: 'x' } })))
+    ).toEqual(DEFAULT_EXPENSE_CATEGORIES);
+    expect(await fetchExpenseCategories(clientOf(async () => ({ data: [], error: null })))).toEqual(
+      DEFAULT_EXPENSE_CATEGORIES
+    );
+  });
+
+  it('checks expense rows as typed: blank rows are left out', () => {
+    const ok = checkCafeExpenses([
+      { category: 'Transport', amount: '50', note: ' Van ' },
+      { category: 'Transport', amount: '', note: '' },
+      { category: 'Packaging', amount: '12.50', note: '' }
+    ]);
+    expect(ok.send).toEqual([
+      { category: 'Transport', amountCents: 5000, note: 'Van' },
+      { category: 'Packaging', amountCents: 1250, note: '' }
+    ]);
+    expect(ok.totalCents).toBe(6250);
+    expect(ok.errors).toEqual([undefined, undefined, undefined]);
+    const bad = checkCafeExpenses([
+      { category: 'Transport', amount: '', note: 'only a note' },
+      { category: 'Transport', amount: '0', note: '' },
+      { category: '', amount: '5', note: '' },
+      { category: 'Transport', amount: '5', note: 'n'.repeat(121) }
+    ]);
+    expect(bad.send).toEqual([]);
+    expect(bad.errors.every(Boolean)).toBe(true);
+    expect(bad.errors[1]).toBe('The amount must be more than ₱0.');
+    const form = checkCafeForm(
+      {
+        name: 'Bean',
+        saleDate: '2026-11-18',
+        payMethod: 'Cash',
+        lines: [{ productId: 'choc', name: 'Chocolate', qty: '10', price: '90' }],
+        expenses: [{ category: 'Transport', amount: 'abc', note: '' }]
+      },
+      '2026-11-20'
+    );
+    expect(form.ok).toBe(false);
+    expect(form.expenseErrors[0]).toMatch(/amount like/);
   });
 
   it('reads and saves the setting', async () => {
@@ -317,7 +496,7 @@ describe('the Café sales view', () => {
       return { data: [saved(extra)], error: null };
     });
   const show = (client: CafeSalesClient, onBack = vi.fn()) => {
-    render(<CafeSalesView getClient={() => client} onBack={onBack} today={() => '2026-11-20'} />);
+    render(<CafePage getClient={() => client} onBack={onBack} today={() => '2026-11-20'} />);
     return onBack;
   };
   const openForm = async () => {
@@ -472,6 +651,8 @@ describe('the Café sales view', () => {
       if (name === 'get_payment_methods') return { data: METHODS, error: null };
       if (name === 'get_cafe_order_settings')
         return { data: [{ count_toward_limit: true, updated_at: 'x' }], error: null };
+      if (name !== 'record_cafe_sale')
+        return { data: null, error: { code: '42883', message: 'x' } };
       calls += 1;
       return {
         data: null,
@@ -499,6 +680,172 @@ describe('the Café sales view', () => {
     expect((screen.getByRole('textbox', { name: /Café name/ }) as HTMLInputElement).value).toBe(
       'Bean Cafe'
     );
+  });
+
+  const withExpenses = {
+    ...SALE_ROW,
+    expense_cents: '6250',
+    expenses: [
+      { category: 'Transport', label: 'Café Bean Cafe · Van', amount_cents: 5000 },
+      { category: 'Packaging', label: 'Café Bean Cafe · Packaging', amount_cents: 1250 }
+    ]
+  };
+
+  it('shows each sale with its expenses and its net, and the totals', async () => {
+    show(ok([withExpenses]));
+    const row = (await screen.findByText('Bean Cafe')).closest('li')!;
+    expect(within(row).getByText(/Transport · Van/)).toBeTruthy();
+    expect(within(row).getByText('-₱50.00')).toBeTruthy();
+    // No note: the category alone, not "Packaging · Packaging".
+    expect(within(row).getByText('Packaging')).toBeTruthy();
+    expect(within(row).getByText('Net ₱1,657.50')).toBeTruthy();
+    expect(
+      screen.getByText(/1 sale · ₱1,720\.00 · expenses ₱62\.50 · net ₱1,657\.50/)
+    ).toBeTruthy();
+  });
+
+  it('is a page of its own: titled Café, with the weekly-limit switch on it and nothing from Bazaar', async () => {
+    const client = ok();
+    render(<CafePage getClient={() => client} today={() => '2026-11-20'} />);
+    expect(await screen.findByRole('heading', { name: 'Café' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Back to orders' })).toBeNull();
+    expect(
+      await screen.findByRole('switch', { name: 'Café orders count toward the weekly limit' })
+    ).toBeTruthy();
+    expect(JSON.stringify(client.rpc.mock.calls)).not.toMatch(/bazaar|event/i);
+  });
+
+  it('adds an expense to a sale already logged, once, and reads the log again', async () => {
+    const client = clientOf(async (name) => {
+      if (name === 'get_cafe_sales') return { data: [SALE_ROW], error: null };
+      if (name === 'get_cafe_order_settings')
+        return { data: [{ count_toward_limit: true, updated_at: 'x' }], error: null };
+      if (name === 'add_cafe_expense')
+        return {
+          data: [{ order_no: 'HC-2001', expense_cents: '300', replayed: false }],
+          error: null
+        };
+      return { data: null, error: { code: '42883', message: 'x' } };
+    });
+    show(client);
+    fireEvent.click(
+      await screen.findByRole('button', { name: /Add an expense to the sale for Bean Cafe/ })
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save expense' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Type the amount.');
+    expect(client.rpc.mock.calls.some((c) => c[0] === 'add_cafe_expense')).toBe(false);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Expense amount (₱)' }), {
+      target: { value: '3' }
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Expense note' }), {
+      target: { value: 'Late bags' }
+    });
+    const reads = client.rpc.mock.calls.filter((c) => c[0] === 'get_cafe_sales').length;
+    fireEvent.click(screen.getByRole('button', { name: 'Save expense' }));
+    expect(await screen.findByText('Expense added to the sale for Bean Cafe.')).toBeTruthy();
+    const [, args] = client.rpc.mock.calls.find((c) => c[0] === 'add_cafe_expense')!;
+    expect(args.p_expense).toMatchObject({
+      orderNo: 'HC-2001',
+      category: 'Transport',
+      amountCents: 300,
+      note: 'Late bags'
+    });
+    expect(JSON.stringify(args)).not.toMatch(/total|role|state|paid_/i);
+    await waitFor(() =>
+      expect(client.rpc.mock.calls.filter((c) => c[0] === 'get_cafe_sales').length).toBe(reads + 1)
+    );
+  });
+
+  it('keeps one expense id for a retry of the same expense, and a new one when it is edited', async () => {
+    let calls = 0;
+    const client = clientOf(async (name) => {
+      if (name === 'get_cafe_sales') return { data: [SALE_ROW], error: null };
+      if (name === 'get_cafe_order_settings')
+        return { data: [{ count_toward_limit: true, updated_at: 'x' }], error: null };
+      if (name === 'add_cafe_expense') {
+        calls += 1;
+        return { data: null, error: { code: '57014', message: 'timeout' } };
+      }
+      return { data: null, error: { code: '42883', message: 'x' } };
+    });
+    show(client);
+    fireEvent.click(await screen.findByRole('button', { name: /Add an expense to the sale/ }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Expense amount (₱)' }), {
+      target: { value: '3' }
+    });
+    const save = () => fireEvent.click(screen.getByRole('button', { name: 'Save expense' }));
+    save();
+    await waitFor(() => expect(calls).toBe(1));
+    await screen.findByText(/not saved/);
+    save();
+    await waitFor(() => expect(calls).toBe(2));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Expense amount (₱)' }), {
+      target: { value: '4' }
+    });
+    save();
+    await waitFor(() => expect(calls).toBe(3));
+    const ids = client.rpc.mock.calls
+      .filter((c) => c[0] === 'add_cafe_expense')
+      .map((c) => c[1].p_expense.clientId);
+    expect(ids[0]).toBe(ids[1]);
+    expect(ids[2]).not.toBe(ids[0]);
+  });
+
+  it('logs a sale with additional expenses in the same save, and shows the net as she types', async () => {
+    const client = ok([SALE_ROW]);
+    show(client);
+    await openForm();
+    fill();
+    fireEvent.click(screen.getByRole('button', { name: 'Add an expense' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Category of expense 1' }), {
+      target: { value: 'Packaging' }
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount of expense 1' }), {
+      target: { value: '12.50' }
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Note of expense 1' }), {
+      target: { value: 'Boxes' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add an expense' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount of expense 2' }), {
+      target: { value: '50' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Remove expense 2' }));
+    expect(screen.getByText('Total ₱900.00')).toBeTruthy();
+    expect(screen.getByText('Expenses ₱12.50 · Net ₱887.50')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Save café sale' }));
+    await screen.findByText(/Café sale HC-2001 logged/);
+    const [, args] = client.rpc.mock.calls.find((c) => c[0] === 'record_cafe_sale')!;
+    expect(args.p_sale.expenses).toEqual([
+      { category: 'Packaging', amountCents: 1250, note: 'Boxes' }
+    ]);
+  });
+
+  it('says what is wrong with an expense before it asks the database anything', async () => {
+    const client = ok();
+    show(client);
+    await openForm();
+    fill();
+    fireEvent.click(screen.getByRole('button', { name: 'Add an expense' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Note of expense 1' }), {
+      target: { value: 'Delivery' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save café sale' }));
+    expect((await screen.findAllByRole('alert')).map((a) => a.textContent).join(' ')).toMatch(
+      /Expense 1: Use an amount like 90 or 90\.50\./
+    );
+    expect(client.rpc.mock.calls.some((c) => c[0] === 'record_cafe_sale')).toBe(false);
+  });
+
+  it('sends no expenses key when she added none', async () => {
+    const client = ok();
+    show(client);
+    await openForm();
+    fill();
+    fireEvent.click(screen.getByRole('button', { name: 'Save café sale' }));
+    await screen.findByText(/Café sale HC-2001 logged/);
+    const [, args] = client.rpc.mock.calls.find((c) => c[0] === 'record_cafe_sale')!;
+    expect(Object.keys(args.p_sale)).not.toContain('expenses');
   });
 
   it('says the setting is off in the form', async () => {

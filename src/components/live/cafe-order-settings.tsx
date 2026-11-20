@@ -16,10 +16,9 @@ let shared: CafeOrdersClient | null = null;
 const defaultClient = (): CafeOrdersClient => (shared ??= createClient());
 
 /**
- * "Café orders count toward the weekly limit" on the order rules page (owner only). On (the default): a café order takes slots in its
- * pickup week like a public order and is refused when the week is full. Off: it takes none, so it never takes room from the order
- * form or stops a payment being confirmed. The switch saves on its own, not with the rules form. Where the hosted database does not
- * have café orders yet it says so.
+ * "Café orders count toward the weekly limit" on the Café page (owner only; it moved there from the order rules). On (the default): a
+ * café sale takes slots in the week of its date like a public order and is refused when that week is full. Off: it takes none, so it
+ * never takes room from the order form. The switch saves on its own. Where the hosted database does not have it yet it says so.
  */
 export function CafeOrderSettings({
   getClient = defaultClient
@@ -75,13 +74,12 @@ export function CafeOrderSettings({
 
   return (
     <Panel
-      title="Café orders"
+      title="Weekly limit"
       action={
         <InfoTip label="café orders and the weekly limit">
-          On: a café order takes cookie slots in its pickup week like any order, and is refused when
-          the week is full. Like any unpaid order it keeps its slots only for the unpaid-order hold;
-          marking it paid keeps them. Off: it takes none, so it never uses up room the order form
-          needs. Orders already entered keep what they took.
+          On: a café sale takes cookie slots in the week of its date like any order, and is refused
+          when that week is full. Off: it takes none, so it never uses up room the order form needs.
+          Sales already logged keep what they took.
         </InfoTip>
       }
     >
@@ -105,8 +103,8 @@ export function CafeOrderSettings({
             onChange={(next) => void change(next)}
             detail={
               on
-                ? 'A café order uses the same oven time, so it takes slots in its pickup week like any order: unpaid, it keeps them for the unpaid-order hold above; once paid, for good.'
-                : 'A café order takes no slots and never blocks the order form.'
+                ? 'A café sale uses the same oven time, so it takes slots in the week of its date like any order.'
+                : 'A café sale takes no slots and never blocks the order form.'
             }
           />
           {message ? (

@@ -13,7 +13,7 @@ import { ordersRead } from '@/lib/orders/orders-read-state';
 import { orderActionWord, orderStatusWord } from '@/lib/orders/owner-words';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import { readAtText } from '@/lib/time/read-at-text';
-import { CafeSalesView } from './cafe-sales';
+import { CafePage } from '@/components/live/cafe/cafe-page';
 import { OrderPill, SellSettings, SellTabs, SellTools } from './sell-shared';
 import sg from './sell-glass.module.css';
 
@@ -84,7 +84,7 @@ function OrderRow({ order }: { order: Row }) {
  * flavour tally and the quick next action are the existing engine values, unchanged.
  */
 export function OrdersLive({ v }: { v: OpsVals }) {
-  // Café sales are a logged record of bulk sales, kept apart from the orders: this page swaps to them and back.
+  // Café is a logged record of bulk sales, kept apart from the orders. Until it has its own tab, this page swaps to it and back.
   const [view, setView] = useState<'orders' | 'cafe'>('orders');
   const cafe = isLiveMode() && !!v.ownerView;
   const orders = v.orderList ?? [];
@@ -126,7 +126,7 @@ export function OrdersLive({ v }: { v: OpsVals }) {
     return (
       <div className={sg.page}>
         {header}
-        <CafeSalesView onBack={() => setView('orders')} />
+        <CafePage onBack={() => setView('orders')} />
       </div>
     );
   if (notRead || failedFirst)
