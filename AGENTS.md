@@ -128,10 +128,10 @@ If a task seems to require one of these, stop and say so before writing code.
 1. **Load order:** `docs/state/current.md`, then `docs/state/next-goal.md`, then only the files the goal names.
    Never open `final-plan.md`, `decision-register.md` or `current-history.md` whole: search for the section.
 2. **Search before reading:** codebase-memory-mcp or a bounded search first; read files over ~300 lines by range.
-   Evidence receipts and the lockfile are left out of search by `.ignore`; open them by path only when a goal names them.
+   Receipts and the lockfile are `.ignore`d; open them by path only when a goal names them.
 3. **Deterministic tools first:** tests, validators, `git`, hashes and search before a model call or a subagent.
-4. **Build rules:** audit GitHub first, scope by outcome, pinned and sized workers (at most two), push every
-   accepted slice: rule 12 of [agent-orchestration.md](docs/state/agent-orchestration.md).
+4. **Build rules and GOAT routing:** audit GitHub first, scope by outcome, cheapest model that fits, verify by
+   risk, escalate on fail, push every slice: rules 12-13 of [agent-orchestration.md](docs/state/agent-orchestration.md).
 5. **Long output to a file:** run builds and suites with output redirected; print only the summary lines.
 6. **Results live in the commit:** no new evidence files. When a slice closes, move its narrative from `current.md`
    to `current-history.md` the same day. `pnpm verify` enforces the budgets (`scripts/check-context-budget.mjs`).
