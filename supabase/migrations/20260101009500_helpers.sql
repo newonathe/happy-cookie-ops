@@ -11,6 +11,7 @@
 --   list_people / add_helper / set_helper_expiry / revoke_helper   owner only, audited. A helper's email is read from auth.users here.
 --   get_open_bazaar_day()        the one day that is open now (id, booking, name, date, event), for the owner or an active helper.
 --   bazaar_event_open / bazaar_day_open   internal: ONE definition of "open" (a started day whose event is not closed); no API grant.
+--   bazaar_event_accepts         internal: open, or closed but the sale/void is stamped at or before the close (late arrival of an offline sale).
 --   bazaar_day_access            widened as S2 promised: the owner, or an active helper on an open day. get_bazaar_day follows.
 --   event_sales.recorded_by      who rang a sale up (auth.uid()), so a helper can take back only their own. Older rows are null.
 --   record_event_sale, void_event_sale, add_event_expense, close_bazaar_day   each redefined whole from its latest definition
@@ -66,6 +67,21 @@ as $$
                   where d.event_id = p_event and e.closed_at is null);
 $$;
 revoke execute on function public.bazaar_event_open(uuid) from public, anon, authenticated, service_role;
+
+-- A helper's sale or void is judged against the day it belongs to: accepted while the day is open, and after it closed only when the
+-- sale (or void) is stamped at or before the close, as the owner's sale is, so an offline phone's sales made during the day are never
+-- lost from the books. One stamped after the close is refused (42501). Internal, no API grant.
+create or replace function public.bazaar_event_accepts(p_event uuid, p_at timestamptz)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.bazaar_days d join public.events e on e.id = d.event_id
+                  where d.event_id = p_event and (e.closed_at is null or p_at <= e.closed_at));
+$$;
+revoke execute on function public.bazaar_event_accepts(uuid, timestamptz) from public, anon, authenticated, service_role;
 
 create or replace function public.bazaar_day_open(p_day uuid)
 returns boolean
@@ -412,8 +428,8 @@ begin
     raise exception 'event not found' using errcode = 'P0002';
   end if;
   -- S3: a helper sells only the event of a bazaar day that is open now.
-  if not public.is_owner() and not public.bazaar_event_open(v_event) then -- rule:helper-sale-open-day
-    raise exception 'a helper may sell only on the day that is open now' using errcode = '42501';
+  if not public.is_owner() and not public.bazaar_event_accepts(v_event, v_at) then -- rule:helper-sale-open-day
+    raise exception 'a helper may sell only on a bazaar day, and only up to its close' using errcode = '42501';
   end if;
   -- S2: no refusal of a device that is not the selling one; any device of the owner may sell (the client id still carries its device).
   if v_ev.closed_at is not null and v_at > v_ev.closed_at then
@@ -552,7 +568,7 @@ begin
   -- repeat is still answered after the day closed). A void of a sale the server does not hold is never planted for a helper:
   -- it could not tell whose sale arrives later.
   if not public.is_owner() and not (v_hit and coalesce(v_sale.recorded_by = auth.uid(), false)
-                                    and (v_sale.voided_at is not null or public.bazaar_event_open(v_sale.event_id))) then -- rule:helper-void-own
+                                    and (v_sale.voided_at is not null or public.bazaar_event_accepts(v_sale.event_id, v_at))) then -- rule:helper-void-own
     raise exception 'a helper may void only a sale they rang up on the open day' using errcode = '42501';
   end if;
 
