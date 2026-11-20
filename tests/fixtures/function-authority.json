@@ -1,5 +1,5 @@
 {
-  "scope": "SQL94: café orders (get_cafe_order_settings and save_cafe_order_settings owner only; create_cafe_order owner only, idempotent by client id, prices as sent, total computed by the server; authenticated execute, no anonymous execute; cafe_order_settings has no API grants). SQL93: a bazaar selling day belongs to the account, not the device (get_bazaar_day owner read, authenticated execute, no anonymous execute; bazaar_day_access internal with no API grant, service_role included; record_event_sale redefined whole with one change, a sale is no longer refused for a device that is not the selling one; void_event_sale and set_event_device untouched). SQL92: staff_refund refuses a blank reference and join_waitlist a blank Instagram handle (22023), each redefined whole with one added check; signatures and grants unchanged. SQL91: café prices, owner only (default_cafe_price_cents internal with no API grant; get_cafe_prices and set_cafe_price owner only, authenticated execute, no anonymous execute; product_cafe_prices has no API grants). SQL86: items weigh 0 cookie slots (product_type_behaviour), capacity_allows lets a zero-slot request fit. SQL85: price changes on a started bazaar day (set_bazaar_day_price owner only, audited, idempotent by request id; get_event_prices owner read; record_event_sale redefined whole with one change, the price check tries each price list the day has had); authenticated execute, no anonymous execute. SQL84: product types (save_product_type owner only, get_product_types staff read, product_type_behaviour trigger), write_flavour accepts an optional type_id. SQL83: delete_bazaar_booking removes an event that never sold (owner only, exact name, refuses anything in Money or Stock); authenticated execute, no anonymous execute. SQL80: generated Bazaar sale/void labels use existing event names; accounting rules, ordering, RPC signature and grants retained. Legacy production replay-only retirement (SQL73), signature and grants unchanged. Dough-only baking: record_bake consumes recorded balls and adds good cookies; no repeated ingredient use; active owner only; authenticated execute. Additive dough preparation: recipe amount independent of actual balls; active owner only; authenticated execute, no service_role or anonymous execute. Reviewed local function-authority drift baseline through the sampler flavours (migration 71: get_order_extras, save_order_extras and get_shop_extras redefined for order_extras.sampler_flavours, an optional eighth save key; grants unchanged; no function added); earlier: U6 Bazaar v2 costs, closing rules and test reversal (migration 70: save_flavour_cost, get_flavour_costs and reverse_bazaar_test added, owner only, granted to authenticated as every owner command is; finalise_bazaar dropped and recreated with p_final (default null), grants as before; bazaar_summary and get_bazaar redefined whole, grants unchanged; bazaar_line_facts, close_bazaar_day and record_event_sale untouched); earlier: S3.1 bazaar hardening (migration 69: void_bazaar_fee and void_bazaar_loss added, owner only, granted to authenticated as every owner command is; refuse_finalised_bazaar_sale added, an internal trigger function with no API grant, service_role included; finalise_bazaar dropped and recreated with p_till, grants as before; bazaar_line_facts, bazaar_summary, get_bazaar, close_bazaar_day and load_event_stock redefined whole, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: S3.1 bazaar hardening (migration 69: void_bazaar_fee and void_bazaar_loss added, owner only, granted to authenticated as every owner command is; refuse_finalised_bazaar_sale added, an internal trigger function with no API grant, service_role included; finalise_bazaar dropped and recreated with p_till, grants as before; bazaar_line_facts, bazaar_summary, get_bazaar, close_bazaar_day and load_event_stock redefined whole, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: S3.1 bazaar hardening (migration 69: void_bazaar_fee and void_bazaar_loss added, owner only, granted to authenticated as every owner command is; refuse_finalised_bazaar_sale added, an internal trigger function with no API grant, service_role included; finalise_bazaar dropped and recreated with p_till, grants as before; bazaar_line_facts, bazaar_summary, get_bazaar, close_bazaar_day and load_event_stock redefined whole, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: S1 bazaar days (migration 68: ten owner-only commands added, get_bazaar, save_bazaar_day, save_bazaar_fee, save_bazaar_loss, save_bazaar_cost, save_bazaar_target, start_bazaar_day, add_bazaar_day_stock, close_bazaar_day and finalise_bazaar, granted to authenticated as every owner command is; four internal functions added with no API grant, service_role included: bazaar_summary, bazaar_line_facts, bazaar_held_ledger and recipe_stock_plan; record_production, record_sale_packaging, get_books and close_event redefined whole with one change each, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: B5-1 the item movements read (migration 66: get_item_movements added, owner only, read-only, grants as get_item_costs; no other function touched); earlier: B4b-1 the count shrinkage (migration 65: record_stock_movement and get_books redefined, each with one added clause so a count or an adjustment that takes stock off is stamped with a cost and booked as an expense after the cutover; grants unchanged; no function added); earlier: B4a-4 the cutover guard (migration 64: record_stock_movement, preview_cost_cutover and get_books redefined, each with one added guard; grants unchanged; no function added); earlier: B4a-3 her-data imports (migration 63: preview_import_X and apply_import_X for items, prices, recipes, flavours and bookings, with run_import_X, import_result, import_expected_ok, import_keys_ok, import_name_ok and the writers write_stock_item, write_item_price, write_recipe, write_flavour and write_scheduled_event, all internal with no API grant; save_stock_item, save_item_price, save_recipe, save_flavour and save_scheduled_event redefined as the owner check plus the writer, grants unchanged); earlier: Reviewed local function-authority drift baseline through B4a-2 the cost cutover fix (migration 62 fix: apply_cost_cutover, get_books and write_packaging_rule redefined; grants unchanged; no function added); earlier: B4a-1 the cost cutover (preview_cost_cutover and apply_cost_cutover added, internal with no API grant; get_books, set_cost_basis and save_recipe redefined; grants unchanged; books_settings defaults to bought until a cutover); earlier: Reviewed local function-authority drift baseline through B3b-2 books on the used basis (get_books redefined: the uncosted list also carries a pack and a bazaar sale that took nothing; grants unchanged; books_settings defaults to used); earlier: B3b-1 packaging rules (save_packaging_rule and get_packaging_rules owner-only; write_packaging_rule and apply_packaging_rule internal with no API grant; record_pack, record_sale_packaging, record_production, save_recipe, get_recipes and get_recipe_costs redefined; record_event_sale untouched); earlier: B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
+  "scope": "SQL95: helper accounts (profiles.access_expires_at; current_role_name redefined so an expired profile has no role; is_active_helper, bazaar_event_open, bazaar_day_open and bazaar_event_accepts internal with no API grant, service_role included; list_people, add_helper, set_helper_expiry, revoke_helper and get_open_bazaar_day granted to authenticated, owner only except get_open_bazaar_day which the owner and an active helper may call; bazaar_day_access widened to the owner or an active helper on an open day; record_event_sale, void_event_sale, add_event_expense and close_bazaar_day redefined whole from their latest definitions with the marked S3 lines, grants unchanged). SQL94: café orders (get_cafe_order_settings and save_cafe_order_settings owner only; create_cafe_order owner only, idempotent by client id, prices as sent, total computed by the server; authenticated execute, no anonymous execute; cafe_order_settings has no API grants). SQL93: a bazaar selling day belongs to the account, not the device (get_bazaar_day owner read, authenticated execute, no anonymous execute; bazaar_day_access internal with no API grant, service_role included; record_event_sale redefined whole with one change, a sale is no longer refused for a device that is not the selling one; void_event_sale and set_event_device untouched). SQL92: staff_refund refuses a blank reference and join_waitlist a blank Instagram handle (22023), each redefined whole with one added check; signatures and grants unchanged. SQL91: café prices, owner only (default_cafe_price_cents internal with no API grant; get_cafe_prices and set_cafe_price owner only, authenticated execute, no anonymous execute; product_cafe_prices has no API grants). SQL86: items weigh 0 cookie slots (product_type_behaviour), capacity_allows lets a zero-slot request fit. SQL85: price changes on a started bazaar day (set_bazaar_day_price owner only, audited, idempotent by request id; get_event_prices owner read; record_event_sale redefined whole with one change, the price check tries each price list the day has had); authenticated execute, no anonymous execute. SQL84: product types (save_product_type owner only, get_product_types staff read, product_type_behaviour trigger), write_flavour accepts an optional type_id. SQL83: delete_bazaar_booking removes an event that never sold (owner only, exact name, refuses anything in Money or Stock); authenticated execute, no anonymous execute. SQL80: generated Bazaar sale/void labels use existing event names; accounting rules, ordering, RPC signature and grants retained. Legacy production replay-only retirement (SQL73), signature and grants unchanged. Dough-only baking: record_bake consumes recorded balls and adds good cookies; no repeated ingredient use; active owner only; authenticated execute. Additive dough preparation: recipe amount independent of actual balls; active owner only; authenticated execute, no service_role or anonymous execute. Reviewed local function-authority drift baseline through the sampler flavours (migration 71: get_order_extras, save_order_extras and get_shop_extras redefined for order_extras.sampler_flavours, an optional eighth save key; grants unchanged; no function added); earlier: U6 Bazaar v2 costs, closing rules and test reversal (migration 70: save_flavour_cost, get_flavour_costs and reverse_bazaar_test added, owner only, granted to authenticated as every owner command is; finalise_bazaar dropped and recreated with p_final (default null), grants as before; bazaar_summary and get_bazaar redefined whole, grants unchanged; bazaar_line_facts, close_bazaar_day and record_event_sale untouched); earlier: S3.1 bazaar hardening (migration 69: void_bazaar_fee and void_bazaar_loss added, owner only, granted to authenticated as every owner command is; refuse_finalised_bazaar_sale added, an internal trigger function with no API grant, service_role included; finalise_bazaar dropped and recreated with p_till, grants as before; bazaar_line_facts, bazaar_summary, get_bazaar, close_bazaar_day and load_event_stock redefined whole, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: S3.1 bazaar hardening (migration 69: void_bazaar_fee and void_bazaar_loss added, owner only, granted to authenticated as every owner command is; refuse_finalised_bazaar_sale added, an internal trigger function with no API grant, service_role included; finalise_bazaar dropped and recreated with p_till, grants as before; bazaar_line_facts, bazaar_summary, get_bazaar, close_bazaar_day and load_event_stock redefined whole, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: S3.1 bazaar hardening (migration 69: void_bazaar_fee and void_bazaar_loss added, owner only, granted to authenticated as every owner command is; refuse_finalised_bazaar_sale added, an internal trigger function with no API grant, service_role included; finalise_bazaar dropped and recreated with p_till, grants as before; bazaar_line_facts, bazaar_summary, get_bazaar, close_bazaar_day and load_event_stock redefined whole, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: S1 bazaar days (migration 68: ten owner-only commands added, get_bazaar, save_bazaar_day, save_bazaar_fee, save_bazaar_loss, save_bazaar_cost, save_bazaar_target, start_bazaar_day, add_bazaar_day_stock, close_bazaar_day and finalise_bazaar, granted to authenticated as every owner command is; four internal functions added with no API grant, service_role included: bazaar_summary, bazaar_line_facts, bazaar_held_ledger and recipe_stock_plan; record_production, record_sale_packaging, get_books and close_event redefined whole with one change each, grants unchanged; record_event_sale untouched, body md5 8cf2bd63); earlier: B5-1 the item movements read (migration 66: get_item_movements added, owner only, read-only, grants as get_item_costs; no other function touched); earlier: B4b-1 the count shrinkage (migration 65: record_stock_movement and get_books redefined, each with one added clause so a count or an adjustment that takes stock off is stamped with a cost and booked as an expense after the cutover; grants unchanged; no function added); earlier: B4a-4 the cutover guard (migration 64: record_stock_movement, preview_cost_cutover and get_books redefined, each with one added guard; grants unchanged; no function added); earlier: B4a-3 her-data imports (migration 63: preview_import_X and apply_import_X for items, prices, recipes, flavours and bookings, with run_import_X, import_result, import_expected_ok, import_keys_ok, import_name_ok and the writers write_stock_item, write_item_price, write_recipe, write_flavour and write_scheduled_event, all internal with no API grant; save_stock_item, save_item_price, save_recipe, save_flavour and save_scheduled_event redefined as the owner check plus the writer, grants unchanged); earlier: Reviewed local function-authority drift baseline through B4a-2 the cost cutover fix (migration 62 fix: apply_cost_cutover, get_books and write_packaging_rule redefined; grants unchanged; no function added); earlier: B4a-1 the cost cutover (preview_cost_cutover and apply_cost_cutover added, internal with no API grant; get_books, set_cost_basis and save_recipe redefined; grants unchanged; books_settings defaults to bought until a cutover); earlier: Reviewed local function-authority drift baseline through B3b-2 books on the used basis (get_books redefined: the uncosted list also carries a pack and a bazaar sale that took nothing; grants unchanged; books_settings defaults to used); earlier: B3b-1 packaging rules (save_packaging_rule and get_packaging_rules owner-only; write_packaging_rule and apply_packaging_rule internal with no API grant; record_pack, record_sale_packaging, record_production, save_recipe, get_recipes and get_recipe_costs redefined; record_event_sale untouched); earlier: B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -9,7 +9,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(client_id text, duplicate boolean)",
-      "body_md5": "6a8d16ef9286007f7aacf224fdf88e04",
+      "body_md5": "b54715cdd04b272457fdb766afe8ea2d",
       "identity": "p_expense jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -219,7 +219,7 @@
         "search_path=\"\""
       ],
       "returns": "app_role",
-      "body_md5": "a4831754eb6b712e47fb2eb66a1b5257",
+      "body_md5": "cdedbe3a09f8bbc0fb54e32a80376045",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -444,7 +444,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
-      "body_md5": "0b61ed52414020f9da551df3d14006d8",
+      "body_md5": "f266cc840abe6e8d66a0a3d50c7e27b6",
       "identity": "p_sale jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -738,6 +738,81 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "add_helper",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "9c72f9cc8b2a668e117f7f430f16da53",
+      "identity": "p_email text, p_expires_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "bazaar_day_open",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "23099045f550d62da71dac5814f128d0",
+      "identity": "p_day uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "bazaar_event_accepts",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "3afe707a2401b4e462238ef4d8a4d4f0",
+      "identity": "p_event uuid, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "bazaar_event_open",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "2de24c69e134475377b2ed1d0dcd2a34",
+      "identity": "p_event uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_open_bazaar_day",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "80e166fcef0b096b2367b281aaf743c2",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_settings",
       "owner": "postgres",
       "config": [
@@ -762,6 +837,51 @@
       "body_md5": "84fffe78f677359817b183e0eb6f5fb7",
       "identity": "",
       "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "is_active_helper",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "b908e86f7d6e0a910821145f93414d53",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "list_people",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "6cf1a27e7e116573f262644413e8bd3b",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "revoke_helper",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "e13e4d6d8d1f1a452df1e7af2126c146",
+      "identity": "p_id uuid",
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
@@ -903,13 +1023,28 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "set_helper_expiry",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "59093ee0d3f012e764bdaac354ddb531",
+      "identity": "p_id uuid, p_expires_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "void_event_sale",
       "owner": "postgres",
       "config": [
         "search_path=\"\""
       ],
       "returns": "TABLE(client_id text, sale_known boolean, duplicate boolean)",
-      "body_md5": "5611a5a34967eacdbb8e91986fa9b1f9",
+      "body_md5": "c89b863a98b17cbc1297e8785f9d59a9",
       "identity": "p_void jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -2139,7 +2274,7 @@
         "search_path=\"\""
       ],
       "returns": "boolean",
-      "body_md5": "983cb36f583da58af60f788c0f4e9842",
+      "body_md5": "409e8ad61dc12f6da4f2ada871000769",
       "identity": "p_day uuid",
       "execute_anon": false,
       "security_definer": true,
@@ -2184,7 +2319,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "ed42f86320f849f0777d2bf31b61c3f9",
+      "body_md5": "689f99a34b733cc1b74e36e2565af025",
       "identity": "p_close jsonb",
       "execute_anon": false,
       "security_definer": true,
