@@ -154,17 +154,10 @@ export function CafeSalesView({
           }}
         />
       ) : (
-        <Panel
-          title="Café sales"
-          action={
-            <div className="flex gap-2">
-              {back}
-              <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
-                Log café sale
-              </Button>
-            </div>
-          }
-        >
+        <Panel title="Café sales" action={back}>
+          <Button variant="secondary" className="mb-3" onClick={() => setOpen(true)}>
+            Log café sale
+          </Button>
           {phase.rows.length === 0 ? (
             <p className="text-body text-ink-mute">
               No café sales logged yet. Log one when you sell cookies to a café in bulk: it is
