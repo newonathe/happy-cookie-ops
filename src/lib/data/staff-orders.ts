@@ -152,8 +152,15 @@ export function parseStaffOrders(json: unknown): StaffOrder[] {
 export function readStaffOrders(json: unknown): { orders: StaffOrder[]; dropped: number } | null {
   if (!Array.isArray(json)) return null;
   const out: StaffOrder[] = [];
+  // A café sale is a logged sale, not an order (Sell > Café sales): the database no longer sends one, and one it does send (an older
+  // answer) is left out here, so it can never reach Orders, Customers, a message or a count. It is not an unreadable row.
+  let cafe = 0;
   for (const raw of json) {
     if (!isObj(raw)) continue;
+    if (raw.channel === 'cafe') {
+      cafe += 1;
+      continue;
+    }
     const state = stateOf(raw.state);
     const payState = payStateOf(raw.pay_state);
     const placed = text(raw.placed_at) ? Date.parse(raw.placed_at) : NaN;
@@ -212,7 +219,7 @@ export function readStaffOrders(json: unknown): { orders: StaffOrder[]; dropped:
         .filter((b): b is StaffBox => b !== null)
     });
   }
-  return { orders: out, dropped: json.length - out.length };
+  return { orders: out, dropped: json.length - out.length - cafe };
 }
 
 /** The engine's order, as far as the ported screens read it. */

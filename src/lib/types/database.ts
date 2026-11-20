@@ -2937,16 +2937,6 @@ export type Database = {
           reset_at: string
         }[]
       }
-      create_cafe_order: {
-        Args: { p_order: Json }
-        Returns: {
-          order_no: string
-          pickup_date: string
-          replayed: boolean
-          takes_slots: boolean
-          total_cents: number
-        }[]
-      }
       credit_bazaar_kitchen: {
         Args: {
           p_at: string
@@ -3053,6 +3043,22 @@ export type Database = {
           price_cents: number
           product_id: string
           updated_at: string
+        }[]
+      }
+      get_cafe_sales: {
+        Args: never
+        Returns: {
+          cookies: number
+          items: Json
+          logged_at: string
+          name: string
+          notes: string
+          order_no: string
+          pay_method: string
+          pay_state: string
+          sale_date: string
+          state: string
+          total_cents: number
         }[]
       }
       get_event_prices: { Args: { p_event: string }; Returns: Json }
@@ -3296,6 +3302,17 @@ export type Database = {
           qty: number
           record_id: string
           rejects: number
+        }[]
+      }
+      record_cafe_sale: {
+        Args: { p_sale: Json }
+        Returns: {
+          order_no: string
+          replayed: boolean
+          sale_date: string
+          short: Json
+          takes_slots: boolean
+          total_cents: number
         }[]
       }
       record_cost_correction: {
