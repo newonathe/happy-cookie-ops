@@ -24,6 +24,7 @@ export const OWNER_DENIED_ROUTES = Object.freeze([
   '/',
   '/pnl',
   '/orders',
+  '/cafe',
   '/products',
   '/settings',
   '/bazaar',

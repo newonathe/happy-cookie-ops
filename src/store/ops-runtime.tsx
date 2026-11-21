@@ -3031,6 +3031,12 @@ export class OpsRuntime extends OpsProvider {
     return this.staffIdentity?.userId ?? null;
   }
 
+  getCafeWriteScope(): StaffIdentity | null {
+    return isLiveMode() && !this.unmounted && !this.gateNarrow && this.state.role === 'owner'
+      ? this.staffIdentity
+      : null;
+  }
+
   /** Name attribution only; the verified gate and database still decide access. */
   bindStaffIdentity(input: StaffIdentity | null): void {
     if (!isLiveMode() || this.unmounted) return;

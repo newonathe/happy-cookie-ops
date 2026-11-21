@@ -20,7 +20,15 @@ import {
 } from '@/lib/data/cafe-sales';
 import { parseStaffOrders, readStaffOrders } from '@/lib/data/staff-orders';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
+
+const OWNER_SCOPE = {
+  business: 'http://127.0.0.1:55421',
+  userId: '56ea82ed-7a59-4870-952e-ecae57ec66da'
+};
 
 type Rpc = (
   name: string,
@@ -496,7 +504,14 @@ describe('the Café sales view', () => {
       return { data: [saved(extra)], error: null };
     });
   const show = (client: CafeSalesClient, onBack = vi.fn()) => {
-    render(<CafePage getClient={() => client} onBack={onBack} today={() => '2026-11-20'} />);
+    render(
+      <CafePage
+        getClient={() => client}
+        getWriteScope={() => OWNER_SCOPE}
+        onBack={onBack}
+        today={() => '2026-11-20'}
+      />
+    );
     return onBack;
   };
   const openForm = async () => {
@@ -756,7 +771,10 @@ describe('the Café sales view', () => {
     );
   });
 
-  it('keeps one expense id for a retry of the same expense, and a new one when it is edited', async () => {
+  it.each([
+    ['22023', /expense was not accepted/],
+    ['23505', /already used for a different one/]
+  ])('keeps one expense id until the server definitively refuses it (%s)', async (code, reason) => {
     let calls = 0;
     const client = clientOf(async (name) => {
       if (name === 'get_cafe_sales') return { data: [SALE_ROW], error: null };
@@ -764,6 +782,7 @@ describe('the Café sales view', () => {
         return { data: [{ count_toward_limit: true, updated_at: 'x' }], error: null };
       if (name === 'add_cafe_expense') {
         calls += 1;
+        if (calls === 2) return { data: null, error: { code, message: 'expense refused' } };
         return { data: null, error: { code: '57014', message: 'timeout' } };
       }
       return { data: null, error: { code: '42883', message: 'x' } };
@@ -776,9 +795,11 @@ describe('the Café sales view', () => {
     const save = () => fireEvent.click(screen.getByRole('button', { name: 'Save expense' }));
     save();
     await waitFor(() => expect(calls).toBe(1));
-    await screen.findByText(/not saved/);
+    await screen.findByText(/may have been saved/);
+    expect(screen.getByRole('textbox', { name: 'Expense amount (₱)' })).toBeDisabled();
     save();
     await waitFor(() => expect(calls).toBe(2));
+    await screen.findByText(reason);
     fireEvent.change(screen.getByRole('textbox', { name: 'Expense amount (₱)' }), {
       target: { value: '4' }
     });
@@ -789,6 +810,49 @@ describe('the Café sales view', () => {
       .map((c) => c[1].p_expense.clientId);
     expect(ids[0]).toBe(ids[1]);
     expect(ids[2]).not.toBe(ids[0]);
+  });
+
+  it('replays a saved expense after the response is lost and the Café page is reopened', async () => {
+    const posted = new Set<string>();
+    const client = clientOf(async (name, args) => {
+      if (name === 'get_cafe_sales') return { data: [SALE_ROW], error: null };
+      if (name === 'get_cafe_order_settings')
+        return { data: [{ count_toward_limit: true, updated_at: 'x' }], error: null };
+      if (name === 'add_cafe_expense') {
+        const input = args?.p_expense as { clientId: string };
+        const replayed = posted.has(input.clientId);
+        posted.add(input.clientId);
+        if (client.rpc.mock.calls.filter(([rpc]) => rpc === name).length === 1)
+          return { data: null, error: { code: '', message: 'Connection lost' } };
+        return {
+          data: [{ order_no: 'HC-2001', expense_cents: 300, replayed }],
+          error: null
+        };
+      }
+      return { data: null, error: { code: '42883', message: 'x' } };
+    });
+
+    const open = async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /Add an expense to the sale/ }));
+    };
+    const save = () => fireEvent.click(screen.getByRole('button', { name: 'Save expense' }));
+
+    show(client);
+    await open();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Expense amount (₱)' }), {
+      target: { value: '3' }
+    });
+    save();
+    await screen.findByText(/may have been saved/);
+    cleanup();
+
+    show(client);
+    await open();
+    expect(screen.getByRole('textbox', { name: 'Expense amount (₱)' })).toHaveValue('3');
+    await screen.findByText(/previous save needs confirmation/);
+    save();
+    await screen.findByText('Expense added to the sale for Bean Cafe.');
+    expect(posted.size).toBe(1);
   });
 
   it('logs a sale with additional expenses in the same save, and shows the net as she types', async () => {

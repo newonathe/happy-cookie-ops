@@ -2,10 +2,10 @@ import { expect, test } from '@playwright/test';
 import { ensureOwner, signInAsOwner, sql } from './stack';
 
 /**
- * SCENARIO CAFÉ: the owner logs a café sale at café prices through the live Sell > Orders > Café sales view. It is stored at the prices
+ * SCENARIO CAFÉ: the owner logs a café sale at café prices through the live Café tab. It is stored at the prices
  * sent with the server's total, paid and handed over on its date, counted toward the week by default, in the books on that date, and it
  * is NOT among the orders. Server truth is read straight from the stack's database. Run like scenarios A and C (docs/TESTING.md);
- * needs migrations 91, 94 and 96.
+ * needs migrations 91, 94, 96 and 97.
  */
 const manilaDate = (offsetDays: number): string => {
   const now = new Date(Date.now() + 8 * 3_600_000 + offsetDays * 86_400_000);
@@ -33,8 +33,19 @@ test('SCENARIO CAFÉ: a café sale at café prices, paid, counted, and kept out 
     await browser.newContext({ viewport: { width: 390, height: 844 } })
   ).newPage();
   await signInAsOwner(page);
-  await page.goto('/orders');
-  await page.getByRole('button', { name: 'Café sales' }).click();
+  const dock = page.getByRole('navigation', { name: 'Phone navigation' });
+  const cafeTab = dock.getByRole('button', { name: 'Café', exact: true });
+  await expect(dock.getByRole('button')).toHaveCount(7);
+  const rows = await dock
+    .getByRole('button')
+    .evaluateAll(
+      (buttons) =>
+        new Set(buttons.map((button) => Math.round(button.getBoundingClientRect().top))).size
+    );
+  expect(rows).toBe(1);
+  await cafeTab.click();
+  await expect(page).toHaveURL(/\/cafe$/);
+  await expect(cafeTab).toHaveAttribute('aria-current', 'page');
   await expect(page.getByText(/No café sales logged yet/)).toBeVisible();
   await page.screenshot({ path: 'build/cafe-sales-empty-390.png', fullPage: true });
   await page.getByRole('button', { name: 'Log café sale' }).click();
@@ -98,9 +109,31 @@ test('SCENARIO CAFÉ: a café sale at café prices, paid, counted, and kept out 
 
   // ...(the books' revenue on the sale date is proved in SQL: tests/integration/security/cafe-sale-log.sql)...
 
-  // An expense added afterwards to the logged sale.
-  await page.getByRole('button', { name: /Add an expense to the sale for Scenario Café/ }).click();
+  // The database commits the additional expense, but this browser never receives the response.
+  const expenseRpc = '**/rest/v1/rpc/add_cafe_expense';
+  let posted = false;
+  await page.route(expenseRpc, async (route) => {
+    if (!posted) {
+      const response = await route.fetch();
+      expect(response.ok()).toBeTruthy();
+      posted = true;
+    }
+    await route.abort('connectionreset');
+  });
+  const addExpense = page.getByRole('button', {
+    name: /Add an expense to the sale for Scenario Café/
+  });
+  await addExpense.click();
   await page.getByRole('textbox', { name: 'Expense amount (₱)' }).fill('12.50');
+  await page.getByRole('button', { name: 'Save expense' }).click();
+  await expect(
+    page.getByText('A previous save needs confirmation.', { exact: false })
+  ).toBeVisible();
+  expect(posted).toBe(true);
+  await page.unroute(expenseRpc);
+  await page.reload();
+  await addExpense.click();
+  await expect(page.getByRole('textbox', { name: 'Expense amount (₱)' })).toHaveValue('12.50');
   await page.getByRole('button', { name: 'Save expense' }).click();
   await expect(page.getByText('Expense added to the sale for Scenario Café.')).toBeVisible();
   expect(
@@ -111,14 +144,18 @@ test('SCENARIO CAFÉ: a café sale at café prices, paid, counted, and kept out 
   await page.screenshot({ path: 'build/cafe-expenses-390.png', fullPage: true });
 
   // ...and not among the orders.
-  await page.getByRole('button', { name: 'Back to orders' }).click();
+  await page.goto('/orders');
   await expect(page.getByText(orderNo)).toHaveCount(0);
   await expect(page.getByText('Scenario Café')).toHaveCount(0);
 
   // Wide screen.
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/orders');
-  await page.getByRole('button', { name: 'Café sales' }).click();
+  await page.goto('/cafe');
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Main navigation' })
+      .getByRole('button', { name: 'Café', exact: true })
+  ).toHaveAttribute('aria-current', 'page');
   await expect(page.getByText('Scenario Café')).toBeVisible();
   await page.screenshot({ path: 'build/cafe-sales-1440.png', fullPage: true });
   await page.getByRole('button', { name: 'Log café sale' }).click();
