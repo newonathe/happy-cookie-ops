@@ -234,6 +234,30 @@ describe('opening the day on a second device (S2)', () => {
     expect(runtime.state.eventStock).toMatchObject({ dcf: 19 });
   });
 
+  it('keeps a refused void receipt without removing the sale or putting its cookies back', async () => {
+    const receipt = {
+      clientId: 'void:devA:S1:1767268800000',
+      kind: 'void',
+      saleClientId: 'devA:S1:1767268800000',
+      at: 1_767_268_950_000,
+      state: 'failed',
+      attempts: 1,
+      lastError: '42501 a helper may void only a sale they rang up on the open day',
+      refused: true
+    };
+    store.set(receipt.clientId, receipt);
+    const runtime = mounted();
+    days(runtime).saleClient = server().client;
+    await open(runtime);
+
+    expect(sales(runtime).map((sale) => sale.clientId)).toEqual([
+      'devB:S1:1767268860000',
+      'devA:S1:1767268800000'
+    ]);
+    expect(runtime.state.eventStock).toMatchObject({ dcf: 18 });
+    expect(store.get(receipt.clientId)).toEqual(receipt);
+  });
+
   it('keeps a sale another device voided out of the list, and its cookies on the table the server reports', async () => {
     const runtime = mounted();
     const read = await dayRead({

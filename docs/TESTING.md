@@ -78,4 +78,6 @@ Setup, once: a scratch copy of `supabase/` with its own `project_id` (`hcscn`), 
 
 Scenario H (S3, `helpers.spec.ts`) also needs the Edge Function: include `edge-runtime` in the stack (leave it out of the `-x` list) and run `pnpm exec supabase functions serve --workdir <scratch> --no-verify-jwt` beside it, with a `supabase/functions` copy in the scratch folder. It adds a helper from the People page, signs them in, sets their own password, sells, voids, closes the day, and ends their access. `HC_SCN_SHOTS=<folder>` saves screenshots.
 
+Scenario D (`scenario-d.spec.ts`) needs no Edge Function: it plays `create-helper-account` with the service key after the owner's `add_helper` call (`createHelperViaRpc` in `stack.ts`). D1 the owner on two devices; D2 a helper sells, voids their own sale, reaches only the till and closes the day; D3 a helper's offline sale replays after the owner closed; D4 an ended helper is told so. D2b checks that a refused helper void leaves the sale and table stock consistent, including after reload.
+
 Not covered: a physical iPhone (WebKit offline emulation is a known Playwright defect, see `bazaar-offline.spec.ts`), hosted data, concurrency, the kitchen transfer to the table, stock receipts, and scenario A's customer-side status page.

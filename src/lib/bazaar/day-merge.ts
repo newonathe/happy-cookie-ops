@@ -63,7 +63,7 @@ export interface MergedDay {
 export interface MergeInput {
   server: DayRead;
   local: readonly LocalDaySale[];
-  /** Client ids of sales this phone voided (a void row of any state: sent or not, the sale is voided). */
+  /** Client ids of sales with a pending or acknowledged local void. */
   localVoids: ReadonlySet<string>;
   toPesos: (centavos: number) => number;
 }
