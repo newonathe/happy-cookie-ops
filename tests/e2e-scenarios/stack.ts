@@ -82,3 +82,82 @@ export function sql(statement: string): string {
   if (run.status !== 0) throw new Error(`psql failed: ${run.stderr}`);
   return run.stdout.trim();
 }
+
+export const HELPER_EMAIL = 'helper.d@example.test';
+export const HELPER_PASSWORD = 'scenario-helper-1';
+
+/**
+ * Registers a helper the way the owner does, minus the Edge Function (not deployed on the local stack): the owner's own session
+ * calls the `add_helper` RPC (two-hour expiry), then the service-role client plays the function: it makes the auth user and the
+ * helper profile with the invite's expiry, and removes the invite. Returns the helper's user id.
+ */
+export async function createHelperViaRpc(hours = 2): Promise<string> {
+  const service = admin();
+  const old = (await service.auth.admin.listUsers({ perPage: 200 })).data?.users.find(
+    (u) => u.email === HELPER_EMAIL
+  );
+  if (old) await service.auth.admin.deleteUser(old.id);
+  await service.from('helper_invites').delete().eq('email', HELPER_EMAIL);
+  const signedIn = await createClient(API_URL, SERVICE_KEY, {
+    auth: { persistSession: false }
+  }).auth.signInWithPassword({ email: OWNER_EMAIL, password: OWNER_PASSWORD });
+  const token = signedIn.data.session?.access_token;
+  if (!token) throw new Error(`owner sign-in: ${signedIn.error?.message}`);
+  // The gateway key is the service key; PostgREST takes the role from the owner's bearer token.
+  const asOwner = createClient(API_URL, SERVICE_KEY, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } }
+  });
+  const expires = new Date(Date.now() + hours * 3600_000).toISOString();
+  const added = await asOwner.rpc('add_helper', { p_email: HELPER_EMAIL, p_expires_at: expires });
+  if (added.error) throw new Error(`add_helper: ${added.error.message}`);
+  const invite = await service
+    .from('helper_invites')
+    .select('id, access_expires_at')
+    .eq('email', HELPER_EMAIL)
+    .single();
+  if (invite.error) throw new Error(`invite: ${invite.error.message}`);
+  const made = await service.auth.admin.createUser({
+    email: HELPER_EMAIL,
+    password: HELPER_PASSWORD,
+    email_confirm: true
+  });
+  if (made.error || !made.data.user) throw new Error(`helper user: ${made.error?.message}`);
+  const profile = await service.from('profiles').insert({
+    id: made.data.user.id,
+    role: 'helper',
+    display_name: 'Helper D',
+    active: true,
+    access_expires_at: invite.data.access_expires_at
+  });
+  if (profile.error) throw new Error(`helper profile: ${profile.error.message}`);
+  await service.from('helper_invites').delete().eq('id', invite.data.id);
+  return made.data.user.id;
+}
+
+/** The owner's `set_helper_expiry` for a future time, or the service role for a past one (the RPC refuses the past by design). */
+export async function endHelperAccess(helperId: string): Promise<void> {
+  const done = await admin()
+    .from('profiles')
+    .update({ access_expires_at: new Date(Date.now() - 60_000).toISOString() })
+    .eq('id', helperId);
+  if (done.error) throw new Error(`expire helper: ${done.error.message}`);
+}
+
+/** Server-side truth for the sales table, read with the service role: [{ client_id, recorded_by, voided_at, sold_at }]. */
+export async function serverSales(): Promise<
+  Array<{
+    client_id: string;
+    recorded_by: string | null;
+    voided_at: string | null;
+    sold_at: string;
+    event_id: string;
+  }>
+> {
+  const res = await admin()
+    .from('event_sales')
+    .select('client_id, recorded_by, voided_at, sold_at, event_id')
+    .order('sold_at');
+  if (res.error) throw new Error(`event_sales: ${res.error.message}`);
+  return res.data ?? [];
+}

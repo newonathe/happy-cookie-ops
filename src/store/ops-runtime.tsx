@@ -82,6 +82,7 @@ import {
   saleClientId,
   splitForEvent,
   unsentForEvent,
+  voidKey,
   type CommandKind
 } from '@/lib/offline/queue';
 import { mergeDay, type LocalDaySale } from '@/lib/bazaar/day-merge';
@@ -2505,7 +2506,7 @@ export class OpsRuntime extends OpsProvider {
 
   /**
    * S2: what this phone holds for one event that the server may not have acknowledged: the queue's sales, and the sales it
-   * voided (a void row of any state: sent or not, the sale is voided). A read of the queue only; nothing is marked or removed.
+   * voided (pending and acknowledged voids only). A refused void remains in the queue without hiding the sale or changing stock.
    */
   private async localDayLayer(
     eventId: string
@@ -2514,7 +2515,7 @@ export class OpsRuntime extends OpsProvider {
     const voids = new Set<string>();
     for (const row of await allSales()) {
       if (isVoidRow(row)) {
-        voids.add(row.saleClientId);
+        if (row.state === 'sent' || !row.refused) voids.add(row.saleClientId);
         continue;
       }
       if (isCommandRow(row) || row.eventId !== eventId) continue;
@@ -12181,9 +12182,17 @@ export class OpsRuntime extends OpsProvider {
    */
   flushSales = async (options?: FlushOptions): Promise<FlushResult> => {
     const result = await flushQueue(this.saleClient, options);
+    const refusedVoid = result.failed.some(
+      ({ clientId, permanent }) => permanent && clientId.startsWith(voidKey(''))
+    );
+    if (refusedVoid) this.tillEdits += 1;
     await this.reflectQueue();
     // S2: after a send, or the phone coming back, the day is read again: sales from her other devices arrive here.
-    if (!this.unmounted) void this.refreshHeldDay();
+    if (!this.unmounted) {
+      if (refusedVoid && this.state.screen === 'bazaar')
+        this.toast('The server declined a void. Check the sale before trying again.', 'warn');
+      void this.refreshHeldDay({ force: refusedVoid });
+    }
     // A sale that reached the server used its pouches and bag there (stock only: no batch or dough changed): show what stock the database holds.
     if (result.sent.length > 0 && this.state.role === 'owner' && !this.unmounted) {
       void this.loadStockCatalogue(null);
