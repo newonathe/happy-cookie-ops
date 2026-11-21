@@ -41,10 +41,11 @@ const mappedRoutes = PLACES.flatMap((place) => place.routes);
 afterEach(cleanup);
 
 describe('the function map (final-plan.md section 8.1)', () => {
-  it('has six tabs, in order, each opening a screen that belongs to it', () => {
+  it('has seven tabs, in order, each opening a screen that belongs to it', () => {
     expect(TABS.map((tab) => tab.label)).toEqual([
       'Home',
       'Bazaar',
+      'Café',
       'Sell',
       'Make',
       'Stock',
@@ -57,16 +58,17 @@ describe('the function map (final-plan.md section 8.1)', () => {
     }
   });
 
-  it('has thirteen places under the six tabs, and four homes outside them', () => {
+  it('has fourteen places under the seven tabs, and four homes outside them', () => {
     expect(TABS.map((tab) => placesOf(tab.id).map((place) => place.label))).toEqual([
       ['This week'],
       ['Bazaar'],
+      ['Café'],
       ['Orders', 'Customers/Waitlist', 'Shop'],
       ['Products', 'Production'],
       ['Inventory', 'Shopping', 'Suppliers'],
       ['P&L', 'Sales', 'Expenses']
     ]);
-    expect(TABS.flatMap((tab) => placesOf(tab.id))).toHaveLength(13);
+    expect(TABS.flatMap((tab) => placesOf(tab.id))).toHaveLength(14);
     const outside = PLACES.filter((place) => !TABS.some((tab) => tab.id === place.home));
     expect(outside.map((place) => place.home)).toEqual(['account', 'bell', 'customer', 'retired']);
     expect(new Set(PLACES.map((place) => place.id)).size).toBe(PLACES.length);
@@ -85,8 +87,8 @@ describe('the function map (final-plan.md section 8.1)', () => {
     for (const label of entries) expect(placeOfEntry(label)).toBeTruthy();
   });
 
-  it('gives each of the 25 routes exactly one home', () => {
-    expect(SCREEN_KEYS).toHaveLength(25);
+  it('gives each of the 26 routes exactly one home', () => {
+    expect(SCREEN_KEYS).toHaveLength(26);
     for (const route of SCREEN_KEYS)
       expect([route, count(mappedRoutes, route)]).toEqual([route, 1]);
     expect([...mappedRoutes].sort()).toEqual([...SCREEN_KEYS].sort());

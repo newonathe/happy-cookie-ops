@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ import { ordersRead } from '@/lib/orders/orders-read-state';
 import { orderActionWord, orderStatusWord } from '@/lib/orders/owner-words';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
 import { readAtText } from '@/lib/time/read-at-text';
-import { CafePage } from '@/components/live/cafe/cafe-page';
 import { OrderPill, SellSettings, SellTabs, SellTools } from './sell-shared';
 import sg from './sell-glass.module.css';
 
@@ -84,9 +83,6 @@ function OrderRow({ order }: { order: Row }) {
  * flavour tally and the quick next action are the existing engine values, unchanged.
  */
 export function OrdersLive({ v }: { v: OpsVals }) {
-  // Café is a logged record of bulk sales, kept apart from the orders. Until it has its own tab, this page swaps to it and back.
-  const [view, setView] = useState<'orders' | 'cafe'>('orders');
-  const cafe = isLiveMode() && !!v.ownerView;
   const orders = v.orderList ?? [];
   // Every group is kept: an empty one is hidden on a phone and stays a column from `lg`.
   const ordered = GROUP_ORDER.map(
@@ -109,11 +105,6 @@ export function OrdersLive({ v }: { v: OpsVals }) {
         subtitle="Pack each order and see what is ready for customer pickup."
         actions={
           <>
-            {cafe ? (
-              <Button variant="secondary" onClick={() => setView('cafe')}>
-                Café sales
-              </Button>
-            ) : null}
             <SellTools v={v} />
             <SellSettings v={v} />
           </>
@@ -122,13 +113,6 @@ export function OrdersLive({ v }: { v: OpsVals }) {
       <SellTabs v={v} onGround />
     </div>
   );
-  if (cafe && view === 'cafe')
-    return (
-      <div className={sg.page}>
-        {header}
-        <CafePage onBack={() => setView('orders')} />
-      </div>
-    );
   if (notRead || failedFirst)
     return (
       <div className={sg.page}>

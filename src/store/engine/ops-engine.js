@@ -168,7 +168,7 @@ export const replaceFlavours = (list, allergens) => {
   PRODUCTS.forEach(p => { P[p.id] = p; SEED_PRICES[p.id] = p.price; ALLERGENS[p.id] = allergens[p.id] || ''; });
 };
 
-const SCREENS = ['today', 'sales', 'orders', 'order', 'lookup', 'reconcile', 'bake', 'batch', 'inventory', 'stocktake', 'more', 'grocery', 'bazaar', 'pnl', 'formqueue', 'health', 'products', 'notifications', 'shop', 'checkout', 'status', 'recipes', 'drops', 'suppliers', 'settings'];
+const SCREENS = ['today', 'sales', 'orders', 'order', 'lookup', 'reconcile', 'bake', 'batch', 'inventory', 'stocktake', 'more', 'grocery', 'bazaar', 'cafe', 'pnl', 'formqueue', 'health', 'products', 'notifications', 'shop', 'checkout', 'status', 'recipes', 'drops', 'suppliers', 'settings'];
 const CUSTOMER_SCREENS = ['shop', 'checkout', 'status', 'lookup'];
 
 // shelf life, as real dates that actually run down

@@ -62,7 +62,8 @@ export type CafeSaleRow = {
 export class CafeSaleRefused extends Error {
   constructor(
     message: string,
-    readonly retryable: boolean
+    readonly retryable: boolean,
+    readonly requestRejected = false
   ) {
     super(message);
     this.name = 'CafeSaleRefused';
@@ -241,17 +242,19 @@ export async function addCafeExpense(
     if (error.code === '22023')
       throw new CafeSaleRefused(
         'The expense was not accepted. Check the category, the amount and the note, and that the sale has fewer than 10 expenses.',
-        false
+        false,
+        true
       );
     if (error.code === '23505')
       throw new CafeSaleRefused(
         'This expense was already used for a different one. Start it again.',
-        false
+        false,
+        true
       );
     if (error.code === '42501')
       throw new CafeSaleRefused('Only the owner can add a café expense.', false);
     throw new CafeSaleRefused(
-      'The expense was not saved. Check your connection and try again.',
+      'The expense may have been saved. Check your connection and try the same save again.',
       true
     );
   }

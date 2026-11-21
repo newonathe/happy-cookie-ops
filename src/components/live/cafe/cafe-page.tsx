@@ -5,6 +5,7 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { OwnerField, PageTitle, Panel } from '@/components/ui/owner-kit';
 import { CafeOrderSettings } from '@/components/live/cafe-order-settings';
+import type { StaffIdentity } from '@/lib/auth/staff-name';
 import {
   CafePricesUnavailable,
   cafePesosText,
@@ -12,6 +13,7 @@ import {
   type CafePrice
 } from '@/lib/data/cafe-prices';
 import { fetchCafeOrderSettings } from '@/lib/data/cafe-orders';
+import { CafeExpenseRecovery, type PendingCafeExpense } from '@/lib/data/cafe-expense-recovery';
 import {
   CAFE_SALE_DAYS_BACK,
   CafeSaleRefused,
@@ -86,10 +88,12 @@ type ListPhase =
  */
 export function CafePage({
   getClient = defaultClient,
+  getWriteScope = () => null,
   onBack,
   today = () => manilaToday()
 }: {
   getClient?: () => CafeSalesClient;
+  getWriteScope?: () => StaffIdentity | null;
   onBack?: () => void;
   today?: () => string;
 }) {
@@ -276,6 +280,7 @@ export function CafePage({
                       adding === row.orderNo ? (
                         <ExpenseForm
                           getClient={getClient}
+                          getWriteScope={getWriteScope}
                           orderNo={row.orderNo}
                           categories={categories}
                           onCancel={() => setAdding(null)}
@@ -311,12 +316,14 @@ export function CafePage({
 /** One expense for a sale already logged: its category, an amount and a note. The same attempt keeps its id, so a retry cannot add it twice. */
 function ExpenseForm({
   getClient,
+  getWriteScope,
   orderNo,
   categories,
   onCancel,
   onSaved
 }: {
   getClient: () => CafeSalesClient;
+  getWriteScope: () => StaffIdentity | null;
   orderNo: string;
   categories: string[];
   onCancel: () => void;
@@ -327,33 +334,80 @@ function ExpenseForm({
     amount: '',
     note: ''
   });
+  const scope = getWriteScope();
+  const recovery = scope ? new CafeExpenseRecovery(scope, orderNo) : null;
+  const [restored] = useState(() => {
+    try {
+      return { pending: recovery?.read() ?? null, unreadable: false };
+    } catch {
+      return { pending: null, unreadable: true };
+    }
+  });
+  const [pending, setPending] = useState(restored.pending);
+  const shown = pending
+    ? { category: pending.category, amount: cafePesosText(pending.amountCents), note: pending.note }
+    : row;
   const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const attempt = useRef<{ key: string; id: string } | null>(null);
   const check = checkCafeExpenses([row]);
   const problem = row.amount.trim() === '' ? 'Type the amount.' : check.errors[0];
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setTried(true);
-    const line = check.send[0];
+    const line = pending ?? check.send[0];
     if (!line || saving) return;
-    const key = JSON.stringify([orderNo, line]);
-    if (attempt.current?.key !== key) attempt.current = { key, id: crypto.randomUUID() };
+    if (!scope || !recovery) {
+      setError('Sign in as the owner before saving an expense.');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
-      await addCafeExpense(getClient(), { clientId: attempt.current.id, orderNo, ...line });
-      attempt.current = null;
-      onSaved();
+      const locked = await recovery.withWriter(async () => {
+        if (getWriteScope() !== scope) return;
+        const stored = recovery.read();
+        if (stored?.clientId !== pending?.clientId) {
+          setPending(stored);
+          setError('Another tab changed this expense. Check it before saving.');
+          return;
+        }
+        const request: PendingCafeExpense = stored ?? {
+          ...line,
+          orderNo,
+          clientId: crypto.randomUUID()
+        };
+        if (!stored) recovery.keep(request);
+        setPending(request);
+        try {
+          await addCafeExpense(getClient(), request);
+        } catch (e) {
+          if (e instanceof CafeSaleRefused && e.requestRejected) {
+            recovery.clear();
+            setRow({
+              category: request.category,
+              amount: cafePesosText(request.amountCents),
+              note: request.note
+            });
+            setPending(null);
+          }
+          throw e;
+        }
+        recovery.clear();
+        if (getWriteScope() === scope) onSaved();
+      });
+      if (!locked)
+        setError(
+          'Use the tab already saving this expense, or try again in a browser that can keep saves in order.'
+        );
     } catch (e) {
       setError(
         e instanceof CafeSaleRefused
           ? e.message
           : e instanceof CafePricesUnavailable
             ? 'Café expenses need the next database update.'
-            : 'The expense was not saved. Try again.'
+            : 'Check that this browser can keep the expense, then try the same save again.'
       );
     } finally {
       setSaving(false);
@@ -368,14 +422,29 @@ function ExpenseForm({
       className="mt-1 flex flex-col gap-2 rounded-control border border-line p-3"
     >
       {error ? <Banner tone="danger" title={error} /> : null}
+      {restored.unreadable ? (
+        <Banner
+          tone="danger"
+          title="This browser could not read the earlier expense. Check the café log before trying on another device."
+        />
+      ) : pending && !saving ? (
+        <Banner
+          tone="warn"
+          title="A previous save needs confirmation. Save this same expense again to check it."
+        />
+      ) : null}
       <div className="grid gap-2 sm:grid-cols-3">
         <label className="flex min-w-0 flex-col gap-1.5">
           <span className="text-label font-semibold text-ink-soft">Expense category</span>
           <select
-            value={row.category}
+            value={shown.category}
             onChange={(e) => setRow({ ...row, category: e.target.value })}
+            disabled={saving || !!pending}
             className={SELECT_CLASS}
           >
+            {pending && !categories.includes(shown.category) ? (
+              <option value={shown.category}>{shown.category}</option>
+            ) : null}
             {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -386,25 +455,27 @@ function ExpenseForm({
         <OwnerField
           label="Expense amount (₱)"
           inputMode="decimal"
-          value={row.amount}
+          value={shown.amount}
+          disabled={saving || !!pending}
           autoComplete="off"
           onChange={(e) => setRow({ ...row, amount: e.target.value })}
         />
         <OwnerField
           label="Expense note"
-          value={row.note}
+          value={shown.note}
+          disabled={saving || !!pending}
           maxLength={120}
           autoComplete="off"
           onChange={(e) => setRow({ ...row, note: e.target.value })}
         />
       </div>
-      {tried && problem ? (
+      {tried && !pending && problem ? (
         <span role="alert" className="text-caption text-danger">
           {problem}
         </span>
       ) : null}
       <div className="flex gap-2">
-        <Button type="submit" variant="primary" size="sm" disabled={saving}>
+        <Button type="submit" variant="primary" size="sm" disabled={saving || restored.unreadable}>
           {saving ? 'Saving…' : 'Save expense'}
         </Button>
         <Button variant="ghost" size="sm" onClick={onCancel} disabled={saving}>

@@ -19,7 +19,7 @@ describe('safe sign-in destination', () => {
         )
         .map((entry) => '/' + entry.name)
     ];
-    expect(pages).toHaveLength(25);
+    expect(pages).toHaveLength(26);
     for (const page of pages) expect(safeReturnPath(page)).toBe(page);
     expect(safeReturnPath('/sign-in')).toBe('/');
   });

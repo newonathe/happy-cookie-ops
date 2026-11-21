@@ -953,3 +953,24 @@ select public.apply_identity_links(public.preview_identity_links() -> 'counts');
 delivery bytes (`IDENTITY_SEED_REVERSALS`, applied first). The generator's header comment and
 one section rule were also put back to the committed seed's text, so a regeneration now differs
 from the reviewed seed by this block only. No row of the seed changed.
+
+# Café screen key: engine exception — APPROVED 2026-11-20, applied the same day
+
+Ethan (20 November 2026): the café sale log gets its own owner page, "not a bazaar mode". The page is a live-only screen with no
+ported counterpart, so it needs a screen key of its own. Ethan was asked whether to approve the engine word and replied "or decide
+on", delegating the decision; the orchestrating session decided yes and relayed it (recorded here as it was relayed, not as Ethan's
+own words).
+
+- **The one engine edit:** `'cafe'` inserted after `'bazaar'` in `const SCREENS` (`src/store/engine/ops-engine.js`, line 171). The
+  engine only uses the list to know which keys exist (`screens: SCREENS.reduce(...)`); nothing in the demo draws the key, and no
+  behaviour changes. `tests/unit/screens.test.ts` ties it to `SCREEN_KEYS` in `src/lib/screens.ts`, which gains the same word.
+- **How the edit was made:** the `PreToolUse` hook blocks every edit to `ops-engine.js` pending a human decision; this is that
+  decision, so the word was added by `git apply` of the checked patch (`docs/state/cafe-tab/engine-screens.patch`, now removed),
+  not by switching the hook off.
+- **Reversal for the G0 check:** `CAFE_SCREEN_REVERSALS` in `scripts/validate-g0.py` turns the word back before the engine's
+  delivery bytes are compared. `scripts/port-baseline.json` does not fingerprint the engine, so `check-port-integrity` passes
+  without `--update`.
+- **The rest (no protected path):** the Café tab and place in `src/lib/nav/function-map.ts` after Bazaar, the `/cafe` route, the live
+  registration, a cup icon on the dock, and the "Café sales" button removed from Sell → Orders.
+- **Reversal:** delete the word, the reversal and the registration.
+- **Evidence:** `tests/unit/screens.test.ts`, `pnpm verify`, `python scripts/validate-g0.py`, and the browser check recorded in the PR.

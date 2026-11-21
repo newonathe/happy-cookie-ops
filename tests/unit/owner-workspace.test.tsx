@@ -75,7 +75,7 @@ it('opens the product form as a page in the frame, with the existing form and cl
   expect(close).toHaveBeenCalledTimes(1);
 });
 
-it('shows the approved six destinations and real brand asset, with direct Account', () => {
+it('shows the approved seven destinations and real brand asset, with direct Account', () => {
   const runtime = mount();
   expect(document.querySelector('[data-refined-frame]')).toBeTruthy();
   const nav = screen.getByRole('navigation', { name: 'Main navigation' });
@@ -83,7 +83,7 @@ it('shows the approved six destinations and real brand asset, with direct Accoun
     within(nav)
       .getAllByRole('button')
       .map((b) => b.textContent?.replace(/\d+/g, ''))
-  ).toEqual(['Home', 'Bazaar', 'Sell', 'Make', 'Stock', 'Money']);
+  ).toEqual(['Home', 'Bazaar', 'Café', 'Sell', 'Make', 'Stock', 'Money']);
   expect(document.querySelector('img')?.getAttribute('src')).toBe('/assets/mark.png');
   fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
   expect(runtime.state.screen).toBe('notifications');
