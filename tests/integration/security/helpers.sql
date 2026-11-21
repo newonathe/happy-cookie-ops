@@ -287,14 +287,22 @@ begin
   -- Raw tables are closed to a helper too: no policy on these lets anyone but the owner in (the check does not depend on rows existing).
   if exists (select 1 from pg_policies where schemaname = 'public'
               and tablename = any (array['orders', 'order_items', 'inventory_items', 'recipes', 'recipe_ingredients', 'suppliers',
-                'supplier_prices', 'event_sales', 'event_sale_items', 'events', 'bake_batches', 'ledger_entries', 'profiles'])
+                'supplier_prices', 'event_sale_items', 'events', 'bake_batches', 'ledger_entries', 'profiles'])
               and policyname not in ('own profile', 'orders public insert', 'order items public insert')
               and position('is_owner' in coalesce(qual, '') || coalesce(with_check, '')) = 0) then
     raise exception 'HELPERS a table a helper must not reach has a policy that is not the owner''s: %',
       (select string_agg(tablename || '/' || policyname, ', ') from pg_policies where schemaname = 'public'
         and tablename = any (array['orders', 'order_items', 'inventory_items', 'recipes', 'recipe_ingredients', 'suppliers',
-          'supplier_prices', 'event_sales', 'event_sale_items', 'events', 'bake_batches', 'ledger_entries', 'profiles'])
+          'supplier_prices', 'event_sale_items', 'events', 'bake_batches', 'ledger_entries', 'profiles'])
         and policyname not in ('own profile', 'orders public insert', 'order items public insert') and position('is_owner' in coalesce(qual, '') || coalesce(with_check, '')) = 0);
+  end if;
+  -- S4 (migration 098): event_sales is the one table of these a helper may read, for the day that is open now and no other (the live
+  -- change feed needs the read). Its policy says so by name; bazaar-live-sync.sql proves who reads which rows.
+  if (select count(*) from pg_policies where schemaname = 'public' and tablename = 'event_sales' and cmd = 'SELECT'
+        and position('bazaar_event_readable' in coalesce(qual, '')) > 0) <> 1
+     or exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'event_sales' and cmd <> 'SELECT'
+        and position('is_owner' in coalesce(qual, '') || coalesce(with_check, '')) = 0) then
+    raise exception 'HELPERS event_sales is read by a policy that is not the open-day rule';
   end if;
   -- And the rows themselves answer nothing (RLS answers no rows, never data).
   perform pg_temp.act(ha);
@@ -303,8 +311,8 @@ begin
   if n <> 0 then raise exception 'HELPERS a helper reads orders'; end if;
   select count(*) into n from public.inventory_items;
   if n <> 0 then raise exception 'HELPERS a helper reads stock'; end if;
-  select count(*) into n from public.event_sales;
-  if n <> 0 then raise exception 'HELPERS a helper reads sales directly'; end if;
+  select count(*) into n from public.event_sales where event_id is distinct from ev;
+  if n <> 0 then raise exception 'HELPERS a helper reads the sales of a day that is not open'; end if;
   select count(*) into n from public.ledger_entries;
   if n <> 0 then raise exception 'HELPERS a helper reads the ledger directly'; end if;
   select count(*) into n from public.profiles;

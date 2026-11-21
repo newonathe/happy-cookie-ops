@@ -2821,7 +2821,9 @@ export type Database = {
       }
       bazaar_day_access: { Args: { p_day: string }; Returns: boolean }
       bazaar_day_open: { Args: { p_day: string }; Returns: boolean }
+      bazaar_day_readable: { Args: { p_day: string }; Returns: boolean }
       bazaar_event_open: { Args: { p_event: string }; Returns: boolean }
+      bazaar_event_readable: { Args: { p_event: string }; Returns: boolean }
       bazaar_held_ledger: {
         Args: never
         Returns: {

@@ -85,6 +85,7 @@ import {
   type CommandKind
 } from '@/lib/offline/queue';
 import { mergeDay, type LocalDaySale } from '@/lib/bazaar/day-merge';
+import { canWatchDay, watchDay, type LiveDay } from '@/lib/bazaar/live-day';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
 import {
   readCountRecovery,
@@ -2552,7 +2553,7 @@ export class OpsRuntime extends OpsProvider {
    * S2: the day this till sells, read again from the server and rebuilt: sales rung on any of her devices, voids, losses,
    * added stock and the table stock, with this phone's unsent sales and voids laid on top (`mergeDay`). Read when the till
    * opens, after a sync, when the phone comes back online or to the front, and when the day is confirmed. A read that
-   * could not be made, or a closed day (`confirmHeldDay` lets go of it), changes nothing. If a sale is rung, voided or a
+   * could not be made changes nothing. A confirmed closure pauses selling while the queue is reconciled. If a sale is rung, voided or a
    * stock move lands while the read is in flight, it is read again rather than put over that change.
    */
   private dayReading = false;
@@ -2575,21 +2576,51 @@ export class OpsRuntime extends OpsProvider {
     this.dayReadAt = Date.now();
     const client = (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null;
     if (!client) return;
+    const { dayId, id } = event;
+    const identity = this.staffIdentity;
+    const role = this.state.role;
+    const current = () => {
+      const held = this.state.event as LiveEvent | null;
+      return (
+        !this.unmounted &&
+        this.staffIdentity === identity &&
+        this.state.role === role &&
+        held?.dayId === dayId &&
+        held.id === id
+      );
+    };
     this.dayReading = true;
     try {
       for (let attempt = 0; attempt < 3; attempt += 1) {
         const edits = this.tillEdits;
-        const read = await fetchBazaarDay(client, event.dayId);
-        if (!read.ok || this.unmounted || read.day.status !== 'open' || !read.day.eventId) return;
+        const read = await fetchBazaarDay(client, dayId);
+        if (!current()) return;
+        let confirmedClosed = read.ok && read.day.eventId === id && read.day.status === 'closed';
+        if (!read.ok && read.reason === 'refused' && role === 'helper') {
+          // A helper loses read access when a day closes. The open-day lookup can confirm closure without widening RLS.
+          const open = await fetchOpenBazaarDay(client);
+          if (!current()) return;
+          if (open.ok && open.day?.dayId !== dayId) {
+            confirmedClosed = true;
+            if (!open.day) this.helperDay = { phase: 'none' };
+          }
+        }
+        if (confirmedClosed) {
+          this.setCloseInDoubt(dayId);
+          await this.dropClosedDay(dayId, current);
+          return;
+        }
+        if (!read.ok || read.day.eventId !== id || read.day.status !== 'open') return;
         const eventId = read.day.eventId;
         const layer = await this.localDayLayer(eventId);
-        if (this.unmounted || edits !== this.tillEdits) continue;
+        if (!current()) return;
+        if (edits !== this.tillEdits) continue;
         await new Promise<void>((resolve) => {
           // Resolves once the till shows the day (or soon after, should React skip the callback).
           setTimeout(resolve, 300);
           this.setState((s) => {
             const now = s.event as LiveEvent | null;
-            if (now?.dayId !== read.day.dayId || now.id !== eventId) return null;
+            if (!current() || now?.dayId !== read.day.dayId || now.id !== eventId) return null;
             // A sale on screen that the queue does not hold yet (its copy into IndexedDB is asynchronous) is this phone's too.
             const known = new Set(layer.sales.map((x) => x.clientId));
             const onScreen: LocalDaySale[] = (
@@ -2631,7 +2662,63 @@ export class OpsRuntime extends OpsProvider {
       // The till is left as it was: the queue still holds everything this phone has not sent.
     } finally {
       this.dayReading = false;
+      // S4: a change was heard while this read was out, so it may predate it: read again.
+      if (this.dayReadAgain && !this.unmounted) {
+        this.dayReadAgain = false;
+        void this.refreshHeldDay({ force: true });
+      }
     }
+  }
+
+  /**
+   * S4 (20 November 2026): the held day, live. While a started day is held by a signed-in owner or helper with signal, one
+   * subscription listens to that day's sales, voids, stock adds and losses (`watchDay`) and, after a burst settles, reads the
+   * day again through `refreshHeldDay`: the same server read and queue merge as when the day was opened. A change is never
+   * applied itself and the queue is never touched here. The subscription follows the day: another day, no day, no signal,
+   * no signed-in staff identity, a customer page or an unmount closes it; the database refuses anyone else the rows anyway.
+   */
+  private liveDay: { key: string; watch: LiveDay } | null = null;
+  private dayReadAgain = false;
+  private liveDayHeard = (): void => {
+    if (this.unmounted) return;
+    if (this.dayReading) this.dayReadAgain = true;
+    else void this.refreshHeldDay({ force: true });
+  };
+  private closeLiveDay(): void {
+    this.liveDay?.watch.close();
+    this.liveDay = null;
+  }
+  private syncLiveDay(): void {
+    const event = this.state.event as LiveEvent | null;
+    const role = this.state.role;
+    const client = this.salesTarget();
+    const identity = this.staffIdentity;
+    if (
+      this.unmounted ||
+      !isLiveMode() ||
+      !this.state.online ||
+      !identity ||
+      (role !== 'owner' && role !== 'helper') ||
+      CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) ||
+      !event?.dayId ||
+      !isEventUuid(event.id) ||
+      !canWatchDay(client)
+    ) {
+      this.closeLiveDay();
+      return;
+    }
+    const key = `${identity.userId}|${role}|${event.dayId}|${event.id}`;
+    if (this.liveDay?.key === key && this.liveDay.watch.active) return;
+    this.closeLiveDay();
+    this.liveDay = {
+      key,
+      watch: watchDay({
+        client,
+        eventId: event.id,
+        dayId: event.dayId,
+        onChange: this.liveDayHeard
+      })
+    };
   }
 
   /**
@@ -3039,6 +3126,7 @@ export class OpsRuntime extends OpsProvider {
     )
       return;
     this.staffIdentity = scope;
+    if (!scope) this.closeLiveDay();
     this.clearOrderRead();
     this.retireOperationsHealth();
     this.staffNameLoadSeq += 1;
@@ -3885,6 +3973,7 @@ export class OpsRuntime extends OpsProvider {
 
   componentWillUnmount(): void {
     document.removeEventListener('visibilitychange', this.onForeground);
+    this.closeLiveDay();
     this.clearOrderRead(false);
     this.flavourSync?.retire();
     this.retireOperationsHealth();
@@ -4092,6 +4181,7 @@ export class OpsRuntime extends OpsProvider {
       void this.refreshHeldDay({ force: true });
     }
     this.tillPricesShowing = tillShowing;
+    this.syncLiveDay();
   }
   private tillPricesShowing = false;
 

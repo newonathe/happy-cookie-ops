@@ -1,5 +1,5 @@
 {
-  "comment": "Every row-security policy in force before migration 20260101005700 (public schema, plus the four `shop media owner` policies this repo created on storage.objects), captured from pg_policies after `supabase db reset` at migration 57 with search_path \"$user\", public, extensions. Migration 58 restates the helper calls wrapped; tests/integration/security/policies.sql holds the database to these texts with each wrapper reduced back to the bare call. A policy added later must be added here.",
+  "comment": "Every row-security policy in force before migration 20260101005700 (public schema, plus the four `shop media owner` policies this repo created on storage.objects), captured from pg_policies after `supabase db reset` at migration 57 with search_path \"$user\", public, extensions. Migration 58 restates the helper calls wrapped; tests/integration/security/policies.sql holds the database to these texts with each wrapper reduced back to the bare call. A policy added later must be added here (S4, migration 098, restated the event_sales read policy for signed-in callers and the open-day helper and added two read policies; they are listed with their text as it is today).",
   "policies": [
     {
       "schemaname": "public",
@@ -78,8 +78,8 @@
       "tablename": "event_sales",
       "policyname": "sales staff read",
       "cmd": "SELECT",
-      "roles": ["public"],
-      "qual": "is_owner()",
+      "roles": ["authenticated"],
+      "qual": "( SELECT bazaar_event_readable(event_sales.event_id) AS bazaar_event_readable)",
       "with_check": null
     },
     {
@@ -360,6 +360,24 @@
       "roles": ["authenticated"],
       "qual": "((bucket_id = 'shop-media'::text) AND is_owner())",
       "with_check": "((bucket_id = 'shop-media'::text) AND is_owner() AND (name ~ '^(qr|flavours)/[A-Za-z0-9_-]{1,64}\\.(png|jpg|jpeg|webp)$'::text))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "bazaar_losses",
+      "policyname": "bazaar losses read",
+      "cmd": "SELECT",
+      "roles": ["authenticated"],
+      "qual": "( SELECT bazaar_day_readable(bazaar_losses.day_id) AS bazaar_day_readable)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "bazaar_stock_adds",
+      "policyname": "bazaar stock adds read",
+      "cmd": "SELECT",
+      "roles": ["authenticated"],
+      "qual": "( SELECT bazaar_day_readable(bazaar_stock_adds.day_id) AS bazaar_day_readable)",
+      "with_check": null
     }
   ]
 }
